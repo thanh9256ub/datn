@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -29,6 +30,6 @@ public class LichSuDonHang {
     private DonHang donHang;
     private String bieu_tuong;
     private String mo_ta;
-    private LocalDate thoi_gian_thay_doi;
+    private LocalDateTime thoi_gian_thay_doi;
 
 }

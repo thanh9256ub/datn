@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -25,7 +26,7 @@ public class NhanVien {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String ma_nhan_vien;
-    private String ho_;
+    private String ho_ten;
     private String gioi_tinh;
     private LocalDate ngay_sinh;
     private String sdt;
@@ -36,8 +37,8 @@ public class NhanVien {
     @ManyToOne
     @JoinColumn(name = "id_vai_tro")
     private VaiTro vaiTro;
-    private LocalDate ngay_tao;
-    private LocalDate ngay_cap_nhat;
+    private LocalDateTime ngay_tao;
+    private LocalDateTime ngay_cap_nhat;
     private Integer trang_thai;
 
 

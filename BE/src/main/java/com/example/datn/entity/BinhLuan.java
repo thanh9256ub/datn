@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -31,5 +32,5 @@ public class BinhLuan {
     @JoinColumn(name = "id_chi_tiet_san_pham")
     private ChiTietSanPham chiTietSanPham;
     private String noi_dung;
-    private LocalDate ngay_tao;
+    private LocalDateTime ngay_tao;
 }

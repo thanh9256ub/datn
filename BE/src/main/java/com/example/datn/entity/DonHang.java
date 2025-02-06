@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -35,18 +36,18 @@ public class DonHang {
     private String sdt;
     private String dia_chi;
     private String ghi_chu;
-    private Float phi_van_chuyen;
-    private Float gia_tro_giam;
-    private Float tong_gia;
-    private Float tong_thanh_toan;
+    private Double phi_van_chuyen;
+    private Double gia_tri_giam;
+    private Double tong_gia;
+    private Double tong_thanh_toan;
     @ManyToOne
     @JoinColumn(name = "id_hinh_thuc_thanh_toan")
     private HinhThucThanhToan hinhThucThanhToan;
     @ManyToOne
-    @JoinColumn(name = "id_phuong_thuc_thanh_toam")
+    @JoinColumn(name = "id_phuong_thuc_thanh_toan")
     private PhuongThucThanhToan phuongThucThanhToan;
     private Integer trang_thai;
-    private LocalDate ngay_tao;
-    private LocalDate ngay_cap_nhat;
+    private LocalDateTime ngay_tao;
+    private LocalDateTime ngay_cap_nhat;
 
 }

@@ -22,5 +22,5 @@ public class VaiTro {
     private Integer id;
     private String ma_vai_tro;
     private String ten_vai_tro;
-    private String mo_ta;
+    private String trang_thai;
 }

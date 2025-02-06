@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -31,8 +32,8 @@ public class ChiTietGioHang {
     @JoinColumn(name = "id_chi_tiet_san_pham")
     private ChiTietSanPham chiTietSanPham;
     private Integer so_luong;
-    private Float gia;
-    private Float tong_tien;
-    private LocalDate ngay_tao;
-    private LocalDate ngay_cap_nhat;
+    private Double gia;
+    private Double tong_tien;
+    private LocalDateTime ngay_tao;
+    private LocalDateTime ngay_cap_nhat;
 }

@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -27,7 +28,7 @@ public class GioHang {
     @ManyToOne
     @JoinColumn(name = "id_khach_hang")
     private KhachHang khachHang;
-    private Float tong_tien;
-    private LocalDate ngay_tao;
+    private Double tong_tien;
+    private LocalDateTime ngay_tao;
     private Integer trang_thai;
 }

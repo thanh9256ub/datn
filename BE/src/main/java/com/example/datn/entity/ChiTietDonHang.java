@@ -29,8 +29,8 @@ public class ChiTietDonHang {
     @JoinColumn(name = "id_chi_tiet_san_pham")
     private ChiTietSanPham chiTietSanPham;
     private Integer so_luong;
-    private Float gia;
-    private Float tong_gia;
+    private Double gia;
+    private Double tong_gia;
     private Integer trang_thai;
     private Integer trang_thai_san_pham;
 

@@ -26,13 +26,13 @@ public class KhuyenMai {
     private String ma_khuyen_mai;
     private String ten_khuyen_mai;
     private String dieu_kien;
-    private Float gia_tri_giam;
+    private Double gia_tri_giam;
     private Integer so_luong;
     private LocalDateTime ngay_bat_dau;
     private LocalDateTime ngay_ket_thuc;
-    private Float gia_tri_giam_toi_da;
+    private Double gia_tri_giam_toi_da;
     private String kieu_giam_gia;
     private String trang_thai;
-    private LocalDate ngay_tao;
-    private LocalDate ngay_cap_nhat;
+    private LocalDateTime ngay_tao;
+    private LocalDateTime ngay_cap_nhat;
 }
