@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -29,8 +30,8 @@ public class KhachHang {
     private String sdt;
     private String email;
     private String mat_khau;
-    private LocalDate ngay_tao;
-    private LocalDate ngay_cap_nhat;
+    private LocalDateTime ngay_tao;
+    private LocalDateTime ngay_cap_nhat;
     @ManyToOne
     @JoinColumn(name = "id_vai_tro")
     private VaiTro vaiTro;

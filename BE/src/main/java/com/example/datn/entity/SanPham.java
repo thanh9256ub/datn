@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -37,7 +38,7 @@ public class SanPham {
     private ChatLieu chatLieu;
     private String hinh_anh_chinh;
     private Integer tong_so_luong;
-    private LocalDate ngay_tao;
-    private LocalDate ngay_cap_nhat;
+    private LocalDateTime ngay_tao;
+    private LocalDateTime ngay_cap_nhat;
 
 }
