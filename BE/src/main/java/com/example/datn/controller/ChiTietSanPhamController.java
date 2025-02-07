@@ -11,10 +11,12 @@ import java.util.List;
 @RestController
 
 public class ChiTietSanPhamController {
-@Autowired
+
+    @Autowired
     private ChiTietSanPhamService chiTietSanPhamService;
-@GetMapping("/listCTSP")
+
+    @GetMapping("/listCTSP")
     public List<ChiTietSanPham> listCTSP(){
-    return chiTietSanPhamService.getListCTSP();
-}
+        return chiTietSanPhamService.getListCTSP();
+    }
 }

@@ -1,16 +1,8 @@
 package com.example.datn.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,24 +13,40 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "san_pham")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class SanPham {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    private String ma_san_pham;
-    private String ten_san_pham;
+    Integer id;
+
+    @Column(name = "ma_san_pham")
+    String maSanPham;
+
+    @Column(name = "ten_san_pham")
+    String tenSanPham;
+
     @ManyToOne
     @JoinColumn(name = "id_thuong_hieu")
-    private ThuongHieu thuongHieu;
+    ThuongHieu thuongHieu;
+
     @ManyToOne
     @JoinColumn(name = "id_danh_muc")
-    private DanhMuc danhMuc;
+    DanhMuc danhMuc;
+
     @ManyToOne
     @JoinColumn(name = "id_chat_lieu")
-    private ChatLieu chatLieu;
-    private String hinh_anh_chinh;
-    private Integer tong_so_luong;
-    private LocalDateTime ngay_tao;
-    private LocalDateTime ngay_cap_nhat;
+    ChatLieu chatLieu;
+
+    @Column(name = "hinh_anh_chinh")
+    String hinhAnhChinh;
+
+    @Column(name = "tongSoLuong")
+    Integer tongSoLuong;
+
+    @Column(name = "ngay_tao")
+    LocalDateTime ngayTao;
+
+    @Column(name = "ngayCapNhat")
+    LocalDateTime ngayCapNhat;
 
 }
