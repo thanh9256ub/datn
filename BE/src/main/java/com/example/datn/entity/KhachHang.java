@@ -22,16 +22,25 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "khach_hang")
 public class KhachHang {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     private String ho_ten;
+
     private String gioi_tinh;
+
     private String sdt;
+
     private String email;
+
     private String mat_khau;
+
     private LocalDateTime ngay_tao;
+
     private LocalDateTime ngay_cap_nhat;
+
     @ManyToOne
     @JoinColumn(name = "id_vai_tro")
     private VaiTro vaiTro;

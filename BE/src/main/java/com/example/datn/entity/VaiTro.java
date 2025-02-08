@@ -17,10 +17,14 @@ import lombok.Setter;
 @Entity
 @Table(name = "vai_tro")
 public class VaiTro {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     private String ma_vai_tro;
+
     private String ten_vai_tro;
+
     private String trang_thai;
 }

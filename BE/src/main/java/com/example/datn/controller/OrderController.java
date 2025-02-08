@@ -1,6 +1,6 @@
 package com.example.datn.controller;
 
-import com.example.datn.entity.DonHang;
+import com.example.datn.entity.Order;
 import com.example.datn.service.DonHangService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,11 +10,11 @@ import java.util.List;
 
 @RestController
 
-public class DonHangController {
+public class OrderController {
     @Autowired
     private DonHangService donHangService;
-    @GetMapping("/listDH")
-    public List<DonHang>listDH(){
+    @GetMapping("/api/listDH")
+    public List<Order>listDH(){
         return donHangService.getListDH();
     }
 }
