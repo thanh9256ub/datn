@@ -1,11 +1,8 @@
 package com.example.datn.dto.request;
 
-import com.example.datn.entity.ChatLieu;
-import com.example.datn.entity.DanhMuc;
-import com.example.datn.entity.ThuongHieu;
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import com.example.datn.entity.Material;
+import com.example.datn.entity.Category;
+import com.example.datn.entity.Brand;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,11 +23,11 @@ public class SanPhamRequest {
 
     String tenSanPham;
 
-    ThuongHieu thuongHieu;
+    Brand thuongHieu;
 
-    DanhMuc danhMuc;
+    Category category;
 
-    ChatLieu chatLieu;
+    Material material;
 
     String hinhAnhChinh;
 
