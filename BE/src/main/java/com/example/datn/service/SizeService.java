@@ -26,29 +26,29 @@ public class SizeService {
 
     public SizeResponse createSize(SizeRequest request){
 
-        Size size = mapper.toSize(request);
+        Size brand = mapper.toSize(request);
 
-        Size created = repository.save(size);
+        Size created = repository.save(brand);
 
         return mapper.toSizeResponse(created);
     }
 
     public SizeResponse getSizeById(Integer id){
 
-        Size size = repository.findById(id).orElseThrow(
+        Size brand = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Size id is not exists with given id: " + id));
 
-        return mapper.toSizeResponse(size);
+        return mapper.toSizeResponse(brand);
     }
 
     public SizeResponse updateSize(Integer id, SizeRequest request){
 
-        Size size = repository.findById(id).orElseThrow(
+        Size brand = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Size id is not exists with given id: " + id));
 
-        mapper.updateSize( size, request);
+        mapper.updateSize( brand, request);
 
-        return mapper.toSizeResponse(repository.save(size));
+        return mapper.toSizeResponse(repository.save(brand));
     }
 
     public void deleteSize(Integer id){

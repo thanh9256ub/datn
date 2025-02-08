@@ -6,13 +6,11 @@ import com.example.datn.entity.Brand;
 import com.example.datn.exception.ResourceNotFoundException;
 import com.example.datn.mapper.BrandMapper;
 import com.example.datn.repository.BrandRepository;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Service
@@ -32,9 +30,7 @@ public class BrandService {
 
         Brand brand = mapper.toBrand(request);
 
-        Brand created = repository.save(brand);
-
-        return mapper.toBrandResponse(created);
+        return mapper.toBrandResponse(repository.save(brand));
     }
 
     public BrandResponse getBrandById(Integer id){

@@ -26,29 +26,29 @@ public class MaterialService {
 
     public MaterialResponse createMaterial(MaterialRequest request){
 
-        Material material = mapper.toMaterial(request);
+        Material brand = mapper.toMaterial(request);
 
-        Material created = repository.save(material);
+        Material created = repository.save(brand);
 
         return mapper.toMaterialResponse(created);
     }
 
     public MaterialResponse getMaterialById(Integer id){
 
-        Material material = repository.findById(id).orElseThrow(
+        Material brand = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Material id is not exists with given id: " + id));
 
-        return mapper.toMaterialResponse(material);
+        return mapper.toMaterialResponse(brand);
     }
 
     public MaterialResponse updateMaterial(Integer id, MaterialRequest request){
 
-        Material material = repository.findById(id).orElseThrow(
+        Material brand = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Material id is not exists with given id: " + id));
 
-        mapper.updateMaterial( material, request);
+        mapper.updateMaterial( brand, request);
 
-        return mapper.toMaterialResponse(repository.save(material));
+        return mapper.toMaterialResponse(repository.save(brand));
     }
 
     public void deleteMaterial(Integer id){
