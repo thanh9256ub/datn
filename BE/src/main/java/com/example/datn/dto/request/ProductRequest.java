@@ -1,59 +1,48 @@
-package com.example.datn.entity;
+package com.example.datn.dto.request;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
+import com.example.datn.entity.Brand;
+import com.example.datn.entity.Category;
+import com.example.datn.entity.Material;
+import jakarta.persistence.Column;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @NoArgsConstructor
-@Entity
-@Table(name = "product")
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Integer id;
+public class ProductRequest {
 
-    @Column(name = "product_code")
     @NotBlank(message = "Product code is required")
     String productCode;
 
-    @Column(name = "product_name")
     @NotBlank(message = "Product name is required")
     String productName;
 
-    @ManyToOne
-    @JoinColumn(name = "brand_id")
     @NotNull(message = "Brand ID is required")
     Brand brand;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
     @NotNull(message = "Category ID is required")
     Category category;
 
-    @ManyToOne
-    @JoinColumn(name = "material_id")
     @NotNull(message = "Material ID is required")
     Material material;
 
-    @Column(name = "main_image")
     @NotBlank(message = "Main image is required")
     String mainImage;
 
-    @Column(name = "total_quantity")
     Integer totalQuantity = 0;
 
-    @Column(name = "created_at")
     LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "updated_at")
     LocalDateTime updatedAt = null;
 }

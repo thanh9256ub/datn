@@ -1,9 +1,9 @@
 package com.example.datn.repository;
 
-import com.example.datn.entity.Color;
+import com.example.datn.entity.Material;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface MauSacRepository extends JpaRepository<Color,Integer> {
+public interface MaterialRepository extends JpaRepository<Material,Integer> {
 }
