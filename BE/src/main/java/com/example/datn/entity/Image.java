@@ -9,19 +9,19 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "hinh_anh")
+@Table(name = "image")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class HinhAnh {
+public class Image {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "id_sp_ms")
-    SanPhamMauSac sanPhamMauSac;
+    @JoinColumn(name = "product_color_id")
+    ProductColor productColor;
 
-    @Column(name = "hinh_anh")
-    String hinhAnh;
+    @Column(name = "image")
+    String image;
 
 }

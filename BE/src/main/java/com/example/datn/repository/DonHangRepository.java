@@ -1,9 +1,9 @@
 package com.example.datn.repository;
 
-import com.example.datn.entity.DonHang;
+import com.example.datn.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface DonHangRepository extends JpaRepository<DonHang,Integer> {
+public interface DonHangRepository extends JpaRepository<Order,Integer> {
 }

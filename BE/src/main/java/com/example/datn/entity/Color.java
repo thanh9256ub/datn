@@ -16,11 +16,15 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "mau_sac")
-public class MauSac {
+public class Color {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     private String ma_mau_sac;
+
     private String ten_mau_sac;
+
     private String mo_ta;
 }

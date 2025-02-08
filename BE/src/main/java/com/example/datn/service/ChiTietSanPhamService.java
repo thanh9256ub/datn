@@ -10,10 +10,11 @@ import java.util.List;
 
 @Service
 public class ChiTietSanPhamService {
+
     @Autowired
     private ChiTietSanPhamRepository chiTietSanPhamRepository;
 
-    public List<ChiTietSanPham>getListCTSP(){
+    public List<ChiTietSanPham> getListCTSP() {
         return chiTietSanPhamRepository.findAll();
     }
 }
