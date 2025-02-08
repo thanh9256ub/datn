@@ -9,20 +9,22 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "thuong_hieu")
+@Table(name = "product_color")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ThuongHieu {
+public class ProductColor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "ma_thuong_hieu")
-    String maThuongHieu;
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    Product product;
 
-    @Column(name = "ten_thuong_hieu")
-    String tenThuongHieu;
+    @ManyToOne
+    @JoinColumn(name = "color_id")
+    Color color;
 
-    @Column(name = "mo_ta")
-    String moTa;
+    @Column(name = "description")
+    String description;
 }

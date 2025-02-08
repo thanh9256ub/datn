@@ -16,7 +16,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "mau_sac")
-public class MauSac {
+public class Color {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

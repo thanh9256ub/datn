@@ -1,10 +1,6 @@
 package com.example.datn.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,18 +13,21 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "danh_muc")
+@Table(name = "category")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
-public class DanhMuc {
+public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    String ma_danh_muc;
+    @Column(name = "category_code")
+    String categoryCode;
 
-    String ten_danh_muc;
+    @Column(name = "category_name")
+    String categoryName;
 
-    String mo_ta;
+    @Column(name = "decsription")
+    String description;
 }

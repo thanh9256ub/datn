@@ -1,8 +1,8 @@
 package com.example.datn.dto.response;
 
-import com.example.datn.entity.ChatLieu;
-import com.example.datn.entity.DanhMuc;
-import com.example.datn.entity.ThuongHieu;
+import com.example.datn.entity.Material;
+import com.example.datn.entity.Category;
+import com.example.datn.entity.Brand;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,11 +23,11 @@ public class SanPhamResponse {
 
     String tenSanPham;
 
-    ThuongHieu thuongHieu;
+    Brand thuongHieu;
 
-    DanhMuc danhMuc;
+    Category category;
 
-    ChatLieu chatLieu;
+    Material material;
 
     String hinhAnhChinh;
 
