@@ -10,9 +10,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ThuongHieuRequest {
-
-    private Integer id;
+public class BrandRequest {
 
     private String maThuongHieu;
 
