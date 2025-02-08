@@ -31,6 +31,6 @@ public class Category {
         @NotBlank(message = "Category code is required")
     String categoryName;
 
-    @Column(name = "decsription")
+    @Column(name = "description")
     String description;
 }

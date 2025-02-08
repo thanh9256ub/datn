@@ -26,29 +26,29 @@ public class CategoryService {
 
     public CategoryResponse createCategory(CategoryRequest request){
 
-        Category category = mapper.toCategory(request);
+        Category brand = mapper.toCategory(request);
 
-        Category created = repository.save(category);
+        Category created = repository.save(brand);
 
         return mapper.toCategoryResponse(created);
     }
 
     public CategoryResponse getCategoryById(Integer id){
 
-        Category category = repository.findById(id).orElseThrow(
+        Category brand = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Category id is not exists with given id: " + id));
 
-        return mapper.toCategoryResponse(category);
+        return mapper.toCategoryResponse(brand);
     }
 
     public CategoryResponse updateCategory(Integer id, CategoryRequest request){
 
-        Category category = repository.findById(id).orElseThrow(
+        Category brand = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Category id is not exists with given id: " + id));
 
-        mapper.updateCategory( category, request);
+        mapper.updateCategory( brand, request);
 
-        return mapper.toCategoryResponse(repository.save(category));
+        return mapper.toCategoryResponse(repository.save(brand));
     }
 
     public void deleteCategory(Integer id){

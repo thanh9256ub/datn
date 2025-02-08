@@ -23,11 +23,11 @@ public class ProductResponse {
 
     String productName;
 
-    Brand brand;
+    String brandName;
 
-    Category category;
+    String categoryName;
 
-    Material material;
+    String materialName;
 
     String mainImage;
 

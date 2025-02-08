@@ -29,20 +29,20 @@ public class ProductRequest {
     String productName;
 
     @NotNull(message = "Brand ID is required")
-    Brand brand;
+    Integer brandId;
 
     @NotNull(message = "Category ID is required")
-    Category category;
+    Integer categoryId;
 
     @NotNull(message = "Material ID is required")
-    Material material;
+    Integer materialId;
 
     @NotBlank(message = "Main image is required")
     String mainImage;
 
-    Integer totalQuantity = 0;
-
-    LocalDateTime createdAt = LocalDateTime.now();
-
-    LocalDateTime updatedAt = null;
+//    Integer totalQuantity = 0;
+//
+//    LocalDateTime createdAt = LocalDateTime.now();
+//
+//    LocalDateTime updatedAt = null;
 }
