@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -22,14 +21,19 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "lich_su_don_hang")
 public class LichSuDonHang {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     @ManyToOne
     @JoinColumn(name = "id_don_hang")
-    private DonHang donHang;
+    private Order order;
+
     private String bieu_tuong;
+
     private String mo_ta;
+
     private LocalDateTime thoi_gian_thay_doi;
 
 }

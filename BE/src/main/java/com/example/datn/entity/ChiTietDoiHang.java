@@ -7,10 +7,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
@@ -18,22 +20,32 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "chi_tiet_doi_hang")
+@FieldDefaults(level = AccessLevel.PRIVATE)
+
 public class ChiTietDoiHang {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    Integer id;
+
     @ManyToOne
     @JoinColumn(name = "id_doi_hang")
-    private DoiHang doiHang;
+    DoiHang doiHang;
+
     @ManyToOne
     @JoinColumn(name = "id_chi_tiet_san_pham_cu")
-    private ChiTietSanPham chiTietSanPhamCu;
+    ChiTietSanPham chiTietSanPhamCu;
+
     @ManyToOne
     @JoinColumn(name = "id_chi_tiet_san_pham_moi")
-    private ChiTietSanPham chiTietSanPhamMoi;
-    private Integer so_luong_cu;
-    private Integer so_luong_moi;
-    private String ly_do_doi;
-    private String trang_thai;
+    ChiTietSanPham chiTietSanPhamMoi;
+
+    Integer so_luong_cu;
+
+    Integer so_luong_moi;
+
+    String ly_do_doi;
+
+    String trang_thai;
 
 }

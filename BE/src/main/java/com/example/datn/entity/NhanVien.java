@@ -22,23 +22,37 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "nhan_vien")
 public class NhanVien {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     private String ma_nhan_vien;
+
     private String ho_ten;
+
     private String gioi_tinh;
+
     private LocalDate ngay_sinh;
+
     private String sdt;
+
     private String dia_chi;
+
     private String email;
+
     private String ten_dang_nhap;
+
     private String mat_khau;
+
     @ManyToOne
     @JoinColumn(name = "id_vai_tro")
     private VaiTro vaiTro;
+
     private LocalDateTime ngay_tao;
+
     private LocalDateTime ngay_cap_nhat;
+
     private Integer trang_thai;
 
 
