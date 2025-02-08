@@ -7,10 +7,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,16 +23,23 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "binh_luan")
+@FieldDefaults(level = AccessLevel.PRIVATE)
+
 public class BinhLuan {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    Integer id;
+
     @ManyToOne
     @JoinColumn(name = "id_khach_hang")
-    private KhachHang khachHang;
+    KhachHang khachHang;
+
     @ManyToOne
     @JoinColumn(name = "id_chi_tiet_san_pham")
-    private ChiTietSanPham chiTietSanPham;
-    private String noi_dung;
-    private LocalDateTime ngay_tao;
+    ChiTietSanPham chiTietSanPham;
+
+    String noi_dung;
+
+    LocalDateTime ngay_tao;
 }

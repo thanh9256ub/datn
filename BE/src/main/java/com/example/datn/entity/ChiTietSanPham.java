@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "chi_tiet_san_pham")
 @FieldDefaults(level = AccessLevel.PRIVATE)
+
 public class ChiTietSanPham {
 
     @Id
