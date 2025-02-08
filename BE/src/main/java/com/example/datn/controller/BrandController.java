@@ -3,7 +3,6 @@ package com.example.datn.controller;
 import com.example.datn.dto.request.BrandRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.BrandResponse;
-import com.example.datn.entity.Brand;
 import com.example.datn.service.BrandService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

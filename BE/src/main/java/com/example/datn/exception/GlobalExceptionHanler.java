@@ -1,8 +1,6 @@
 package com.example.datn.exception;
 
 import com.example.datn.dto.response.ApiResponse;
-import com.example.datn.dto.response.BrandResponse;
-import jakarta.persistence.FieldResult;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;

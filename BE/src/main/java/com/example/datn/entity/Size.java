@@ -1,10 +1,9 @@
 package com.example.datn.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
@@ -12,18 +11,21 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "size")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Size {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    Integer id;
 
     @Column(name = "size_code")
-    private String sizeCode;
+    @NotBlank(message = "Size code id required")
+    String sizeCode;
 
     @Column(name = "size_name")
-    private String sizeName;
+    @NotBlank(message = "Size name id required")
+    String sizeName;
 
     @Column(name = "description")
-    private String description;
+    String description;
 }
