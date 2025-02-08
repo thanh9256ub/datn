@@ -1,5 +1,7 @@
 package com.example.datn.dto.request;
 
+import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,9 +14,13 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BrandRequest {
 
-    private String maThuongHieu;
+    Integer id;
 
-    private String tenThuongHieu;
+    @NotBlank(message = "Brand code is required")
+    String brandCode;
 
-    private String moTa;
+    @NotBlank(message = "Brand name is required")
+    String brandName;
+
+    String description;
 }

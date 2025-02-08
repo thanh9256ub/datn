@@ -2,21 +2,16 @@ package com.example.datn.dto.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-@Data
-@NoArgsConstructor
+@Getter
+@Setter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BrandResponse {
-
-    Integer id;
-
-    String brandCode;
-
-    String brandName;
-
-    String description;
+public class ApiResponse<T> {
+    int status;
+    String message;
+    T data;
 }
