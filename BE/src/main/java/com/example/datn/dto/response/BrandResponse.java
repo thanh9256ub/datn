@@ -1,4 +1,4 @@
-package com.example.datn.dto.request;
+package com.example.datn.dto.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -10,13 +10,13 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ThuongHieuRequest {
+public class BrandResponse {
 
-    private Integer id;
+    Integer id;
 
-    private String maThuongHieu;
+    String brandCode;
 
-    private String tenThuongHieu;
+    String brandName;
 
-    private String moTa;
+    String description;
 }
