@@ -10,8 +10,10 @@ import java.util.List;
 @Service
 
 public class ChiTietDonHangService {
+
     @Autowired
     private ChiTietDonHangRepository chiTietDonHangRepository;
+
     public List<ChiTietDonHang> getListCTDH(){
         return chiTietDonHangRepository.findAll();
     }

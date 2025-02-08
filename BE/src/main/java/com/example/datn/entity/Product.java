@@ -11,35 +11,36 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "chi_tiet_san_pham")
+@Table(name = "product")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-
-public class ChiTietSanPham {
-
+public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    Product product;
+    @Column(name = "product_code")
+    String productCode;
+
+    @Column(name = "product_name")
+    String productName;
 
     @ManyToOne
-    @JoinColumn(name = "color_id")
-    Color color;
+    @JoinColumn(name = "brand_id")
+    Brand brand;
 
     @ManyToOne
-    @JoinColumn(name = "size_id")
-    Size size;
+    @JoinColumn(name = "category_id")
+    Category category;
 
-    @Column(name = "price")
-    Double price;
+    @ManyToOne
+    @JoinColumn(name = "material_id")
+    Material material;
 
-    @Column(name = "quantity")
-    Integer quantity;
+    @Column(name = "main_image")
+    String mainImage;
 
-    @Column(name = "status")
-    Integer status;
+    @Column(name = "total_quantity")
+    Integer totalQuantity;
 
     @Column(name = "created_at")
     LocalDateTime createdAt;
@@ -47,6 +48,4 @@ public class ChiTietSanPham {
     @Column(name = "updated_at")
     LocalDateTime updatedAt;
 
-    @Column(name = "qr")
-    String qr;
 }
