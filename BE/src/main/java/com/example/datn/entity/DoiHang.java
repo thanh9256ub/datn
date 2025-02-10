@@ -32,7 +32,7 @@ public class DoiHang {
 
     @ManyToOne
     @JoinColumn(name = "id_khach_hang")
-    KhachHang khachHang;
+    Customer khachHang;
 
     @ManyToOne
     @JoinColumn(name = "id_don_hang")
