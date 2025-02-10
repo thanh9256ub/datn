@@ -34,6 +34,7 @@ public class GlobalExceptionHanler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<String>> handleResourceNotFoundException(ResourceNotFoundException exception) {
+
         ApiResponse<String> response = new ApiResponse<>(
                 HttpStatus.NOT_FOUND.value(),
                 "Resource not found",
