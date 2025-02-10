@@ -8,6 +8,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -52,8 +53,9 @@ public class Product {
     Integer totalQuantity = 0;
 
     @Column(name = "created_at")
-    LocalDateTime createdAt = LocalDateTime.now();
+    LocalDateTime createdAt = LocalDateTime.now().withNano(0);
 
     @Column(name = "updated_at")
     LocalDateTime updatedAt = null;
+
 }
