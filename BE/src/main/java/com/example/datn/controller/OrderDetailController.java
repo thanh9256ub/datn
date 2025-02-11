@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 
-public class ChiTietDonHangController {
+public class OrderDetailController {
     @Autowired
     private ChiTietDonHangService chiTietDonHangService;
     @GetMapping("listCTDH")
