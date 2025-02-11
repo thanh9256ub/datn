@@ -3,5 +3,6 @@ package com.example.datn.service;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BanHangTaiQuayService {
+public class OrderService {
+
 }
