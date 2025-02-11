@@ -1,6 +1,7 @@
 package com.example.datn.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,9 +24,11 @@ public class Material {
     Integer id;
 
     @Column(name = "material_code")
+    @NotBlank(message = "Material code is required")
     String materialCode;
 
     @Column(name = "material_name")
+    @NotBlank(message = "Material name is required")
     String materialName;
 
     @Column(name = "description")

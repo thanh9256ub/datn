@@ -1,30 +1,31 @@
 package com.example.datn.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "mau_sac")
+@Table(name = "color")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Color {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    Integer id;
 
-    private String ma_mau_sac;
+    @Column(name = "color_code")
+    @NotBlank(message = "Color code is required")
+    String colorCode;
 
-    private String ten_mau_sac;
+    @Column(name = "color_name")
+    @NotBlank(message = "Color name is required")
+    String colorName;
 
-    private String mo_ta;
+    @Column(name = "description")
+    String description;
 }

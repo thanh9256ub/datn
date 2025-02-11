@@ -1,7 +1,7 @@
 package com.example.datn.service;
 
 import com.example.datn.entity.Order;
-import com.example.datn.repository.DonHangRepository;
+import com.example.datn.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,8 +11,8 @@ import java.util.List;
 
 public class DonHangService {
     @Autowired
-    private DonHangRepository donHangRepository;
+    private OrderRepository orderRepository;
    public   List<Order>getListDH(){
-        return donHangRepository.findAll();
+        return orderRepository.findAll();
     }
 }

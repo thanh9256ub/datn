@@ -36,7 +36,7 @@ public class BinhLuan {
 
     @ManyToOne
     @JoinColumn(name = "id_chi_tiet_san_pham")
-    ChiTietSanPham chiTietSanPham;
+    ProductDetail productDetail;
 
     String noi_dung;
 
