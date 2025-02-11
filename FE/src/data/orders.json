@@ -1,0 +1,32 @@
+[
+    {
+      "id": 1,
+      "khach_hang": { "ho_ten": "Nguyễn Văn A" },
+      "ngay_tao": "2023-10-26",
+      "trang_thai": "Đã thanh toán"
+    },
+    {
+      "id": 2,
+      "khach_hang": { "ho_ten": "Trần Thị B" },
+      "ngay_tao": "2023-10-25",
+      "trang_thai": "Chưa thanh toán"
+    },
+    {
+      "id": 3,
+      "khach_hang": { "ho_ten": "Lê Văn C" },
+      "ngay_tao": "2023-10-24",
+      "trang_thai": "Đã thanh toán"
+    },
+    {
+      "id": 4,
+      "khach_hang": { "ho_ten": "Phạm Thị D" },
+      "ngay_tao": "2023-10-23",
+      "trang_thai": "Đã hủy"
+    },
+    {
+      "id": 5,
+      "khach_hang": { "ho_ten": "Nguyễn Ngọc E" },
+      "ngay_tao": "2023-10-22",
+      "trang_thai": "Đã thanh toán"
+    }
+  ]
