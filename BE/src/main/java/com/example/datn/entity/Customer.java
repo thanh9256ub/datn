@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -20,40 +19,26 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "nhan_vien")
-public class NhanVien {
+@Table(name = "customer")
+public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String ma_nhan_vien;
+    private String full_name;
 
-    private String ho_ten;
+    private String gender;
 
-    private String gioi_tinh;
-
-    private LocalDate ngay_sinh;
-
-    private String sdt;
-
-    private String dia_chi;
+    private String phone;
 
     private String email;
 
-    private String ten_dang_nhap;
+    private String password;
 
-    private String mat_khau;
+    private LocalDateTime created_at;
 
-    @ManyToOne
-    @JoinColumn(name = "id_vai_tro")
-    private VaiTro vaiTro;
-
-    private LocalDateTime ngay_tao;
-
-    private LocalDateTime ngay_cap_nhat;
-
-    private Integer trang_thai;
+    private LocalDateTime updated_at;
 
 
 }

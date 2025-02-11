@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -33,7 +32,7 @@ public class GioHang {
 
     @ManyToOne
     @JoinColumn(name = "id_khach_hang")
-    KhachHang khachHang;
+    Customer customer;
 
     Double tong_tien;
 

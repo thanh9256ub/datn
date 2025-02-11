@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -37,11 +36,11 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
-    KhachHang khachHang;
+    Customer customer;
 
     @ManyToOne
     @JoinColumn(name = "employee_id")
-    NhanVien nhanVien;
+    Employee nhanVien;
 
     @Column(name = "customer_name")
     String customerName;
