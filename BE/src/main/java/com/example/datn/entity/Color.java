@@ -10,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "mau_sac")
+@Table(name = "color")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Color {
 

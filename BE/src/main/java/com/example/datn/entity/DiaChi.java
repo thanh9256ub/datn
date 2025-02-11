@@ -40,7 +40,7 @@ public class DiaChi {
 
     @ManyToOne
     @JoinColumn(name = "id_khach_hang")
-    Customer khachHang;
+    Customer customer;
 
     Integer trang_thai;
 

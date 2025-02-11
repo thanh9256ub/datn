@@ -23,10 +23,10 @@ public interface OrderMapper {
     @Mapping(target = "paymentMethod",ignore = true)
     Order toOrder(OrderRequest request);
 
-    @Mapping(target = "customer",source = "customer.")
-    @Mapping(target = "employee",source = "")
-    @Mapping(target = "paymentType",source = "")
-    @Mapping(target = "paymentMethod",source = "")
+//    @Mapping(target = "customer",source = "customer.")
+//    @Mapping(target = "employee",source = "")
+//    @Mapping(target = "paymentType",source = "")
+//    @Mapping(target = "paymentMethod",source = "")
     OrderResponse toOrderResponse(Order order);
 
     List<OrderResponse> toListOrders(List<Order> list);

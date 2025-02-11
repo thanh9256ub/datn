@@ -26,7 +26,7 @@ public class OrderService {
     public OrderResponse create(OrderRequest request) {
         Order order = mapper.toOrder(request);
         Order created = repository.save(order);
-        return mapper.toPaymentTypeResponse(created);
+        return mapper.toOrderResponse(created);
     }
 
     public List<OrderResponse> getAll() {

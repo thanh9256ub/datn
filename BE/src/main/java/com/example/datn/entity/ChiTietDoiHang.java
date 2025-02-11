@@ -34,11 +34,11 @@ public class ChiTietDoiHang {
 
     @ManyToOne
     @JoinColumn(name = "id_chi_tiet_san_pham_cu")
-    ChiTietSanPham chiTietSanPhamCu;
+    ProductDetail productDetailCu;
 
     @ManyToOne
     @JoinColumn(name = "id_chi_tiet_san_pham_moi")
-    ChiTietSanPham chiTietSanPhamMoi;
+    ProductDetail productDetailMoi;
 
     Integer so_luong_cu;
 

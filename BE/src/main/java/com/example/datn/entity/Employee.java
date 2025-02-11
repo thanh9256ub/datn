@@ -20,40 +20,40 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "nhan_vien")
+@Table(name = "employee")
 public class Employee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String ma_nhan_vien;
+    private String employee_code;
 
-    private String ho_ten;
+    private String full_name;
 
-    private String gioi_tinh;
+    private String gender;
 
-    private LocalDate ngay_sinh;
+    private LocalDate birth_date;
 
-    private String sdt;
+    private String phone;
 
-    private String dia_chi;
+    private String address;
 
     private String email;
 
-    private String ten_dang_nhap;
+    private String username;
 
-    private String mat_khau;
+    private String password;
 
     @ManyToOne
-    @JoinColumn(name = "id_vai_tro")
-    private Role vaiTro;
+    @JoinColumn(name = "role_id")
+    private Role roLe;
 
-    private LocalDateTime ngay_tao;
+    private LocalDateTime created_at;
 
-    private LocalDateTime ngay_cap_nhat;
+    private LocalDateTime updated_at;
 
-    private Integer trang_thai;
+    private Integer status;
 
 
 }
