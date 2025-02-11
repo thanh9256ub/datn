@@ -36,11 +36,11 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
-    Customer khachHang;
+    Customer customer;
 
     @ManyToOne
     @JoinColumn(name = "employee_id")
-    NhanVien nhanVien;
+    Employee employee;
 
     @Column(name = "customer_name")
     String customerName;
@@ -68,19 +68,19 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "payment_type_id")
-    HinhThucThanhToan hinhThucThanhToan;
+    PaymentType paymentType;
 
     @ManyToOne
     @JoinColumn(name = "payment_method_id")
-    PhuongThucThanhToan phuongThucThanhToan;
+    PaymentMethod paymentMethod;
 
     @Column(name = "status")
     Integer status;
 
     @Column(name = "created_at")
-    LocalDateTime createdAt;
+    LocalDateTime createdAt = LocalDateTime.now().withNano(0);
 
     @Column(name = "updated_at")
-    LocalDateTime updatedAt;
+    LocalDateTime updatedAt = null;
 
 }
