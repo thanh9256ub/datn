@@ -1,8 +1,6 @@
 package com.example.datn.exception;
 
 import com.example.datn.dto.response.ApiResponse;
-import com.example.datn.dto.response.BrandResponse;
-import jakarta.persistence.FieldResult;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -32,6 +30,18 @@ public class GlobalExceptionHanler {
                 errors
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse<String>> handleResourceNotFoundException(ResourceNotFoundException exception) {
+
+        ApiResponse<String> response = new ApiResponse<>(
+                HttpStatus.NOT_FOUND.value(),
+                "Resource not found",
+                exception.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @ExceptionHandler(Exception.class)

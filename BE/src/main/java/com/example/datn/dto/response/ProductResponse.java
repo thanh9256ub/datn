@@ -15,25 +15,25 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class SanPhamResponse {
+public class ProductResponse {
     
     Integer id;
 
-    String maSanPham;
+    String productCode;
 
-    String tenSanPham;
+    String productName;
 
-    Brand thuongHieu;
+    String brandName;
 
-    Category category;
+    String categoryName;
 
-    Material material;
+    String materialName;
 
-    String hinhAnhChinh;
+    String mainImage;
 
-    Integer tongSoLuong;
+    Integer totalQuantity = 0;
 
-    LocalDateTime ngayTao;
+    LocalDateTime createdAt = LocalDateTime.now();
 
-    LocalDateTime ngayCapNhat;
+    LocalDateTime updatedAt = null;
 }

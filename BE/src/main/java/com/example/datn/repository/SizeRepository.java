@@ -1,9 +1,9 @@
 package com.example.datn.repository;
 
-import com.example.datn.entity.Material;
+import com.example.datn.entity.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ChatLieuRepository extends JpaRepository<Material,Integer> {
+public interface SizeRepository extends JpaRepository<Size,Integer> {
 }
