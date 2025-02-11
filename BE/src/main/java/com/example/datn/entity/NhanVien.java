@@ -47,7 +47,7 @@ public class NhanVien {
 
     @ManyToOne
     @JoinColumn(name = "id_vai_tro")
-    private VaiTro vaiTro;
+    private Role vaiTro;
 
     private LocalDateTime ngay_tao;
 

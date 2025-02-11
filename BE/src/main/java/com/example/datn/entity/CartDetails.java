@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -22,22 +21,30 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "gio_hang")
+@Table(name = "chi_tiet_gio_hang")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
-public class GioHang {
+public class CartDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "id_khach_hang")
-    KhachHang khachHang;
+    @JoinColumn(name = "id_gio_hang")
+    Cart gioHang;
+
+    @ManyToOne
+    @JoinColumn(name = "id_chi_tiet_san_pham")
+    ProductDetail productDetail;
+
+    Integer so_luong;
+
+    Double gia;
 
     Double tong_tien;
 
     LocalDateTime ngay_tao;
 
-    Integer trang_thai;
+    LocalDateTime ngay_cap_nhat;
 }

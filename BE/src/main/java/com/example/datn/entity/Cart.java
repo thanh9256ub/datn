@@ -21,30 +21,22 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "chi_tiet_gio_hang")
+@Table(name = "gio_hang")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
-public class ChiTietGioHang {
+public class Cart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "id_gio_hang")
-    GioHang gioHang;
-
-    @ManyToOne
-    @JoinColumn(name = "id_chi_tiet_san_pham")
-    ProductDetail productDetail;
-
-    Integer so_luong;
-
-    Double gia;
+    @JoinColumn(name = "id_khach_hang")
+    Customer khachHang;
 
     Double tong_tien;
 
     LocalDateTime ngay_tao;
 
-    LocalDateTime ngay_cap_nhat;
+    Integer trang_thai;
 }

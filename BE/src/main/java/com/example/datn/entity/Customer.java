@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -21,7 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "khach_hang")
-public class KhachHang {
+public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,6 +42,6 @@ public class KhachHang {
 
     @ManyToOne
     @JoinColumn(name = "id_vai_tro")
-    private VaiTro vaiTro;
+    private Role vaiTro;
 
 }

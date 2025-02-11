@@ -1,6 +1,6 @@
 package com.example.datn.controller;
 
-import com.example.datn.entity.ChiTietDonHang;
+import com.example.datn.entity.OrderDetails;
 import com.example.datn.service.ChiTietDonHangService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +14,7 @@ public class ChiTietDonHangController {
     @Autowired
     private ChiTietDonHangService chiTietDonHangService;
     @GetMapping("listCTDH")
-    public List<ChiTietDonHang> listCTDH(){
+    public List<OrderDetails> listCTDH(){
         return chiTietDonHangService.getListCTDH();
     }
 }

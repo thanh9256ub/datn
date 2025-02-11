@@ -34,7 +34,7 @@ public class DonHangKhuyenMai {
 
     @ManyToOne
     @JoinColumn(name = "id_khuyen_mai")
-    KhuyenMai khuyenMai;
+    Voucher khuyenMai;
 
     String trang_thai;
 }

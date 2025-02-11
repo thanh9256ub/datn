@@ -7,33 +7,44 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "lich_su_don_hang")
-public class LichSuDonHang {
+@Table(name = "chi_tiet_don_hang")
+@FieldDefaults(level = AccessLevel.PRIVATE)
+
+public class OrderDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    Integer id;
 
     @ManyToOne
     @JoinColumn(name = "id_don_hang")
-    private Order order;
+    Order order;
 
-    private String bieu_tuong;
+    @ManyToOne
+    @JoinColumn(name = "id_chi_tiet_san_pham")
+    ProductDetail productDetail;
 
-    private String mo_ta;
+    Integer so_luong;
 
-    private LocalDateTime thoi_gian_thay_doi;
+    Double gia;
+
+    Double tong_gia;
+
+    Integer trang_thai;
+
+    Integer trang_thai_san_pham;
+
 
 }
