@@ -32,7 +32,7 @@ public class BinhLuan {
 
     @ManyToOne
     @JoinColumn(name = "id_khach_hang")
-    Customer khachHang;
+    Customer customer;
 
     @ManyToOne
     @JoinColumn(name = "id_chi_tiet_san_pham")
