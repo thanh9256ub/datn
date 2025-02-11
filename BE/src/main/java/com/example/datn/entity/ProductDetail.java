@@ -11,10 +11,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "chi_tiet_san_pham")
+@Table(name = "product_detail")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
-public class ChiTietSanPham {
+public class ProductDetail {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,11 +42,11 @@ public class ChiTietSanPham {
     Integer status;
 
     @Column(name = "created_at")
-    LocalDateTime createdAt;
+    LocalDateTime createdAt = LocalDateTime.now().withNano(0);
 
     @Column(name = "updated_at")
-    LocalDateTime updatedAt;
+    LocalDateTime updatedAt = null;
 
-    @Column(name = "qr")
+    @Column(name = "qr_code")
     String qr;
 }

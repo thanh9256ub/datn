@@ -34,7 +34,7 @@ public class OrderDetails {
 
     @ManyToOne
     @JoinColumn(name = "id_chi_tiet_san_pham")
-    ChiTietSanPham chiTietSanPham;
+    ProductDetail productDetail;
 
     Integer so_luong;
 
