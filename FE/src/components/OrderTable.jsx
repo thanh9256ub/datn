@@ -27,7 +27,7 @@ const OrderTable = ({ orders }) => {
                 <td>{order.ngay_tao}</td>
                 <td>{order.trang_thai}</td>
                 <td>
-                  <a href={`/asm2/ban-hang/xem-hoa-don/${order.id}`} className="btn btn-primary btn-sm">
+                  <a href={`/ban-hang/xem-hoa-don/${order.id}`} className="btn btn-primary btn-sm">
                     Xem
                   </a>
                 </td>
