@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -37,7 +36,7 @@ public class ChiTietGioHang {
 
     @ManyToOne
     @JoinColumn(name = "id_chi_tiet_san_pham")
-    ChiTietSanPham chiTietSanPham;
+    ProductDetail productDetail;
 
     Integer so_luong;
 
