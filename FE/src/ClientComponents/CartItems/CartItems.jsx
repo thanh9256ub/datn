@@ -52,6 +52,15 @@ const CartItems = () => {
                             <p>${getTotalCartAmount()}</p>
                         </div>
                     </div>
+                    <h2>Customer Information</h2>
+                    <div className="cartitems-customer-info">
+                        <input type="text" name="name" placeholder="Full Name" />
+                        <input type="text" name="phone" placeholder="Phone Number" />
+                        <input type="text" name="city" placeholder="City/Province" />
+                        <input type="text" name="district" placeholder="District" />
+                        <input type="text" name="ward" placeholder="Ward" />
+                        <input type="text" name="address" placeholder="Detailed Address" />
+                    </div>
                     <button>PROOEED TO CHECKOUT</button>
                 </div>
                 <div className="cartitems-promocode">
