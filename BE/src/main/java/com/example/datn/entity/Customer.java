@@ -41,7 +41,7 @@ public class Customer {
     private LocalDateTime updated_at;
 
     @ManyToOne
-    @JoinColumn(name = "id_vai_tro")
-    private Role vaiTro;
+    @JoinColumn(name = "role_id")
+    private Role role;
 
 }
