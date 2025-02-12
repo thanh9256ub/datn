@@ -44,9 +44,9 @@ public class OrderRequest {
 
     Double totalPayment;
 
-    Integer payment_type_id;
+    PaymentType paymentType;
 
-    Integer payment_method_id;
+    PaymentMethod paymentMethod;
 
     Integer status;
 
