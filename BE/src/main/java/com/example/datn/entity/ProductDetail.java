@@ -47,6 +47,6 @@ public class ProductDetail {
     @Column(name = "updated_at")
     LocalDateTime updatedAt = null;
 
-    @Column(name = "qr_code")
+    @Column(name = "qr")
     String qr;
 }
