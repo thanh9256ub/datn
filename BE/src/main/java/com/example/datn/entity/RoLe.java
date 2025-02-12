@@ -15,16 +15,17 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "vai_tro")
+@Table(name = "role")
 public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String ma_vai_tro;
+    private String role_code;
 
-    private String ten_vai_tro;
+    private String role_name;
 
-    private String trang_thai;
+    private String status;
 }
+

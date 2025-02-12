@@ -19,26 +19,26 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "khach_hang")
+@Table(name = "customer")
 public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String ho_ten;
+    private String full_name;
 
-    private String gioi_tinh;
+    private String gender;
 
-    private String sdt;
+    private String phone;
 
     private String email;
 
-    private String mat_khau;
+    private String password;
 
-    private LocalDateTime ngay_tao;
+    private LocalDateTime created_at;
 
-    private LocalDateTime ngay_cap_nhat;
+    private LocalDateTime updated_at;
 
     @ManyToOne
     @JoinColumn(name = "id_vai_tro")

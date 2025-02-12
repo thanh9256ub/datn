@@ -32,7 +32,7 @@ public class Cart {
 
     @ManyToOne
     @JoinColumn(name = "id_khach_hang")
-    Customer khachHang;
+    Customer customer;
 
     Double tong_tien;
 
