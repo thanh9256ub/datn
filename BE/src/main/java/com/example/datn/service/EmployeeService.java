@@ -39,23 +39,23 @@ public class EmployeeService {
 
     public EmployeeResponse getEmployeeById(Integer id) {
 
-        Employee brand = employeeRepository.findById(id).orElseThrow(
+        Employee employee = employeeRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Employee id is not exists with given id: " + id));
 
-        return employeeMapper.toEmployeeResponse(brand);
+        return employeeMapper.toEmployeeResponse(employee);
     }
 
     public EmployeeResponse updateEmployee(Integer id, EmployeeRequest employeeRequest) {
 
-        Employee brand = employeeRepository.findById(id).orElseThrow(
+        Employee employee = employeeRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Employee id is not exists with given id: " + id));
 
-        employeeMapper.updateEmployee(brand, employeeRequest);
+        employeeMapper.updateEmployee(employee, employeeRequest);
 
-        return employeeMapper.toEmployeeResponse(employeeRepository.save(brand));
+        return employeeMapper.toEmployeeResponse(employeeRepository.save(employee));
     }
 
-    public void deletrEmployee(Integer id) {
+    public void deleteEmployee(Integer id) {
 
         employeeRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Employee id is not exists with given id: " + id));

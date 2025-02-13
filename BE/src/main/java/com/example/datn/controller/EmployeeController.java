@@ -40,10 +40,46 @@ public class EmployeeController {
 
         ApiResponse<List<EmployeeResponse>> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
-                "Brands retrieved successfully",
+                "Employee retrieved successfully",
                 list
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<EmployeeResponse> getOne(@PathVariable("id") Integer id){
+
+        EmployeeResponse employeeResponse = employeeService.getEmployeeById(id);
+        return ResponseEntity.ok(employeeResponse);
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ApiResponse<EmployeeResponse>> update(
+            @PathVariable("id") Integer id, @RequestBody EmployeeRequest employeeRequest){
+
+        EmployeeResponse employeeResponse = employeeService.updateEmployee(id,employeeRequest);
+
+        ApiResponse<EmployeeResponse> apiResponse = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Employee updated successfully",
+                employeeResponse
+        );
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<EmployeeResponse>> delete(@PathVariable("id") Integer id){
+
+        employeeService.deleteEmployee(id);
+
+        ApiResponse<EmployeeResponse> apiResponse = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Employee deleted successfully",
+                null
+        );
+
+        return ResponseEntity.ok(apiResponse);
     }
 }

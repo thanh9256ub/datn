@@ -1,6 +1,7 @@
 package com.example.datn.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class Employee {
     private Integer id;
 
     @Column(name = "employee_code")
+    @NotBlank(message = "employee code is required")
     private String employeeCode;
 
     @Column(name = "full_name")
@@ -50,7 +52,7 @@ public class Employee {
     private String passWord;
 
     @ManyToOne
-    @JoinColumn(name = "role_id")
+    @JoinColumn(name = "role_id",referencedColumnName = "id")
     private Role roLe;
 
     @Column(name = "created_at")
