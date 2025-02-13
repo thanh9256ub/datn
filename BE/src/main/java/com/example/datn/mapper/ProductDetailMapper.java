@@ -16,7 +16,6 @@ public interface ProductDetailMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-
     ProductDetail toProductDetail(ProductDetailRequest request);
 
     ProductDetailResponse toProductDetailResponse(ProductDetail productDetail);

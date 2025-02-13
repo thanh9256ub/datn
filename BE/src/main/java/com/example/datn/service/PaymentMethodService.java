@@ -43,7 +43,8 @@ public class PaymentMethodService {
         mapper.updatePaymentMethod(paymentMethod, paymentMethodRequest);
         return mapper.toPaymentMethodResponse(repository.save(paymentMethod));
     }
-    public void detelePaymentMethod(Integer id){
+
+    public void detelePaymentMethod(Integer id) {
         repository.deleteById(id);
     }
 }
