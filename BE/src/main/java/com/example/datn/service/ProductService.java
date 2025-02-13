@@ -37,18 +37,16 @@ public class ProductService {
     @Autowired
     MaterialRepository materialRepository;
 
-    private boolean isProductCodeExists(String productCode) {
-        return repository.findByProductCode(productCode) != null;
+    private String generateProductCode() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss");
+        String timestamp = LocalDateTime.now().format(formatter);
+        return "P" + timestamp;
     }
 
     public ProductResponse createProduct(ProductRequest request){
 
         Brand brand = brandRepository.findById(request.getBrandId())
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found with ID: " + request.getBrandId()));
-
-        if(isProductCodeExists(request.getProductCode())){
-            throw new RuntimeException("Product code already exists");
-        }
 
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with ID: " + request.getCategoryId()));
@@ -58,6 +56,7 @@ public class ProductService {
 
         Product product = mapper.toProduct(request);
 
+        product.setProductCode(generateProductCode());
         product.setBrand(brand);
         product.setCategory(category);
         product.setMaterial(material);
@@ -75,10 +74,6 @@ public class ProductService {
         Product product = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Material not found with ID: " + id)
         );
-
-        if (!product.getProductCode().equals(request.getProductCode()) && isProductCodeExists(request.getProductCode())) {
-            throw new RuntimeException("Product code already exists");
-        }
 
         Brand brand = brandRepository.findById(request.getBrandId())
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found with ID: " + request.getBrandId()));
