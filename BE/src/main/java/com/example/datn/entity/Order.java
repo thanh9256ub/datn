@@ -22,9 +22,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "order")
+@Table(name = "order_")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-
+table
 public class Order {
 
     @Id
