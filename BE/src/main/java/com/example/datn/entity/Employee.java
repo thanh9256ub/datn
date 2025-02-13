@@ -1,12 +1,7 @@
 package com.example.datn.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,39 +16,52 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "employee")
+
 public class Employee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String employee_code;
+    @Column(name = "employee_code")
+    @NotBlank(message = "employee code is required")
+    private String employeeCode;
 
-    private String full_name;
+    @Column(name = "full_name")
+    private String fullName;
 
+    @Column(name = "gender")
     private String gender;
 
-    private LocalDate birth_date;
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
 
+    @Column(name = "phone")
     private String phone;
 
+    @Column(name = "address")
     private String address;
 
+    @Column(name = "email")
     private String email;
 
-    private String username;
+    @Column(name = "username")
+    private String userName;
 
-    private String password;
+    @Column(name = "password")
+    private String passWord;
 
     @ManyToOne
-    @JoinColumn(name = "role_id")
+    @JoinColumn(name = "role_id",referencedColumnName = "id")
     private Role roLe;
 
-    private LocalDateTime created_at;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-    private LocalDateTime updated_at;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
+    @Column(name = "status")
     private Integer status;
-
 
 }

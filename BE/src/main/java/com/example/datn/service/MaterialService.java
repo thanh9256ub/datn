@@ -20,11 +20,11 @@ public class MaterialService {
     @Autowired
     MaterialMapper mapper;
 
-    public List<MaterialResponse> getAll(){
+    public List<MaterialResponse> getAll() {
         return mapper.toListResponse(repository.findAll());
     }
 
-    public MaterialResponse createMaterial(MaterialRequest request){
+    public MaterialResponse createMaterial(MaterialRequest request) {
 
         Material brand = mapper.toMaterial(request);
 
@@ -33,7 +33,7 @@ public class MaterialService {
         return mapper.toMaterialResponse(created);
     }
 
-    public MaterialResponse getMaterialById(Integer id){
+    public MaterialResponse getMaterialById(Integer id) {
 
         Material brand = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Material id is not exists with given id: " + id));
@@ -41,17 +41,17 @@ public class MaterialService {
         return mapper.toMaterialResponse(brand);
     }
 
-    public MaterialResponse updateMaterial(Integer id, MaterialRequest request){
+    public MaterialResponse updateMaterial(Integer id, MaterialRequest request) {
 
         Material brand = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Material id is not exists with given id: " + id));
 
-        mapper.updateMaterial( brand, request);
+        mapper.updateMaterial(brand, request);
 
         return mapper.toMaterialResponse(repository.save(brand));
     }
 
-    public void deleteMaterial(Integer id){
+    public void deleteMaterial(Integer id) {
 
         repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Material id is not exists with given id: " + id));
