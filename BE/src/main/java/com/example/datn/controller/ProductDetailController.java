@@ -19,13 +19,13 @@ public class ProductDetailController {
     ProductDetailService service;
 
     @PostMapping("add-multiple/{productId}")
-    public ResponseEntity<ApiResponse<ProductDetailResponse>> addProductDetail(
+    public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> addProductDetail(
             @PathVariable("productId") Integer productId,
             @RequestBody List<ProductDetailRequest> requests){
 
         List<ProductDetailResponse> listResponse = service.createProductDetails(productId, requests);
 
-        ApiResponse<ProductDetailResponse> response = new ApiResponse<>(
+        ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
                 HttpStatus.CREATED.value(),
                 "Product detail created successfully",
                 listResponse
