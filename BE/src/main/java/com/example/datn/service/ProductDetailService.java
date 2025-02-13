@@ -15,6 +15,9 @@ import com.example.datn.repository.SizeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class ProductDetailService {
 
@@ -33,27 +36,38 @@ public class ProductDetailService {
     @Autowired
     SizeRepository sizeRepository;
 
-    public ProductDetailResponse createProductDetail(ProductDetailRequest request){
+    public List<ProductDetailResponse> getAll() {
+        return mapper.toListProductDetail(repository.findAll());
+    }
 
-        Product product = productRepository.findById(request.getProductId()).orElseThrow(
+    public List<ProductDetailResponse> createProductDetails(Integer productId, List<ProductDetailRequest> requests) {
+
+        Product product = productRepository.findById(productId).orElseThrow(
                 () -> new ResourceNotFoundException("Product not found with ID: ")
         );
 
-        Color color = colorRepository.findById(request.getColorId()).orElseThrow(
-                () -> new ResourceNotFoundException("Color not found with ID: ")
-        );
+        List<ProductDetail> productDetailList = new ArrayList<>();
 
-        Size size = sizeRepository.findById(request.getSizeId()).orElseThrow(
-                () -> new ResourceNotFoundException("Size not found with ID: ")
-        );
+        for (ProductDetailRequest request : requests) {
 
-        ProductDetail productDetail = mapper.toProductDetail(request);
+            Color color = colorRepository.findById(request.getColorId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Color not found with ID: ")
+            );
 
-        productDetail.setProduct(product);
-        productDetail.setColor(color);
-        productDetail.setSize(size);
-        productDetail.setStatus(request.getQuantity() == 0 ? 0 : 1);
+            Size size = sizeRepository.findById(request.getSizeId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Size not found with ID: ")
+            );
 
-        return mapper.toProductDetailResponse(repository.save(productDetail));
+            ProductDetail productDetail = mapper.toProductDetail(request);
+
+            productDetail.setProduct(product);
+            productDetail.setColor(color);
+            productDetail.setSize(size);
+            productDetail.setStatus(request.getQuantity() == 0 ? 0 : 1);
+
+            productDetailList.add(productDetail);
+        }
+
+        return mapper.toListProductDetail(repository.saveAll(productDetailList));
     }
 }

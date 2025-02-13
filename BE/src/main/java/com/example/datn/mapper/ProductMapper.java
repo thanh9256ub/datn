@@ -18,14 +18,13 @@ public interface ProductMapper {
     @Mapping(target = "brand", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "material", ignore = true)
+    @Mapping(target = "productCode", ignore = true)
     Product toProduct(ProductRequest request);
 
-    @Mapping(target = "brandName", source = "brand.brandName")
-    @Mapping(target = "categoryName", source = "category.categoryName")
-    @Mapping(target = "materialName", source = "material.materialName")
     ProductResponse toProductResponse(Product product);
 
     List<ProductResponse> toListProduct(List<Product> list);
 
+    @Mapping(target = "productCode", ignore = true)
     void updateProduct(@MappingTarget Product product, ProductRequest request);
 }
