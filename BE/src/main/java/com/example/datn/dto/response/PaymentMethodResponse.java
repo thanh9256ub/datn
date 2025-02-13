@@ -14,9 +14,9 @@ public class PaymentMethodResponse {
 
     Integer id;
 
-    String payment_method_code;
+    String paymentMethodCode;
 
-    String payment_method_name;
+    String paymentMethodName;
 
     String description;
 }

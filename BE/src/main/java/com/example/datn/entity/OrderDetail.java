@@ -1,5 +1,6 @@
 package com.example.datn.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,32 +20,37 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "chi_tiet_don_hang")
+@Table(name = "order_detail")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
-public class OrderDetails {
+public class OrderDetail {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "id_don_hang")
+    @JoinColumn(name = "order_id")
     Order order;
 
     @ManyToOne
-    @JoinColumn(name = "id_chi_tiet_san_pham")
+    @JoinColumn(name = "product_detail_id")
     ProductDetail productDetail;
 
-    Integer so_luong;
+    @Column(name = "quantity")
+    Integer quantity;
 
-    Double gia;
+    @Column(name = "price")
+    Double price;
 
-    Double tong_gia;
+    @Column(name = "total_price")
+    Double totalPrice;
 
-    Integer trang_thai;
+    @Column(name = "status")
+    Integer status;
 
-    Integer trang_thai_san_pham;
+    @Column(name = "product_status")
+    Integer productStatus;
 
 
 }

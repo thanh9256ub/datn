@@ -12,12 +12,14 @@ import java.time.LocalDateTime;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderResponse {
+
     Integer id;
+
     String orderCode;
 
-    Integer customer_id;
+    Integer customerId;
 
-    Integer employee_id;
+    Integer employeeId;
 
     String customerName;
 
@@ -35,9 +37,9 @@ public class OrderResponse {
 
     Double totalPayment;
 
-    String paymentTypeName;
+    String paymentTypeNameId;
 
-    String paymentMethodName;
+    String paymentMethodNameId;
 
     Integer status;
 
