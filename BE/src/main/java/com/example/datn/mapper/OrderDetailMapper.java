@@ -16,7 +16,7 @@ public interface OrderDetailMapper {
 
     OrderDetailResponse toOrderDetailResponse(OrderDetail orderDetail);
 
-    List<OrderDetailResponse> toListResponses(List<OrderDetail> listOrderDetails);
+    List<OrderDetailResponse> toListResponses(List<OrderDetail> listOrderDetail);
 
     @Mapping(target = "id",ignore = true)
     void update(@MappingTarget OrderDetail orderDetail, OrderDetailRequest request);
