@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("product-detail")
 public class ProductDetailController {
@@ -16,15 +18,17 @@ public class ProductDetailController {
     @Autowired
     ProductDetailService service;
 
-    @PostMapping("add")
-    public ResponseEntity<ApiResponse<ProductDetailResponse>> addProductDetail(@RequestBody ProductDetailRequest request){
+    @PostMapping("add-multiple/{productId}")
+    public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> addProductDetail(
+            @PathVariable("productId") Integer productId,
+            @RequestBody List<ProductDetailRequest> requests){
 
-        ProductDetailResponse productDetailResponse = service.createProductDetail(request);
+        List<ProductDetailResponse> listResponse = service.createProductDetails(productId, requests);
 
-        ApiResponse<ProductDetailResponse> response = new ApiResponse<>(
+        ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
                 HttpStatus.CREATED.value(),
                 "Product detail created successfully",
-                productDetailResponse
+                listResponse
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

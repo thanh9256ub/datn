@@ -1,10 +1,6 @@
 package com.example.datn.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,10 +18,13 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String role_code;
+    @Column(name = "role_code")
+    private String roleCode;
 
-    private String role_name;
+    @Column(name = "role_name")
+    private String roleName;
 
+    @Column(name = "status")
     private String status;
 }
 
