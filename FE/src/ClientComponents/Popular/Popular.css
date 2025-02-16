@@ -20,9 +20,23 @@
 }
 
 .popular-item {
-    margin-top: 50px;
-    display: flex;
-    gap: 30px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.item img {
+    width: 280px;
+    height: 280px;
+    object-fit: cover;
+    /* Đảm bảo hình ảnh không bị méo */
+}
+
+.popular-item>* {
+    width: calc(25% - 20px);
+    /* 4 sản phẩm trên 1 hàng */
 }
 
 @media(max-width:1280px) {

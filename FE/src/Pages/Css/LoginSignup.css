@@ -73,3 +73,57 @@
     font-size: 18px;
     font-weight: 500;
 }
+
+@media (max-width: 1280px) {
+    .loginsignup-container {
+        width: 500px;
+        height: auto;
+        padding: 30px 50px;
+    }
+
+    .loginsignup-fields input,
+    .loginsignup-container button {
+        height: 65px;
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .loginsignup-container {
+        width: 450px;
+        padding: 30px 40px;
+    }
+
+    .loginsignup-fields input,
+    .loginsignup-container button {
+        height: 60px;
+        font-size: 18px;
+    }
+
+    .loginsignup-agree {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 800px) {
+    .loginsignup-container {
+        width: 90%;
+        padding: 20px 30px;
+    }
+
+    .loginsignup-fields input,
+    .loginsignup-container button {
+        height: 55px;
+        font-size: 16px;
+    }
+
+    .loginsignup h1 {
+        font-size: 22px;
+    }
+
+    .loginsignup-agree {
+        flex-direction: column;
+        align-items: flex-start;
+        font-size: 14px;
+    }
+}
