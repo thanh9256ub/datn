@@ -69,7 +69,12 @@ export default function Checkout() {
             <Form.Control placeholder="Nhập số điện thoại khách hàng" />
             <Button variant="success">Tìm kiếm</Button>
           </InputGroup>
+          
         </Col>
+       
+      </Row>
+      <Row className="mb-3">
+        <Col>Khach hang : <span className="fw-bold">khach le</span></Col>
       </Row>
       <Row className="mb-3">
         <Col>

@@ -1,7 +1,6 @@
 package com.example.datn.dto.response;
 
-import com.example.datn.entity.Order;
-import com.example.datn.entity.ProductDetail;
+import com.example.datn.entity.Role;
 import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -11,32 +10,29 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
+
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class OrderDetailResponse {
+public class CustomerResponse {
 
     Integer id;
 
+    String fullName;
 
-    Integer orderId;
+    String gender;
 
+    String phone;
 
-    Integer productDetailId;
+    String email;
 
+    String password;
 
-    Integer quantity;
+    LocalDateTime createdAt;
 
+    LocalDateTime updatedAt;
 
-    Double price;
-
-
-    Double totalPrice;
-
-
-    Integer status;
-
-
-    Integer productStatus;
+    Integer role_id;
 }
