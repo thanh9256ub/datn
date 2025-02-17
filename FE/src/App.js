@@ -17,27 +17,11 @@ import SanPham from './Pages/SanPham';
 import KhachHang from './Pages/KhachHang';
 import DonHang from './Pages/DonHang';
 import NhanVien from './Pages/NhanVien';
-
+import Admin from './admin/layouts/Admin.js'
 
 function App() {
   return (
     <div>
-      {/* <BrowserRouter>
-        <Navbar />
-        <Routes>
-          <Route path='/' element={<Shop />} />
-          <Route path='/mens' element={<ShopCategory banner={men_banner} category="men" />} />
-          <Route path='/womens' element={<ShopCategory banner={women_banner} category="women" />} />
-          <Route path='/kids' element={<ShopCategory banner={kid_banner} category="kid" />} />
-          <Route path="/product" element={<Product />}>
-            <Route path=':productID' element={<Product />} />
-          </Route>
-          <Route path='/cart' element={<Cart />} />
-          <Route path='/login' element={<LoginSignup />} />
-          <Route path="/admin" element={<AdminLayout><h1>Trang Admin</h1></AdminLayout>} />
-        </Routes>
-        <Footer />
-      </BrowserRouter> */}
       <BrowserRouter>
         <Routes>
           {/* Các route dành cho người dùng */}
@@ -56,7 +40,7 @@ function App() {
                   </Route>
                   <Route path='/cart' element={<Cart />} />
                   <Route path='/login' element={<LoginSignup />} />
-                 
+
                 </Routes>
                 <Footer />
               </>
@@ -64,12 +48,15 @@ function App() {
           />
 
           {/* Route riêng cho Admin */}
-        
+
           <Route path="/banhang" element={<BanHang />} />
           <Route path="/sanpham" element={<SanPham />} />
           <Route path="/nhanvien" element={<NhanVien />} />
           <Route path="/khachhang" element={<KhachHang />} />
           <Route path="/donhang" element={<DonHang />} />
+
+          <Route path="/admin/*" element={<Admin />} />
+
         </Routes>
       </BrowserRouter>
     </div>
