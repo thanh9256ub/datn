@@ -1,0 +1,102 @@
+/* Kiểu mặc định cho các liên kết trong Sidebar */
+.nav-link {
+    color: #ffffff;  /* Màu chữ mặc định */
+    padding: 10px 15px;
+    text-decoration: none;  /* Xóa gạch chân mặc định */
+    font-weight: 500;
+    border-radius: 4px;  /* Thêm bo tròn cho các liên kết */
+    transition: background-color 0.3s ease, color 0.3s ease;  /* Thêm hiệu ứng chuyển đổi */
+  }
+  
+  /* Kiểu cho các liên kết khi hover */
+  .nav-link:hover {
+    background-color: #007bff;  /* Màu nền khi hover */
+    color: #fff;  /* Màu chữ khi hover */
+    cursor: pointer;  /* Thay đổi con trỏ khi hover */
+  }
+  
+  /* Kiểu cho liên kết đang active */
+  .nav-link.active {
+    background-color: #0056b3;  /* Màu nền khi active */
+    color: white;  /* Màu chữ khi active */
+    font-weight: 600;  /* Tăng độ đậm cho chữ khi active */
+    border-left: 4px solid #fff; /* Thêm đường viền trái cho phần mục active */
+  }
+  
+  /* Kiểu cho các liên kết khi hover nhưng chưa active */
+  .nav-link:not(.active):hover {
+    background-color: #004085;  /* Màu nền khi hover mà chưa active */
+    color: white;  /* Màu chữ khi hover mà chưa active */
+  }
+  
+  /* Các hiệu ứng khác cho Sidebar */
+  .sidebar-heading {
+    font-size: 1.5rem;  /* Tăng kích thước cho tiêu đề Sidebar */
+    padding: 15px 20px;
+    color: white;  /* Màu chữ tiêu đề */
+    background-color: #23272b;  /* Màu nền tiêu đề */
+  }
+  
+  /* Đảm bảo chiều cao của toàn bộ trang là 100% */
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+  
+  /* Cấu trúc wrapper chứa sidebar, nội dung và footer */
+  #wrapper {
+    display: flex;
+    flex-direction: row; /* Đặt sidebar và nội dung nằm cạnh nhau */
+    height: 100%; /* Đảm bảo chiếm hết chiều cao */
+    position: relative; /* Để định vị footer bên dưới */
+    overflow: hidden; /* Giúp tránh cuộn nội dung ngoài ý muốn */
+  }
+  
+  /* Sidebar */
+  #sidebar-wrapper {
+    position: fixed; /* Sidebar cố định ở bên trái */
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 250px;
+    background-color: #343a40;
+    padding-top: 20px; /* Khoảng cách từ trên xuống */
+    z-index: 10; /* Đảm bảo sidebar luôn ở trên */
+  }
+  
+  /* Nội dung chính */
+  #page-content-wrapper {
+    margin-left: 250px; /* Dịch chuyển nội dung sang phải để tránh sidebar */
+    padding: 20px;
+    flex-grow: 1; /* Chiếm hết không gian còn lại */
+    min-height: 100vh; /* Đảm bảo nội dung chính có chiều cao tối thiểu */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden; /* Ngăn chặn cuộn không cần thiết */
+  }
+  
+  /* Footer luôn nằm ở dưới cùng */
+  footer {
+    background-color: #23272b;
+    color: white;
+    text-align: center;
+    margin-top: auto; /* Đẩy footer xuống dưới */
+    width: 100%;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    #sidebar-wrapper {
+      width: 200px; /* Giảm độ rộng của sidebar khi thu nhỏ */
+    }
+  
+    #page-content-wrapper {
+      margin-left: 200px; /* Dịch chuyển nội dung khi sidebar thu nhỏ */
+    }
+  
+    footer {
+      padding: 5px; /* Giảm padding của footer trên màn hình nhỏ */
+    }
+  }
+  
