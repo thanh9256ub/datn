@@ -3,6 +3,7 @@ import Dashboard from "./views/Dashboard";
 import Users from "./views/Users";
 import Settings from "./views/Settings";
 import Products from "./views/Products";
+import BanHang from "./views/BanHang";
 
 const routes = [
     {
@@ -24,6 +25,12 @@ const routes = [
         path: "/products",
         component: Products,
         name: "Quản lý sản phẩm"
+    }
+    ,
+    {
+        path: "/sell",
+        component: BanHang,
+        name: "Bán hàng"
     }
 ];
 
