@@ -8,6 +8,7 @@ import Dashboard from "../views/Dashboard";
 import Users from "../views/Users";
 import Settings from "../views/Settings";
 import "bootstrap/dist/css/bootstrap.min.css";
+import BanHang from "../views/BanHang";
 
 const Admin = () => {
     return (
@@ -20,6 +21,7 @@ const Admin = () => {
                         <Route path="dashboard" element={<Dashboard />} />
                         <Route path="users" element={<Users />} />
                         <Route path="settings" element={<Settings />} />
+                        <Route path="sell" element={<BanHang />} />
                     </Routes>
                 </Container>
                 <Footer />
