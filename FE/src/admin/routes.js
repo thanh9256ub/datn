@@ -2,11 +2,8 @@ import Dashboard from "./views/Dashboard";
 import Users from "./views/Users";
 import Settings from "./views/Settings";
 import Products from "./views/Products";
-<<<<<<< HEAD
 import BanHang from "./views/BanHang";
-=======
 import * as RiIcons from 'react-icons/ri';
->>>>>>> long
 
 const routes = [
     {
