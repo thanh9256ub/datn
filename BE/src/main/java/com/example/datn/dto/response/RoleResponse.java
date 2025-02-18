@@ -11,8 +11,6 @@ public class RoleResponse {
 
     private Integer id;
 
-    private String roleCode;
-
     private String roleName;
 
     private String status;

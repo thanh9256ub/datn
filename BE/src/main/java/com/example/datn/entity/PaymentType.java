@@ -26,9 +26,6 @@ public class PaymentType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "payment_type_code")
-    String paymentTypeCode;
-
     @Column(name = "payment_type_name")
     String paymentTypeName;
 

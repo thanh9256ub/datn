@@ -23,10 +23,6 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "category_code")
-        @NotBlank(message = "Category code is required")
-    String categoryCode;
-
     @Column(name = "category_name")
         @NotBlank(message = "Category code is required")
     String categoryName;

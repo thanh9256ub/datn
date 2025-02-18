@@ -39,8 +39,6 @@ const Products = () => {
                         <th>Chat lieu</th>
                         <th>Anh chinh</th>
                         <th>Tong so luong</th>
-                        <th>Ngay tao</th>
-                        <th>Ngay cap nhat</th>
                         <th>Hành động</th>
                     </tr>
                 </thead>
@@ -55,11 +53,9 @@ const Products = () => {
                             <td>{product.material.materialName}</td>
                             <td>{product.mainImage}</td>
                             <td>{product.totalQuantity}</td>
-                            <td>{new Date(product.createdAt).toLocaleString()}</td>  {/* Định dạng lại ngày */}
-                            <td>{product.updatedAt ? new Date(product.updatedAt).toLocaleString() : "Chưa cập nhật"}</td>  {/* Kiểm tra giá trị null */}
                             <td>
-                                {/* <Button variant="warning" onClick={() => handleEdit(product.id)}>Chỉnh sửa</Button>
-                                <Button className='ms-3' variant="warning" onClick={() => handleDelete(product.id)}>Xóa</Button> */}
+                                <Button variant="warning">Chỉnh sửa</Button>
+                                <Button className='ms-3' variant="warning">Xóa</Button>
                             </td>
                         </tr>
                     ))}

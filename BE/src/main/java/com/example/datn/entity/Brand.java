@@ -18,10 +18,6 @@ public class Brand {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "brand_code")
-            @NotBlank(message = "Brand code is required")
-    String brandCode;
-
     @Column(name = "brand_name")
             @NotBlank(message = "Brand name is required")
     String brandName;
