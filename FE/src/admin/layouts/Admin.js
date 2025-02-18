@@ -9,6 +9,7 @@ import Footer from "../components/Footer";
 import routes from '../routes.js';
 
 import "bootstrap/dist/css/bootstrap.min.css";
+import BanHang from "../views/BanHang";
 
 const Admin = () => {
     return (
