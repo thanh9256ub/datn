@@ -82,6 +82,7 @@
     color: white;
     text-align: center;
     margin-top: auto; /* Đẩy footer xuống dưới */
+    height: 50px;
     width: 100%;
   }
   

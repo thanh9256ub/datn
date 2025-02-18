@@ -1,12 +1,13 @@
 import React from "react";
+
 import { Route, Routes } from "react-router-dom";
 import { Container } from "react-bootstrap";
+
 import Sidebar from "../components/Sidebar";
 import NavbarComponent from "../components/NavbarComponent";
 import Footer from "../components/Footer";
-import Dashboard from "../views/Dashboard";
-import Users from "../views/Users";
-import Settings from "../views/Settings";
+import routes from '../routes.js';
+
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Admin = () => {
@@ -17,9 +18,9 @@ const Admin = () => {
                 <NavbarComponent />
                 <Container fluid className="mt-3">
                     <Routes>
-                        <Route path="dashboard" element={<Dashboard />} />
-                        <Route path="users" element={<Users />} />
-                        <Route path="settings" element={<Settings />} />
+                        {routes.map((route, index) => (
+                            <Route key={index} path={`${route.path}`} element={<route.component />} />
+                        ))}
                     </Routes>
                 </Container>
                 <Footer />
