@@ -13,8 +13,6 @@ public class RoleRequest {
 
     private Integer id;
 
-    private String roleCode;
-
     private String roleName;
 
     private String status;

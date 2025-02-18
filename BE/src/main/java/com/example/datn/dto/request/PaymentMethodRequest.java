@@ -13,8 +13,6 @@ import lombok.experimental.FieldDefaults;
 
 public class PaymentMethodRequest {
 
-    String paymentMethodMode;
-
     String paymentMethodName;
 
     String description;

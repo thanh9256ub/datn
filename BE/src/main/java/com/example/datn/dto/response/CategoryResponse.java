@@ -14,8 +14,6 @@ public class CategoryResponse {
 
     Integer id;
 
-    String categoryCode;
-
     String categoryName;
 
     String description;

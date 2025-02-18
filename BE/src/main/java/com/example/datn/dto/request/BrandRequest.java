@@ -16,9 +16,6 @@ public class BrandRequest {
 
     Integer id;
 
-    @NotBlank(message = "Brand code is required")
-    String brandCode;
-
     @NotBlank(message = "Brand name is required")
     String brandName;
 
