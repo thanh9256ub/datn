@@ -15,7 +15,7 @@ const routes = [
         name: "Dashboard"
     },
     {
-        path: "#",
+        path: "/users",
         component: Users,
         name: "Khách hàng",
         iconClosed: <RiIcons.RiArrowDownSFill />,
