@@ -4,9 +4,9 @@ import '../admin.css';
 
 const Footer = () => {
     return (
-        <footer className="bg-dark text-white text-center py-3 mt-auto">
+        <footer className="bg-light text-white text-center py-3 mt-auto">
             <Container>
-                <p>&copy; 2025 Admin Panel. All rights reserved.</p>
+                {/* <p>&copy; 2025 Admin Panel. All rights reserved.</p> */}
             </Container>
         </footer>
     );
