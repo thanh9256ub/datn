@@ -61,6 +61,15 @@ const CartItems = () => {
                         <input type="text" name="ward" placeholder="Ward" />
                         <input type="text" name="address" placeholder="Detailed Address" />
                     </div>
+                    <h2>Payment Method</h2>
+                    <div className="cartitems-payment-method">
+                        <label>
+                            <input type="radio" name="payment" value="cod" /> <span>Cash on Delivery</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="payment" value="bank_transfer" /> <span>Bank Transfer</span>
+                        </label>
+                    </div>
                     <button>PROOEED TO CHECKOUT</button>
                 </div>
                 <div className="cartitems-promocode">
