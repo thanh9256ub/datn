@@ -14,8 +14,6 @@ public class ColorResponse {
 
     Integer id;
 
-    String colorCode;
-
     String colorName;
 
     String description;

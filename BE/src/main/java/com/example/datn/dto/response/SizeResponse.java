@@ -14,8 +14,6 @@ public class SizeResponse {
 
     Integer id;
 
-    String sizeCode;
-
     String sizeName;
 
     String description;

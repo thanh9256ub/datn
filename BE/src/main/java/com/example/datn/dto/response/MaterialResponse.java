@@ -14,8 +14,6 @@ public class MaterialResponse {
 
     Integer id;
 
-    String materialCode;
-
     String materialName;
 
     String description;
