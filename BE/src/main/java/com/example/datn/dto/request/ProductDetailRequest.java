@@ -24,9 +24,5 @@ public class ProductDetailRequest {
 
     Integer status;
 
-    LocalDateTime createdAt;
-
-    LocalDateTime updatedAt;
-
     String qr;
 }

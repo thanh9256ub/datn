@@ -18,10 +18,6 @@ public class Size {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "size_code")
-    @NotBlank(message = "Size code id required")
-    String sizeCode;
-
     @Column(name = "size_name")
     @NotBlank(message = "Size name id required")
     String sizeName;

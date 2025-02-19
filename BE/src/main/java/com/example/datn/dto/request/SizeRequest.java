@@ -15,9 +15,6 @@ public class SizeRequest {
 
     Integer id;
 
-    @NotBlank(message = "Size code is required")
-    String sizeCode;
-
     @NotBlank(message = "Size name is required")
     String sizeName;
 

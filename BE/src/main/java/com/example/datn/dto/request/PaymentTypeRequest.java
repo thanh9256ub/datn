@@ -13,8 +13,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PaymentTypeRequest {
 
-    String paymentTypeCode;
-
     String paymentTypeName;
 
     String description;

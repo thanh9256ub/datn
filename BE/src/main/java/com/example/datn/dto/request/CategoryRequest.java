@@ -15,9 +15,6 @@ public class CategoryRequest {
 
     Integer id;
 
-    @NotBlank(message = "Category code is required")
-    String categoryCode;
-
     @NotBlank(message = "Category name is required")
     String categoryName;
 

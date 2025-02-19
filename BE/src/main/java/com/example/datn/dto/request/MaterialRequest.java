@@ -15,9 +15,6 @@ public class MaterialRequest {
 
     Integer id;
 
-    @NotBlank(message = "Material code is required")
-    String materialCode;
-
     @NotBlank(message = "Material name is required")
     String materialName;
 

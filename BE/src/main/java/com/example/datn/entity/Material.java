@@ -23,10 +23,6 @@ public class Material {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "material_code")
-    @NotBlank(message = "Material code is required")
-    String materialCode;
-
     @Column(name = "material_name")
     @NotBlank(message = "Material name is required")
     String materialName;

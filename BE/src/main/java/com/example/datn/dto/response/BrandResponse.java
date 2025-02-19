@@ -14,8 +14,6 @@ public class BrandResponse {
 
     Integer id;
 
-    String brandCode;
-
     String brandName;
 
     String description;

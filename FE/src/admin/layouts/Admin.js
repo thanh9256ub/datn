@@ -25,6 +25,7 @@ const Admin = () => {
                 </Container>
                 <Footer />
             </div>
+
         </div>
     );
 };
