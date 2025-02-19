@@ -1,20 +1,19 @@
 import { useEffect, useState } from "react";
-import { Table, Dropdown, Button, Form, FormControl,Col,InputGroup } from "react-bootstrap";
+import { Table, Dropdown, Button, Form, FormControl, Col, InputGroup } from "react-bootstrap";
 import { Cart } from "react-bootstrap-icons";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { axiSpct } from "./axiosSP";
 import axios from "axios";
-import { axiSp } from "./axiosSP";
-
 
 export default function SanPham() {
-  const [products, setProducts] = useState([]);
+  const [productDs, setProductDs] = useState([]);
 
-  // useEffect(async() => {
-  //  let res=await axiSp();
-  //  if (res && res.data) {
-  //   setProducts(res.data)
-  //  }
-  // })
+  useEffect(async () => {
+    let res = await axiSpct();
+    if (res && res.data) {
+      setProductDs(res.data.data)
+    }
+  },[])
 
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -42,45 +41,56 @@ export default function SanPham() {
           </Dropdown.Menu>
         </Dropdown>
 
-      
-       
-             <Form inline onSubmit={handleSearch}>
-        <FormControl
-          type="text"
-          placeholder="Tìm kiếm..."
-          className="mr-sm-2"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          
-        />
-       
-      </Form>
-          
-     
-    
 
 
-        
+        <Form inline onSubmit={handleSearch}>
+          <FormControl
+            type="text"
+            placeholder="Tìm kiếm..."
+            className="mr-sm-2"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+
+          />
+
+        </Form>
+
+
+
+
+
+
       </div>
       <Table bordered hover>
         <thead>
           <tr>
-            <th>Sản phẩm</th>
-            <th>Màu</th>
-            <th>Kích thước</th>
-            <th>Đơn giá</th>
-            <th>Kho</th>
-            <th></th>
+            <th>ID</th>
+            {/* <th>Ma san pham</th>
+            <th>Ten san pham</th>
+            <th>Hang</th>
+            <th>Danh muc</th>
+            <th>Chat lieu</th>
+            <th>Kich co</th>
+            <th>Mau sac</th>
+            <th>Gia ban</th>
+            <th>Tong so luong</th> */}
+            <th>Hành động</th>
           </tr>
         </thead>
-        {/* <tbody>
-          {products.map((product, index) => (
+        <tbody>
+          {productDs.map((productD, index) => (
             <tr key={index}>
-              <td>{product.name}</td>
-              <td>{product.color}</td>
-              <td>{product.size}</td>
-              <td>{product.price.toLocaleString()}</td>
-              <td>{product.stock}</td>
+              {/* <td>{productD.id}</td>
+              <td>{productD.product.productCode}</td>
+              <td>{productD.product.productName}</td>
+              <td>{productD.product.brand.brandName}</td>
+              <td>{productD.product.category.categoryName}</td>
+              <td>{productD.product.material.materialName}</td>
+              <td>{productD.size.sizeName}</td>
+              <td>{productD.color.colorName}</td>
+              <td>{productD.price.toLocaleString()}</td>
+              <td>{productD.qutdantity}</td> */}
+              <td>{productD.id}</td>
               <td>
                 <Button variant="link">
                   <Cart size={20} />
@@ -88,7 +98,7 @@ export default function SanPham() {
               </td>
             </tr>
           ))}
-        </tbody> */}
+        </tbody>
       </Table>
     </div>
   );
