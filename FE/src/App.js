@@ -9,15 +9,17 @@ import Product from './Pages/Product';
 import Cart from './Pages/Cart';
 import { Carousel } from 'bootstrap';
 import Footer from './ClientComponents/Footer/Footer';
-import men_banner from './ClientComponents/Assets/banner_mens.png'
-import women_banner from './ClientComponents/Assets/banner_women.png'
-import kid_banner from './ClientComponents/Assets/banner_kids.png'
+import men_banner from './ClientComponents/Assets/shoes_banner1.png'
+import women_banner from './ClientComponents/Assets/shoes_banner2.png'
+import kid_banner from './ClientComponents/Assets/shoes_banner3.png'
+import all_banner from './ClientComponents/Assets/shoes_banner4.png'
 import BanHang from './Pages/BanHang';
 import SanPham from './Pages/SanPham';
 import KhachHang from './Pages/KhachHang';
 import DonHang from './Pages/DonHang';
 import NhanVien from './Pages/NhanVien';
 import Admin from './admin/layouts/Admin.js'
+import ShopAllProduct from './Pages/ShopAllProduct.jsx';
 
 function App() {
   return (
@@ -33,6 +35,7 @@ function App() {
                 <Routes>
                   <Route path='/' element={<Shop />} />
                   <Route path='/mens' element={<ShopCategory banner={men_banner} category="men" />} />
+                  <Route path='/all' element={<ShopAllProduct banner={all_banner} />} />
                   <Route path='/womens' element={<ShopCategory banner={women_banner} category="women" />} />
                   <Route path='/kids' element={<ShopCategory banner={kid_banner} category="kid" />} />
                   <Route path="/product" element={<Product />}>
