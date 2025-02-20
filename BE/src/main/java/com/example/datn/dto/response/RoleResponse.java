@@ -9,11 +9,9 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class RoleResponse {
 
-    private Integer id;
+     Integer id;
 
-    private String roleCode;
+     String roleName;
 
-    private String roleName;
-
-    private String status;
+     String status;
 }

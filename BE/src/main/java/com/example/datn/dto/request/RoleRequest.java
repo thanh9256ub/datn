@@ -11,11 +11,9 @@ import lombok.experimental.FieldDefaults;
 
 public class RoleRequest {
 
-    private Integer id;
+     Integer id;
 
-    private String roleCode;
+     String roleName;
 
-    private String roleName;
-
-    private String status;
+     String status;
 }

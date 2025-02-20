@@ -1,5 +1,6 @@
 package com.example.datn.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -16,6 +17,8 @@ public class CustomerRequest {
 
     Integer id;
 
+    String customerCode;
+
     String fullName;
 
     String gender;
@@ -24,12 +27,13 @@ public class CustomerRequest {
     String phone;
 
     String email;
+    LocalDateTime createdAt;
 
     String password;
 
-    LocalDateTime createdAt;
 
     LocalDateTime updatedAt;
 
-    Integer role_id;
+    @JsonProperty("role_id")
+    Integer roleId;
 }
