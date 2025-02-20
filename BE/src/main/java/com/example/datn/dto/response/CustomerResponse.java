@@ -1,16 +1,15 @@
 package com.example.datn.dto.response;
 
+import com.example.datn.entity.Customer;
 import com.example.datn.entity.Role;
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Data
 @AllArgsConstructor
@@ -19,6 +18,8 @@ import java.time.LocalDateTime;
 public class CustomerResponse {
 
     Integer id;
+
+    String customerCode;
 
     String fullName;
 
@@ -30,9 +31,23 @@ public class CustomerResponse {
 
     String password;
 
-    LocalDateTime createdAt;
+    String createdAt;
 
-    LocalDateTime updatedAt;
+    String updatedAt;
 
-    Integer role_id;
+    @JsonProperty("role_id")
+    Integer roleId;
+
+    public CustomerResponse(Customer customer) {
+        this.id = customer.getId();
+        this.customerCode = customer.getCustomerCode();
+        this.fullName = customer.getFullName();
+        this.gender = customer.getGender();
+        this.phone = customer.getPhone();
+        this.email = customer.getEmail();
+        this.password = customer.getPassword();
+        this.createdAt = customer.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        this.updatedAt = customer.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        this.roleId = customer.getRoLe().getId();
+    }
 }

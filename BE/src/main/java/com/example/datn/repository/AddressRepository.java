@@ -1,9 +1,9 @@
 package com.example.datn.repository;
 
-import com.example.datn.entity.DiaChi;
+import com.example.datn.entity.Address;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface DiaChiRepository extends JpaRepository<DiaChi,Integer> {
+public interface AddressRepository extends JpaRepository<Address,Integer> {
 }

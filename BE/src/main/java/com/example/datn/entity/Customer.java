@@ -20,6 +20,9 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "customer_code")
+    private String customerCode;
+
     @Column(name = "full_name")
     private String fullName;
 
