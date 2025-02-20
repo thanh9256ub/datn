@@ -44,7 +44,5 @@ public class OrderDetailService {
         repository.deleteById(id);
     }
 
-    public List<OrderDetailResponse> getBy() {
-        return mapper.toListResponses(repository.findAll());
-    }
+
 }
