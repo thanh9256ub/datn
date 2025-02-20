@@ -74,6 +74,28 @@
     cursor: pointer;
 }
 
+/* ======= */
+.productdisplay-right-colors {
+    display: flex;
+    margin: 30px 0px;
+    gap: 20px;
+}
+
+.productdisplay-right-color h1 {
+    margin-top: 55px;
+    color: #656565;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.productdisplay-right-colors div {
+    padding: 18px 24px;
+    background: #fbfbfb;
+    border: 1px solid #ebebeb;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
 .productdisplay-right button {
     padding: 20px 40px;
     width: 200px;
@@ -93,4 +115,87 @@
 
 .productdisplay-right-category span {
     font-weight: 600;
+}
+
+@media (max-width: 1280px) {
+    .productdisplay {
+        margin: 0px 100px;
+        gap: 30px;
+    }
+
+    .productdisplay-main-img {
+        width: 500px;
+        height: 600px;
+    }
+
+    .productdisplay-right h1 {
+        font-size: 36px;
+    }
+
+    .productdisplay-right-prices {
+        font-size: 22px;
+    }
+
+    .productdisplay-right button {
+        width: 180px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .productdisplay {
+        flex-direction: column;
+
+        align-items: center;
+        margin: 0px 50px;
+    }
+
+    .productdisplay-left {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .productdisplay-main-img {
+        width: 450px;
+        height: 550px;
+    }
+
+    .productdisplay-right {
+        margin: 30px 0px;
+        align-items: center;
+        text-align: center;
+    }
+
+    .productdisplay-right-prices {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 800px) {
+    .productdisplay {
+        margin: 0px 20px;
+    }
+
+    .productdisplay-main-img {
+        width: 100%;
+        height: auto;
+    }
+
+    .productdisplay-right h1 {
+        font-size: 28px;
+    }
+
+    .productdisplay-right-prices {
+        font-size: 18px;
+    }
+
+    .productdisplay-right-sizes {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .productdisplay-right button {
+        width: 100%;
+        padding: 15px;
+    }
 }

@@ -1,5 +1,9 @@
 package com.example.datn.dto.response;
 
+import com.example.datn.entity.Customer;
+import com.example.datn.entity.Employee;
+import com.example.datn.entity.PaymentMethod;
+import com.example.datn.entity.PaymentType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -8,8 +12,6 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderResponse {
 
@@ -17,9 +19,9 @@ public class OrderResponse {
 
     String orderCode;
 
-    Integer customerId;
+    Customer customer;
 
-    Integer employeeId;
+    Employee employee;
 
     String customerName;
 
@@ -37,9 +39,9 @@ public class OrderResponse {
 
     Double totalPayment;
 
-    String paymentTypeNameId;
+    PaymentType paymentTypeName;
 
-    String paymentMethodNameId;
+    PaymentMethod paymentMethodName;
 
     Integer status;
 

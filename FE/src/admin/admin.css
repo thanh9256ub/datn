@@ -1,0 +1,202 @@
+/* Kiểu mặc định cho các liên kết trong Sidebar */
+.nav-link {
+    color: #c9d1d9;  /* Màu chữ nhạt hơn */
+    padding: 10px 15px;
+    text-decoration: none;  /* Xóa gạch chân mặc định */
+    font-weight: 500;
+    border-radius: 4px;  /* Thêm bo tròn cho các liên kết */
+    transition: background-color 0.3s ease, color 0.3s ease;  /* Thêm hiệu ứng chuyển đổi */
+    display: flex;
+    align-items: center;  /* Đảm bảo icon và text căn cùng 1 dòng */
+}
+
+/* Khoảng cách giữa icon và title */
+.nav-link span {
+    margin-left: 10px;  /* Tạo khoảng cách giữa icon và title */
+}
+
+/* Kiểu cho các liên kết khi hover */
+.nav-link:hover {
+    background-color: #4c5a64;  /* Màu nền khi hover */
+    color: #ffffff;  /* Màu chữ khi hover */
+    cursor: pointer;  /* Thay đổi con trỏ khi hover */
+}
+
+/* Các mục con của Sidebar */
+.sub-nav {
+    margin-left: 20px;  /* Khoảng cách lề cho các mục con */
+}
+
+.sub-nav .nav-link {
+    font-size: 12px;  /* Chữ nhỏ hơn cho các mục con */
+    color: #6e7d89;  /* Màu chữ nhạt hơn */
+}
+
+/* Thêm hiệu ứng cho các mục con khi hover */
+.sub-nav .nav-link:hover {
+    background-color: #37474f;
+    color: white;
+}
+
+/* Các biểu tượng và tên mục con */
+.nav-link span {
+    margin-left: 10px;
+}
+
+/* Điều chỉnh độ rộng của sidebar */
+#sidebar-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 250px;
+    background-color: #2e353d;  /* Màu nền tối cho sidebar */
+    padding-top: 20px;
+    z-index: 10;
+}
+
+/* Kiểu cho tiêu đề của Sidebar */
+.sidebar-heading {
+    font-size: 1.5rem;
+    padding: 15px 20px;
+    color: white;
+    background-color: #1c2329;  /* Màu nền tối hơn cho tiêu đề */
+}
+
+/* Nội dung chính */
+#page-content-wrapper {
+    margin-left: 250px; /* Dịch chuyển nội dung sang phải để tránh sidebar */
+    padding: 20px;
+    flex-grow: 1; /* Chiếm hết không gian còn lại */
+    min-height: 100vh; /* Đảm bảo nội dung chính có chiều cao tối thiểu */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden; /* Ngăn chặn cuộn không cần thiết */
+}
+
+/* Footer luôn nằm ở dưới cùng */
+footer {
+    background-color: #1c2329;  /* Màu nền footer tương tự tiêu đề */
+    color: white;
+    text-align: center;
+    margin-top: auto; /* Đẩy footer xuống dưới */
+    height: 50px;
+    width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #sidebar-wrapper {
+      width: 200px; /* Giảm độ rộng của sidebar khi thu nhỏ */
+    }
+
+    #page-content-wrapper {
+      margin-left: 200px; /* Dịch chuyển nội dung khi sidebar thu nhỏ */
+    }
+
+    footer {
+      padding: 5px; /* Giảm padding của footer trên màn hình nhỏ */
+    }
+}
+/* Kiểu mặc định cho các liên kết trong Sidebar */
+.nav-link {
+  color: #c9d1d9;  /* Màu chữ nhạt hơn */
+  padding: 10px 15px;
+  text-decoration: none;  /* Xóa gạch chân mặc định */
+  font-weight: 500;
+  border-radius: 4px;  /* Thêm bo tròn cho các liên kết */
+  transition: background-color 0.3s ease, color 0.3s ease;  /* Thêm hiệu ứng chuyển đổi */
+  display: flex;
+  align-items: center;  /* Đảm bảo icon và text căn cùng 1 dòng */
+}
+
+/* Khoảng cách giữa icon và title */
+.nav-link span {
+  margin-left: 10px;  /* Tạo khoảng cách giữa icon và title */
+}
+
+/* Kiểu cho các liên kết khi hover */
+.nav-link:hover {
+  background-color: #4c5a64;  /* Màu nền khi hover */
+  color: #ffffff;  /* Màu chữ khi hover */
+  cursor: pointer;  /* Thay đổi con trỏ khi hover */
+}
+
+/* Các mục con của Sidebar */
+.sub-nav {
+  margin-left: 20px;  /* Khoảng cách lề cho các mục con */
+}
+
+.sub-nav .nav-link {
+  font-size: 12px;  /* Chữ nhỏ hơn cho các mục con */
+  color: #6e7d89;  /* Màu chữ nhạt hơn */
+}
+
+/* Thêm hiệu ứng cho các mục con khi hover */
+.sub-nav .nav-link:hover {
+  background-color: #37474f;
+  color: white;
+}
+
+/* Các biểu tượng và tên mục con */
+.nav-link span {
+  margin-left: 10px;
+}
+
+/* Điều chỉnh độ rộng của sidebar */
+#sidebar-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 250px;
+  background-color: #2e353d;  /* Màu nền tối cho sidebar */
+  padding-top: 20px;
+  z-index: 10;
+}
+
+/* Kiểu cho tiêu đề của Sidebar */
+.sidebar-heading {
+  font-size: 1.5rem;
+  padding: 15px 20px;
+  color: white;
+  background-color: #1c2329;  /* Màu nền tối hơn cho tiêu đề */
+}
+
+/* Nội dung chính */
+#page-content-wrapper {
+  margin-left: 250px; /* Dịch chuyển nội dung sang phải để tránh sidebar */
+  padding: 20px;
+  flex-grow: 1; /* Chiếm hết không gian còn lại */
+  min-height: 100vh; /* Đảm bảo nội dung chính có chiều cao tối thiểu */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden; /* Ngăn chặn cuộn không cần thiết */
+}
+
+/* Footer luôn nằm ở dưới cùng */
+footer {
+  background-color: #1c2329;  /* Màu nền footer tương tự tiêu đề */
+  color: white;
+  text-align: center;
+  margin-top: auto; /* Đẩy footer xuống dưới */
+  height: 10px;
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  #sidebar-wrapper {
+    width: 200px; /* Giảm độ rộng của sidebar khi thu nhỏ */
+  }
+
+  #page-content-wrapper {
+    margin-left: 200px; /* Dịch chuyển nội dung khi sidebar thu nhỏ */
+  }
+
+  footer {
+    padding: 5px; /* Giảm padding của footer trên màn hình nhỏ */
+  }
+}

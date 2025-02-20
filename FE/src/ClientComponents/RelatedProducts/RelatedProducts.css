@@ -12,6 +12,13 @@
     font-weight: 600;
 }
 
+.item img {
+    width: 280px;
+    height: 280px;
+    object-fit: cover;
+    /* Đảm bảo hình ảnh không bị méo */
+}
+
 .relatedproducts hr {
     width: 200px;
     height: 6px;
@@ -20,7 +27,13 @@
 }
 
 .relatedproducts-item {
-    margin-top: 50px;
+    /* margin-top: 50px;
     display: flex;
-    gap: 30px;
+    gap: 30px; */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+
 }

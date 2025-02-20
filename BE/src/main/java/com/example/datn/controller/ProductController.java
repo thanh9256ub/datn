@@ -5,7 +5,6 @@ import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.ProductResponse;
 import com.example.datn.service.ProductService;
 import jakarta.validation.Valid;
-import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin("*")
 @RestController
-@RequestMapping("product")
+@RequestMapping("products")
 public class ProductController {
 
     @Autowired
