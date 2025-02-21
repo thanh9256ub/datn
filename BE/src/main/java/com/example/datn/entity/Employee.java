@@ -46,10 +46,10 @@ public class Employee {
     private String email;
 
     @Column(name = "username")
-    private String userName;
+    private String username;
 
     @Column(name = "password")
-    private String passWord;
+    private String password;
 
     @ManyToOne
     @JoinColumn(name = "role_id",referencedColumnName = "id")

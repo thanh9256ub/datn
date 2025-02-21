@@ -9,6 +9,8 @@ import com.example.datn.mapper.EmployeeMapper;
 import com.example.datn.repository.EmployeeRepository;
 import com.example.datn.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -40,6 +42,9 @@ public class EmployeeService {
 
         Role role = roleRepository.findById(employeeRequest.getRoleId()).get();
         employee.setRoLe(role);
+
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        employee.setPassword(passwordEncoder.encode(employeeRequest.getPassword()));
 
         Employee created = employeeRepository.save(employee);
 
