@@ -1,6 +1,7 @@
 import React, { Component, Suspense, lazy } from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom';
 import Spinner from '../admin/shared/Spinner';
+import BanHang from './counter/BanHang';
 
 const Dashboard = lazy(() => import('./dashboard/Dashboard'));
 const Buttons = lazy(() => import('./basic-ui/Buttons'));
@@ -53,6 +54,8 @@ class AdminRoutes extends Component {
           <Route exact path="/admin/error-pages/error-500" component={Error500} />
 
           <Route exact path="/admin/general-pages/blank-page" component={BlankPage} />
+
+          <Route exact path="/admin/counter" component={BanHang} />
 
           {/* Redirect về dashboard nếu không tìm thấy route */}
           <Redirect to="/admin/dashboard" />
