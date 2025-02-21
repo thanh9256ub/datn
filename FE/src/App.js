@@ -18,11 +18,6 @@ function App() {
           <Route path="/" component={Client} />
 
           <Redirect to="/" />
-          {/* <Route path="/banhang" component={BanHang} />
-          <Route path="/sanpham" component={SanPham} />
-          <Route path="/nhanvien" component={NhanVien} />
-          <Route path="/khachhang" component={KhachHang} />
-          <Route path="/donhang" component={DonHang} /> */}
 
         </Switch>
       </BrowserRouter>
