@@ -1,5 +1,5 @@
 import React, { createContext, useState } from 'react'
-import all_product from "../ClientComponents/Assets/all_product"
+import all_product from "../Assets/all_product"
 import { Toast } from 'bootstrap';
 export const ShopContext = createContext(null);
 const getDefaultCart = () => {
@@ -27,7 +27,7 @@ const ShopContextProvider = (props) => {
             return newCart;
         });
     };
-    
+
     const removeFromCart = (itemId) => {
         setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }))
     }
@@ -54,7 +54,7 @@ const ShopContextProvider = (props) => {
         return totalItem;
     }
 
-    const contextValue = {clearCart, getTotalCartItems, getTotalCartAmount, all_product, cartItems, addToCart, removeFromCart }
+    const contextValue = { clearCart, getTotalCartItems, getTotalCartAmount, all_product, cartItems, addToCart, removeFromCart }
     return (
         <ShopContext.Provider value={contextValue}>
             {

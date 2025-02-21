@@ -1,9 +1,9 @@
-import React, { useContext, useState} from 'react'
+import React, { useContext, useState } from 'react'
 import './CartItems.css'
-import { ShopContext } from '../../Context/ShopContext'
+import { ShopContext } from '../Context/ShopContext'
 import remove_icon from '../Assets/cart_cross_icon.png'
 const CartItems = () => {
-    const {clearCart, getTotalCartAmount, all_product, cartItems, removeFromCart } = useContext(ShopContext);
+    const { clearCart, getTotalCartAmount, all_product, cartItems, removeFromCart } = useContext(ShopContext);
     const [orderSuccess, setOrderSuccess] = useState(false);
 
     const handleCheckout = () => {
@@ -14,7 +14,7 @@ const CartItems = () => {
         setOrderSuccess(true);
         clearCart(); // Reset giỏ hàng về rỗng
     };
-   
+
     return (
         <div className='cartitems'>
             {orderSuccess ? (
