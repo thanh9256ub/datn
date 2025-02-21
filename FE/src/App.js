@@ -12,18 +12,17 @@ function App() {
     <div>
       <BrowserRouter>
         <Switch>
+
+          <Route path="/admin" component={Admin} />
+
           <Route path="/" component={Client} />
 
-
+          <Redirect to="/" />
           {/* <Route path="/banhang" component={BanHang} />
           <Route path="/sanpham" component={SanPham} />
           <Route path="/nhanvien" component={NhanVien} />
           <Route path="/khachhang" component={KhachHang} />
           <Route path="/donhang" component={DonHang} /> */}
-
-          {/* Route riêng cho Admin */}
-          <Route path="/admin" component={Admin} />
-          <Redirect path="/" />
 
         </Switch>
       </BrowserRouter>

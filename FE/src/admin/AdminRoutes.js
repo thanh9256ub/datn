@@ -29,7 +29,7 @@ class AdminRoutes extends Component {
     return (
       <Suspense fallback={<Spinner />}>
         <Switch>
-          {/* Các route cho Admin */}
+
           <Route exact path="/admin/dashboard" component={Dashboard} />
 
           <Route exact path="/admin/basic-ui/buttons" component={Buttons} />
