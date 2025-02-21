@@ -24,7 +24,7 @@ const Lockscreen = lazy(() => import('./user-pages/Lockscreen'));
 
 const BlankPage = lazy(() => import('./general-pages/BlankPage'));
 
-class AppRoutes extends Component {
+class AdminRoutes extends Component {
   render() {
     return (
       <Suspense fallback={<Spinner />}>
@@ -62,4 +62,4 @@ class AppRoutes extends Component {
   }
 }
 
-export default AppRoutes;
+export default AdminRoutes;
