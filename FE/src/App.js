@@ -2,24 +2,24 @@ import logo from './logo.svg';
 import './App.css';
 import Navbar from './ClientComponents/Navbar/Navbar';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import LoginSignup from './Pages/LoginSignup';
-import Shop from './Pages/Shop';
-import ShopCategory from './Pages/ShopCategory';
-import Product from './Pages/Product';
-import Cart from './Pages/Cart';
+import LoginSignup from './ClientComponents/Pages/LoginSignup.js';
+import Shop from './ClientComponents/Pages/Shop.js';
+import ShopCategory from './ClientComponents/Pages/ShopCategory.jsx';
+import Product from './ClientComponents/Pages/Product.jsx';
+import Cart from './ClientComponents/Pages/Cart.jsx';
 import { Carousel } from 'bootstrap';
 import Footer from './ClientComponents/Footer/Footer';
 import men_banner from './ClientComponents/Assets/shoes_banner1.png'
 import women_banner from './ClientComponents/Assets/shoes_banner2.png'
 import kid_banner from './ClientComponents/Assets/shoes_banner3.png'
 import all_banner from './ClientComponents/Assets/shoes_banner4.png'
-import BanHang from './Pages/BanHang';
-import SanPham from './Pages/SanPham';
-import KhachHang from './Pages/KhachHang';
-import DonHang from './Pages/DonHang';
-import NhanVien from './Pages/NhanVien';
+import BanHang from './ClientComponents/Pages/BanHang.js';
+import SanPham from './ClientComponents/Pages/SanPham.js';
+import KhachHang from './ClientComponents/Pages/KhachHang.js';
+import DonHang from './ClientComponents/Pages/DonHang.js';
+import NhanVien from './ClientComponents/Pages/NhanVien.js';
 import Admin from './admin/layouts/Admin.js'
-import ShopAllProduct from './Pages/ShopAllProduct.jsx';
+import ShopAllProduct from './ClientComponents/Pages/ShopAllProduct.jsx';
 
 function App() {
   return (

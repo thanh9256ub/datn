@@ -1,5 +1,5 @@
 import React from 'react'
-import Menu from '../ClientComponents/Menu/Menu'
+import Menu from '../Menu/Menu'
 
 
 
