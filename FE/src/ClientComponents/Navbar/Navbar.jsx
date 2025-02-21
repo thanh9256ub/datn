@@ -3,7 +3,7 @@ import './Navbar.css'
 import logo from '../Assets/logo.png'
 import cart_icon from '../Assets/cart_icon.png'
 import { Link } from 'react-router-dom'
-import { ShopContext } from '../../Context/ShopContext'
+import { ShopContext } from '../Context/ShopContext'
 import nav_dropdown from '../Assets/drop_down_icon.png'
 const Navbar = () => {
     const [menu, setMenu] = useState("shop");
@@ -22,9 +22,10 @@ const Navbar = () => {
             <img className='nav-dropdown' onClick={dropdown_toggle} src={nav_dropdown} alt="" />
             <ul ref={menuRef} className="nav-menu">
                 <li onClick={() => { setMenu("shop") }}><Link style={{ textDecoration: 'none' }} to='/'>Shop</Link> {menu === "shop" ? <hr /> : <></>}</li>
-                <li onClick={() => { setMenu("mens") }}><Link style={{ textDecoration: 'none' }} to='/mens'>Men</Link> {menu === "mens" ? <hr /> : <></>}</li>
-                <li onClick={() => { setMenu("womens") }}> <Link style={{ textDecoration: 'none' }} to='/womens'>Women</Link> {menu === "womens" ? <hr /> : <></>}</li>
-                <li onClick={() => { setMenu("kids") }}><Link style={{ textDecoration: 'none' }} to='/kids'>Kids</Link> {menu === "kids" ? <hr /> : <></>}</li>
+                <li onClick={() => { setMenu("all") }}><Link style={{ textDecoration: 'none' }} to='/all'>All</Link> {menu === "all" ? <hr /> : <></>}</li>
+                <li onClick={() => { setMenu("mens") }}><Link style={{ textDecoration: 'none' }} to='/mens'>Top Sellers</Link> {menu === "mens" ? <hr /> : <></>}</li>
+                <li onClick={() => { setMenu("womens") }}> <Link style={{ textDecoration: 'none' }} to='/womens'>New Product</Link> {menu === "womens" ? <hr /> : <></>}</li>
+                <li onClick={() => { setMenu("kids") }}><Link style={{ textDecoration: 'none' }} to='/kids'>Others</Link> {menu === "kids" ? <hr /> : <></>}</li>
             </ul>
             <div className="nav-login-cart">
                 <Link to='/login'><button>Login</button></Link>

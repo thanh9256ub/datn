@@ -1,8 +1,6 @@
 package com.example.datn.dto.request;
 
-import com.example.datn.entity.Role;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -38,7 +36,8 @@ public class EmployeeRequest {
 
     String passWord;
 
-    Integer role_id;
+    @JsonProperty("role_id")
+    Integer roleId;
 
     LocalDateTime createdAt;
 

@@ -1,9 +1,10 @@
+import React from 'react';
 import Dashboard from "./views/Dashboard";
 import Users from "./views/Users";
 import Settings from "./views/Settings";
 import Products from "./views/Products";
 import BanHang from "./views/BanHang";
-import * as RiIcons from 'react-icons/ri';
+// import * as RiIcons from 'react-icons/ri';
 
 const routes = [
     {
@@ -15,8 +16,8 @@ const routes = [
         path: "/users",
         component: Users,
         name: "Khách hàng",
-        iconClosed: <RiIcons.RiArrowDownSFill />,
-        iconOpened: <RiIcons.RiArrowUpSFill />,
+        // iconClosed: <RiIcons.RiArrowDownSFill />,
+        // iconOpened: <RiIcons.RiArrowUpSFill />,
         subRoutes: [
             {
                 path: "/customers",
@@ -37,8 +38,8 @@ const routes = [
         path: "/products",
         component: Products,
         name: "Sản phẩm",
-        iconClosed: <RiIcons.RiArrowDownSFill />,
-        iconOpened: <RiIcons.RiArrowUpSFill />,
+        // iconClosed: <RiIcons.RiArrowDownSFill />,
+        // iconOpened: <RiIcons.RiArrowUpSFill />,
         subRoutes: [
             {
                 path: "/products",

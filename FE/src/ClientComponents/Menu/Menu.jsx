@@ -1,10 +1,10 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const Menu = () =>  {
+const Menu = () => {
   const [active, setActive] = useState("/");
-  
+
   const menuItems = [
     { path: "/banhang", name: "Bán hàng" },
     { path: "/sanpham", name: "Quản lý sản phẩm" },
