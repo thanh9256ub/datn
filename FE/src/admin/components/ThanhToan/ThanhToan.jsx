@@ -1,21 +1,21 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Form, Button, Row, Col, ToggleButton, ToggleButtonGroup, InputGroup } from "react-bootstrap";
 
 export default function Checkout() {
   const [delivery, setDelivery] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState("cash");
-  
+
   return (
     <div className="border border-primary rounded p-3">
       <h5 className="text-primary border-bottom pb-2">Thông tin thanh toán</h5>
-      
+
       <Form>
         <Form.Group controlId="deliveryToggle" className="mb-3 d-flex align-items-center">
           <Form.Label className="me-2 fw-bold">Giao hàng:</Form.Label>
-          <Form.Check 
-            type="switch" 
-            checked={delivery} 
-            onChange={() => setDelivery(!delivery)} 
+          <Form.Check
+            type="switch"
+            checked={delivery}
+            onChange={() => setDelivery(!delivery)}
           />
         </Form.Group>
 
@@ -61,7 +61,7 @@ export default function Checkout() {
           <Form.Control type="text" placeholder="Nhập ghi chú" />
         </Form.Group>
       </Form>
-      
+
       <hr />
       <Row className="mb-3">
         <Col>
@@ -69,9 +69,9 @@ export default function Checkout() {
             <Form.Control placeholder="Nhập số điện thoại khách hàng" />
             <Button variant="success">Tìm kiếm</Button>
           </InputGroup>
-          
+
         </Col>
-       
+
       </Row>
       <Row className="mb-3">
         <Col>Khach hang : <span className="fw-bold">khach le</span></Col>
