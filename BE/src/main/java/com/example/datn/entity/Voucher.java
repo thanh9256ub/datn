@@ -29,38 +29,38 @@ public class Voucher {
 
     @Column(name = "voucher_code")
     @NotBlank(message = "voucher code is required")
-    private String ma_khuyen_mai;
+    private String voucherCode;
 
     @Column(name = "voucher_name")
-    private String ten_khuyen_mai;
+    private String voucherName;
 
     @Column(name = "condition")
-    private String dieu_kien;
+    private String condition;
 
     @Column(name = "discount_value")
-    private Double gia_tri_giam;
+    private Double discountValue;
 
     @Column(name = "quantity")
-    private Integer so_luong;
+    private Integer quantity;
 
     @Column(name = "start_date")
-    private LocalDateTime ngay_bat_dau;
+    private LocalDateTime startDate;
 
     @Column(name = "end_date")
-    private LocalDateTime ngay_ket_thuc;
+    private LocalDateTime enđate;
 
     @Column(name = "max_discount_value")
-    private Double gia_tri_giam_toi_da;
+    private Double maxDiscountValue;
 
     @Column(name = "discount_type")
-    private String kieu_giam_gia;
+    private String discountType;
 
     @Column(name = "status")
-    private String trang_thai;
+    private String status;
 
     @Column(name = "created_at")
-    private LocalDateTime ngay_tao;
+    LocalDateTime createdAt = LocalDateTime.now().withNano(0);
 
     @Column(name = "updated_at")
-    private LocalDateTime ngay_cap_nhat;
+    LocalDateTime updateAt = LocalDateTime.now().withNano(0);
 }
