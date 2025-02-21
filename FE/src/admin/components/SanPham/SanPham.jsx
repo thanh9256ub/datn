@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Table, Dropdown, Button, Form, FormControl,Col,InputGroup } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Table, Dropdown, Button, Form, FormControl, Col, InputGroup } from "react-bootstrap";
 import { Cart } from "react-bootstrap-icons";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import axios from "axios";
@@ -42,25 +42,25 @@ export default function SanPham() {
           </Dropdown.Menu>
         </Dropdown>
 
-      
-       
-             <Form inline onSubmit={handleSearch}>
-        <FormControl
-          type="text"
-          placeholder="Tìm kiếm..."
-          className="mr-sm-2"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          
-        />
-       
-      </Form>
-          
-     
-    
 
 
-        
+        <Form inline onSubmit={handleSearch}>
+          <FormControl
+            type="text"
+            placeholder="Tìm kiếm..."
+            className="mr-sm-2"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+
+          />
+
+        </Form>
+
+
+
+
+
+
       </div>
       <Table bordered hover>
         <thead>

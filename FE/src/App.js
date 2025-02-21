@@ -1,7 +1,8 @@
+import React from 'react';
 import logo from './logo.svg';
-import './App.css';
+import './admin/App.scss';
 import Navbar from './ClientComponents/Navbar/Navbar';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom';
 import LoginSignup from './Pages/LoginSignup';
 import Shop from './Pages/Shop';
 import ShopCategory from './Pages/ShopCategory';
@@ -17,47 +18,41 @@ import SanPham from './Pages/SanPham';
 import KhachHang from './Pages/KhachHang';
 import DonHang from './Pages/DonHang';
 import NhanVien from './Pages/NhanVien';
-import Admin from './admin/layouts/Admin.js'
+import Admin from './admin/Admin.js'
+import AppRoutes from './admin/AppRoutes.js';
 
 function App() {
   return (
     <div>
       <BrowserRouter>
-        <Routes>
-          {/* Các route dành cho người dùng */}
-          <Route
-            path="/*"
-            element={
-              <>
-                <Navbar />
-                <Routes>
-                  <Route path='/' element={<Shop />} />
-                  <Route path='/mens' element={<ShopCategory banner={men_banner} category="men" />} />
-                  <Route path='/womens' element={<ShopCategory banner={women_banner} category="women" />} />
-                  <Route path='/kids' element={<ShopCategory banner={kid_banner} category="kid" />} />
-                  <Route path="/product" element={<Product />}>
-                    <Route path=':productID' element={<Product />} />
-                  </Route>
-                  <Route path='/cart' element={<Cart />} />
-                  <Route path='/login' element={<LoginSignup />} />
-
-                </Routes>
-                <Footer />
-              </>
-            }
-          />
+        <Switch>
+          {/* <Route path="/*" exact>
+            <Navbar />
+            <Switch>
+              <Route path='/' component={Shop} />
+              <Route path='/mens' component={() => <ShopCategory banner={men_banner} category="men" />} />
+              <Route path='/womens' component={() => <ShopCategory banner={women_banner} category="women" />} />
+              <Route path='/kids' component={() => <ShopCategory banner={kid_banner} category="kid" />} />
+              <Route path="/product" component={Product}>
+                <Route path=':productID' component={Product} />
+              </Route>
+              <Route path='/cart' component={Cart} />
+              <Route path='/login' component={LoginSignup} />
+            </Switch>
+            <Footer />
+          </Route> */}
 
           {/* Route riêng cho Admin */}
+          {/* <Route path="/banhang" component={BanHang} />
+          <Route path="/sanpham" component={SanPham} />
+          <Route path="/nhanvien" component={NhanVien} />
+          <Route path="/khachhang" component={KhachHang} />
+          <Route path="/donhang" component={DonHang} /> */}
 
-          <Route path="/banhang" element={<BanHang />} />
-          <Route path="/sanpham" element={<SanPham />} />
-          <Route path="/nhanvien" element={<NhanVien />} />
-          <Route path="/khachhang" element={<KhachHang />} />
-          <Route path="/donhang" element={<DonHang />} />
+          <Route path="/admin" component={Admin} />
+          <Route path="/" component={Admin} />
 
-          <Route path="/admin/*" element={<Admin />} />
-
-        </Routes>
+        </Switch>
       </BrowserRouter>
     </div>
   );
