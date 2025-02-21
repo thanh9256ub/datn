@@ -49,6 +49,11 @@
     row-gap: 80px;
 }
 
+.shopcategory-banner {
+    width: 100%;
+    height: 850px;
+}
+
 @media(max-width:1280px) {
     .shopcatgory-banner {
         margin: 20px auto;

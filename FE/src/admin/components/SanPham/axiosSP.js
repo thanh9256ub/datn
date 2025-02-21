@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const axiSp = () => {
-    return axios.get("http://localhost:8080/order")
+const axiSpct = () => {
+    return axios.get("http://localhost:8080/order-detail")
 }
-export { axiSp };
+export { axiSpct };
