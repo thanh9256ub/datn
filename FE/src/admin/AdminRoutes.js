@@ -1,6 +1,12 @@
 import React, { Component, Suspense, lazy } from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom';
 import Spinner from '../admin/shared/Spinner';
+import BanHang from './counter/BanHang';
+import Products from './products/Products';
+import Employees from './employees/Employees';
+import Customers from './customers/Customers';
+import Orders from './orders/Orders';
+import Vouchers from './vouchers/Vouchers';
 
 const Dashboard = lazy(() => import('./dashboard/Dashboard'));
 const Buttons = lazy(() => import('./basic-ui/Buttons'));
@@ -22,8 +28,6 @@ const Login = lazy(() => import('./user-pages/Login'));
 const Register1 = lazy(() => import('./user-pages/Register'));
 const Lockscreen = lazy(() => import('./user-pages/Lockscreen'));
 
-const BlankPage = lazy(() => import('./general-pages/BlankPage'));
-
 class AdminRoutes extends Component {
   render() {
     return (
@@ -44,7 +48,6 @@ class AdminRoutes extends Component {
 
           <Route exact path="/admin/charts/chart-js" component={ChartJs} />
 
-          {/* Các trang user, error */}
           <Route exact path="/admin/user-pages/login-1" component={Login} />
           <Route exact path="/admin/user-pages/register-1" component={Register1} />
           <Route exact path="/admin/user-pages/lockscreen" component={Lockscreen} />
@@ -52,9 +55,13 @@ class AdminRoutes extends Component {
           <Route exact path="/admin/error-pages/error-404" component={Error404} />
           <Route exact path="/admin/error-pages/error-500" component={Error500} />
 
-          <Route exact path="/admin/general-pages/blank-page" component={BlankPage} />
+          <Route exact path="/admin/counter" component={BanHang} />
+          <Route exact path="/admin/products" component={Products} />
+          <Route exact path="/admin/employees" component={Employees} />
+          <Route exact path="/admin/customers" component={Customers} />
+          <Route exact path="/admin/orders" component={Orders} />
+          <Route exact path="/admin/vouchers" component={Vouchers} />
 
-          {/* Redirect về dashboard nếu không tìm thấy route */}
           <Redirect to="/admin/dashboard" />
         </Switch>
       </Suspense>

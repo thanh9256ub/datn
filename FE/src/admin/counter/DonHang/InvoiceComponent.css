@@ -1,0 +1,54 @@
+/* InvoiceComponent.css */
+
+/* Style cho nút tạo hóa đơn */
+.create-invoice-btn {
+    background-color: #00bfae; /* Màu sắc nút tạo hóa đơn */
+    border-radius: 8px;
+    padding: 10px 20px;
+    color: white;
+    font-weight: bold;
+    margin-right: 20px; /* Khoảng cách với phần tử tiếp theo */
+    flex-shrink: 0; /* Đảm bảo nút không bị thu nhỏ khi có nhiều hóa đơn */
+  }
+  
+  /* Đường ngăn cách giữa nút và danh sách hóa đơn */
+  .separator {
+    width: 1px;
+    height: 30px;
+    background-color: #000; /* Màu đen cho đường ngăn cách */
+    margin: 0 20px;
+  }
+  
+  /* Container chứa các hóa đơn */
+  .invoice-container {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 10px; /* Khoảng cách giữa các hóa đơn */
+    padding-bottom: 10px;
+  }
+  
+  /* Style cho mỗi hóa đơn */
+  .invoice-btn {
+    position: relative;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    background-color: #007bff; /* Màu nền của hóa đơn */
+    color: white;
+    flex-shrink: 0; /* Đảm bảo hóa đơn không bị thu nhỏ khi có nhiều hóa đơn */
+  }
+  
+  /* Style cho nút "X" để xóa hóa đơn */
+  .remove-btn {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: white;
+    cursor: pointer;
+    border-radius: 50%;
+    padding: 3px 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
