@@ -1,95 +1,190 @@
-// import React, { useEffect, useState } from "react";
-// import { Table, Dropdown, Button, Form, FormControl, Col, InputGroup } from "react-bootstrap";
-// import { Cart } from "react-bootstrap-icons";
-// import 'bootstrap/dist/css/bootstrap.min.css';
-// import axios from "axios";
-// import { axiSp } from "./axiosSP";
+import React, { useState } from 'react';
+import { Row, Col, Modal, Button, Table, Form } from 'react-bootstrap';
 
+const Cart = () => {
+  const availableProducts = [
+    { id: 3, name: 'Giày chó - 39 - đỏ', price: 350000 },
+    { id: 4, name: 'Giày heo - 37 - hồng', price: 280000 },
+    { id: 5, name: 'Giày vịt - 40 - vàng', price: 320000 }
+  ];
 
-// export default function SanPham() {
-//   const [products, setProducts] = useState([]);
+  const [items, setItems] = useState([
+    { id: 1, name: 'Giày gấu - 40 - cam', price: 400000, quantity: 3, total: 1200000 },
+    { id: 2, name: 'Giày mèo - 38 - xanh', price: 300000, quantity: 1, total: 300000 }
+  ]);
 
-//   // useEffect(async() => {
-//   //  let res=await axiSp();
-//   //  if (res && res.data) {
-//   //   setProducts(res.data)
-//   //  }
-//   // })
+  const [showModal, setShowModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [quantity, setQuantity] = useState(1);
 
-//   const [searchTerm, setSearchTerm] = useState('');
+  const handleShowModal = () => setShowModal(true);
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedProduct(null);
+    setQuantity(1);
+  };
 
-//   const handleSearch = (e) => {
-//     e.preventDefault();
-//     alert(`Bạn đã tìm kiếm: ${searchTerm}`);
-//   };
-//   return (
-//     <div className="border border-primary rounded p-3">
-//       <h5>Chọn sản phẩm</h5>
-//       <hr />
-//       <div className="d-flex justify-content-between mb-3">
-//         <Dropdown>
-//           <Dropdown.Toggle variant="light">Chọn màu</Dropdown.Toggle>
-//           <Dropdown.Menu>
-//             <Dropdown.Item>Cam</Dropdown.Item>
-//             <Dropdown.Item>Đen</Dropdown.Item>
-//           </Dropdown.Menu>
-//         </Dropdown>
-//         <Dropdown>
-//           <Dropdown.Toggle variant="light">Chọn kích thước</Dropdown.Toggle>
-//           <Dropdown.Menu>
-//             <Dropdown.Item>39</Dropdown.Item>
-//             <Dropdown.Item>40</Dropdown.Item>
-//           </Dropdown.Menu>
-//         </Dropdown>
+  const handleRemoveItem = (id) => {
+    setItems(items.filter(item => item.id !== id));
+  };
 
+  const handleSelectProduct = (product) => {
+    setSelectedProduct(product);
+    setQuantity(1);
+  };
 
+  const handleAddToCart = () => {
+    if (!selectedProduct || quantity < 1) return;
 
-//         <Form inline onSubmit={handleSearch}>
-//           <FormControl
-//             type="text"
-//             placeholder="Tìm kiếm..."
-//             className="mr-sm-2"
-//             value={searchTerm}
-//             onChange={(e) => setSearchTerm(e.target.value)}
+    const existingItem = items.find(item => item.id === selectedProduct.id);
 
-//           />
+    if (existingItem) {
+      setItems(items.map(item =>
+        item.id === selectedProduct.id
+          ? { ...item, quantity: item.quantity + quantity, total: (item.quantity + quantity) * item.price }
+          : item
+      ));
+    } else {
+      setItems([...items, { ...selectedProduct, quantity, total: selectedProduct.price * quantity }]);
+    }
 
-//         </Form>
+    handleCloseModal();
+  };
 
+  // 🛒 Xử lý thay đổi số lượng trong giỏ hàng
+  const handleQuantityChange = (id, newQuantity) => {
+    if (newQuantity < 1) return;
 
+    setItems(items.map(item =>
+      item.id === id
+        ? { ...item, quantity: newQuantity, total: newQuantity * item.price }
+        : item
+    ));
+  };
 
+  return (
+    <div className="cart-container">
+      <Row className="d-flex align-items-center">
+        <Col className="d-flex justify-content-start">
+          <h3>Giỏ hàng</h3>
+        </Col>
+        <Col className="d-flex justify-content-end">
+          <div className="d-flex align-items-center">
+            <i 
+              className="mdi mdi-cart-plus mr-5" 
+              style={{ fontSize: '36px', cursor: 'pointer' }}
+              onClick={handleShowModal} 
+            ></i>
+            <i className="mdi mdi-qrcode-scan mr-5" style={{ fontSize: '36px' }}></i>
+          </div>
+        </Col>
+      </Row>
 
+      <hr />
 
+      <div className="table-responsive">
+        <Table hover>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Total</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map(item => (
+              <tr key={item.id}>
+                <td>{item.name}</td>
+                <td>{item.price.toLocaleString()} VND</td>
+                <td>
+                  <Form.Control
+                    type="number"
+                    min="1"
+                    value={item.quantity}
+                    onChange={(e) => handleQuantityChange(item.id, Number(e.target.value))}
+                    style={{ width: "100px" }}
+                  />
+                </td>
+                <td>{item.total.toLocaleString()} VND</td>
+                <td>
+                  <i
+                    className="mdi mdi-cart-off" 
+                    style={{ fontSize: '20px', cursor: 'pointer' }}
+                    onClick={() => handleRemoveItem(item.id)}
+                  ></i>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
 
-//       </div>
-//       <Table bordered hover>
-//         <thead>
-//           <tr>
-//             <th>Sản phẩm</th>
-//             <th>Màu</th>
-//             <th>Kích thước</th>
-//             <th>Đơn giá</th>
-//             <th>Kho</th>
-//             <th></th>
-//           </tr>
-//         </thead>
-//         {/* <tbody>
-//           {products.map((product, index) => (
-//             <tr key={index}>
-//               <td>{product.name}</td>
-//               <td>{product.color}</td>
-//               <td>{product.size}</td>
-//               <td>{product.price.toLocaleString()}</td>
-//               <td>{product.stock}</td>
-//               <td>
-//                 <Button variant="link">
-//                   <Cart size={20} />
-//                 </Button>
-//               </td>
-//             </tr>
-//           ))}
-//         </tbody> */}
-//       </Table>
-//     </div>
-//   );
-// }
+      {/* Modal để chọn sản phẩm */}
+      <Modal show={showModal} onHide={handleCloseModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Chọn sản phẩm</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {!selectedProduct ? (
+            <Table hover>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {availableProducts.map(product => (
+                  <tr key={product.id}>
+                    <td>{product.name}</td>
+                    <td>{product.price.toLocaleString()} VND</td>
+                    <td>
+                      <Button variant="success" size="sm" onClick={() => handleSelectProduct(product)}>
+                        Chọn
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <div>
+              <h5>{selectedProduct.name}</h5>
+              <p>Giá: {selectedProduct.price.toLocaleString()} VND</p>
+              <Form.Group controlId="quantity">
+                <Form.Label>Nhập số lượng:</Form.Label>
+                <Form.Control
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                />
+              </Form.Group>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          {selectedProduct ? (
+            <>
+              <Button variant="secondary" onClick={() => setSelectedProduct(null)}>
+                Quay lại
+              </Button>
+              <Button variant="primary" onClick={handleAddToCart}>
+                Thêm vào giỏ hàng
+              </Button>
+            </>
+          ) : (
+            <Button variant="secondary" onClick={handleCloseModal}>
+              Đóng
+            </Button>
+          )}
+        </Modal.Footer>
+      </Modal>
+    </div>
+  );
+};
+
+export default Cart;

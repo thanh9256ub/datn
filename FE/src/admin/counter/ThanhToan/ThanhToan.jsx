@@ -1,105 +1,338 @@
-import React, { useState } from "react";
-import { Form, Button, Row, Col, ToggleButton, ToggleButtonGroup, InputGroup } from "react-bootstrap";
+import React, { useState } from 'react';
+import { Button, Form, Row, Col, InputGroup, Modal,Table } from 'react-bootstrap';
 
-export default function Checkout() {
-  const [delivery, setDelivery] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState("cash");
+export default function PaymentInfo() {
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+
+  const [customerType, setCustomerType] = useState('guest');
+  const [discountCode, setDiscountCode] = useState('');
+  const [isCashPayment, setIsCashPayment] = useState(false);
+  const [isQRModalVisible, setIsQRModalVisible] = useState(false); // Trạng thái để hiển thị modal
+  const [cashPaid, setCashPaid] = useState('');
+  const [change, setChange] = useState('');
+  const [totalAmount] = useState(1500000);
+
+  const handleCloseQRModal = () => setIsQRModalVisible(false);
+  const handleShowQRModal = () => {
+    setIsCashPayment(false); // Ẩn các trường Tiền mặt khi mở modal QR
+    setIsQRModalVisible(true);
+  };
+
+  
+  const [delivery, setDelivery] = useState(false);
+  const [tempDelivery, setTempDelivery] = useState(false); // State tạm khi mở modal
+  const [showModal, setShowModal] = useState(false);
+
+  const handleDeliveryChange = () => {
+    setTempDelivery(true); // Mở modal với trạng thái tạm
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setDelivery(false); // Khi đóng modal, giao hàng trở về "Không"
+  };
+
+  const handleSaveModal = () => {
+    setShowModal(false);
+    setDelivery(tempDelivery); // Giữ nguyên trạng thái khi lưu
+  };
+
+  const [isPromoModalVisible, setIsPromoModalVisible] = useState(false);
+  const [selectedPromoCode, setSelectedPromoCode] = useState('');
+  
+  const promoCodes = [
+    { code: 'DISCOUNT10', discount: '10%' },
+    { code: 'FREESHIP', discount: 'Miễn phí vận chuyển' },
+    { code: 'SALE50', discount: 'Giảm 50K' },
+  ];
+
+  const handleShowPromoModal = () => setIsPromoModalVisible(true);
+  const handleClosePromoModal = () => setIsPromoModalVisible(false);
+
+  const handleSelectPromoCode = (code) => {
+    setSelectedPromoCode(code);
+    setIsPromoModalVisible(false);
+  };
 
   return (
-    <div className="border border-primary rounded p-3">
-      <h5 className="text-primary border-bottom pb-2">Thông tin thanh toán</h5>
+    <div className="container my-4">
 
-      <Form>
-        <Form.Group controlId="deliveryToggle" className="mb-3 d-flex align-items-center">
-          <Form.Label className="me-2 fw-bold">Giao hàng:</Form.Label>
-          <Form.Check
-            type="switch"
-            checked={delivery}
-            onChange={() => setDelivery(!delivery)}
-          />
-        </Form.Group>
 
-        <Row className="mb-3">
-          <Col>
-            <Form.Label>Họ tên</Form.Label>
-            <Form.Control type="text" placeholder="Nguyễn Khách Huyền" />
-          </Col>
-          <Col>
-            <Form.Label>Số điện thoại</Form.Label>
-            <Form.Control type="text" placeholder="0375616589" />
-          </Col>
-        </Row>
 
-        <Row className="mb-3">
-          <Col>
-            <Form.Label>Tỉnh/ Thành phố</Form.Label>
-            <Form.Select>
-              <option>Hà Nội</option>
-            </Form.Select>
-          </Col>
-          <Col>
-            <Form.Label>Quận/Huyện</Form.Label>
-            <Form.Select>
-              <option>Quận Bắc Từ Liêm</option>
-            </Form.Select>
-          </Col>
-          <Col>
-            <Form.Label>Phường/Xã</Form.Label>
-            <Form.Select>
-              <option>Phường Phú Diễn</option>
-            </Form.Select>
-          </Col>
-        </Row>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Địa chỉ cụ thể</Form.Label>
-          <Form.Control type="text" placeholder="11 Hoàng Công Chất" />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Ghi chú cho người vận chuyển</Form.Label>
-          <Form.Control type="text" placeholder="Nhập ghi chú" />
-        </Form.Group>
-      </Form>
-
+      <h3>Thong tin thanh toan</h3>
       <hr />
+      <br />
+
+      {/* Tìm kiếm số điện thoại */}
       <Row className="mb-3">
-        <Col>
+        <Col sm={12}>
           <InputGroup>
             <Form.Control placeholder="Nhập số điện thoại khách hàng" />
-            <Button variant="success">Tìm kiếm</Button>
+            <Button variant="success" style={{ flex: "0 0 auto", padding: "6px 12px" }}>
+              Tìm kiếm
+            </Button>
           </InputGroup>
-
         </Col>
+      </Row>
 
-      </Row>
+      {/* Khách hàng */}
       <Row className="mb-3">
-        <Col>Khach hang : <span className="fw-bold">khach le</span></Col>
-      </Row>
+  <Col sm={12}>
+    <InputGroup>
+      <h5 style={{ marginRight: "15px" }}>Khách hàng: {customerType === 'guest' ? 'khách lẻ' : 'khách sỉ'}</h5>
+      <h5 
+        style={{ cursor: "pointer" }} 
+        onClick={() => setCustomerType(customerType === 'guest' ? 'wholesale' : 'guest')}
+      >
+        X
+      </h5>
+    </InputGroup>
+  </Col>
+</Row>
+
+
+
+      {/* Giao hàng */}
       <Row className="mb-3">
-        <Col>
+        <Col sm={7} md={5}>
+          <Form.Label>Giao hàng:</Form.Label>
+        </Col>
+        <Col sm={6} md={4}>
+          <Form.Check
+            type="switch"
+            id="custom-switch"
+            label={delivery ? "Có" : "Không"}
+            checked={delivery}
+            onChange={handleDeliveryChange}
+          />
+        </Col>
+      </Row>
+
+      {/* Modal hiển thị khi chọn giao hàng */}
+      <Modal show={showModal} onHide={handleCloseModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Thông tin giao hàng</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Row className="mb-3">
+              <Col sm={4}>
+                <Form.Label>Họ tên</Form.Label>
+              </Col>
+              <Col sm={8}>
+                <Form.Control type="text" placeholder="Nguyễn Khách Huyền" />
+              </Col>
+            </Row>
+
+            <Row className="mb-3">
+              <Col sm={4}>
+                <Form.Label>Số điện thoại</Form.Label>
+              </Col>
+              <Col sm={8}>
+                <Form.Control type="text" placeholder="0375161589" />
+              </Col>
+            </Row>
+
+            <Row className="mb-3">
+              <Col sm={4}>
+                <Form.Label>Tỉnh/ Thành phố</Form.Label>
+              </Col>
+              <Col sm={8}>
+                <Form.Control as="select">
+                  <option>Hà Nội</option>
+                  <option>Hồ Chí Minh</option>
+                </Form.Control>
+              </Col>
+            </Row>
+
+            <Row className="mb-3">
+              <Col sm={4}>
+                <Form.Label>Quận/Huyện</Form.Label>
+              </Col>
+              <Col sm={8}>
+                <Form.Control as="select">
+                  <option>Quận Bắc Từ Liêm</option>
+                  <option>Quận Nam Từ Liêm</option>
+                </Form.Control>
+              </Col>
+            </Row>
+
+            <Row className="mb-3">
+              <Col sm={4}>
+                <Form.Label>Phường/Xã</Form.Label>
+              </Col>
+              <Col sm={8}>
+                <Form.Control as="select">
+                  <option>Phường Cổ Nhuế 1</option>
+                  <option>Phường Cổ Nhuế 2</option>
+                </Form.Control>
+              </Col>
+            </Row>
+
+            <Row className="mb-3">
+              <Col sm={4}>
+                <Form.Label>Địa chỉ cụ thể</Form.Label>
+              </Col>
+              <Col sm={8}>
+                <Form.Control type="text" placeholder="Nhập địa chỉ cụ thể" />
+              </Col>
+            </Row>
+
+            <Row className="mb-3">
+              <Col sm={4}>
+                <Form.Label>Ghi chú</Form.Label>
+              </Col>
+              <Col sm={8}>
+                <Form.Control as="textarea" rows={3} placeholder="Nhập ghi chú" />
+                <Form.Check 
+                  type="checkbox" 
+                  label="Lưu địa chỉ của khách hàng"
+                  onChange={(e) => setTempDelivery(e.target.checked)} // Cập nhật tempDelivery
+                  checked={tempDelivery}
+                />
+              </Col>
+            </Row>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>
+            Đóng
+          </Button>
+          <Button variant="primary" onClick={handleSaveModal}>
+            Lưu
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+
+       {/* Mã giảm giá */}
+       <Row className="mb-3">
+        <Col sm={12}>
           <InputGroup>
-            <Form.Control placeholder="Mã giảm giá" />
-            <Button variant="success">Chọn</Button>
+            <Form.Control placeholder="Mã giảm giá" value={selectedPromoCode} readOnly />
+            <Button variant="success" style={{ flex: "0 0 auto", padding: "6px 12px" }} onClick={handleShowPromoModal}>
+              Chọn
+            </Button>
           </InputGroup>
         </Col>
       </Row>
 
-      <hr />
-      <h6 className="fw-bold">Thanh toán</h6>
+      {/* Modal chọn mã giảm giá */}
+      <Modal show={isPromoModalVisible} onHide={handleClosePromoModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Chọn Mã Khuyến Mãi</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th>Mã</th>
+                <th>Ưu đãi</th>
+                <th>Chọn</th>
+              </tr>
+            </thead>
+            <tbody>
+              {promoCodes.map((promo, index) => (
+                <tr key={index}>
+                  <td>{promo.code}</td>
+                  <td>{promo.discount}</td>
+                  <td>
+                    <Button variant="primary" size="sm" onClick={() => handleSelectPromoCode(promo.code)}>
+                      Chọn
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClosePromoModal}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Thông tin thanh toán */}
+
+      <h5>Tổng tiền: {totalAmount.toLocaleString()} VND</h5>
+
+      <h5>Giảm giá: 0 VND</h5>
+
+      <h5>Phí vận chuyển: 0 VND</h5>
+
+      <h5>Thanh toán: {totalAmount.toLocaleString()} VND</h5>
+
+
+      {/* Phương thức thanh toán */}
       <Row className="mb-3">
-        <Col>Tổng tiền: <span className="fw-bold">1,500,000</span></Col>
-        <Col>Giảm giá: <span className="fw-bold">- 0</span></Col>
-        <Col>Phí vận chuyển: <span className="fw-bold">0</span></Col>
-        <Col>Thanh toán: <span className="fw-bold">1,500,000</span></Col>
+        <Col sm={7}>
+          <Button variant="light" className="w-100" onClick={() => setIsCashPayment(true)}>Tiền mặt</Button>
+        </Col>
+        <Col sm={5}>
+          <Button variant="light" className="w-100" onClick={handleShowQRModal}>QR</Button>
+        </Col>
       </Row>
-      <div className="d-flex justify-content-between align-items-center">
-        <ToggleButtonGroup type="radio" name="payment" value={paymentMethod} onChange={setPaymentMethod}>
-          <ToggleButton id="cash" value="cash" variant="secondary">Tiền mặt</ToggleButton>
-          <ToggleButton id="qr" value="qr" variant="secondary">QR</ToggleButton>
-        </ToggleButtonGroup>
-        <Button variant="success">Xác nhận thanh toán</Button>
-      </div>
+
+      {/* Hiển thị các trường tiền khách trả và tiền thừa khi chọn Tiền mặt */}
+      {isCashPayment && (
+        <>
+          <Row className="mb-3">
+            <Col sm={12}>
+              <Form.Group controlId="formCashPaid">
+                <Form.Label>Tiền khách trả</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={cashPaid}
+                  onChange={(e) => {
+                    setCashPaid(e.target.value);
+                    setChange(e.target.value - totalAmount);
+                  }}
+                  placeholder="Nhập số tiền khách trả"
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          <Row className="mb-3">
+            <Col sm={12}>
+              <Form.Group controlId="formChange">
+                <Form.Label>Tiền thừa</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={change}
+                  readOnly
+                  placeholder="Tiền thừa"
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+        </>
+      )}
+
+      {/* Xác nhận thanh toán */}
+      <Row>
+        <Col sm={12}>
+          <Button variant="success" className="w-100">Xác nhận thanh toán</Button>
+        </Col>
+      </Row>
+
+
+
+      {/* Modal hiển thị ảnh QR */}
+      <Modal show={isQRModalVisible} onHide={handleCloseQRModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>QR Code Thanh Toán</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <img
+            src="https://via.placeholder.com/400x400.png?text=QR+Code" // Thay ảnh QR của bạn ở đây
+            alt="QR Code"
+            className="w-100"
+          />
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }
