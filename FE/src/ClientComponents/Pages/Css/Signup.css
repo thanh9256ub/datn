@@ -1,25 +1,25 @@
-.loginsignup {
+.signup {
     width: 100%;
     height: 80vh;
     background: #fce3fe;
     padding-top: 100px;
 }
 
-.loginsignup-container {
+.signup-container {
     width: 580px;
-    height: 700px;
+    height: 750px;
     background: white;
     margin: auto;
     padding: 40px 60px;
 }
 
 
-.loginsignup-container h1 {
+.signup-container h1 {
     margin: 20px 0px;
 }
 
 
-.loginsignup-fields {
+.signup-fields {
     display: flex;
     flex-direction: column;
     gap: 29px;
@@ -27,18 +27,19 @@
 }
 
 
-.loginsignup-fields input {
-    height: 72px;
+
+.signup-fields input {
+    height: 50px;
     width: 100%;
     padding-left: 20px;
     border: 1px solid #c9c9c9;
     outline: none;
     color: #5c5c5c;
     font-size: 18px;
+    font-family: Arial, sans-serif;
 }
 
-
-.loginsignup-container button {
+.signup-container button {
     width: 100%;
     height: 72px;
     color: white;
@@ -50,21 +51,51 @@
     cursor: pointer;
 }
 
+.gender-selection select:focus {
+    border-color: #ff4141;
+    box-shadow: 0 0 5px rgba(255, 65, 65, 0.5);
+}
 
+.signup-fields input,
+.gender-selection select {
+    font-size: 18px;
+    font-family: Arial, sans-serif;
+    color: #5c5c5c;
+    height: 50px;
+    line-height: 50px;
+    padding-left: 15px;
+    border: 1px solid #c9c9c9;
+    border-radius: 5px;
+    outline: none;
+    background: white;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
 
-.loginsignup-login {
+.gender-selection select {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: left;
+    width: 100%;
+    padding-right: 10px;
+    /* Để tránh chữ bị dính sát vào cạnh phải */
+}
+
+.signup-login {
     margin-top: 20px;
     color: #5c5c5c;
     font-size: 18px;
     font-weight: 500;
 }
 
-.loginsignup-login span {
+.signup-login span {
     color: #ff4141;
     font-weight: 600;
 }
 
-.loginsignup-agree {
+.signup-agree {
     display: flex;
     align-items: center;
     margin-top: 25px;
@@ -75,53 +106,53 @@
 }
 
 @media (max-width: 1280px) {
-    .loginsignup-container {
+    .signup-container {
         width: 500px;
         height: auto;
         padding: 30px 50px;
     }
 
-    .loginsignup-fields input,
-    .loginsignup-container button {
+    .signup-fields input,
+    .signup-container button {
         height: 65px;
         font-size: 20px;
     }
 }
 
 @media (max-width: 1024px) {
-    .loginsignup-container {
+    .signup-container {
         width: 450px;
         padding: 30px 40px;
     }
 
-    .loginsignup-fields input,
-    .loginsignup-container button {
+    .signup-fields input,
+    .signup-container button {
         height: 60px;
         font-size: 18px;
     }
 
-    .loginsignup-agree {
+    .signup-agree {
         font-size: 16px;
     }
 }
 
 @media (max-width: 800px) {
-    .loginsignup-container {
+    .signup-container {
         width: 90%;
         padding: 20px 30px;
     }
 
-    .loginsignup-fields input,
-    .loginsignup-container button {
+    .signup-fields input,
+    .signup-container button {
         height: 55px;
         font-size: 16px;
     }
 
-    .loginsignup h1 {
+    .signup h1 {
         font-size: 22px;
     }
 
-    .loginsignup-agree {
+    .signup-agree {
         flex-direction: column;
         align-items: flex-start;
         font-size: 14px;
