@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { ProgressBar } from 'react-bootstrap';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import DatePicker from "react-datepicker";
-import circle from '../../assets/images/dashboard/circle.svg';
 
 // import "react-datepicker/dist/react-datepicker.css";
 
@@ -277,7 +276,7 @@ export class Dashboard extends Component {
           <div className="col-md-4 stretch-card grid-margin">
             <div className="card bg-gradient-danger card-img-holder text-white">
               <div className="card-body">
-                <img src={circle} className="card-img-absolute" alt="circle" />
+                <img src={require("../../assets/images/dashboard/circle.svg")} className="card-img-absolute" alt="circle" />
                 <h4 className="font-weight-normal mb-3">Weekly Sales <i className="mdi mdi-chart-line mdi-24px float-right"></i>
                 </h4>
                 <h2 className="mb-5">$ 15,0000</h2>
@@ -288,7 +287,7 @@ export class Dashboard extends Component {
           <div className="col-md-4 stretch-card grid-margin">
             <div className="card bg-gradient-info card-img-holder text-white">
               <div className="card-body">
-                <img src={circle} className="card-img-absolute" alt="circle" />
+                <img src={require("../../assets/images/dashboard/circle.svg")} className="card-img-absolute" alt="circle" />
                 <h4 className="font-weight-normal mb-3">Weekly Orders <i className="mdi mdi-bookmark-outline mdi-24px float-right"></i>
                 </h4>
                 <h2 className="mb-5">45,6334</h2>
@@ -299,7 +298,7 @@ export class Dashboard extends Component {
           <div className="col-md-4 stretch-card grid-margin">
             <div className="card bg-gradient-success card-img-holder text-white">
               <div className="card-body">
-                <img src={circle} className="card-img-absolute" alt="circle" />
+                <img src={require("../../assets/images/dashboard/circle.svg")} className="card-img-absolute" alt="circle" />
                 <h4 className="font-weight-normal mb-3">Visitors Online <i className="mdi mdi-diamond mdi-24px float-right"></i>
                 </h4>
                 <h2 className="mb-5">95,5741</h2>

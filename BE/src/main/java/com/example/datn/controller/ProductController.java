@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin("*")
 @RestController
 @RequestMapping("products")
 public class ProductController {
@@ -41,7 +41,7 @@ public class ProductController {
 
         ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
-                "Products retrieved successfully",
+                "Brands retrieved successfully",
                 list
         );
 

@@ -8,13 +8,14 @@ import com.example.datn.entity.ProductDetail;
 import com.example.datn.entity.Size;
 import com.example.datn.exception.ResourceNotFoundException;
 import com.example.datn.mapper.ProductDetailMapper;
-import com.example.datn.repository.ProductRepository;
 import com.example.datn.repository.ColorRepository;
 import com.example.datn.repository.ProductDetailRepository;
+import com.example.datn.repository.ProductRepository;
 import com.example.datn.repository.SizeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -45,7 +46,9 @@ public class ProductDetailService {
                 () -> new ResourceNotFoundException("Product not found with ID: ")
         );
 
-        List<ProductDetail> productDetailList = requests.stream().map(request -> {
+        List<ProductDetail> productDetailList = new ArrayList<>();
+
+        for (ProductDetailRequest request : requests) {
 
             Color color = colorRepository.findById(request.getColorId()).orElseThrow(
                     () -> new ResourceNotFoundException("Color not found with ID: ")
@@ -62,49 +65,9 @@ public class ProductDetailService {
             productDetail.setSize(size);
             productDetail.setStatus(request.getQuantity() == 0 ? 0 : 1);
 
-            return productDetail;
-
-        }).toList();
+            productDetailList.add(productDetail);
+        }
 
         return mapper.toListProductDetail(repository.saveAll(productDetailList));
     }
-
-//    public List<ProductDetailResponse> updateProductDetails(Integer productId, List<ProductDetailRequest> requests) {
-//
-//        Product product = productRepository.findById(productId).orElseThrow(
-//                () -> new ResourceNotFoundException("Product not found with ID: ")
-//        );
-//
-//        List<ProductDetail> existingProductDetail = repository.findByProduct(product);
-//
-//        List<Integer> requestIds = requests.stream()
-//                .map(ProductDetailRequest::)
-//                .filter(id -> id != null)
-//                .toList();
-//
-//
-//        List<ProductDetail> productDetailList = new ArrayList<>();
-//
-//        for (ProductDetailRequest request : requests) {
-//
-//            Color color = colorRepository.findById(request.getColorId()).orElseThrow(
-//                    () -> new ResourceNotFoundException("Color not found with ID: ")
-//            );
-//
-//            Size size = sizeRepository.findById(request.getSizeId()).orElseThrow(
-//                    () -> new ResourceNotFoundException("Size not found with ID: ")
-//            );
-//
-//            ProductDetail productDetail = mapper.toProductDetail(request);
-//
-//            productDetail.setProduct(product);
-//            productDetail.setColor(color);
-//            productDetail.setSize(size);
-//            productDetail.setStatus(request.getQuantity() == 0 ? 0 : 1);
-//
-//            productDetailList.add(productDetail);
-//        }
-//
-//        return mapper.toListProductDetail(repository.saveAll(productDetailList));
-//    }
 }

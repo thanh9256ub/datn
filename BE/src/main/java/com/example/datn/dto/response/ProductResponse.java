@@ -31,11 +31,9 @@ public class ProductResponse {
 
     String mainImage;
 
-    Integer totalQuantity;
+    Integer totalQuantity = 0;
 
-    Integer status;
+    LocalDateTime createdAt = LocalDateTime.now();
 
-    LocalDateTime createdAt;
-
-    LocalDateTime updatedAt;
+    LocalDateTime updatedAt = null;
 }
