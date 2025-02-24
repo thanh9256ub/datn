@@ -308,5 +308,5 @@ tr:hover .status-detail {
 
 /* Hiệu ứng khi hover vào cả hàng */
 tr:hover {
-    background: #f8f9fa !important;
+    background: #f8f9fa;
 }
