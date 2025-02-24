@@ -32,8 +32,8 @@ const Orders = () => {
                 <h1>Cusomter's orders</h1>
             </div>
             <div className='search-order'>
-                <label htmlFor="">Tìm kiếm:</label>
                 <div>
+                    <label htmlFor="">Tìm kiếm:</label>
                     <input type="text" placeholder='Tìm kiếm...' />
                 </div>
                 <div>
