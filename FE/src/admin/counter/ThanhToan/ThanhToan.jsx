@@ -1,50 +1,70 @@
 import React, { useState } from 'react';
-import { Button, Form, Row, Col, InputGroup, Modal,Table } from 'react-bootstrap';
+import { Button, Form, Row, Col, InputGroup, Modal, Table } from 'react-bootstrap';
 
 export default function PaymentInfo() {
   const [paymentMethod, setPaymentMethod] = useState('cash');
-
   const [customerType, setCustomerType] = useState('guest');
+  const [customerName, setCustomerName] = useState('khách lẻ');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [discountCode, setDiscountCode] = useState('');
   const [isCashPayment, setIsCashPayment] = useState(false);
-  const [isQRModalVisible, setIsQRModalVisible] = useState(false); // Trạng thái để hiển thị modal
+  const [isQRModalVisible, setIsQRModalVisible] = useState(false);
   const [cashPaid, setCashPaid] = useState('');
   const [change, setChange] = useState('');
   const [totalAmount] = useState(1500000);
 
+  const customers = [
+    { phone: '0375161589', name: 'Nguyễn Khách Huyền' },
+    { phone: '0123456789', name: 'Trần Văn A' },
+    { phone: '0987654321', name: 'Lê Thị B' },
+    { phone: '0912345678', name: 'Phạm Văn C' },
+    { phone: '0908765432', name: 'Nguyễn Thị D' }
+  ];
+
+  const handleSearchCustomer = () => {
+    const customer = customers.find(c => c.phone === phoneNumber);
+    if (customer) {
+      setCustomerName(customer.name);
+      setCustomerType('wholesale');
+    } else {
+      setCustomerName('khách lẻ');
+      setCustomerType('guest');
+      alert('Không tìm thấy khách hàng');
+    }
+  };
+
   const handleCloseQRModal = () => setIsQRModalVisible(false);
   const handleShowQRModal = () => {
-    setIsCashPayment(false); // Ẩn các trường Tiền mặt khi mở modal QR
+    setIsCashPayment(false);
     setIsQRModalVisible(true);
   };
 
-  
   const [delivery, setDelivery] = useState(false);
-  const [tempDelivery, setTempDelivery] = useState(false); // State tạm khi mở modal
+  const [tempDelivery, setTempDelivery] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
   const handleDeliveryChange = () => {
-    setTempDelivery(true); // Mở modal với trạng thái tạm
+    setTempDelivery(true);
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setDelivery(false); // Khi đóng modal, giao hàng trở về "Không"
+    setDelivery(false);
   };
 
   const handleSaveModal = () => {
     setShowModal(false);
-    setDelivery(tempDelivery); // Giữ nguyên trạng thái khi lưu
+    setDelivery(tempDelivery);
   };
 
   const [isPromoModalVisible, setIsPromoModalVisible] = useState(false);
   const [selectedPromoCode, setSelectedPromoCode] = useState('');
-  
+
   const promoCodes = [
     { code: 'DISCOUNT10', discount: '10%' },
     { code: 'FREESHIP', discount: 'Miễn phí vận chuyển' },
-    { code: 'SALE50', discount: 'Giảm 50K' },
+    { code: 'SALE50', discount: 'Giảm 50K' }
   ];
 
   const handleShowPromoModal = () => setIsPromoModalVisible(true);
@@ -57,11 +77,7 @@ export default function PaymentInfo() {
 
   return (
     <div className="container my-4">
-
-
-
-
-      <h3>Thong tin thanh toan</h3>
+      <h3>Thông tin thanh toán</h3>
       <hr />
       <br />
 
@@ -69,8 +85,12 @@ export default function PaymentInfo() {
       <Row className="mb-3">
         <Col sm={12}>
           <InputGroup>
-            <Form.Control placeholder="Nhập số điện thoại khách hàng" />
-            <Button variant="success" style={{ flex: "0 0 auto", padding: "6px 12px" }}>
+            <Form.Control
+              placeholder="Nhập số điện thoại khách hàng"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
+            <Button variant="success" style={{ flex: "0 0 auto", padding: "6px 12px" }} onClick={handleSearchCustomer}>
               Tìm kiếm
             </Button>
           </InputGroup>
@@ -79,20 +99,21 @@ export default function PaymentInfo() {
 
       {/* Khách hàng */}
       <Row className="mb-3">
-  <Col sm={12}>
-    <InputGroup>
-      <h5 style={{ marginRight: "15px" }}>Khách hàng: {customerType === 'guest' ? 'khách lẻ' : 'khách sỉ'}</h5>
-      <h5 
-        style={{ cursor: "pointer" }} 
-        onClick={() => setCustomerType(customerType === 'guest' ? 'wholesale' : 'guest')}
-      >
-        X
-      </h5>
-    </InputGroup>
-  </Col>
-</Row>
-
-
+        <Col sm={12}>
+          <InputGroup>
+            <h5 style={{ marginRight: "15px" }}>Khách hàng: {customerName}</h5>
+            <h5
+              style={{ cursor: "pointer" }}
+              onClick={() => {
+                setCustomerType('guest');
+                setCustomerName('khách lẻ');
+              }}
+            >
+              X
+            </h5>
+          </InputGroup>
+        </Col>
+      </Row>
 
       {/* Giao hàng */}
       <Row className="mb-3">
@@ -189,7 +210,7 @@ export default function PaymentInfo() {
                 <Form.Check 
                   type="checkbox" 
                   label="Lưu địa chỉ của khách hàng"
-                  onChange={(e) => setTempDelivery(e.target.checked)} // Cập nhật tempDelivery
+                  onChange={(e) => setTempDelivery(e.target.checked)}
                   checked={tempDelivery}
                 />
               </Col>
@@ -206,9 +227,8 @@ export default function PaymentInfo() {
         </Modal.Footer>
       </Modal>
 
-
-       {/* Mã giảm giá */}
-       <Row className="mb-3">
+      {/* Mã giảm giá */}
+      <Row className="mb-3">
         <Col sm={12}>
           <InputGroup>
             <Form.Control placeholder="Mã giảm giá" value={selectedPromoCode} readOnly />
@@ -256,15 +276,10 @@ export default function PaymentInfo() {
       </Modal>
 
       {/* Thông tin thanh toán */}
-
       <h5>Tổng tiền: {totalAmount.toLocaleString()} VND</h5>
-
       <h5>Giảm giá: 0 VND</h5>
-
       <h5>Phí vận chuyển: 0 VND</h5>
-
       <h5>Thanh toán: {totalAmount.toLocaleString()} VND</h5>
-
 
       {/* Phương thức thanh toán */}
       <Row className="mb-3">
@@ -318,8 +333,6 @@ export default function PaymentInfo() {
         </Col>
       </Row>
 
-
-
       {/* Modal hiển thị ảnh QR */}
       <Modal show={isQRModalVisible} onHide={handleCloseQRModal}>
         <Modal.Header closeButton>
@@ -327,7 +340,7 @@ export default function PaymentInfo() {
         </Modal.Header>
         <Modal.Body>
           <img
-            src="https://via.placeholder.com/400x400.png?text=QR+Code" // Thay ảnh QR của bạn ở đây
+            src="https://via.placeholder.com/400x400.png?text=QR+Code"
             alt="QR Code"
             className="w-100"
           />

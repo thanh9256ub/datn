@@ -1,21 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Row, Col, Modal, Button, Table, Form } from 'react-bootstrap';
 
-const Cart = () => {
+const Cart = ({ selectedInvoiceId }) => {
   const availableProducts = [
-    { id: 3, name: 'Giày chó - 39 - đỏ', price: 350000 },
-    { id: 4, name: 'Giày heo - 37 - hồng', price: 280000 },
-    { id: 5, name: 'Giày vịt - 40 - vàng', price: 320000 }
+    { id: 3, invoiceId: 1, name: 'Giày chó - 39 - đỏ', price: 350000 },
+    { id: 4, invoiceId: 1, name: 'Giày heo - 37 - hồng', price: 280000 },
+    { id: 5, invoiceId: 2, name: 'Giày vịt - 40 - vàng', price: 320000 }
   ];
 
   const [items, setItems] = useState([
-    { id: 1, name: 'Giày gấu - 40 - cam', price: 400000, quantity: 3, total: 1200000 },
-    { id: 2, name: 'Giày mèo - 38 - xanh', price: 300000, quantity: 1, total: 300000 }
+    { id: 1, invoiceId: 1, name: 'Giày gấu - 40 - cam', price: 400000, quantity: 3, total: 1200000 },
+    { id: 2, invoiceId: 2, name: 'Giày mèo - 38 - xanh', price: 300000, quantity: 1, total: 300000 }
   ]);
 
+  const [filteredItems, setFilteredItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    if (selectedInvoiceId === null) {
+      setFilteredItems([]);
+    } else {
+      setFilteredItems(items.filter(item => item.invoiceId === selectedInvoiceId));
+    }
+  }, [selectedInvoiceId, items]);
 
   const handleShowModal = () => setShowModal(true);
   const handleCloseModal = () => {
@@ -34,18 +43,18 @@ const Cart = () => {
   };
 
   const handleAddToCart = () => {
-    if (!selectedProduct || quantity < 1) return;
+    if (!selectedProduct || quantity < 1 || !selectedInvoiceId) return;
 
-    const existingItem = items.find(item => item.id === selectedProduct.id);
+    const existingItem = items.find(item => item.id === selectedProduct.id && item.invoiceId === selectedInvoiceId);
 
     if (existingItem) {
       setItems(items.map(item =>
-        item.id === selectedProduct.id
+        item.id === selectedProduct.id && item.invoiceId === selectedInvoiceId
           ? { ...item, quantity: item.quantity + quantity, total: (item.quantity + quantity) * item.price }
           : item
       ));
     } else {
-      setItems([...items, { ...selectedProduct, quantity, total: selectedProduct.price * quantity }]);
+      setItems([...items, { ...selectedProduct, invoiceId: selectedInvoiceId, quantity, total: selectedProduct.price * quantity }]);
     }
 
     handleCloseModal();
@@ -94,7 +103,7 @@ const Cart = () => {
             </tr>
           </thead>
           <tbody>
-            {items.map(item => (
+            {filteredItems.map(item => (
               <tr key={item.id}>
                 <td>{item.name}</td>
                 <td>{item.price.toLocaleString()} VND</td>
