@@ -93,20 +93,18 @@
 .search-order-date input[type="date"]:hover {
     border-color: #adb5bd;
 }
-
 .pagination-main {
     position: relative;
     height: 100px;
     width: 100%;
-
+  
     background-size: cover;
     background-position: center;
     display: flex;
-    align-items: center;
+    align-items: center;    
     justify-content: center;
-}
-
-.pagination-main .pagination {
+  }
+  .pagination-main .pagination {
     position: relative;
     height: 60px;
     background: rgba(255, 255, 255, 0.05);
@@ -116,24 +114,21 @@
     justify-content: center;
     backdrop-filter: blur(3px);
     border-radius: 2px;
+  }
+  .pagination-main .pagination li {
+  list-style-type: none;
+  display: inline-block;
 }
-
-.pagination-main .pagination li {
-    list-style-type: none;
-    display: inline-block;
-}
-
 .pagination-main .pagination li a {
-    position: relative;
-    padding: 20px 25px;
-    text-decoration: none;
-    color: #000000;
-    font-weight: 500;
+  position: relative;
+  padding: 20px 25px;
+  text-decoration: none;
+  color: #000000;
+  font-weight: 500;
 }
-
 .pagination-main .pagination li a:hover,
 .pagination-main .pagination li.active a {
-    background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Responsive cho mobile */
@@ -259,40 +254,34 @@
 }
 
 /* Order.css */
-/* Ẩn nút mặc định */
 .status-detail {
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s ease;
-    background: none;
+    background: transparent;
     border: none;
-    padding: 4px;
-    display: inline-flex;
+    padding: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    border-radius: 50%;
-    transform: scale(0.9);
+    opacity: 0;
+    /* Ẩn mặc định */
+    visibility: hidden;
+    /* Ẩn khỏi layout */
+    transform: scale(0.8);
 }
 
-/* Hiện nút khi hover row */
 tr:hover .status-detail {
     opacity: 1;
+    /* Hiện khi hover vào row */
     visibility: visible;
     transform: scale(1);
 }
 
-/* Style cho icon */
 .status-detail img {
-    width: 16px;
-    height: 16px;
+    width: 24px;
+    height: 24px;
     transition: all 0.2s ease;
     filter: grayscale(100%) opacity(0.8);
-}
-
-/* Hiệu ứng khi hover nút */
-.status-detail:hover {
-    background: rgba(0, 123, 255, 0.1);
 }
 
 .status-detail:hover img {
@@ -300,10 +289,10 @@ tr:hover .status-detail {
     transform: scale(1.1);
 }
 
-/* Đảm bảo không có khoảng trống */
-.status-detail {
-    width: 28px;
-    height: 28px;
+/* Hiệu ứng khi hover vào button */
+.status-detail:hover {
+    background: rgba(0, 123, 255, 0.1);
+    border-radius: 50%;
 }
 
 /* Hiệu ứng khi hover vào cả hàng */

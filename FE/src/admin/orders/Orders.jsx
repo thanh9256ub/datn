@@ -1,8 +1,7 @@
-import React, { useState } from 'react'
+import React,{useState} from 'react'
 import Table from 'react-bootstrap/Table';
 import './Order.css'
-import { Link } from 'react-router-dom';
-import eye_icon from './icons8-eyes-64.png';
+import eye_icon from './icons8-eyes-64.png'
 const Orders = () => {
     const data = [
         {
@@ -48,22 +47,22 @@ const Orders = () => {
             total: "50000VNĐ"
         },
     ];
-    // 1. Khai báo state quản lý trang hiện tại
-    const [currentPage, setCurrentPage] = useState(1); // Trang mặc định là 1
-    const [itemsPerPage] = useState(5); // Cố định 5 items/trang
+   // 1. Khai báo state quản lý trang hiện tại
+const [currentPage, setCurrentPage] = useState(1); // Trang mặc định là 1
+const [itemsPerPage] = useState(5); // Cố định 5 items/trang
 
-    // 2. Tính toán dữ liệu cần hiển thị
-    const indexOfLastItem = currentPage * itemsPerPage; // Vị trí cuối (5,10,15...)
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage; // Vị trí đầu (0,5,10...)
-    const currentItems = data.slice(indexOfFirstItem, indexOfLastItem); // Cắt mảng data
+// 2. Tính toán dữ liệu cần hiển thị
+const indexOfLastItem = currentPage * itemsPerPage; // Vị trí cuối (5,10,15...)
+const indexOfFirstItem = indexOfLastItem - itemsPerPage; // Vị trí đầu (0,5,10...)
+const currentItems = data.slice(indexOfFirstItem, indexOfLastItem); // Cắt mảng data
 
-    // 3. Tính tổng số trang
-    const totalPages = Math.ceil(data.length / itemsPerPage);
+// 3. Tính tổng số trang
+const totalPages = Math.ceil(data.length / itemsPerPage);
 
-    // 4. Hàm chuyển trang
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
-    const nextPage = () => setCurrentPage(p => Math.min(p + 1, totalPages));
-    const prevPage = () => setCurrentPage(p => Math.max(p - 1, 1));
+// 4. Hàm chuyển trang
+const paginate = (pageNumber) => setCurrentPage(pageNumber);
+const nextPage = () => setCurrentPage(p => Math.min(p + 1, totalPages));
+const prevPage = () => setCurrentPage(p => Math.max(p - 1, 1));
     return (
         <div className='table-data'>
             <div className='table-header'>
@@ -76,7 +75,7 @@ const Orders = () => {
                 </div>
                 <div className='search-order-div'>
                     <label htmlFor="">Khoảng giá:</label>
-                    <input type="text" placeholder='Ví dụ: 120000' /><span> - </span><input type='text'></input>
+                    <input type="text" placeholder='Ví dụ: 120000'/><span> - </span><input type='text'></input>
                 </div>
                 <div className='search-order-div'>
                     <div className='search-order-date'>
@@ -124,9 +123,9 @@ const Orders = () => {
                             </td>
                             <td>{order.total}</td>
                             <td>
-                                <Link to={`/admin/orders/${order.id}`} state={{ order }} className='status-detail'>
+                                <button className='status-detail'>
                                     <img src={eye_icon} alt="" />
-                                </Link>
+                                </button>
                             </td>
                         </tr>
                     ))}
@@ -136,14 +135,14 @@ const Orders = () => {
                         <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
                             <button className="page-link" onClick={prevPage}>Prev</button>
                         </li>
-
+                        
                         {[...Array(totalPages).keys()].map(number => (
-                            <li
-                                key={number + 1}
+                            <li 
+                                key={number + 1} 
                                 className={`page-item ${currentPage === number + 1 ? 'active' : ''}`}
                             >
-                                <button
-                                    className="page-link"
+                                <button 
+                                    className="page-link" 
                                     onClick={() => paginate(number + 1)}
                                 >
                                     {number + 1}
@@ -157,7 +156,7 @@ const Orders = () => {
                     </ul>
                 </div>
             </div>
-
+            
         </div>
 
     )
