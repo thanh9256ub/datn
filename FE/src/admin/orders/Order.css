@@ -27,7 +27,7 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.search-order>div {
+.search-order-div {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -93,7 +93,7 @@
 .search-order-date input[type="date"]:hover {
     border-color: #adb5bd;
 }
-.container {
+.pagination-main {
     position: relative;
     height: 100px;
     width: 100%;
@@ -104,7 +104,7 @@
     align-items: center;    
     justify-content: center;
   }
-  .container .pagination {
+  .pagination-main .pagination {
     position: relative;
     height: 60px;
     background: rgba(255, 255, 255, 0.05);
@@ -115,19 +115,19 @@
     backdrop-filter: blur(3px);
     border-radius: 2px;
   }
-  .container .pagination li {
+  .pagination-main .pagination li {
   list-style-type: none;
   display: inline-block;
 }
-.container .pagination li a {
+.pagination-main .pagination li a {
   position: relative;
   padding: 20px 25px;
   text-decoration: none;
   color: #000000;
   font-weight: 500;
 }
-.container .pagination li a:hover,
-.container .pagination li.active a {
+.pagination-main .pagination li a:hover,
+.pagination-main .pagination li.active a {
   background: rgba(255, 255, 255, 0.2);
 }
 

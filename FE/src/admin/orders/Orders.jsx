@@ -63,20 +63,20 @@ const Orders = () => {
     const nextPage = () => setCurrentPage(Math.min(currentPage + 1, totalPages));
     const prevPage = () => setCurrentPage(Math.max(currentPage - 1, 1));
     return (
-        <div className='table'>
+        <div className='table-data'>
             <div className='table-header'>
                 <h1>Cusomter's orders</h1>
             </div>
             <div className='search-order'>
-                <div>
+                <div className='search-order-div'>
                     <label htmlFor="">Tìm kiếm:</label>
                     <input type="text" placeholder='Tìm kiếm...' />
                 </div>
-                <div>
+                <div className='search-order-div'>
                     <label htmlFor="">Khoảng giá:</label>
                     <input type="text" /><span> - </span><input type='text'></input>
                 </div>
-                <div>
+                <div className='search-order-div'>
                     <div className='search-order-date'>
                         <label htmlFor="">Từ ngày:</label>
                         <input type="date" />
@@ -97,7 +97,7 @@ const Orders = () => {
                 <button>Hủy</button>
             </div>
             <div className='table-body'>
-                <Table className='table-data'>
+                <Table >
                     <thead>
                         <th>STT</th>
                         <th>Khách hàng</th>
@@ -129,7 +129,7 @@ const Orders = () => {
                         </tr>
                     ))}
                 </Table>
-                <div className="container">
+                <div className="pagination-main">
                     <ul className="pagination">
                         <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
                             <button className="page-link" onClick={prevPage}>Prev</button>
