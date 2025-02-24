@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Modal, Button, Table, Form } from 'react-bootstrap';
+import { Row, Col } from 'react-bootstrap';
+import ProductTable from './ProductTable';
+import ProductModal from './ProductModal';
 
 const Cart = ({ selectedInvoiceId }) => {
   const availableProducts = [
@@ -91,107 +93,22 @@ const Cart = ({ selectedInvoiceId }) => {
 
       <hr />
 
-      <div className="table-responsive">
-        <Table hover>
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Price</th>
-              <th>Quantity</th>
-              <th>Total</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredItems.map(item => (
-              <tr key={item.id}>
-                <td>{item.name}</td>
-                <td>{item.price.toLocaleString()} VND</td>
-                <td>
-                  <Form.Control
-                    type="number"
-                    min="1"
-                    value={item.quantity}
-                    onChange={(e) => handleQuantityChange(item.id, Number(e.target.value))}
-                    style={{ width: "100px" }}
-                  />
-                </td>
-                <td>{item.total.toLocaleString()} VND</td>
-                <td>
-                  <i
-                    className="mdi mdi-cart-off" 
-                    style={{ fontSize: '20px', cursor: 'pointer' }}
-                    onClick={() => handleRemoveItem(item.id)}
-                  ></i>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-      </div>
+      <ProductTable
+        filteredItems={filteredItems}
+        handleQuantityChange={handleQuantityChange}
+        handleRemoveItem={handleRemoveItem}
+      />
 
-      {/* Modal để chọn sản phẩm */}
-      <Modal show={showModal} onHide={handleCloseModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Chọn sản phẩm</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {!selectedProduct ? (
-            <Table hover>
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Price</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {availableProducts.map(product => (
-                  <tr key={product.id}>
-                    <td>{product.name}</td>
-                    <td>{product.price.toLocaleString()} VND</td>
-                    <td>
-                      <Button variant="success" size="sm" onClick={() => handleSelectProduct(product)}>
-                        Chọn
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          ) : (
-            <div>
-              <h5>{selectedProduct.name}</h5>
-              <p>Giá: {selectedProduct.price.toLocaleString()} VND</p>
-              <Form.Group controlId="quantity">
-                <Form.Label>Nhập số lượng:</Form.Label>
-                <Form.Control
-                  type="number"
-                  min="1"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Number(e.target.value))}
-                />
-              </Form.Group>
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          {selectedProduct ? (
-            <>
-              <Button variant="secondary" onClick={() => setSelectedProduct(null)}>
-                Quay lại
-              </Button>
-              <Button variant="primary" onClick={handleAddToCart}>
-                Thêm vào giỏ hàng
-              </Button>
-            </>
-          ) : (
-            <Button variant="secondary" onClick={handleCloseModal}>
-              Đóng
-            </Button>
-          )}
-        </Modal.Footer>
-      </Modal>
+      <ProductModal
+        showModal={showModal}
+        handleCloseModal={handleCloseModal}
+        availableProducts={availableProducts}
+        selectedProduct={selectedProduct}
+        handleSelectProduct={handleSelectProduct}
+        quantity={quantity}
+        setQuantity={setQuantity}
+        handleAddToCart={handleAddToCart}
+      />
     </div>
   );
 };

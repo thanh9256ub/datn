@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from 'react-bootstrap';
+import InvoiceList from './InvoiceList';
 
 export default function DonHang({ onSelectInvoice, onDeleteInvoice }) {
   const [invoices, setInvoices] = useState([
@@ -49,27 +50,12 @@ export default function DonHang({ onSelectInvoice, onDeleteInvoice }) {
         Tạo hóa đơn
       </Button>
       <div className="mx-2 border-start border-dark" style={{ height: "24px" }}></div>
-      <div className="d-flex flex-nowrap overflow-auto" style={{ maxWidth: "950px", whiteSpace: "nowrap" }}>
-        {invoices.map((invoice, index) => (
-          <div key={index} className="d-flex align-items-center mx-1">
-            <Button
-              variant={selectedInvoice === index ? "primary" : "light"}
-              className="border px-3 py-2"
-              onClick={() => handleSelectInvoice(index)}
-            >
-              {invoice.description}
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              className="ms-2"
-              onClick={() => removeSelectedInvoice(index)}
-            >
-              X
-            </Button>
-          </div>
-        ))}
-      </div>
+      <InvoiceList
+        invoices={invoices}
+        selectedInvoice={selectedInvoice}
+        handleSelectInvoice={handleSelectInvoice}
+        removeSelectedInvoice={removeSelectedInvoice}
+      />
     </div>
   );
 }
