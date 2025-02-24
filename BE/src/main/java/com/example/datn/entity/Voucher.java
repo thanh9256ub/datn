@@ -47,7 +47,7 @@ public class Voucher {
     private LocalDateTime startDate;
 
     @Column(name = "end_date")
-    private LocalDateTime enđate;
+    private LocalDateTime endDate;
 
     @Column(name = "max_discount_value")
     private Double maxDiscountValue;
