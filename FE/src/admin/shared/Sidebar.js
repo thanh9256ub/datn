@@ -39,7 +39,7 @@ class Sidebar extends Component {
       { path: '/admin/form-elements', state: 'formElementsMenuOpen' },
       { path: '/admin/tables', state: 'tablesMenuOpen' },
       { path: '/admin/maps', state: 'mapsMenuOpen' },
-      { path: '/admin/icons', state: 'iconsMenuOpen' },
+
       { path: '/admin/charts', state: 'chartsMenuOpen' },
       { path: '/admin/user-pages', state: 'userPagesMenuOpen' },
       { path: '/admin/error-pages', state: 'errorPagesMenuOpen' },
@@ -121,18 +121,7 @@ class Sidebar extends Component {
               </ul>
             </Collapse>
           </li>
-          <li className={this.isPathActive('/admin/icons') ? 'nav-item active' : 'nav-item'}>
-            <div className={this.state.iconsMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('iconsMenuOpen')} data-toggle="collapse">
-              <span className="menu-title"><Trans>Icons</Trans></span>
-              <i className="menu-arrow"></i>
-              <i className="mdi mdi-contacts menu-icon"></i>
-            </div>
-            <Collapse in={this.state.iconsMenuOpen}>
-              <ul className="nav flex-column sub-menu">
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/icons/mdi') ? 'nav-link active' : 'nav-link'} to="/admin/icons/mdi"><Trans>Material</Trans></Link></li>
-              </ul>
-            </Collapse>
-          </li>
+
           <li className={this.isPathActive('/admin/charts') ? 'nav-item active' : 'nav-item'}>
             <div className={this.state.chartsMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('chartsMenuOpen')} data-toggle="collapse">
               <span className="menu-title"><Trans>Charts</Trans></span>
