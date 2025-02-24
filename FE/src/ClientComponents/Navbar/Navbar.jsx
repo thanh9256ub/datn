@@ -13,14 +13,11 @@ const Navbar = () => {
         menuRef.current.classList.toggle('nav-menu-visible');
         e.target.classList.toggle('open');
     }
-    const handleLink = () => {
-        window.location.href = '/';
-    }
     return (
         <div className='navbar-client'>
             <div className="nav-left">
                 <div className='nav-logo'>
-                    <img onClick={handleLink} src={logo} alt="" />
+                    <img src={logo} alt="" />
                     <p>SHOPPER</p>
                 </div>
                 <div style={{ position: "relative" }}>
