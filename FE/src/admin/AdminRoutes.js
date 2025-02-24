@@ -8,6 +8,7 @@ import Customers from './customers/Customers';
 import Orders from './orders/Orders';
 import { OrderDetail } from './orders/OderDetail/OrderDetail';
 import Vouchers from './vouchers/Vouchers';
+import CreateProduct from './products/components/CreateProduct';
 
 const Dashboard = lazy(() => import('./dashboard/Dashboard'));
 const Buttons = lazy(() => import('./basic-ui/Buttons'));
@@ -48,7 +49,10 @@ class AdminRoutes extends Component {
           <Route exact path="/admin/error-pages/error-404" component={Error404} />
           <Route exact path="/admin/error-pages/error-500" component={Error500} />
           <Route exact path="/admin/counter" component={BanHang} />
+
           <Route exact path="/admin/products" component={Products} />
+          <Route exact path="/admin/products/add" component={CreateProduct} />
+
           <Route exact path="/admin/employees" component={Employees} />
           <Route exact path="/admin/customers" component={Customers} />
           <Route exact path="/admin/orders" component={Orders} />
