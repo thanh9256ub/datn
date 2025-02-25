@@ -8,6 +8,7 @@ const Orders = () => {
         {
             id: 1,
             customer: "KhachHang1",
+            orderCode: "HD00001",
             orderDate: "1/2/2025",
             status: "Đang vận chuyển",
             total: "120000VNĐ"
@@ -15,6 +16,7 @@ const Orders = () => {
         {
             id: 2,
             customer: "KhachHang2",
+            orderCode: "HD00002",
             orderDate: "2/2/2025",
             status: "Hoàn thành",
             total: "230000VNĐ"
@@ -22,6 +24,7 @@ const Orders = () => {
         {
             id: 3,
             customer: "KhachHang3",
+            orderCode: "HD00003",
             orderDate: "3/2/2025",
             status: "Đã hủy",
             total: "50000VNĐ"
@@ -30,12 +33,14 @@ const Orders = () => {
             id: 4,
             customer: "KhachHang4",
             orderDate: "1/2/2025",
+            orderCode: "HD00005",
             status: "Đang vận chuyển",
             total: "120000VNĐ"
         },
         {
             id: 5,
             customer: "KhachHang5",
+            orderCode: "HD00006",
             orderDate: "2/2/2025",
             status: "Hoàn thành",
             total: "230000VNĐ"
@@ -43,6 +48,7 @@ const Orders = () => {
         {
             id: 6,
             customer: "KhachHang6",
+            orderCode: "HD00001",
             orderDate: "3/2/2025",
             status: "Đã hủy",
             total: "50000VNĐ"
@@ -74,7 +80,7 @@ const Orders = () => {
             state: { order }  // Truyền dữ liệu qua state
         });
     };
-    
+
     return (
         <div className="container-fluid py-3">
             <div className="card shadow">
@@ -91,10 +97,10 @@ const Orders = () => {
                                 <Form.Control placeholder="Tìm kiếm..." />
                             </InputGroup>
                         </div>
-                        
+
                         <div className="col-12 col-md-4">
                             <InputGroup>
-                                <Form.Control placeholder="Ví dụ: 120000" />
+                                <Form.Control placeholder="Từ giá" />
                                 <InputGroup.Text>-</InputGroup.Text>
                                 <Form.Control placeholder="Đến giá" />
                             </InputGroup>
@@ -113,27 +119,28 @@ const Orders = () => {
                     {/* Filter Buttons */}
                     <div className="d-flex overflow-auto pb-2">
                         <div className="d-flex gap-2 flex-nowrap">
-                            {['Tất cả', 'Chờ tiếp nhận', 'Chờ đóng hàng', 'Chờ vận chuyển', 
-                            'Đang vận chuyển', 'Đã nhận hàng', 'Hoàn tất', 'Hủy'].map((btn, idx) => (
-                                <Button 
-                                    key={idx}
-                                    variant="outline-primary"
-                                    className="text-nowrap rounded-pill"
-                                >
-                                    {btn}
-                                </Button>
-                            ))}
+                            {['Tất cả', 'Chờ tiếp nhận', 'Chờ đóng hàng', 'Chờ vận chuyển',
+                                'Đang vận chuyển', 'Đã nhận hàng', 'Hoàn tất', 'Hủy'].map((btn, idx) => (
+                                    <Button
+                                        key={idx}
+                                        variant="outline-primary"
+                                        className="text-nowrap rounded-pill"
+                                    >
+                                        {btn}
+                                    </Button>
+                                ))}
                         </div>
                     </div>
                 </div>
 
                 {/* Table */}
                 <div className="card-body">
-                    <Table  hover responsive className="mb-4">
+                    <Table hover responsive className="mb-4">
                         <thead className="bg-light">
                             <tr>
                                 <th>STT</th>
                                 <th>Khách hàng</th>
+                                <th>Mã đơn hàng</th>
                                 <th>Ngày đặt hàng</th>
                                 <th>Trạng thái</th>
                                 <th>Tổng tiền</th>
@@ -141,27 +148,27 @@ const Orders = () => {
                             </tr>
                         </thead>
                         <tbody>
-                                {currentItems.map((order, index) => (
-                                    <tr 
+                            {currentItems.map((order, index) => (
+                                <tr
                                     key={order.id}
-                                    style={{ 
+                                    style={{
                                         cursor: 'pointer',
                                         transition: 'all 0.3s ease'
                                     }}
-                                    >
+                                >
                                     <td>{index + 1}</td>
                                     <td>{order.customer}</td>
+                                    <td>{order.orderCode}</td>
                                     <td>{order.orderDate}</td>
                                     <td>
-                                        <span 
-                                            className={`badge ${
-                                                order.status === "Đang vận chuyển" ? "text-dark" : "text-white"
-                                            }`}
+                                        <span
+                                            className={`badge ${order.status === "Đang vận chuyển" ? "text-dark" : "text-white"
+                                                }`}
                                             style={{
-                                                backgroundColor: 
+                                                backgroundColor:
                                                     order.status === "Đang vận chuyển" ? "#ffe8a1" :
-                                                    order.status === "Hoàn thành" ? "#b8e0c4" :
-                                                    order.status === "Đã hủy" ? "#f4b7bb" : "#d1d3d6",
+                                                        order.status === "Hoàn thành" ? "#b8e0c4" :
+                                                            order.status === "Đã hủy" ? "#f4b7bb" : "#d1d3d6",
                                                 fontFamily: '"Roboto", sans-serif',
                                                 fontWeight: '400',
                                                 padding: '0.35rem 0.65rem',
@@ -173,16 +180,16 @@ const Orders = () => {
                                     </td>
                                     <td>{order.total}</td>
                                     <td>
-                                        <Button variant="link" className="p-0"style={{ opacity: 0,transition: 'all 0.3s ease',transform: 'scale(0.8)'}}
-                                       onClick={() => handleNavigate(order.id)} >
-                                        <img src={eyeIcon} alt="View" style={{  width: '24px', height: '24px',filter: 'grayscale(100%) opacity(0.8)'}} />
+                                        <Button variant="link" className="p-0" style={{ opacity: 0, transition: 'all 0.3s ease', transform: 'scale(0.8)' }}
+                                            onClick={() => handleNavigate(order.id)} >
+                                            <img src={eyeIcon} alt="View" style={{ width: '24px', height: '24px', filter: 'grayscale(100%) opacity(0.8)' }} />
                                         </Button>
                                     </td>
-                                    </tr>
-                                ))}
+                                </tr>
+                            ))}
                         </tbody>
-                                <style>
-                                {`
+                        <style>
+                            {`
                                     tr:hover button {
                                     opacity: 1 !important;
                                     transform: scale(1) !important;
@@ -191,15 +198,15 @@ const Orders = () => {
                                     filter: none !important;
                                     }
                                 `}
-                                </style>
+                        </style>
                     </Table>
 
                     <Pagination className="justify-content-center">
-                        <Pagination.Prev 
-                            disabled={currentPage === 1} 
-                            onClick={prevPage} 
+                        <Pagination.Prev
+                            disabled={currentPage === 1}
+                            onClick={prevPage}
                         />
-                        
+
                         {[...Array(totalPages).keys()].map(number => (
                             <Pagination.Item
                                 key={number + 1}
@@ -209,10 +216,10 @@ const Orders = () => {
                                 {number + 1}
                             </Pagination.Item>
                         ))}
-                        
-                        <Pagination.Next 
-                            disabled={currentPage === totalPages} 
-                            onClick={nextPage} 
+
+                        <Pagination.Next
+                            disabled={currentPage === totalPages}
+                            onClick={nextPage}
                         />
                     </Pagination>
                 </div>

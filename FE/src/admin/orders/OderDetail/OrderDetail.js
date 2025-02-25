@@ -60,7 +60,7 @@ export const OrderDetail = () => {
     return (
         <Container className="my-5" style={{ maxWidth: '1000px', fontFamily: "'Segoe UI', sans-serif" }}>
             <h2 className="mb-5 text-center text-primary fw-bold" style={{ color: '#2b6cb0' }}>
-                Chi tiết đơn hàng #{order?.id}
+                Chi tiết đơn hàng #{order?.orderCode}
             </h2>
 
             <Row className="g-4">
@@ -80,8 +80,8 @@ export const OrderDetail = () => {
                                         order?.status === "Đang vận chuyển"
                                             ? "warning"
                                             : order?.status === "Hoàn thành"
-                                            ? "success"
-                                            : "danger"
+                                                ? "success"
+                                                : "danger"
                                     }
                                     className="px-2 py-1 text black"
                                     style={{ fontSize: '0.9rem', fontWeight: '500' }}
@@ -182,8 +182,8 @@ export const OrderDetail = () => {
                     </Button> */}
                     <button type="button" className="btn btn-gradient-info btn-icon-text" onClick={handlePrint}>
                         Print
-                        <i className="mdi mdi-printer btn-icon-append"> </i>                                                                              
-                      </button>
+                        <i className="mdi mdi-printer btn-icon-append"> </i>
+                    </button>
                 </Col>
             </Row>
 
