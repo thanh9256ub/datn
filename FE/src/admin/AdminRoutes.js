@@ -6,6 +6,7 @@ import Products from './products/Products';
 import Employees from './employees/Employees';
 import Customers from './customers/Customers';
 import Orders from './orders/Orders';
+import OrderDetail from './orders/OderDetail/OrderDetail';
 import Vouchers from './vouchers/Vouchers';
 import CreateProduct from './products/components/CreateProduct';
 
@@ -64,6 +65,7 @@ class AdminRoutes extends Component {
           <Route exact path="/admin/employees" component={Employees} />
           <Route exact path="/admin/customers" component={Customers} />
           <Route exact path="/admin/orders" component={Orders} />
+          <Route exact path="/admin/orders/:id" component={OrderDetail} />
           <Route exact path="/admin/vouchers" component={Vouchers} />
 
           <Redirect to="/admin/dashboard" />
