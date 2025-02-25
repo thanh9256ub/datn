@@ -70,14 +70,6 @@ const CartItems = () => {
                                     <p>${getTotalCartAmount()}</p>
                                 </div>
                             </div>
-                            <button onClick={handleCheckout}>PROCEED TO CHECKOUT</button>
-                        </div>
-                        <div className="cartitems-promocode">
-                            <p>If you have a promo code, Enter it here</p>
-                            <div className="cartitems-promobox">
-                                <input type="text" placeholder='Promo Code' />
-                                <button>Submit</button>
-                            </div>
                             <h2>Customer Information</h2>
                             <div className="cartitems-customer-info">
                                 <input type="text" name="name" placeholder="Full Name" />
@@ -95,6 +87,14 @@ const CartItems = () => {
                                 <label>
                                     <input type="radio" name="payment" value="bank_transfer" /> <span>Bank Transfer</span>
                                 </label>
+                            </div>
+                            <button onClick={handleCheckout}>PROCEED TO CHECKOUT</button>
+                        </div>
+                        <div className="cartitems-promocode">
+                            <p>If you have a promo code, Enter it here</p>
+                            <div className="cartitems-promobox">
+                                <input type="text" placeholder='Promo Code' />
+                                <button>Submit</button>
                             </div>
                         </div>
                     </div>
