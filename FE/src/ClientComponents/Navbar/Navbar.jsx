@@ -15,9 +15,28 @@ const Navbar = () => {
     }
     return (
         <div className='navbar-client'>
+<<<<<<< HEAD
             <div className='nav-logo'>
                 <img src={logo} alt="" />
                 <p>SHOPPER</p>
+=======
+            <div className="nav-left">
+                <div className='nav-logo'>
+                    <img src={logo} alt="" />
+                    <p>SHOPPER</p>
+                </div>
+                <div style={{ position: "relative" }}>
+                    <img className='nav-dropdown' onClick={dropdown_toggle} src={nav_dropdown} alt="" />
+                    <ul ref={menuRef} className="nav-menu">
+                        <li onClick={() => { setMenu("shop") }}><Link to='/'>Shop</Link></li>
+                        <li onClick={() => { setMenu("all") }}><Link to='/all'>All</Link></li>
+                        <li onClick={() => { setMenu("mens") }}><Link to='/mens'>Top Sellers</Link></li>
+                        <li onClick={() => { setMenu("womens") }}><Link to='/womens'>New Product</Link></li>
+                        <li onClick={() => { setMenu("kids") }}><Link to='/kids'>Others</Link></li>
+
+                    </ul>
+                </div>
+>>>>>>> parent of 032a528 (commit order admin temp p1)
             </div>
             <img className='nav-dropdown' onClick={dropdown_toggle} src={nav_dropdown} alt="" />
             <ul ref={menuRef} className="nav-menu">
