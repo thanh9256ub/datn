@@ -60,8 +60,6 @@ public class ProductService {
         product.setBrand(brand);
         product.setCategory(category);
         product.setMaterial(material);
-        product.setTotalQuantity(0);
-        product.setStatus(0);
 
         return mapper.toProductResponse(repository.save(product));
     }
