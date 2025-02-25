@@ -83,7 +83,7 @@ export const OrderDetail = () => {
                                             ? "success"
                                             : "danger"
                                     }
-                                    className="px-2 py-1 text-white"
+                                    className="px-2 py-1 text black"
                                     style={{ fontSize: '0.9rem', fontWeight: '500' }}
                                 >
                                     {order?.status}
@@ -166,10 +166,10 @@ export const OrderDetail = () => {
             {/* Nút in hóa đơn */}
             <Row className="mt-5">
                 <Col className="text-center">
-                    <Button
+                    {/* <Button
                         variant="primary"
                         size="lg"
-                        onClick={handlePrint}
+                        
                         className="px-5 py-2 shadow-sm transition-all hover:shadow-md"
                         style={{
                             background: 'linear-gradient(90deg, #2b6cb0, #4299e1)',
@@ -178,8 +178,12 @@ export const OrderDetail = () => {
                             fontWeight: '500',
                         }}
                     >
-                        In hóa đơn
-                    </Button>
+                       
+                    </Button> */}
+                    <button type="button" className="btn btn-gradient-info btn-icon-text" onClick={handlePrint}>
+                        Print
+                        <i className="mdi mdi-printer btn-icon-append"> </i>                                                                              
+                      </button>
                 </Col>
             </Row>
 

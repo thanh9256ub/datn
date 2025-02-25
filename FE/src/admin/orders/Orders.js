@@ -153,12 +153,22 @@ const Orders = () => {
                                     <td>{order.customer}</td>
                                     <td>{order.orderDate}</td>
                                     <td>
-                                        <span className={`badge ${
-                                        order.status === "Đang vận chuyển" ? "bg-warning text-dark" :
-                                        order.status === "Hoàn thành" ? "bg-success" :
-                                        order.status === "Đã hủy" ? "bg-danger" : "bg-secondary"
-                                        }`}>
-                                        {order.status}
+                                        <span 
+                                            className={`badge ${
+                                                order.status === "Đang vận chuyển" ? "text-dark" : "text-white"
+                                            }`}
+                                            style={{
+                                                backgroundColor: 
+                                                    order.status === "Đang vận chuyển" ? "#ffe8a1" :
+                                                    order.status === "Hoàn thành" ? "#b8e0c4" :
+                                                    order.status === "Đã hủy" ? "#f4b7bb" : "#d1d3d6",
+                                                fontFamily: '"Roboto", sans-serif',
+                                                fontWeight: '400',
+                                                padding: '0.35rem 0.65rem',
+                                                fontSize: '0.9rem',
+                                            }}
+                                        >
+                                            {order.status}
                                         </span>
                                     </td>
                                     <td>{order.total}</td>
