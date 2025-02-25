@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Form, Modal, Button } from 'react-bootstrap';
+import axios from 'axios';
 
 const DeliveryInfo = ({ delivery, setDelivery }) => {
   const [tempDelivery, setTempDelivery] = useState(false);
@@ -12,45 +13,36 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
   const [selectedWard, setSelectedWard] = useState('');
 
   useEffect(() => {
-    // Fetch provinces from Google Maps API
-    fetch('https://maps.googleapis.com/maps/api/geocode/json?address=Vietnam&key=YOUR_API_KEY')
-      .then(response => response.json())
-      .then(data => {
-        if (data.results && data.results[0]) {
-          const provincesData = data.results[0].address_components.filter(component => component.types.includes('administrative_area_level_1'));
-          setProvinces(provincesData);
-        }
-      });
+    // Fetch provinces from API
+    axios.get("https://provinces.open-api.vn/api/?depth=1")
+      .then(response => setProvinces(response.data))
+      .catch(error => console.error("Lỗi lấy tỉnh/thành phố:", error));
   }, []);
 
   const handleProvinceChange = (e) => {
-    setSelectedProvince(e.target.value);
+    const provinceCode = e.target.value;
+    setSelectedProvince(provinceCode);
+    setSelectedDistrict('');
+    setSelectedWard('');
+    setDistricts([]);
+    setWards([]);
+
     // Fetch districts based on selected province
-    fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${e.target.value},Vietnam&key=YOUR_API_KEY`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.results && data.results[0]) {
-          const districtsData = data.results[0].address_components.filter(component => component.types.includes('administrative_area_level_2'));
-          setDistricts(districtsData);
-          setWards([]);
-          setSelectedDistrict('');
-          setSelectedWard('');
-        }
-      });
+    axios.get(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
+      .then(response => setDistricts(response.data.districts))
+      .catch(error => console.error("Lỗi lấy quận/huyện:", error));
   };
 
   const handleDistrictChange = (e) => {
-    setSelectedDistrict(e.target.value);
+    const districtCode = e.target.value;
+    setSelectedDistrict(districtCode);
+    setSelectedWard('');
+    setWards([]);
+
     // Fetch wards based on selected district
-    fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${e.target.value},${selectedProvince},Vietnam&key=YOUR_API_KEY`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.results && data.results[0]) {
-          const wardsData = data.results[0].address_components.filter(component => component.types.includes('administrative_area_level_3'));
-          setWards(wardsData);
-          setSelectedWard('');
-        }
-      });
+    axios.get(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
+      .then(response => setWards(response.data.wards))
+      .catch(error => console.error("Lỗi lấy phường/xã:", error));
   };
 
   const handleWardChange = (e) => {
@@ -122,8 +114,8 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
               <Col sm={8}>
                 <Form.Control as="select" value={selectedProvince} onChange={handleProvinceChange}>
                   <option value="">Chọn tỉnh/thành phố</option>
-                  {provinces.map((province, index) => (
-                    <option key={index} value={province.long_name}>{province.long_name}</option>
+                  {provinces.map(province => (
+                    <option key={province.code} value={province.code}>{province.name}</option>
                   ))}
                 </Form.Control>
               </Col>
@@ -136,8 +128,8 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
               <Col sm={8}>
                 <Form.Control as="select" value={selectedDistrict} onChange={handleDistrictChange} disabled={!selectedProvince}>
                   <option value="">Chọn quận/huyện</option>
-                  {districts.map((district, index) => (
-                    <option key={index} value={district.long_name}>{district.long_name}</option>
+                  {districts.map(district => (
+                    <option key={district.code} value={district.code}>{district.name}</option>
                   ))}
                 </Form.Control>
               </Col>
@@ -150,8 +142,8 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
               <Col sm={8}>
                 <Form.Control as="select" value={selectedWard} onChange={handleWardChange} disabled={!selectedDistrict}>
                   <option value="">Chọn phường/xã</option>
-                  {wards.map((ward, index) => (
-                    <option key={index} value={ward.long_name}>{ward.long_name}</option>
+                  {wards.map(ward => (
+                    <option key={ward.code} value={ward.name}>{ward.name}</option>
                   ))}
                 </Form.Control>
               </Col>

@@ -11,7 +11,7 @@ const InvoiceList = ({ invoices, selectedInvoice, handleSelectInvoice, removeSel
             className="border px-3 py-2"
             onClick={() => handleSelectInvoice(index)}
           >
-            {invoice.description}
+            {invoice.orderCode}
           </Button>
           <Button
             variant="danger"

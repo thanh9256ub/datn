@@ -1,41 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from 'react-bootstrap';
 import InvoiceList from './InvoiceList';
+import axios from 'axios';
 
 export default function DonHang({ onSelectInvoice, onDeleteInvoice }) {
-  const [invoices, setInvoices] = useState([
-    { id: 1, customerId: 101, description: "Hóa đơn 1" },
-    { id: 2, customerId: 102, description: "Hóa đơn 2" }
-  ]);
+  const [invoices, setInvoices] = useState([]);
   const [canAdd, setCanAdd] = useState(true);
-  const [invoiceCount, setInvoiceCount] = useState(2);
+  const [invoiceCount, setInvoiceCount] = useState(0);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+
+  useEffect(() => {
+    // Fetch invoices from the API
+    axios.get('http://localhost:8080/order')
+      .then(response => {
+        setInvoices(response.data.data);
+        setInvoiceCount(response.data.data.length);
+        console.log('Fetched orders:', response.data);
+      })
+      .catch(error => console.error('Error fetching orders:', error));
+  }, []);
 
   const addInvoice = () => {
     if (!canAdd) return;
 
     const newInvoiceCount = invoiceCount + 1;
-    const newInvoice = { id: newInvoiceCount, customerId: 100 + newInvoiceCount, description: `Hóa đơn ${newInvoiceCount}` };
-    setInvoices([newInvoice, ...invoices]);
-    setInvoiceCount(newInvoiceCount);
-    setSelectedInvoice(0);
-    onSelectInvoice(newInvoice.id);
-    setCanAdd(false);
+    const newInvoice = { id: newInvoiceCount, orderCode: `O${newInvoiceCount}`, customerId: 100 + newInvoiceCount, description: `Hóa đơn ${newInvoiceCount}` };
 
-    setTimeout(() => {
-      setCanAdd(true);
-    }, 3000); // Chờ 3 giây sau mỗi lần tạo hóa đơn
+    // Send POST request to the API to add the new invoice
+    axios.post('http://localhost:8080/order/add', newInvoice)
+      .then(response => {
+        setInvoices([newInvoice, ...invoices]);
+        setInvoiceCount(newInvoiceCount);
+        setSelectedInvoice(0);
+        onSelectInvoice(newInvoice.id);
+        setCanAdd(false);
+
+        setTimeout(() => {
+          setCanAdd(true);
+        }, 1000); // Chờ 1 giây sau mỗi lần tạo hóa đơn
+      })
+      .catch(error => console.error('Error adding invoice:', error));
   };
 
   const removeSelectedInvoice = (index) => {
     const invoiceToRemove = invoices[index];
     if (invoiceToRemove) {
-      onDeleteInvoice(invoiceToRemove.id);
-    }
-    setInvoices(invoices.filter((_, idx) => idx !== index));
-    if (selectedInvoice === index) {
-      setSelectedInvoice(null);
-      onSelectInvoice(null);
+      // Send DELETE request to the API to delete the invoice
+      axios.delete(`http://localhost:8080/order/${invoiceToRemove.id}`)
+        .then(response => {
+          onDeleteInvoice(invoiceToRemove.id);
+          setInvoices(invoices.filter((_, idx) => idx !== index));
+          if (selectedInvoice === index) {
+            setSelectedInvoice(null);
+            onSelectInvoice(null);
+          }
+        })
+        .catch(error => console.error('Error deleting invoice:', error));
     }
   };
 
