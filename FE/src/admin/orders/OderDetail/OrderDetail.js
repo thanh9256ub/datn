@@ -1,128 +1,191 @@
-import React from 'react'
-import { useLocation } from 'react-router-dom'
+import React from 'react';
+import { useLocation, useParams } from 'react-router-dom';
 import { Container, Row, Col, Table, Badge, Card, Button } from 'react-bootstrap';
-import { useParams } from 'react-router-dom';
-export const OrderDetail = (props) => {
-    const { state } = useLocation()
-    const order = state?.order
 
-    // Dữ liệu mẫu
+export const OrderDetail = () => {
+    const { orderId } = useParams();
+    const { state } = useLocation();
+    const order = state?.order;
+
+    if (!order) {
+        return (
+            <Container className="mt-5 text-center">
+                <h4 className="text-muted fw-light">Không có dữ liệu đơn hàng.</h4>
+            </Container>
+        );
+    }
+
     const customerInfo = {
         email: "example@email.com",
         phone: "0123 456 789",
-        address: "123 Đường ABC, Quận 1, TP.HCM"
-    }
+        address: "123 Đường ABC, Quận 1, TP.HCM",
+    };
 
     const items = [
-        { product: "Sản phẩm 1", quantity: 2, price: "60,000VNĐ", total: "120,000VNĐ" },
-        { product: "Sản phẩm 2", quantity: 1, price: "50,000VNĐ", total: "50,000VNĐ" }
-    ]
+        { product: "Sản phẩm 1", quantity: 2, price: "60,000 VNĐ", total: "120,000 VNĐ" },
+        { product: "Sản phẩm 2", quantity: 1, price: "50,000 VNĐ", total: "50,000 VNĐ" },
+    ];
 
-    // Hàm để in hóa đơn
+    const shippingFee = 30000;
+    const subtotal = items.reduce((acc, item) => acc + parseInt(item.total.replace(/[^0-9]/g, '')), 0);
+    const total = subtotal + shippingFee;
+
     const handlePrint = () => {
         const printContent = document.getElementById('invoice');
         const newWindow = window.open('', '', 'height=800,width=600');
-        newWindow.document.write('<html><head><title>In Hóa Đơn</title></head><body>');
-        newWindow.document.write(printContent.innerHTML);
-        newWindow.document.write('</body></html>');
+        newWindow.document.write(`
+            <html>
+                <head>
+                    <title>Hóa Đơn #${order?.id}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', sans-serif; padding: 30px; color: #333; }
+                        h1 { font-size: 28px; color: #2b6cb0; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; }
+                        h2 { font-size: 22px; color: #2d3748; margin-top: 20px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: center; }
+                        th { background-color: #f7fafc; color: #4a5568; font-weight: 600; }
+                        td { color: #718096; }
+                        .total { font-weight: bold; font-size: 18px; color: #2b6cb0; }
+                    </style>
+                </head>
+                <body>
+                    ${printContent.innerHTML}
+                </body>
+            </html>
+        `);
         newWindow.document.close();
         newWindow.print();
-    }
-    const { orderId } = useParams();
+    };
+
     return (
-        <Container className="mt-5 w-100" style={{ backgroundColor: '#fff' }}>
-            <h1 className="text-center mb-4 text-primary">Chi tiết đơn hàng #{orderId}</h1>
+        <Container className="my-5" style={{ maxWidth: '1000px', fontFamily: "'Segoe UI', sans-serif" }}>
+            <h2 className="mb-5 text-center text-primary fw-bold" style={{ color: '#2b6cb0' }}>
+                Chi tiết đơn hàng #{order?.id}
+            </h2>
 
-            <Row className="mb-4">
+            <Row className="g-4">
                 {/* Thông tin đơn hàng */}
-                <Col md={12}>
-                    <Card className="shadow-sm p-4 rounded" style={{ background: 'linear-gradient(to right, #f0f4f8, #cce7ff)' }}>
-                        <h2 className="text-dark">Thông tin đơn hàng</h2>
-                        <p><strong>Khách hàng:</strong> {order?.customer}</p> {/* Sử dụng order từ state */}
-                        <p><strong>Ngày đặt:</strong> {order?.orderDate}</p> {/* Sử dụng order từ state */}
-                        <p><strong>Trạng thái:</strong>
-                            <Badge bg={order?.status === "Đang vận chuyển" ? "warning" :
-                                      order?.status === "Hoàn thành" ? "success" : "danger"}>
-                                {order?.status} {/* Sử dụng order từ state */}
-                            </Badge>
-                        </p>
+                <Col xs={12}>
+                    <Card className="border-0 shadow-sm" style={{ borderRadius: '15px', overflow: 'hidden' }}>
+                        <Card.Body className="p-4" style={{ background: 'linear-gradient(135deg, #f7fafc, #edf2f7)' }}>
+                            <Card.Title className="fw-semibold mb-4" style={{ color: '#2d3748', fontSize: '1.5rem' }}>
+                                Thông tin đơn hàng
+                            </Card.Title>
+                            <p className="mb-2" style={{ color: '#4a5568' }}><strong>Khách hàng:</strong> {order?.customer}</p>
+                            <p className="mb-2" style={{ color: '#4a5568' }}><strong>Ngày đặt:</strong> {order?.orderDate}</p>
+                            <p className="mb-0">
+                                <strong style={{ color: '#4a5568' }}>Trạng thái:</strong>{' '}
+                                <Badge
+                                    bg={
+                                        order?.status === "Đang vận chuyển"
+                                            ? "warning"
+                                            : order?.status === "Hoàn thành"
+                                            ? "success"
+                                            : "danger"
+                                    }
+                                    className="px-2 py-1 text-white"
+                                    style={{ fontSize: '0.9rem', fontWeight: '500' }}
+                                >
+                                    {order?.status}
+                                </Badge>
+                            </p>
+                        </Card.Body>
                     </Card>
                 </Col>
-            </Row>
 
-
-            <Row className="mb-4">
                 {/* Thông tin khách hàng */}
-                <Col md={12}>
-                    <Card className="shadow-sm p-4 rounded" style={{ background: 'linear-gradient(to right, #e3f2fd, #f0f4f8)' }}>
-                        <h2 className="text-dark">Thông tin khách hàng</h2>
-                        <p><strong>Email:</strong> {customerInfo.email}</p>
-                        <p><strong>SĐT:</strong> {customerInfo.phone}</p>
-                        <p><strong>Địa chỉ:</strong> {customerInfo.address}</p>
+                <Col xs={12}>
+                    <Card className="border-0 shadow-sm" style={{ borderRadius: '15px', overflow: 'hidden' }}>
+                        <Card.Body className="p-4" style={{ background: 'linear-gradient(135deg, #f7fafc, #edf2f7)' }}>
+                            <Card.Title className="fw-semibold mb-4" style={{ color: '#2d3748', fontSize: '1.5rem' }}>
+                                Thông tin khách hàng
+                            </Card.Title>
+                            <p className="mb-2" style={{ color: '#4a5568' }}><strong>Email:</strong> {customerInfo.email}</p>
+                            <p className="mb-2" style={{ color: '#4a5568' }}><strong>SĐT:</strong> {customerInfo.phone}</p>
+                            <p className="mb-0" style={{ color: '#4a5568' }}><strong>Địa chỉ:</strong> {customerInfo.address}</p>
+                        </Card.Body>
                     </Card>
                 </Col>
-            </Row>
 
-            <Row className="mb-4">
                 {/* Sản phẩm đã đặt */}
-                <Col md={12}>
-                    <Card className="shadow-sm p-4 rounded" style={{ background: '#ffffff' }}>
-                        <h2 className="text-dark">Sản phẩm đã đặt</h2>
-                        <Table bordered hover responsive>
-                            <thead>
-                                <tr>
-                                    <th>Sản phẩm</th>
-                                    <th>Số lượng</th>
-                                    <th>Đơn giá</th>
-                                    <th>Thành tiền</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {items.map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{item.product}</td>
-                                        <td>{item.quantity}</td>
-                                        <td>{item.price}</td>
-                                        <td>{item.total}</td>
+                <Col xs={12}>
+                    <Card className="border-0 shadow-sm" style={{ borderRadius: '15px', overflow: 'hidden' }}>
+                        <Card.Body className="p-4">
+                            <Card.Title className="fw-semibold mb-4" style={{ color: '#2d3748', fontSize: '1.5rem' }}>
+                                Sản phẩm đã đặt
+                            </Card.Title>
+                            <Table bordered hover responsive className="mb-0" style={{ borderRadius: '10px', overflow: 'hidden' }}>
+                                <thead style={{ backgroundColor: '#f7fafc', color: '#4a5568' }}>
+                                    <tr>
+                                        <th className="text-center py-3">Sản phẩm</th>
+                                        <th className="text-center py-3">Số lượng</th>
+                                        <th className="text-center py-3">Đơn giá</th>
+                                        <th className="text-center py-3">Thành tiền</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </Table>
+                                </thead>
+                                <tbody style={{ color: '#718096' }}>
+                                    {items.map((item, index) => (
+                                        <tr key={index} className="transition-all hover:bg-gray-50">
+                                            <td className="py-3">{item.product}</td>
+                                            <td className="text-center py-3">{item.quantity}</td>
+                                            <td className="text-end py-3">{item.price}</td>
+                                            <td className="text-end py-3">{item.total}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Table>
+                        </Card.Body>
                     </Card>
                 </Col>
-            </Row>
 
-            <Row className="mt-4">
                 {/* Tổng kết đơn hàng */}
-                <Col md={12}>
-                    <Card className="shadow-sm p-4 rounded" style={{ background: 'linear-gradient(to right, #f0f4f8, #cce7ff)' }}>
-                        <h2 className="text-dark">Tổng kết</h2>
-                        <div className="d-flex justify-content-between mb-3">
-                            <span><strong>Tạm tính:</strong></span>
-                            <span>{order?.total}</span>
-                        </div>
-                        <div className="d-flex justify-content-between mb-3">
-                            <span><strong>Phí vận chuyển:</strong></span>
-                            <span>30,000VNĐ</span>
-                        </div>
-                        <div className="d-flex justify-content-between mt-3">
-                            <strong><h4>Tổng cộng:</h4></strong>
-                            <strong><h4>150,000VNĐ</h4></strong>
-                        </div>
+                <Col xs={12}>
+                    <Card className="border-0 shadow-sm" style={{ borderRadius: '15px', overflow: 'hidden' }}>
+                        <Card.Body className="p-4" style={{ background: 'linear-gradient(135deg, #f7fafc, #edf2f7)' }}>
+                            <Card.Title className="fw-semibold mb-4" style={{ color: '#2d3748', fontSize: '1.5rem' }}>
+                                Tổng kết
+                            </Card.Title>
+                            <div className="d-flex justify-content-between mb-3" style={{ color: '#4a5568' }}>
+                                <span>Tạm tính:</span>
+                                <span>{subtotal.toLocaleString('vi-VN')} VNĐ</span>
+                            </div>
+                            <div className="d-flex justify-content-between mb-3" style={{ color: '#4a5568' }}>
+                                <span>Phí vận chuyển:</span>
+                                <span>{shippingFee.toLocaleString('vi-VN')} VNĐ</span>
+                            </div>
+                            <hr style={{ borderColor: '#e2e8f0' }} />
+                            <div className="d-flex justify-content-between fw-bold" style={{ color: '#2b6cb0', fontSize: '1.25rem' }}>
+                                <span>Tổng cộng:</span>
+                                <span>{total.toLocaleString('vi-VN')} VNĐ</span>
+                            </div>
+                        </Card.Body>
                     </Card>
                 </Col>
             </Row>
 
             {/* Nút in hóa đơn */}
-            <Row className="mt-4">
+            <Row className="mt-5">
                 <Col className="text-center">
-                    <Button variant="primary" onClick={handlePrint}>In hóa đơn</Button>
+                    <Button
+                        variant="primary"
+                        size="lg"
+                        onClick={handlePrint}
+                        className="px-5 py-2 shadow-sm transition-all hover:shadow-md"
+                        style={{
+                            background: 'linear-gradient(90deg, #2b6cb0, #4299e1)',
+                            border: 'none',
+                            borderRadius: '25px',
+                            fontWeight: '500',
+                        }}
+                    >
+                        In hóa đơn
+                    </Button>
                 </Col>
             </Row>
 
             {/* Phần in hóa đơn */}
             <div id="invoice" style={{ display: 'none' }}>
-                <h1>Hóa đơn # {order?.id}</h1>
+                <h1>Hóa đơn #{order?.id}</h1>
                 <p><strong>Khách hàng:</strong> {order?.customer}</p>
                 <p><strong>Ngày đặt:</strong> {order?.orderDate}</p>
                 <p><strong>Trạng thái:</strong> {order?.status}</p>
@@ -150,13 +213,12 @@ export const OrderDetail = (props) => {
                 </Table>
 
                 <h3>Tổng kết</h3>
-                <p><strong>Tạm tính:</strong> {order?.total}</p>
-                <p><strong>Số tiền giảm:</strong> 0Đ</p>
-                <p><strong>Phí vận chuyển:</strong> 30,000VNĐ</p>
-                <p><strong>Tổng cộng:</strong> 150,000VNĐ</p>
+                <p><strong>Tạm tính:</strong> {subtotal.toLocaleString('vi-VN')} VNĐ</p>
+                <p><strong>Phí vận chuyển:</strong> {shippingFee.toLocaleString('vi-VN')} VNĐ</p>
+                <p className="total"><strong>Tổng cộng:</strong> {total.toLocaleString('vi-VN')} VNĐ</p>
             </div>
         </Container>
-    )
-}
+    );
+};
 
 export default OrderDetail;
