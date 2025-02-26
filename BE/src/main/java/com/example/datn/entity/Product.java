@@ -50,7 +50,10 @@ public class Product {
     String mainImage;
 
     @Column(name = "total_quantity")
-    Integer totalQuantity = 0;
+    Integer totalQuantity;
+
+    @Column(name = "status")
+    Integer status;
 
     @Column(name = "created_at")
     LocalDateTime createdAt = LocalDateTime.now().withNano(0);

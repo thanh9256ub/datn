@@ -8,14 +8,13 @@ import com.example.datn.entity.ProductDetail;
 import com.example.datn.entity.Size;
 import com.example.datn.exception.ResourceNotFoundException;
 import com.example.datn.mapper.ProductDetailMapper;
+import com.example.datn.repository.ProductRepository;
 import com.example.datn.repository.ColorRepository;
 import com.example.datn.repository.ProductDetailRepository;
-import com.example.datn.repository.ProductRepository;
 import com.example.datn.repository.SizeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -40,15 +39,23 @@ public class ProductDetailService {
         return mapper.toListProductDetail(repository.findAll());
     }
 
+    public List<ProductDetailResponse> getProductDetailsByProductId(Integer productId) {
+        productRepository.findById(productId).orElseThrow(
+                () -> new ResourceNotFoundException("Product not found with ID: " + productId)
+        );
+
+        List<ProductDetail> productDetails = repository.findByProductId(productId);
+
+        return mapper.toListProductDetail(productDetails);
+    }
+
     public List<ProductDetailResponse> createProductDetails(Integer productId, List<ProductDetailRequest> requests) {
 
         Product product = productRepository.findById(productId).orElseThrow(
                 () -> new ResourceNotFoundException("Product not found with ID: ")
         );
 
-        List<ProductDetail> productDetailList = new ArrayList<>();
-
-        for (ProductDetailRequest request : requests) {
+        List<ProductDetail> productDetailList = requests.stream().map(request -> {
 
             Color color = colorRepository.findById(request.getColorId()).orElseThrow(
                     () -> new ResourceNotFoundException("Color not found with ID: ")
@@ -65,9 +72,18 @@ public class ProductDetailService {
             productDetail.setSize(size);
             productDetail.setStatus(request.getQuantity() == 0 ? 0 : 1);
 
-            productDetailList.add(productDetail);
-        }
+            return productDetail;
 
-        return mapper.toListProductDetail(repository.saveAll(productDetailList));
+        }).toList();
+
+        repository.saveAll(productDetailList);
+
+        Integer updatedTotalQuantity = repository.sumQuantityByProductId(productId);
+        product.setTotalQuantity(updatedTotalQuantity);
+        product.setStatus(updatedTotalQuantity > 0 ? 1 : 0);
+        productRepository.save(product);
+
+        return mapper.toListProductDetail(productDetailList);
     }
+
 }

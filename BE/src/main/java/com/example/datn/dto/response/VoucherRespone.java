@@ -1,5 +1,7 @@
 package com.example.datn.dto.response;
 
+import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,27 +18,27 @@ public class VoucherRespone {
 
     Integer id;
 
-    String ma_khuyen_mai;
+    String voucherCode;
 
-    String ten_khuyen_mai;
+    String voucherName;
 
-    String dieu_kien;
+    String condition;
 
-    Double gia_tri_giam;
+    Double discountValue;
 
-    Integer so_luong;
+    Integer quantity;
 
-    LocalDateTime ngay_bat_dau;
+    LocalDateTime startDate;
 
-    LocalDateTime ngay_ket_thuc;
+    LocalDateTime endDate;
 
-    Double gia_tri_giam_toi_da;
+    Double maxDiscountValue;
 
-    String kieu_giam_gia;
+    String discountType;
 
-    String trang_thai;
+    String status;
 
-    LocalDateTime ngay_tao;
+    LocalDateTime createdAt ;
 
-    LocalDateTime ngay_cap_nhat;
+    LocalDateTime updateAt ;
 }

@@ -8,10 +8,10 @@ import com.example.datn.entity.Material;
 import com.example.datn.entity.Product;
 import com.example.datn.exception.ResourceNotFoundException;
 import com.example.datn.mapper.ProductMapper;
+import com.example.datn.repository.ProductRepository;
 import com.example.datn.repository.BrandRepository;
 import com.example.datn.repository.CategoryRepository;
 import com.example.datn.repository.MaterialRepository;
-import com.example.datn.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

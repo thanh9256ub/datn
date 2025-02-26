@@ -47,21 +47,22 @@ const Orders = () => {
             total: "50000VNĐ"
         },
     ];
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(5);
+   // 1. Khai báo state quản lý trang hiện tại
+const [currentPage, setCurrentPage] = useState(1); // Trang mặc định là 1
+const [itemsPerPage] = useState(5); // Cố định 5 items/trang
 
-    // ... (giữ nguyên mảng data)
+// 2. Tính toán dữ liệu cần hiển thị
+const indexOfLastItem = currentPage * itemsPerPage; // Vị trí cuối (5,10,15...)
+const indexOfFirstItem = indexOfLastItem - itemsPerPage; // Vị trí đầu (0,5,10...)
+const currentItems = data.slice(indexOfFirstItem, indexOfLastItem); // Cắt mảng data
 
-    // Tính toán dữ liệu phân trang
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(data.length / itemsPerPage);
+// 3. Tính tổng số trang
+const totalPages = Math.ceil(data.length / itemsPerPage);
 
-    // Chuyển trang
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
-    const nextPage = () => setCurrentPage(Math.min(currentPage + 1, totalPages));
-    const prevPage = () => setCurrentPage(Math.max(currentPage - 1, 1));
+// 4. Hàm chuyển trang
+const paginate = (pageNumber) => setCurrentPage(pageNumber);
+const nextPage = () => setCurrentPage(p => Math.min(p + 1, totalPages));
+const prevPage = () => setCurrentPage(p => Math.max(p - 1, 1));
     return (
         <div className='table-data'>
             <div className='table-header'>
@@ -74,7 +75,7 @@ const Orders = () => {
                 </div>
                 <div className='search-order-div'>
                     <label htmlFor="">Khoảng giá:</label>
-                    <input type="text" /><span> - </span><input type='text'></input>
+                    <input type="text" placeholder='Ví dụ: 120000'/><span> - </span><input type='text'></input>
                 </div>
                 <div className='search-order-div'>
                     <div className='search-order-date'>

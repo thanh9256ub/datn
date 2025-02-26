@@ -1,139 +1,105 @@
-import React, { useState } from 'react';
-import { Row, Col, Form, Button, Modal } from 'react-bootstrap';
-import CustomerSearch from './CustomerSearch';
-import DeliveryInfo from './DeliveryInfo';
-import PromoCode from './PromoCode';
+import React, { useState } from "react";
+import { Form, Button, Row, Col, ToggleButton, ToggleButtonGroup, InputGroup } from "react-bootstrap";
 
-export default function PaymentInfo() {
-  const [paymentMethod, setPaymentMethod] = useState('cash');
-  const [customerType, setCustomerType] = useState('guest');
-  const [customerName, setCustomerName] = useState('khách lẻ');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [discountCode, setDiscountCode] = useState('');
-  const [isCashPayment, setIsCashPayment] = useState(false);
-  const [isQRModalVisible, setIsQRModalVisible] = useState(false);
-  const [cashPaid, setCashPaid] = useState('');
-  const [change, setChange] = useState('');
-  const [totalAmount] = useState(1500000);
-
-  const customers = [
-    { phone: '0375161589', name: 'Nguyễn Khách Huyền' },
-    { phone: '0123456789', name: 'Trần Văn A' },
-    { phone: '0987654321', name: 'Lê Thị B' },
-    { phone: '0912345678', name: 'Phạm Văn C' },
-    { phone: '0908765432', name: 'Nguyễn Thị D' }
-  ];
-
-  const handleSearchCustomer = () => {
-    const customer = customers.find(c => c.phone === phoneNumber);
-    if (customer) {
-      setCustomerName(customer.name);
-      setCustomerType('wholesale');
-    } else {
-      setCustomerName('khách lẻ');
-      setCustomerType('guest');
-      alert('Không tìm thấy khách hàng');
-    }
-  };
-
-  const handleCloseQRModal = () => setIsQRModalVisible(false);
-  const handleShowQRModal = () => {
-    setIsCashPayment(false);
-    setIsQRModalVisible(true);
-  };
-
-  const [delivery, setDelivery] = useState(false);
+export default function Checkout() {
+  const [delivery, setDelivery] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState("cash");
 
   return (
-    <div className="container my-4">
-      <h3>Thông tin thanh toán</h3>
-      <hr />
-      <br />
+    <div className="border border-primary rounded p-3">
+      <h5 className="text-primary border-bottom pb-2">Thông tin thanh toán</h5>
 
-      <CustomerSearch
-        phoneNumber={phoneNumber}
-        setPhoneNumber={setPhoneNumber}
-        handleSearchCustomer={handleSearchCustomer}
-        customerName={customerName}
-        setCustomerName={setCustomerName}
-        setCustomerType={setCustomerType}
-      />
-
-      <DeliveryInfo delivery={delivery} setDelivery={setDelivery} />
-
-      <PromoCode selectedPromoCode={discountCode} setSelectedPromoCode={setDiscountCode} />
-
-      {/* Thông tin thanh toán */}
-      <h5>Tổng tiền: {totalAmount.toLocaleString()} VND</h5>
-      <h5>Giảm giá: 0 VND</h5>
-      <h5>Phí vận chuyển: 0 VND</h5>
-      <h5>Thanh toán: {totalAmount.toLocaleString()} VND</h5>
-
-      {/* Phương thức thanh toán */}
-      <Row className="mb-3">
-        <Col sm={7}>
-          <Button variant="light" className="w-100" onClick={() => setIsCashPayment(true)}>Tiền mặt</Button>
-        </Col>
-        <Col sm={5}>
-          <Button variant="light" className="w-100" onClick={handleShowQRModal}>QR</Button>
-        </Col>
-      </Row>
-
-      {/* Hiển thị các trường tiền khách trả và tiền thừa khi chọn Tiền mặt */}
-      {isCashPayment && (
-        <>
-          <Row className="mb-3">
-            <Col sm={12}>
-              <Form.Group controlId="formCashPaid">
-                <Form.Label>Tiền khách trả</Form.Label>
-                <Form.Control
-                  type="number"
-                  value={cashPaid}
-                  onChange={(e) => {
-                    setCashPaid(e.target.value);
-                    setChange(e.target.value - totalAmount);
-                  }}
-                  placeholder="Nhập số tiền khách trả"
-                />
-              </Form.Group>
-            </Col>
-          </Row>
-          <Row className="mb-3">
-            <Col sm={12}>
-              <Form.Group controlId="formChange">
-                <Form.Label>Tiền thừa</Form.Label>
-                <Form.Control
-                  type="number"
-                  value={change}
-                  readOnly
-                  placeholder="Tiền thừa"
-                />
-              </Form.Group>
-            </Col>
-          </Row>
-        </>
-      )}
-
-      {/* Xác nhận thanh toán */}
-      <Row>
-        <Col sm={12}>
-          <Button variant="success" className="w-100">Xác nhận thanh toán</Button>
-        </Col>
-      </Row>
-
-      {/* Modal hiển thị ảnh QR */}
-      <Modal show={isQRModalVisible} onHide={handleCloseQRModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>QR Code Thanh Toán</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <img
-            src="https://via.placeholder.com/400x400.png?text=QR+Code"
-            alt="QR Code"
-            className="w-100"
+      <Form>
+        <Form.Group controlId="deliveryToggle" className="mb-3 d-flex align-items-center">
+          <Form.Label className="me-2 fw-bold">Giao hàng:</Form.Label>
+          <Form.Check
+            type="switch"
+            checked={delivery}
+            onChange={() => setDelivery(!delivery)}
           />
-        </Modal.Body>
-      </Modal>
+        </Form.Group>
+
+        <Row className="mb-3">
+          <Col>
+            <Form.Label>Họ tên</Form.Label>
+            <Form.Control type="text" placeholder="Nguyễn Khách Huyền" />
+          </Col>
+          <Col>
+            <Form.Label>Số điện thoại</Form.Label>
+            <Form.Control type="text" placeholder="0375616589" />
+          </Col>
+        </Row>
+
+        <Row className="mb-3">
+          <Col>
+            <Form.Label>Tỉnh/ Thành phố</Form.Label>
+            <Form.Select>
+              <option>Hà Nội</option>
+            </Form.Select>
+          </Col>
+          <Col>
+            <Form.Label>Quận/Huyện</Form.Label>
+            <Form.Select>
+              <option>Quận Bắc Từ Liêm</option>
+            </Form.Select>
+          </Col>
+          <Col>
+            <Form.Label>Phường/Xã</Form.Label>
+            <Form.Select>
+              <option>Phường Phú Diễn</option>
+            </Form.Select>
+          </Col>
+        </Row>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Địa chỉ cụ thể</Form.Label>
+          <Form.Control type="text" placeholder="11 Hoàng Công Chất" />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Ghi chú cho người vận chuyển</Form.Label>
+          <Form.Control type="text" placeholder="Nhập ghi chú" />
+        </Form.Group>
+      </Form>
+
+      <hr />
+      <Row className="mb-3">
+        <Col>
+          <InputGroup>
+            <Form.Control placeholder="Nhập số điện thoại khách hàng" />
+            <Button variant="success">Tìm kiếm</Button>
+          </InputGroup>
+
+        </Col>
+
+      </Row>
+      <Row className="mb-3">
+        <Col>Khach hang : <span className="fw-bold">khach le</span></Col>
+      </Row>
+      <Row className="mb-3">
+        <Col>
+          <InputGroup>
+            <Form.Control placeholder="Mã giảm giá" />
+            <Button variant="success">Chọn</Button>
+          </InputGroup>
+        </Col>
+      </Row>
+
+      <hr />
+      <h6 className="fw-bold">Thanh toán</h6>
+      <Row className="mb-3">
+        <Col>Tổng tiền: <span className="fw-bold">1,500,000</span></Col>
+        <Col>Giảm giá: <span className="fw-bold">- 0</span></Col>
+        <Col>Phí vận chuyển: <span className="fw-bold">0</span></Col>
+        <Col>Thanh toán: <span className="fw-bold">1,500,000</span></Col>
+      </Row>
+      <div className="d-flex justify-content-between align-items-center">
+        <ToggleButtonGroup type="radio" name="payment" value={paymentMethod} onChange={setPaymentMethod}>
+          <ToggleButton id="cash" value="cash" variant="secondary">Tiền mặt</ToggleButton>
+          <ToggleButton id="qr" value="qr" variant="secondary">QR</ToggleButton>
+        </ToggleButtonGroup>
+        <Button variant="success">Xác nhận thanh toán</Button>
+      </div>
     </div>
   );
 }
