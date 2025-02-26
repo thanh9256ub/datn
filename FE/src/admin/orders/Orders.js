@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Table, Form, InputGroup, Button, Pagination } from 'react-bootstrap';
 import { useHistory } from 'react-router-dom';
 import eyeIcon from './icons8-eyes-64.png';
+import change_status from './icons8-arrow-30.png';
+import trash from './icons8-trash-24.png';
 const Orders = () => {
     const data = [
         {
@@ -118,17 +120,15 @@ const Orders = () => {
 
                     {/* Filter Buttons */}
                     <div className="d-flex overflow-auto pb-2">
-                        <div className="d-flex gap-2 flex-nowrap">
-                            {['Tất cả', 'Chờ tiếp nhận', 'Chờ đóng hàng', 'Chờ vận chuyển',
-                                'Đang vận chuyển', 'Đã nhận hàng', 'Hoàn tất', 'Hủy'].map((btn, idx) => (
-                                    <Button
-                                        key={idx}
-                                        variant="outline-primary"
-                                        className="text-nowrap rounded-pill"
-                                    >
-                                        {btn}
-                                    </Button>
-                                ))}
+                        <div className="d-flex gap-2 flex-nowrap ml-auto">
+                            <select className="form-select form-select-lg rounded-pill" aria-label="Trạng thái">
+                                {['Tất cả', 'Chờ tiếp nhận', 'Chờ đóng hàng', 'Chờ vận chuyển',
+                                    'Đang vận chuyển', 'Đã nhận hàng', 'Hoàn tất', 'Hủy'].map((btn, idx) => (
+                                        <option key={idx} value={btn}>
+                                            {btn}
+                                        </option>
+                                    ))}
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -162,8 +162,7 @@ const Orders = () => {
                                     <td>{order.orderDate}</td>
                                     <td>
                                         <span
-                                            className={`badge ${order.status === "Đang vận chuyển" ? "text-dark" : "text-white"
-                                                }`}
+                                            className={`badge ${order.status === "Đang vận chuyển" ? "text-dark" : "text-white"}`}
                                             style={{
                                                 backgroundColor:
                                                     order.status === "Đang vận chuyển" ? "#ffe8a1" :
@@ -173,8 +172,7 @@ const Orders = () => {
                                                 fontWeight: '400',
                                                 padding: '0.35rem 0.65rem',
                                                 fontSize: '0.9rem',
-                                            }}
-                                        >
+                                            }}>
                                             {order.status}
                                         </span>
                                     </td>
@@ -184,20 +182,28 @@ const Orders = () => {
                                             onClick={() => handleNavigate(order.id)} >
                                             <img src={eyeIcon} alt="View" style={{ width: '24px', height: '24px', filter: 'grayscale(100%) opacity(0.8)' }} />
                                         </Button>
+                                        <Button variant="link" className="p-0" style={{ opacity: 0, transition: 'all 0.3s ease', transform: 'scale(0.8)' }}
+                                            onClick={() => handleNavigate(order.id)} >
+                                            <img src={change_status} alt="View" style={{ width: '24px', height: '24px', filter: 'grayscale(100%) opacity(0.8)' }} />
+                                        </Button>
+                                        <Button variant="link" className="p-0" style={{ opacity: 0, transition: 'all 0.3s ease', transform: 'scale(0.8)' }}
+                                            onClick={() => handleNavigate(order.id)} >
+                                            <img src={trash} alt="View" style={{ width: '24px', height: '24px', filter: 'grayscale(100%) opacity(0.8)' }} />
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                         <style>
                             {`
-                                    tr:hover button {
-                                    opacity: 1 !important;
-                                    transform: scale(1) !important;
-                                    }
-                                    tr:hover img {
-                                    filter: none !important;
-                                    }
-                                `}
+                            tr:hover button {
+                            opacity: 1 !important;
+                            transform: scale(1) !important;
+                            }
+                            tr:hover img {
+                            filter: none !important;
+                           }
+                            `}
                         </style>
                     </Table>
 
