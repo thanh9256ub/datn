@@ -35,4 +35,32 @@ public class ProductDetailController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getAll(){
+
+        List<ProductDetailResponse> responseList = service.getAll();
+
+        ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Retrieved successfully",
+                responseList
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{productId}")
+    public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getProductDetailsByProductId(
+            @PathVariable("productId") Integer productId) {
+
+        List<ProductDetailResponse> productDetails = service.getProductDetailsByProductId(productId);
+
+        ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                200,
+                "List product detail by id: " + productId,
+                productDetails
+        );
+
+        return ResponseEntity.ok(response);
+    }
 }

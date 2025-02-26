@@ -8,11 +8,9 @@ import "./i18n";
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
-  <React.StrictMode>
-    <ShopContextProvider>
-      <App />
-    </ShopContextProvider>
-  </React.StrictMode>,
+  <ShopContextProvider>
+    <App />
+  </ShopContextProvider>,
   document.getElementById('root')
 );
 
