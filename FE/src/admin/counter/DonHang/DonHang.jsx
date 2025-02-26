@@ -1,31 +1,43 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Button } from "react-bootstrap";
-import { Trash } from "react-bootstrap-icons";
+import React, { useState } from 'react';
+import { Button } from 'react-bootstrap';
+import InvoiceList from './InvoiceList';
 
-export default function DonHang() {
-  const [invoices, setInvoices] = useState(["Hóa đơn 1", "Hóa đơn 2"]);
+export default function DonHang({ onSelectInvoice, onDeleteInvoice }) {
+  const [invoices, setInvoices] = useState([
+    { id: 1, customerId: 101, description: "Hóa đơn 1" },
+    { id: 2, customerId: 102, description: "Hóa đơn 2" }
+  ]);
   const [canAdd, setCanAdd] = useState(true);
-  const [invoiceCount, setInvoiceCount] = useState(2);
+  const [invoiceCount, setInvoiceCount] = useState(0);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
-  const invoiceContainerRef = useRef(null);
 
   const addInvoice = () => {
     if (!canAdd) return;
 
     const newInvoiceCount = invoiceCount + 1;
-    setInvoices([`Hóa đơn ${newInvoiceCount}`, ...invoices]);
+    const newInvoice = { id: newInvoiceCount, customerId: 100 + newInvoiceCount, description: `Hóa đơn ${newInvoiceCount}` };
+    setInvoices([newInvoice, ...invoices]);
     setInvoiceCount(newInvoiceCount);
+    setSelectedInvoice(0);
+    onSelectInvoice(newInvoice.id);
     setCanAdd(false);
 
-    setTimeout(() => {
-      setCanAdd(true);
-    }, 3000); // Chờ 3 giây sau mỗi lần tạo hóa đơn
+        setTimeout(() => {
+          setCanAdd(true);
+        }, 1000); // Chờ 1 giây sau mỗi lần tạo hóa đơn
+      })
+      .catch(error => console.error('Error adding invoice:', error));
   };
 
-  const removeSelectedInvoice = () => {
-    if (selectedInvoice !== null) {
-      setInvoices(invoices.filter((_, index) => index !== selectedInvoice));
+  const removeSelectedInvoice = (index) => {
+    const invoiceToRemove = invoices[index];
+    if (invoiceToRemove) {
+      onDeleteInvoice(invoiceToRemove.id);
+    }
+    setInvoices(invoices.filter((_, idx) => idx !== index));
+    if (selectedInvoice === index) {
       setSelectedInvoice(null);
+      onSelectInvoice(null);
     }
   };
 

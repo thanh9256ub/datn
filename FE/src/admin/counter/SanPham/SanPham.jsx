@@ -1,95 +1,114 @@
-import React, { useEffect, useState } from "react";
-import { Table, Dropdown, Button, Form, FormControl, Col, InputGroup } from "react-bootstrap";
-import { Cart } from "react-bootstrap-icons";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import axios from "axios";
-import { axiSp } from "./axiosSP";
+import React, { useState, useEffect } from 'react';
+import { Row, Col } from 'react-bootstrap';
+import ProductTable from './ProductTable';
+import ProductModal from './ProductModal';
 
+const Cart = ({ selectedInvoiceId }) => {
+  const availableProducts = [
+    { id: 3, invoiceId: 1, name: 'Giày chó - 39 - đỏ', price: 350000 },
+    { id: 4, invoiceId: 1, name: 'Giày heo - 37 - hồng', price: 280000 },
+    { id: 5, invoiceId: 2, name: 'Giày vịt - 40 - vàng', price: 320000 }
+  ];
 
-export default function SanPham() {
-  const [products, setProducts] = useState([]);
+  const [items, setItems] = useState([
+    { id: 1, invoiceId: 1, name: 'Giày gấu - 40 - cam', price: 400000, quantity: 3, total: 1200000 },
+    { id: 2, invoiceId: 2, name: 'Giày mèo - 38 - xanh', price: 300000, quantity: 1, total: 300000 }
+  ]);
 
-  // useEffect(async() => {
-  //  let res=await axiSp();
-  //  if (res && res.data) {
-  //   setProducts(res.data)
-  //  }
-  // })
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [quantity, setQuantity] = useState(1);
 
-  const [searchTerm, setSearchTerm] = useState('');
+  useEffect(() => {
+    if (selectedInvoiceId === null) {
+      setFilteredItems([]);
+    } else {
+      setFilteredItems(items.filter(item => item.invoiceId === selectedInvoiceId));
+    }
+  }, [selectedInvoiceId, items]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    alert(`Bạn đã tìm kiếm: ${searchTerm}`);
+  const handleShowModal = () => setShowModal(true);
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedProduct(null);
+    setQuantity(1);
   };
+
+  const handleRemoveItem = (id) => {
+    setItems(items.filter(item => item.id !== id));
+  };
+
+  const handleSelectProduct = (product) => {
+    setSelectedProduct(product);
+    setQuantity(1);
+  };
+
+  const handleAddToCart = () => {
+    if (!selectedProduct || quantity < 1 || !selectedInvoiceId) return;
+
+    const existingItem = items.find(item => item.id === selectedProduct.id && item.invoiceId === selectedInvoiceId);
+
+    if (existingItem) {
+      setItems(items.map(item =>
+        item.id === selectedProduct.id && item.invoiceId === selectedInvoiceId
+          ? { ...item, quantity: item.quantity + quantity, total: (item.quantity + quantity) * item.price }
+          : item
+      ));
+    } else {
+      setItems([...items, { ...selectedProduct, invoiceId: selectedInvoiceId, quantity, total: selectedProduct.price * quantity }]);
+    }
+
+    handleCloseModal();
+  };
+
+  // 🛒 Xử lý thay đổi số lượng trong giỏ hàng
+  const handleQuantityChange = (id, newQuantity) => {
+    if (newQuantity < 1) return;
+
+    setItems(items.map(item =>
+      item.id === id
+        ? { ...item, quantity: newQuantity, total: newQuantity * item.price }
+        : item
+    ));
+  };
+
   return (
-    <div className="border border-primary rounded p-3">
-      <h5>Chọn sản phẩm</h5>
+    <div className="cart-container">
+      <Row className="d-flex align-items-center">
+        <Col className="d-flex justify-content-start">
+          <h3>Giỏ hàng</h3>
+        </Col>
+        <Col className="d-flex justify-content-end">
+          <div className="d-flex align-items-center">
+            <i 
+              className="mdi mdi-cart-plus mr-5" 
+              style={{ fontSize: '36px', cursor: 'pointer' }}
+              onClick={handleShowModal} 
+            ></i>
+            <i className="mdi mdi-qrcode-scan mr-5" style={{ fontSize: '36px' }}></i>
+          </div>
+        </Col>
+      </Row>
+
       <hr />
-      <div className="d-flex justify-content-between mb-3">
-        <Dropdown>
-          <Dropdown.Toggle variant="light">Chọn màu</Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Dropdown.Item>Cam</Dropdown.Item>
-            <Dropdown.Item>Đen</Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
-        <Dropdown>
-          <Dropdown.Toggle variant="light">Chọn kích thước</Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Dropdown.Item>39</Dropdown.Item>
-            <Dropdown.Item>40</Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
 
+      <ProductTable
+        filteredItems={filteredItems}
+        handleQuantityChange={handleQuantityChange}
+        handleRemoveItem={handleRemoveItem}
+      />
 
-
-        <Form inline onSubmit={handleSearch}>
-          <FormControl
-            type="text"
-            placeholder="Tìm kiếm..."
-            className="mr-sm-2"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-
-          />
-
-        </Form>
-
-
-
-
-
-
-      </div>
-      <Table bordered hover>
-        <thead>
-          <tr>
-            <th>Sản phẩm</th>
-            <th>Màu</th>
-            <th>Kích thước</th>
-            <th>Đơn giá</th>
-            <th>Kho</th>
-            <th></th>
-          </tr>
-        </thead>
-        {/* <tbody>
-          {products.map((product, index) => (
-            <tr key={index}>
-              <td>{product.name}</td>
-              <td>{product.color}</td>
-              <td>{product.size}</td>
-              <td>{product.price.toLocaleString()}</td>
-              <td>{product.stock}</td>
-              <td>
-                <Button variant="link">
-                  <Cart size={20} />
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody> */}
-      </Table>
+      <ProductModal
+        showModal={showModal}
+        handleCloseModal={handleCloseModal}
+        availableProducts={availableProducts}
+        selectedProduct={selectedProduct}
+        handleSelectProduct={handleSelectProduct}
+        quantity={quantity}
+        setQuantity={setQuantity}
+        handleAddToCart={handleAddToCart}
+      />
     </div>
   );
 }
