@@ -1,11 +1,11 @@
 import axios from 'axios'
 
-const apiProduct = 'http://localhost:8080/products';
+const apiProducts = 'http://localhost:8080/products';
 
 export const getProducts = () => {
-    return axios.get(apiProduct);
+    return axios.get(apiProducts);
 }
 
 export const createProduct = (product) => {
-    return axios.post(apiProduct, product);
+    return axios.post(`${apiProducts}/add`, product);
 }

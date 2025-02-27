@@ -8,7 +8,7 @@ import Customers from './customers/Customers';
 import Orders from './orders/Orders';
 import OrderDetail from './orders/OderDetail/OrderDetail';
 import Vouchers from './vouchers/Vouchers';
-import CreateProduct from './products/components/CreateProduct';
+import CreateProduct from './products/action/CreateProduct';
 
 const Dashboard = lazy(() => import('./dashboard/Dashboard'));
 const Buttons = lazy(() => import('./basic-ui/Buttons'));

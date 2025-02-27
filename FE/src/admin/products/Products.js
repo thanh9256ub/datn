@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { getProducts } from './service/ProductService';
 import { useHistory } from 'react-router-dom';
+import { Alert, Button, Modal, Table } from 'react-bootstrap';
+import { getProductDetailByProductId } from './service/ProductDetailService';
 
 const Products = () => {
 
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState("");
+
+    const [showModal, setShowModal] = useState(false);
+    const [selectedProductDetails, setSelectedProductDetails] = useState([]);
+    const [selectedProductName, setSelectedProductName] = useState("");
 
     const history = useHistory();
 
@@ -23,11 +30,29 @@ const Products = () => {
         };
 
         fetchProducts();
+
+        const message = localStorage.getItem("successMessage");
+        if (message) {
+            setSuccessMessage(message);
+            localStorage.removeItem("successMessage");
+        }
     }, []);
 
     const handleAddProduct = () => {
         history.push('/admin/products/add');
     }
+
+    const handleShowProductDetail = async (productId, productName) => {
+        try {
+            const response = await getProductDetailByProductId(productId);
+            console.log("API Response:", response.data);
+            setSelectedProductDetails(response.data.data);
+            setSelectedProductName(productName);
+            setShowModal(true);
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách biến thể:", error);
+        }
+    };
 
     return (
         <div>
@@ -35,10 +60,20 @@ const Products = () => {
                 <div className="card">
                     <div className="card-body">
                         <h3 className="card-title">Danh sách sản phẩm</h3>
-                        <button type="button" className="btn btn-primary" onClick={handleAddProduct}>
-                            <i className='mdi mdi-plus'></i> Thêm mới
-                        </button>
+                        <div className='row'>
+                            <div className='col-md-10'></div>
+                            <div className='col-md-2'>
+                                <button type="button" className="btn btn-primary" onClick={handleAddProduct}>
+                                    <i className='mdi mdi-plus'></i> Thêm mới
+                                </button>
+                            </div>
+                        </div>
                         <div style={{ marginBottom: '20px' }}></div>
+                        {successMessage && (
+                            <Alert variant="success" onClose={() => setSuccessMessage("")} dismissible>
+                                {successMessage}
+                            </Alert>
+                        )}
                         {loading ? (
                             <div>Đang tải sản phẩm...</div>
                         ) : error ? (
@@ -80,7 +115,7 @@ const Products = () => {
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <button className="btn btn-warning btn-sm">
+                                                        <button className="btn btn-warning btn-sm" onClick={() => handleShowProductDetail(product.id, product.productName)}>
                                                             <i className='mdi mdi-eye'></i>
                                                         </button>
                                                         <button className="btn btn-danger btn-sm ml-2">
@@ -101,6 +136,45 @@ const Products = () => {
                     </div>
                 </div>
             </div>
+
+            <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>Chi tiết sản phẩm: {selectedProductName}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {selectedProductDetails.length > 0 ? (
+                        <Table striped bordered hover>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Màu sắc</th>
+                                    <th>Kích cỡ</th>
+                                    <th>Số lượng</th>
+                                    <th>Giá</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {selectedProductDetails.map((variant, index) => (
+                                    <tr key={index}>
+                                        <td>{index + 1}</td>
+                                        <td>{variant.color.colorName}</td>
+                                        <td>{variant.size.sizeName}</td>
+                                        <td>{variant.quantity}</td>
+                                        <td>{variant.price}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    ) : (
+                        <p className="text-center">Không có biến thể nào.</p>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowModal(false)}>
+                        Đóng
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     )
 }
