@@ -57,19 +57,18 @@
     color: #656565;
     font-size: 20px;
     font-weight: 600;
-    margin: 25px 0 15px;
+    margin: 20px 0 5px;
 }
 
 .productdisplay-right-colors {
     display: flex;
     gap: 15px;
-    margin-bottom: 30px;
 }
 
 .productdisplay-right-colors button {
     padding: 12px 24px;
     border: 1px solid #e0e0e0;
-    border-radius: 25px;
+    border-radius: 8px;
     background: #ffffff;
     cursor: pointer;
     transition: all 0.2s ease;
