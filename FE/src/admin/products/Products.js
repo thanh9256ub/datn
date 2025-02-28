@@ -60,7 +60,6 @@ const Products = () => {
             const newStatus = currentStatus === 1 ? 0 : 1;
 
             await updateStatus(productId, newStatus);
-            // const response = await axios.patch(`http://localhost:8080/products/${productId}?status=${newStatus}`);
 
             setProducts(prevProducts =>
                 prevProducts.map(product =>
