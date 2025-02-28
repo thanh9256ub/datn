@@ -1,15 +1,11 @@
 import axios from 'axios'
 
-const BASE_URL = 'http://localhost:8080/products';
+const apiProducts = 'http://localhost:8080/products';
 
 export const getProducts = () => {
-    return axios.get(BASE_URL);
+    return axios.get(apiProducts);
 }
 
 export const createProduct = (product) => {
-    return axios.post(`${BASE_URL}/add`, product);
-}
-
-export const updateStatus = (id, statusPro) => {
-    return axios.patch(`${BASE_URL}/${id}?status=${statusPro}`);
+    return axios.post(`${apiProducts}/add`, product);
 }

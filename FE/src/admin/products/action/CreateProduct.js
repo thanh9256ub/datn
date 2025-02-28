@@ -71,34 +71,6 @@ const CreateProduct = () => {
 
     const history = useHistory();
 
-    const createProductData = () => {
-        return {
-            productName,
-            brandId: brandId ? parseInt(brandId) : null,
-            categoryId: categoryId ? parseInt(categoryId) : null,
-            materialId: materialId ? parseInt(materialId) : null,
-            mainImage: "image.png",
-            totalQuantity,
-            status
-        }
-    }
-
-    const createProductDetails = async (productId) => {
-        const variantData = variantList.map(variant => ({
-            productId,
-            colorId: variant.colorId,
-            sizeId: variant.sizeId,
-            quantity: parseInt(variant.quantity) || 0,
-            price: parseFloat(variant.price) || 0
-        }));
-        console.log("Gửi biến thể:", variantData);
-
-        const productDetailResponse = await createProductDetail(productId, variantData);
-
-        setTotalQuantity(productDetailResponse.data.totalQuantity);
-        setStatus(productDetailResponse.data.totalQuantity > 0 ? 1 : 0);
-    };
-
     const saveProduct = async () => {
         if (!productName || !brandId || !categoryId || !materialId) {
             alert("Vui lòng nhập đầy đủ thông tin sản phẩm!");
@@ -109,7 +81,16 @@ const CreateProduct = () => {
         if (!isConfirmed) return;
 
         try {
-            const productData = createProductData();
+            const productData = {
+                productName,
+                brandId: brandId ? parseInt(brandId) : null,
+                categoryId: categoryId ? parseInt(categoryId) : null,
+                materialId: materialId ? parseInt(materialId) : null,
+                mainImage: "default.jpg",
+                totalQuantity,
+                status
+            };
+
             console.log("Dữ liệu gửi lên API:", productData);
 
             const productResponse = await createProduct(productData);
@@ -117,8 +98,23 @@ const CreateProduct = () => {
             console.log("Sản phẩm được tạo:", productResponse.data.data);
 
             if (variantList.length > 0) {
-                await createProductDetails(productId);
+                const variantData = variantList.map(variant => ({
+                    productId,
+                    colorId: variant.colorId,
+                    sizeId: variant.sizeId,
+                    quantity: parseInt(variant.quantity) || 0,
+                    price: parseFloat(variant.price) || 0
+                }));
+
+                console.log("Gửi biến thể:", variantData);
+                const productDetailResponse = await createProductDetail(productId, variantData);
+
+                setTotalQuantity(productDetailResponse.data.totalQuantity);
+                setStatus(productDetailResponse.data.totalQuantity > 0 ? 1 : 0);
+
+                console.log("Sản phẩm đã cập nhật số lượng và trạng thái!");
             }
+
 
             localStorage.setItem("successMessage", "Sản phẩm đã được thêm thành công!");
             history.push('/admin/products');
@@ -143,7 +139,7 @@ const CreateProduct = () => {
                                         <Form.Group className="row">
                                             <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
                                             <div className="col-sm-9">
-                                                <Form.Control type="text" value={productName || ""} onChange={(e) => setProductName(e.target.value)} />
+                                                <Form.Control type="text" value={productName} onChange={(e) => setProductName(e.target.value)} />
                                             </div>
                                         </Form.Group>
                                     </div>
@@ -185,6 +181,22 @@ const CreateProduct = () => {
                                     <div className='col-md-6'>
                                         <ListAutoVariant variantList={variantList} handleInputChange={handleInputChange} />
                                     </div>
+                                </div>
+                                <div className="col-md-3">
+                                    <Form.Group className="row">
+                                        <label className="col-sm-6 col-form-label">Tổng số lượng:</label>
+                                        <div className="col-sm-6">
+                                            <Form.Control type="text" value={totalQuantity} disabled />
+                                        </div>
+                                    </Form.Group>
+                                </div>
+                                <div className="col-md-3">
+                                    <Form.Group className="row">
+                                        <label className="col-sm-6 col-form-label">Trạng thái:</label>
+                                        <div className="col-sm-6">
+                                            <Form.Control type="text" value={status === 1 ? "Hoạt động" : "Ngừng bán"} disabled />
+                                        </div>
+                                    </Form.Group>
                                 </div>
                                 <hr />
                                 <button type="button" className="btn btn-gradient-primary btn-icon-text" onClick={saveProduct}>
