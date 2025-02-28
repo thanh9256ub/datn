@@ -13,13 +13,13 @@ import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
-@RequestMapping("product-detail")
+@RequestMapping("/product-detail")
 public class ProductDetailController {
 
     @Autowired
     ProductDetailService service;
 
-    @PostMapping("add-multiple/{productId}")
+    @PostMapping("/add-multiple/{productId}")
     public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> addProductDetail(
             @PathVariable("productId") Integer productId,
             @RequestBody List<ProductDetailRequest> requests){
@@ -63,4 +63,22 @@ public class ProductDetailController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{pdId}")
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> updateProductDetail(
+            @PathVariable("pdId") Integer pdId,
+            @RequestParam(value = "status", required = false) Integer status,
+            @RequestParam(value = "quantity", required = false) Integer quantity) {
+
+        ProductDetailResponse productDetailResponse = service.updateProductDetail(pdId, status, quantity);
+
+        ApiResponse<ProductDetailResponse> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Updated successfully",
+                productDetailResponse
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
 }

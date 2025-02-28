@@ -13,6 +13,9 @@ import java.util.List;
 public interface ProductDetailMapper {
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "product", ignore = true)
+    @Mapping(target = "color", ignore = true)
+    @Mapping(target = "size", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
