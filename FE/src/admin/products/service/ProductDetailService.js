@@ -1,13 +1,15 @@
 import axios from 'axios'
 
-const apiProductDetails = 'http://localhost:8080/product-detail';
-
-const apiCreateProductDetails = 'http://localhost:8080/product-detail/add-multiple';
+const BASE_URL = 'http://localhost:8080/product-detail';
 
 export const createProductDetail = (productId, listVariant) => {
-    return axios.post(apiCreateProductDetails + "/" + productId, listVariant);
+    return axios.post(`${BASE_URL}/add-multiple/${productId}`, listVariant);
 }
 
 export const getProductDetailByProductId = (id) => {
-    return axios.get(apiProductDetails + "/" + id)
+    return axios.get(`${BASE_URL}/${id}`)
+}
+
+export const updateProductDetail = (pdId, quantity, statusPD) => {
+    return axios.patch(`${BASE_URL}/${pdId}?quantity=${quantity}&&status=${statusPD}`);
 }
