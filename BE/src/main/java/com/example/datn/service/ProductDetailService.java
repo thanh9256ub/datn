@@ -40,8 +40,9 @@ public class ProductDetailService {
     }
 
     public List<ProductDetailResponse> getProductDetailsByProductId(Integer productId) {
+
         productRepository.findById(productId).orElseThrow(
-                () -> new ResourceNotFoundException("Product not found with ID: " + productId)
+                () -> new ResourceNotFoundException("Product not found with ID: ")
         );
 
         List<ProductDetail> productDetails = repository.findByProductId(productId);
@@ -70,7 +71,7 @@ public class ProductDetailService {
             productDetail.setProduct(product);
             productDetail.setColor(color);
             productDetail.setSize(size);
-            productDetail.setStatus(request.getQuantity() == 0 ? 0 : 1);
+            productDetail.setStatus(request.getQuantity() > 0 ? 1 : 0);
 
             return productDetail;
 
@@ -78,12 +79,46 @@ public class ProductDetailService {
 
         repository.saveAll(productDetailList);
 
+        updateTotalQuantity(productId);
+
+        return mapper.toListProductDetail(productDetailList);
+    }
+
+    private void updateTotalQuantity(Integer productId) {
+
         Integer updatedTotalQuantity = repository.sumQuantityByProductId(productId);
+
+        Product product = productRepository.findById(productId).orElseThrow(
+                () -> new ResourceNotFoundException("Product not found with ID: " + productId)
+        );
+
         product.setTotalQuantity(updatedTotalQuantity);
         product.setStatus(updatedTotalQuantity > 0 ? 1 : 0);
         productRepository.save(product);
+    }
 
-        return mapper.toListProductDetail(productDetailList);
+    public ProductDetailResponse updateProductDetail(Integer pdId, Integer status, Integer quantity) {
+        ProductDetail productDetail = repository.findById(pdId).orElseThrow(
+                () -> new ResourceNotFoundException("Product Detail not found ID: " + pdId));
+
+        Integer originalQuantity = productDetail.getQuantity();
+
+        if (quantity != null && quantity >= 0) {
+            productDetail.setQuantity(quantity);
+        } else {
+            productDetail.setQuantity(originalQuantity);
+        }
+
+
+        if (status != null) {
+            productDetail.setStatus(status);
+        }
+
+        repository.save(productDetail);
+
+        updateTotalQuantity(productDetail.getProduct().getId());
+
+        return mapper.toProductDetailResponse(productDetail);
     }
 
 }
