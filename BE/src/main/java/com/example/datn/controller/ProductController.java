@@ -3,7 +3,6 @@ package com.example.datn.controller;
 import com.example.datn.dto.request.ProductRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.ProductResponse;
-import com.example.datn.entity.Product;
 import com.example.datn.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -23,7 +21,7 @@ public class ProductController {
     ProductService service;
 
     @PostMapping("add")
-    public ResponseEntity<ApiResponse<ProductResponse>> addProduct(@Valid @RequestBody ProductRequest request) {
+    public ResponseEntity<ApiResponse<ProductResponse>> addProduct(@Valid @RequestBody ProductRequest request){
 
         ProductResponse productResponse = service.createProduct(request);
 
@@ -37,7 +35,7 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAll() {
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAll(){
 
         List<ProductResponse> list = service.getAll();
 
@@ -52,8 +50,8 @@ public class ProductController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
-            @PathVariable("id") Integer id,
-            @Valid @RequestBody ProductRequest request) {
+                @PathVariable("id") Integer id,
+                @Valid @RequestBody ProductRequest request){
 
         ProductResponse productResponse = service.updateProduct(id, request);
 
@@ -67,7 +65,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<ProductResponse>> deleteProduct(@PathVariable("id") Integer id) {
+    public ResponseEntity<ApiResponse<ProductResponse>> deleteProduct(@PathVariable("id") Integer id){
 
         service.deleteProduct(id);
 
@@ -79,22 +77,5 @@ public class ProductController {
 
         return ResponseEntity.ok(response);
     }
-
-    @PatchMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductResponse>> updateProductStatus(
-            @PathVariable("productId") Integer productId,
-            @RequestParam("status") Integer status) {
-
-        ProductResponse productResponse = service.updateStatus(productId, status);
-
-        ApiResponse<ProductResponse> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Update status successfully",
-                productResponse
-        );
-
-        return ResponseEntity.ok(response);
-    }
-
 
 }
