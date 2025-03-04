@@ -12,6 +12,7 @@ import com.example.datn.repository.ProductRepository;
 import com.example.datn.repository.ColorRepository;
 import com.example.datn.repository.ProductDetailRepository;
 import com.example.datn.repository.SizeRepository;
+import com.example.datn.utils.QRCodeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -73,6 +74,7 @@ public class ProductDetailService {
             productDetail.setColor(color);
             productDetail.setSize(size);
             productDetail.setStatus(request.getQuantity() > 0 ? 1 : 0);
+            productDetail.setQr("");
 
             return productDetail;
 
@@ -83,6 +85,22 @@ public class ProductDetailService {
         updateTotalQuantity(productId);
 
         return mapper.toListProductDetail(productDetailList);
+    }
+
+    public ProductDetailResponse updateQR(Integer pdId) {
+        ProductDetail productDetail = repository.findById(pdId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + pdId));
+
+        try {
+            String qrCodeData = "" + pdId;
+            String qrCodeBase64 = QRCodeUtil.generateQRCode(qrCodeData);
+            productDetail.setQr(qrCodeBase64);
+            repository.save(productDetail);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return mapper.toProductDetailResponse(productDetail);
     }
 
     private void updateTotalQuantity(Integer productId) {

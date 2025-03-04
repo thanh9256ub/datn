@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Alert, Form } from 'react-bootstrap';
+import { QRCodeCanvas } from "qrcode.react";
 
-const ListAutoVariant = ({ variantList, handleInputChange }) => {
+const ListAutoVariant = ({ variantList, handleInputChange, productName }) => {
 
     return (
         <div>
@@ -15,6 +16,7 @@ const ListAutoVariant = ({ variantList, handleInputChange }) => {
                                 <th>Kích cỡ</th>
                                 <th>Số lượng</th>
                                 <th>Giá</th>
+                                <th>QR Code</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -36,6 +38,13 @@ const ListAutoVariant = ({ variantList, handleInputChange }) => {
                                             value={variant.price}
                                             onChange={(e) => handleInputChange(index, 'price', e.target.value)}
                                         />
+                                    </td>
+                                    <td>
+                                        {variant.qrCode ? (
+                                            <QRCodeCanvas value={variant.qrCode} size={80} />
+                                        ) : (
+                                            <span className="text-muted">Chưa có QR</span>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

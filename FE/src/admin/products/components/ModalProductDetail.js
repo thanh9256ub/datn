@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { updateProductDetail } from '../service/ProductDetailService';
 import Switch from 'react-switch';
+import { QRCodeCanvas } from 'qrcode.react';
 
 const ProductDetail = ({
     showModal,
@@ -42,6 +43,23 @@ const ProductDetail = ({
             console.error("Lỗi khi cập nhật số lượng:", error);
         }
     };
+
+    // const [qrCodes, setQrCodes] = useState({});
+
+    // useEffect(() => {
+    //     const generateQRCodes = async () => {
+    //         const newQRCodes = {};
+    //         for (const variant of selectedProductDetails) {
+    //             newQRCodes[variant.id] = await QRCode.toDataURL(`https://yourwebsite.com/product/${variant.id}`);
+    //         }
+    //         setQrCodes(newQRCodes);
+    //     };
+
+    //     if (selectedProductDetails.length > 0) {
+    //         generateQRCodes();
+    //     }
+    // }, [selectedProductDetails]);
+
     return (
         <div>
             <div className="table-responsive">
@@ -62,6 +80,7 @@ const ProductDetail = ({
                                         <th>Kích cỡ</th>
                                         <th>Số lượng</th>
                                         <th>Giá</th>
+                                        <th>QR Code</th>
                                         <th>Trạng thái</th>
                                         <th>Action</th>
                                     </tr>
@@ -83,6 +102,13 @@ const ProductDetail = ({
                                                 />
                                             </td>
                                             <td>{variant.price}</td>
+                                            <td>
+                                                {variant.qr ? (
+                                                    <img src={`data:image/png;base64,${variant.qr}`} alt="QR Code" width="50" />
+                                                ) : (
+                                                    <span className="text-muted">Chưa có QR</span>
+                                                )}
+                                            </td>
                                             <td>
                                                 <span className={`badge ${variant.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
                                                     {variant.status === 1 ? 'Hoạt động' : 'Không hoạt động'}

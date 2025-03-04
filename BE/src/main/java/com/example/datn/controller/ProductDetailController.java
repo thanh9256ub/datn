@@ -97,4 +97,19 @@ public class ProductDetailController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{pdId}/update-qr")
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> updateQR(
+            @PathVariable("pdId") Integer pdId) {
+
+        ProductDetailResponse productDetailResponse = service.updateQR(pdId);
+
+        ApiResponse<ProductDetailResponse> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Updated successfully",
+                productDetailResponse
+        );
+
+        return ResponseEntity.ok(response);
+    }
 }
