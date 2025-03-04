@@ -50,10 +50,25 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<ProductResponse>> getById(@PathVariable("id") Integer id){
+
+        ProductResponse productResponse = service.getById(id);
+
+        ApiResponse<ProductResponse> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Successfully",
+                productResponse
+        );
+
+        return ResponseEntity.ok(response);
+
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
-            @PathVariable("id") Integer id,
-            @Valid @RequestBody ProductRequest request) {
+            @Valid @RequestBody ProductRequest request,
+            @PathVariable("id") Integer id) {
 
         ProductResponse productResponse = service.updateProduct(id, request);
 

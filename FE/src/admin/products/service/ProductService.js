@@ -13,3 +13,11 @@ export const createProduct = (product) => {
 export const updateStatus = (id, statusPro) => {
     return axios.patch(`${BASE_URL}/${id}?status=${statusPro}`);
 }
+
+export const getProductById = (id) => {
+    return axios.get(`${BASE_URL}/${id}`)
+}
+
+export const updateProduct = (id, product) => {
+    return axios.put(`http://localhost:8080/products/${id}`, product)
+}

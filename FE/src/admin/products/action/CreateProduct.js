@@ -7,8 +7,9 @@ import ColorSelect from '../select/ColorSelect';
 import SizeSelect from '../select/SizeSelect';
 import ListAutoVariant from '../components/ListAutoVariant';
 import { createProduct } from '../service/ProductService';
-import { createProductDetail } from '../service/ProductDetailService';
+import { createProductDetail, updateQR } from '../service/ProductDetailService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
+import QRCode from "qrcode.react";
 
 const CreateProduct = () => {
     const [productName, setProductName] = useState("");
@@ -27,7 +28,7 @@ const CreateProduct = () => {
     };
 
     const handleSizeChange = (sizes) => {
-        setSizeIds(sizes || []); // 🛠️ Đảm bảo không có giá trị `undefined`
+        setSizeIds(sizes || []);
         generateVariants(colorIds, sizes);
     };
 
@@ -47,9 +48,9 @@ const CreateProduct = () => {
                     color: color.label,
                     colorId: color.value,
                     size: size.label,
-                    sizeId: size.value,
-                    quantity: 0,
-                    price: ''
+                    sizeId: size.value, quantity: 0,
+                    price: '',
+                    qrCode: `${productName}-${size.value}-${color.value}`
                 });
             });
         });
@@ -84,19 +85,46 @@ const CreateProduct = () => {
     }
 
     const createProductDetails = async (productId) => {
-        const variantData = variantList.map(variant => ({
-            productId,
-            colorId: variant.colorId,
-            sizeId: variant.sizeId,
-            quantity: parseInt(variant.quantity) || 0,
-            price: parseFloat(variant.price) || 0
-        }));
+        const variantData = variantList.map(variant => {
+            return {
+                productId,
+                colorId: variant.colorId,
+                sizeId: variant.sizeId,
+                quantity: parseInt(variant.quantity) || 0,
+                price: parseFloat(variant.price) || 0,
+                qr: ''
+            }
+        });
         console.log("Gửi biến thể:", variantData);
 
-        const productDetailResponse = await createProductDetail(productId, variantData);
+        try {
+            const productDetailResponse = await createProductDetail(productId, variantData);
 
-        setTotalQuantity(productDetailResponse.data.totalQuantity);
-        setStatus(productDetailResponse.data.totalQuantity > 0 ? 1 : 0);
+            const variantsData = productDetailResponse?.data?.data || [];
+
+
+            if (!Array.isArray(variantsData)) {
+                console.error("Dữ liệu trả về không hợp lệ:", variantsData);
+                alert("Dữ liệu biến thể không hợp lệ!");
+                return;
+            }
+
+            await Promise.all(variantsData.map(async (variant) => {
+                await updateQR(variant.id);
+            }));
+
+            const updatedVariants = variantsData.map(detail => ({
+                ...detail,
+                qrCode: detail.qr || `QR-${detail.id}` // Cập nhật QR từ DB
+            }));
+
+            setVariantList(updatedVariants);
+            setTotalQuantity(productDetailResponse.data.totalQuantity);
+            setStatus(productDetailResponse.data.totalQuantity > 0 ? 1 : 0);
+        } catch (error) {
+            console.error("Lỗi khi tạo biến thể:", error);
+            alert("Lỗi khi tạo biến thể, kiểm tra console log!");
+        }
     };
 
     const saveProduct = async () => {
@@ -183,7 +211,10 @@ const CreateProduct = () => {
                                 <hr />
                                 <div className="row">
                                     <div className='col-md-6'>
-                                        <ListAutoVariant variantList={variantList} handleInputChange={handleInputChange} />
+                                        <ListAutoVariant
+                                            variantList={variantList}
+                                            handleInputChange={handleInputChange}
+                                            productName={productName} />
                                     </div>
                                 </div>
                                 <hr />

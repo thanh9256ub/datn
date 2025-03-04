@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Alert, Form } from 'react-bootstrap';
+import { QRCodeCanvas } from "qrcode.react";
 
-const ListAutoVariant = ({ variantList, handleInputChange }) => {
+const ListAutoVariant = ({ variantList, handleInputChange, productName }) => {
 
     return (
         <div>
@@ -15,14 +16,15 @@ const ListAutoVariant = ({ variantList, handleInputChange }) => {
                                 <th>Kích cỡ</th>
                                 <th>Số lượng</th>
                                 <th>Giá</th>
+                                <th>QR Code</th>
                             </tr>
                         </thead>
                         <tbody>
                             {variantList.map((variant, index) => (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
-                                    <td>{variant.color}</td>
-                                    <td>{variant.size}</td>
+                                    <td>{variant.color?.colorName || variant.color}</td>
+                                    <td>{variant.size?.sizeName || variant.size}</td>
                                     <td>
                                         <Form.Control
                                             type="number"
@@ -36,6 +38,13 @@ const ListAutoVariant = ({ variantList, handleInputChange }) => {
                                             value={variant.price}
                                             onChange={(e) => handleInputChange(index, 'price', e.target.value)}
                                         />
+                                    </td>
+                                    <td>
+                                        {variant.qrCode ? (
+                                            <QRCodeCanvas value={variant.qrCode} size={80} />
+                                        ) : (
+                                            <span className="text-muted">Chưa có QR</span>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

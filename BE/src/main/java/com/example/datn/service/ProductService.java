@@ -68,6 +68,13 @@ public class ProductService {
         return mapper.toListProduct(repository.findAll());
     }
 
+    public ProductResponse getById(Integer id){
+
+        Product product = repository.findById(id).orElseThrow(
+                () -> new RuntimeException("Product not exist"));
+
+        return mapper.toProductResponse(product);
+    }
 
     public ProductResponse updateProduct(Integer id, ProductRequest request){
 
@@ -112,4 +119,5 @@ public class ProductService {
 
         return mapper.toProductResponse(repository.save(product));
     }
+
 }

@@ -18,18 +18,18 @@ const Products = () => {
 
     const history = useHistory();
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const response = await getProducts();
-                setProducts(response.data.data);
-            } catch (err) {
-                setError('Đã xảy ra lỗi khi tải sản phẩm.');
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchProducts = async () => {
+        try {
+            const response = await getProducts();
+            setProducts(response.data.data);
+        } catch (err) {
+            setError('Đã xảy ra lỗi khi tải sản phẩm.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchProducts();
 
         const message = localStorage.getItem("successMessage");
@@ -41,6 +41,10 @@ const Products = () => {
 
     const handleAddProduct = () => {
         history.push('/admin/products/add');
+    }
+
+    const handleUpdateProduct = (id) => {
+        history.push(`/admin/products/edit/${id}`)
     }
 
     const handleShowProductDetail = async (productId, productName) => {
@@ -71,6 +75,11 @@ const Products = () => {
         }
     };
 
+    const refreshProducts = () => {
+        fetchProducts();
+    };
+
+
     return (
         <div>
             <div className="col-lg-12 grid-margin stretch-card">
@@ -78,9 +87,9 @@ const Products = () => {
                     <div className="card-body">
                         <h3 className="card-title">Danh sách sản phẩm</h3>
                         <div className='row'>
-                            <div className='col-md-10'></div>
-                            <div className='col-md-2'>
-                                <button type="button" className="btn btn-primary float-right" onClick={handleAddProduct}>
+                            <div className='col-md-9'></div>
+                            <div className='col-md-3'>
+                                <button type="button" className="btn btn-gradient-primary btn-fw float-right" onClick={handleAddProduct}>
                                     <i className='mdi mdi-plus'></i> Thêm mới
                                 </button>
                             </div>
@@ -147,7 +156,9 @@ const Products = () => {
                                                             height={20}
                                                             width={40}
                                                         />
-                                                        <button className="btn btn-danger btn-sm ml-2">
+                                                        <button className="btn btn-danger btn-sm ml-2"
+                                                            onClick={() => handleUpdateProduct(product.id)}
+                                                        >
                                                             <i className='mdi mdi-border-color'></i>
                                                         </button>
                                                     </td>
@@ -172,6 +183,7 @@ const Products = () => {
                 selectedProductName={selectedProductName}
                 selectedProductDetails={selectedProductDetails}
                 setSelectedProductDetails={setSelectedProductDetails}
+                refreshProducts={fetchProducts}
             />
 
 
