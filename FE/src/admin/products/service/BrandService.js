@@ -1,7 +1,11 @@
 import axios from "axios";
 
-const apiBrands = 'http://localhost:8080/brand';
+const BASE_URL = 'http://localhost:8080/brand';
 
 export const getBrands = () => {
-    return axios.get(apiBrands);
+    return axios.get(BASE_URL);
+}
+
+export const createBrand = (brand) => {
+    return axios.post(`${BASE_URL}/add`, brand)
 }

@@ -1,51 +1,62 @@
 import React, { useEffect, useState } from 'react';
-import { getBrands } from '../service/BrandService';
-import { Form } from 'react-bootstrap';
+import { createMaterial, getMaterials } from '../service/MaterialService';
+import { Button, Form, Modal } from 'react-bootstrap';
 // import Select from 'react-select';
 
-const BrandSelect = ({ brandId, setBrandId }) => {
-    const [brandOptions, setBrandOptions] = useState([]);
+const MaterialSelect = ({ brandId, setMaterialId }) => {
+    const [brandOptions, setMaterialOptions] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [newMaterialName, setNewMaterialName] = useState("");
 
     useEffect(() => {
-        getBrands()
-            .then(response => {
-                setBrandOptions(response.data.data);
-            })
-            .catch(error => {
-                console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
-            });
+        fetchMaterials();
     }, []);
 
-    const handleBrandChange = (event) => {
+    const handleMaterialChange = (event) => {
         const value = event.target.value;
-        setBrandId(value || "");
+        setMaterialId(value || "");
         event.target.value ? event.target.style.color = "#000" : event.target.style.color = "#999";
     };
 
-    // useEffect(() => {
-    //     getBrands()
-    //         .then(response => {
-    //             const formattedBrands = response.data.data.map(brand => ({
-    //                 value: brand.id,
-    //                 label: brand.brandName
-    //             }));
-    //             setBrandOptions(formattedBrands);
-    //         })
-    //         .catch(error => {
-    //             console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
-    //         });
-    // }, []);
+    const fetchMaterials = () => {
+        getMaterials()
+            .then((response) => {
+                setMaterialOptions(response.data.data);
+            })
+            .catch((error) => {
+                console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
+            });
+    };
+
+
+    const handleAddMaterial = async () => {
+        if (!newMaterialName.trim()) {
+            alert("Vui lòng nhập tên thương hiệu!");
+            return;
+        }
+
+        try {
+            const response = await createMaterial({ materialName: newMaterialName });
+            alert("Thêm thương hiệu thành công!");
+            setShowModal(false);
+            setNewMaterialName("");
+            fetchMaterials(); // Load lại danh sách thương hiệu
+        } catch (error) {
+            console.error("Lỗi khi thêm thương hiệu:", error);
+            alert("Lỗi khi thêm thương hiệu!");
+        }
+    };
 
 
     return (
         <div>
             <Form.Group className="row">
                 <label className="col-sm-3 col-form-label">Thương hiệu:</label>
-                <div className="col-sm-9">
+                <div className="col-sm-7">
                     <select
                         className="form-control"
                         value={brandId || ""}
-                        onChange={handleBrandChange}
+                        onChange={handleMaterialChange}
                         style={{ color: brandId ? "#000" : "#999" }}
                     >
                         <option value="">Chọn thương hiệu</option>
@@ -55,16 +66,40 @@ const BrandSelect = ({ brandId, setBrandId }) => {
                             </option>
                         ))}
                     </select>
-                    {/* <Select
-                        options={brandOptions}
-                        value={brandOptions.find(option => option.value === brandId) || null}
-                        onChange={(selected) => setBrandId(selected ? selected.value : "")}
-                        classNamePrefix="react-select"
-                    /> */}
+                </div>
+                <div className="col-sm-2">
+                    <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon" onClick={() => setShowModal(true)}>
+                        <i className='mdi mdi-plus'></i>
+                    </button>
                 </div>
             </Form.Group>
+
+            {/* Modal */}
+            <Modal show={showModal} onHide={() => setShowModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Thêm Thương Hiệu</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form.Group>
+                        <Form.Label>Tên thương hiệu</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={newMaterialName}
+                            onChange={(e) => setNewMaterialName(e.target.value)}
+                        />
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowModal(false)}>
+                        Hủy
+                    </Button>
+                    <Button variant="primary" onClick={handleAddMaterial}>
+                        Thêm
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 };
 
-export default BrandSelect;
+export default MaterialSelect;
