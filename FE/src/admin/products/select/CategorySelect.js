@@ -26,9 +26,10 @@ const CategorySelect = ({ categoryId, setCategoryId }) => {
                 <label className="col-sm-3 col-form-label">Danh mục:</label>
                 <div className='col-md-9'>
                     <select
-                        className={`form-control`}
                         value={categoryId || ""}
+                        className={`form-control`}
                         onChange={handleCategoryChange}
+                        style={{ color: categoryId ? "#000" : "#999" }}
                     >
                         <option value="">Chọn danh mục</option>
                         {categoryOptions.map(category => (

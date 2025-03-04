@@ -68,6 +68,7 @@ public class ProductDetailService {
 
             ProductDetail productDetail = mapper.toProductDetail(request);
 
+            productDetail.setId(null);
             productDetail.setProduct(product);
             productDetail.setColor(color);
             productDetail.setSize(size);
@@ -112,6 +113,8 @@ public class ProductDetailService {
 
         if (status != null) {
             productDetail.setStatus(status);
+        }else{
+            productDetail.setStatus(productDetail.getStatus());
         }
 
         repository.save(productDetail);
@@ -119,6 +122,30 @@ public class ProductDetailService {
         updateTotalQuantity(productDetail.getProduct().getId());
 
         return mapper.toProductDetailResponse(productDetail);
+    }
+
+    public List<ProductDetailResponse> updateProductDetails(Integer productId, List<ProductDetailRequest> requests) {
+
+        Product product = productRepository.findById(productId).orElseThrow(
+                () -> new ResourceNotFoundException("Product not found with ID: " + productId)
+        );
+
+        List<ProductDetail> updatedDetails = requests.stream().map(request -> {
+            ProductDetail productDetail = repository.findById(request.getId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Product Detail not found with ID: " + request.getId())
+            );
+
+            productDetail.setQuantity(request.getQuantity());
+            productDetail.setStatus(request.getStatus());
+
+            return productDetail;
+        }).toList();
+
+        repository.saveAll(updatedDetails);
+
+        updateTotalQuantity(productId);
+
+        return mapper.toListProductDetail(updatedDetails);
     }
 
 }

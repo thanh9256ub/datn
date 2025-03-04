@@ -21,8 +21,8 @@ const ListAutoVariant = ({ variantList, handleInputChange }) => {
                             {variantList.map((variant, index) => (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
-                                    <td>{variant.color}</td>
-                                    <td>{variant.size}</td>
+                                    <td>{variant.color?.colorName || variant.color}</td>
+                                    <td>{variant.size?.sizeName || variant.size}</td>
                                     <td>
                                         <Form.Control
                                             type="number"

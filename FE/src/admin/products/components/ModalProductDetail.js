@@ -3,7 +3,14 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import { updateProductDetail } from '../service/ProductDetailService';
 import Switch from 'react-switch';
 
-const ProductDetail = ({ showModal, setShowModal, selectedProductName, selectedProductDetails, setSelectedProductDetails }) => {
+const ProductDetail = ({
+    showModal,
+    setShowModal,
+    selectedProductName,
+    selectedProductDetails,
+    setSelectedProductDetails,
+    refreshProducts
+}) => {
     const handleStatusChange = (index) => {
         const updatedDetails = [...selectedProductDetails];
         updatedDetails[index].status = updatedDetails[index].status === 1 ? 0 : 1;
@@ -14,18 +21,26 @@ const ProductDetail = ({ showModal, setShowModal, selectedProductName, selectedP
             updatedDetails[index].quantity,
             updatedDetails[index].status
         );
+
+        refreshProducts();
     };
 
-    const handleQuantityChange = (index, event) => {
+    const handleQuantityChange = async (index, event) => {
         const updatedDetails = [...selectedProductDetails];
         updatedDetails[index].quantity = event.target.value;
+
         setSelectedProductDetails(updatedDetails);
 
-        updateProductDetail(
-            updatedDetails[index].id,
-            event.target.value,
-            updatedDetails[index].status
-        );
+        try {
+            await updateProductDetail(
+                updatedDetails[index].id,
+                event.target.value,
+                updatedDetails[index].status ?? 1
+            );
+            refreshProducts();
+        } catch (error) {
+            console.error("Lỗi khi cập nhật số lượng:", error);
+        }
     };
     return (
         <div>
@@ -65,11 +80,6 @@ const ProductDetail = ({ showModal, setShowModal, selectedProductName, selectedP
                                                     type="number"
                                                     value={variant.quantity}
                                                     onChange={(e) => handleQuantityChange(index, e)}
-                                                    style={{
-                                                        width: '60px',
-                                                        height: '25px',
-                                                        textAlign: 'center',
-                                                    }}
                                                 />
                                             </td>
                                             <td>{variant.price}</td>

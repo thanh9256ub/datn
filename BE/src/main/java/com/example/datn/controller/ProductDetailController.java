@@ -3,6 +3,7 @@ package com.example.datn.controller;
 import com.example.datn.dto.request.ProductDetailRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.ProductDetailResponse;
+import com.example.datn.dto.response.ProductResponse;
 import com.example.datn.service.ProductDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -81,4 +82,19 @@ public class ProductDetailController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/{productId}")
+    public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> updateProductDetails(
+            @PathVariable Integer productId,
+            @RequestBody List<ProductDetailRequest> requests) {
+
+        List<ProductDetailResponse> list = service.updateProductDetails(productId, requests);
+
+        ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Updated successfully",
+                list
+        );
+
+        return ResponseEntity.ok(response);
+    }
 }

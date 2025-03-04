@@ -27,7 +27,7 @@ const CreateProduct = () => {
     };
 
     const handleSizeChange = (sizes) => {
-        setSizeIds(sizes || []); // 🛠️ Đảm bảo không có giá trị `undefined`
+        setSizeIds(sizes || []);
         generateVariants(colorIds, sizes);
     };
 
@@ -47,8 +47,7 @@ const CreateProduct = () => {
                     color: color.label,
                     colorId: color.value,
                     size: size.label,
-                    sizeId: size.value,
-                    quantity: 0,
+                    sizeId: size.value, quantity: 0,
                     price: ''
                 });
             });

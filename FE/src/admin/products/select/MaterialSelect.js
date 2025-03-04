@@ -30,6 +30,7 @@ const MaterialSelect = ({ materialId, setMaterialId }) => {
                         className={`form-control`}
                         value={materialId || ""}
                         onChange={handleMaterialChange}
+                        style={{ color: materialId ? "#000" : "#999" }}
                     >
                         <option value="">Chọn chất liệu</option>
                         {materialOptions.map(material => (

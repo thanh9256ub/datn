@@ -12,7 +12,6 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ProductDetailMapper {
 
-    @Mapping(target = "id", ignore = true)
     @Mapping(target = "product", ignore = true)
     @Mapping(target = "color", ignore = true)
     @Mapping(target = "size", ignore = true)
