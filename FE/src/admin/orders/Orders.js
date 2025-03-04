@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Form, InputGroup, Button, Pagination, Toast } from 'react-bootstrap';
 import { useHistory } from 'react-router-dom';
 import eyeIcon from './icons8-eyes-64.png';
-import { fetchOrders } from './OrderService/orderService';
+import { fetchOrders, updateOrderStatus } from './OrderService/orderService'; // Import hàm fetchOrders và updateOrderStatus
 import trash from './icons8-trash-24.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -83,22 +83,25 @@ const Orders = () => {
             return;
         }
 
-        // try {
-        //     // Gọi API để cập nhật trạng thái đơn hàng
-        //     const updatedOrder = await updateOrderStatus(selectedOrder.id, nextStatus);
+        try {
+            // Gọi API để cập nhật trạng thái
+            console.log("Updating order status:", selectedOrder.id, nextStatus);
+            await updateOrderStatus(selectedOrder.id, nextStatus);
 
-        //     // Cập nhật state với dữ liệu mới từ API
-        //     const updatedData = data.map(order =>
-        //         order.id === updatedOrder.id ? updatedOrder : order
-        //     );
-        //     setData(updatedData);
-        //     setSelectedOrder(updatedOrder);
+            // Cập nhật lại state data với trạng thái mới
+            const updatedData = data.map(order =>
+                order.id === selectedOrder.id ? { ...order, status: nextStatus } : order
+            );
+            setData(updatedData);
 
-        //     showNotification(`Đơn hàng đã được chuyển sang trạng thái: ${nextStatus}`);
-        // } catch (error) {
-        //     console.error('Error updating order status:', error);
-        //     showNotification('Có lỗi xảy ra khi cập nhật trạng thái đơn hàng.');
-        // }
+            // Cập nhật selectedOrder với trạng thái mới
+            setSelectedOrder(prev => ({ ...prev, status: nextStatus }));
+
+            showNotification("Cập nhật trạng thái thành công!");
+        } catch (error) {
+            console.error('Error updating order status:', error);
+            showNotification("Có lỗi xảy ra khi cập nhật trạng thái.");
+        }
     };
 
     const handlePrintInvoice = () => {
@@ -175,9 +178,12 @@ const Orders = () => {
     const getNextStatus = (currentStatus) => {
         const statusFlow = [
             { id: 1, name: "Chờ tiếp nhận" },
-            { id: 2, name: "Đang vận chuyển" },
-            { id: 3, name: "Hoàn thành" },
-            { id: 4, name: "Đã hủy" },
+            { id: 2, name: "Chờ lấy hàng" },
+            { id: 3, name: "Chờ vận chuyển" },
+            { id: 4, name: "Đang vận chuyển" },
+            { id: 5, name: "Đã giao" },
+            { id: 6, name: "Hoàn tất" },
+            { id: 7, name: "Đã hủy" },
         ];
 
         const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
@@ -187,9 +193,12 @@ const Orders = () => {
     const StatusTimeline = ({ status }) => {
         const statusFlow = [
             { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
-            { id: 2, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
-            { id: 3, name: "Hoàn thành", icon: faCheckCircle, color: "#4caf50" },
-            { id: 4, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+            { id: 2, name: "Chờ lấy hàng", icon: faBoxOpen, color: "#ffd700" },
+            { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
+            { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
+            { id: 5, name: "Đã giao", icon: faHome, color: "#4caf50" },
+            { id: 6, name: "Hoàn thành", icon: faCheckCircle, color: "#4caf50" },
+            { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
         ];
 
         const currentIndex = statusFlow.findIndex(s => s.id === status);
@@ -250,7 +259,7 @@ const Orders = () => {
                                     <StatusTimeline status={selectedOrder.status} />
                                     <div className="d-flex gap-2 mt-3">
                                         {/* Nút Xác nhận */}
-                                        {selectedOrder.status !== 3 && selectedOrder.status !== 4 && (
+                                        {selectedOrder.status !== 6 && ( // Chỉ hiển thị nút nếu trạng thái chưa phải là "Hoàn thành"
                                             <Button variant="primary" onClick={handleConfirm}>
                                                 Xác nhận
                                             </Button>
@@ -321,6 +330,7 @@ const Orders = () => {
                                 <th>Mã đơn hàng</th>
                                 <th>Ngày đặt hàng</th>
                                 <th>Trạng thái</th>
+                                <th>Hình thức thanh toán</th>
                                 <th>Tổng tiền</th>
                                 <th>Actions</th>
                             </tr>
@@ -329,29 +339,36 @@ const Orders = () => {
                             {currentItems.map((order, index) => (
                                 <tr key={order.id} onClick={() => handleRowClick(order.id)} style={{ cursor: 'pointer' }}>
                                     <td>{index + 1}</td>
-                                    <td>{order.customer.fullName}</td>
+                                    <td>{order.customerName}</td>
                                     <td>{order.orderCode}</td>
                                     <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                                     <td>
                                         <span
-                                            className={`badge ${order.status === 2 ? "text-dark" : "text-white"}`}
+                                            className={`badge ${order.status === 2 || order.status === 3 || order.status === 4 ? "text-dark" : "text-white"}`}
                                             style={{
                                                 backgroundColor:
-                                                    order.status === 2 ? "#ffe8a1" : // Đang vận chuyển
-                                                        order.status === 3 ? "#b8e0c4" : // Hoàn thành
-                                                            order.status === 4 ? "#f4b7bb" : // Đã hủy
-                                                                "#d1d3d6", // Chờ tiếp nhận
+                                                    order.status === 1 ? "#d1d3d6" : // Chờ tiếp nhận
+                                                        order.status === 2 ? "#ffe8a1" : // Chờ lấy hàng
+                                                            order.status === 3 ? "#b8e0c4" : // Chờ vận chuyển
+                                                                order.status === 4 ? "#118ab2" : // Đang vận chuyển
+                                                                    order.status === 5 ? "#4caf50" : // Đã giao
+                                                                        order.status === 6 ? "#4caf50" : // Hoàn tất
+                                                                            "#ef476f", // Đã hủy
                                                 fontFamily: '"Roboto", sans-serif',
                                                 fontWeight: '400',
                                                 padding: '0.35rem 0.65rem',
                                                 fontSize: '0.9rem',
                                             }}>
                                             {order.status === 1 ? "Chờ tiếp nhận" :
-                                                order.status === 2 ? "Đang vận chuyển" :
-                                                    order.status === 3 ? "Hoàn thành" :
-                                                        "Đã hủy"}
+                                                order.status === 2 ? "Chờ lấy hàng" :
+                                                    order.status === 3 ? "Chờ vận chuyển" :
+                                                        order.status === 4 ? "Đang vận chuyển" :
+                                                            order.status === 5 ? "Đã giao" :
+                                                                order.status === 6 ? "Hoàn tất" :
+                                                                    "Đã hủy"}
                                         </span>
                                     </td>
+                                    <td>{order.paymentTypeName || "Không có dữ liệu"}</td>
                                     <td>{order.totalPayment.toLocaleString()} VNĐ</td>
                                     <td>
                                         <Button variant="link" className="p-0" style={{ opacity: 0, transition: 'all 0.3s ease', transform: 'scale(0.8)' }}

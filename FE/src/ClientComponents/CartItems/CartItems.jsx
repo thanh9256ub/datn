@@ -1,11 +1,73 @@
-import React, { useContext, useState } from 'react'
-import './CartItems.css'
-import { ShopContext } from '../Context/ShopContext'
-import remove_icon from '../Assets/cart_cross_icon.png'
+import React, { useContext, useState, useEffect } from 'react';
+import axios from 'axios';
+import './CartItems.css';
+import { ShopContext } from '../Context/ShopContext';
+import remove_icon from '../Assets/cart_cross_icon.png';
+
 const CartItems = () => {
     const { clearCart, getTotalCartAmount, all_product, cartItems, removeFromCart } = useContext(ShopContext);
     const [orderSuccess, setOrderSuccess] = useState(false);
     const [selectedItems, setSelectedItems] = useState([]);
+    const [provinces, setProvinces] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [wards, setWards] = useState([]);
+    const [selectedProvince, setSelectedProvince] = useState('');
+    const [selectedDistrict, setSelectedDistrict] = useState('');
+    const [selectedWard, setSelectedWard] = useState('');
+
+    const GHN_API_KEY = '77a508c5-f919-11ef-91ea-021c91d80158'; // Thay thế bằng API key của bạn
+
+    useEffect(() => {
+        // Lấy danh sách tỉnh/thành phố
+        axios.get('https://cors-anywhere.herokuapp.com/https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/province', {
+            headers: {
+                'Token': GHN_API_KEY
+            }
+        })
+            .then(response => {
+                console.log('Provinces:', response.data.data); // Log dữ liệu để kiểm tra
+                setProvinces(response.data.data);
+            })
+            .catch(error => {
+                console.error('Error fetching provinces:', error);
+            });
+    }, []);
+
+    useEffect(() => {
+        if (selectedProvince) {
+            // Lấy danh sách quận/huyện
+            axios.get(`https://cors-anywhere.herokuapp.com/https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=${selectedProvince}`, {
+                headers: {
+                    'Token': GHN_API_KEY
+                }
+            })
+                .then(response => {
+                    console.log('Districts:', response.data.data); // Log dữ liệu để kiểm tra
+                    setDistricts(response.data.data);
+                })
+                .catch(error => {
+                    console.error('Error fetching districts:', error);
+                });
+        }
+    }, [selectedProvince]);
+
+    useEffect(() => {
+        if (selectedDistrict) {
+            // Lấy danh sách phường/xã
+            axios.get(`https://cors-anywhere.herokuapp.com/https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${selectedDistrict}`, {
+                headers: {
+                    'Token': GHN_API_KEY
+                }
+            })
+                .then(response => {
+                    console.log('Wards:', response.data.data); // Log dữ liệu để kiểm tra
+                    setWards(response.data.data);
+                })
+                .catch(error => {
+                    console.error('Error fetching wards:', error);
+                });
+        }
+    }, [selectedDistrict]);
     const handleCheckout = () => {
         if (getTotalCartAmount() === 0) {
             alert("Your cart is empty!");
@@ -14,6 +76,7 @@ const CartItems = () => {
         setOrderSuccess(true);
         clearCart(); // Reset giỏ hàng về rỗng
     };
+
     const handleCheckboxChange = (productId) => {
         setSelectedItems((prevState) => {
             if (prevState.includes(productId)) {
@@ -22,6 +85,7 @@ const CartItems = () => {
             return [...prevState, productId]; // Add if not selected
         });
     };
+
     const handleQuantityChange = (productId, quantity) => {
         if (quantity >= 1) { // Đảm bảo rằng số lượng không nhỏ hơn 1
             setSelectedItems(prevState => {
@@ -31,6 +95,7 @@ const CartItems = () => {
             cartItems[productId] = quantity;
         }
     };
+
     return (
         <div className='cartitems'>
             {orderSuccess ? (
@@ -110,9 +175,26 @@ const CartItems = () => {
                             <div className="cartitems-customer-info">
                                 <input type="text" name="name" placeholder="Full Name" />
                                 <input type="text" name="phone" placeholder="Phone Number" />
-                                <input type="text" name="city" placeholder="City/Province" />
-                                <input type="text" name="district" placeholder="District" />
-                                <input type="text" name="ward" placeholder="Ward" />
+                                <select value={selectedProvince} onChange={(e) => setSelectedProvince(e.target.value)}>
+                                    <option value="">Chọn tỉnh/thành phố</option>
+                                    {provinces.map(province => (
+                                        <option key={province.ProvinceID} value={province.ProvinceID}>{province.ProvinceName}</option>
+                                    ))}
+                                </select>
+
+                                <select value={selectedDistrict} onChange={(e) => setSelectedDistrict(e.target.value)}>
+                                    <option value="">Chọn quận/huyện</option>
+                                    {districts.map(district => (
+                                        <option key={district.DistrictID} value={district.DistrictID}>{district.DistrictName}</option>
+                                    ))}
+                                </select>
+
+                                <select value={selectedWard} onChange={(e) => setSelectedWard(e.target.value)}>
+                                    <option value="">Chọn phường/xã</option>
+                                    {wards.map(ward => (
+                                        <option key={ward.WardCode} value={ward.WardCode}>{ward.WardName}</option>
+                                    ))}
+                                </select>
                                 <input type="text" name="address" placeholder="Detailed Address" />
                             </div>
                             <h2>Payment Method</h2>
@@ -132,4 +214,4 @@ const CartItems = () => {
     );
 };
 
-export default CartItems
+export default CartItems;

@@ -11,48 +11,6 @@ import java.util.List;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order,Integer> {
-//    @Query("""
-//            SELECT new com.example.datn.dto.response.OrderResponse(
-//            o.id,
-//            o.orderCode,
-//            o.customer.id,
-//            o.employee.id,
-//            o.customerName,
-//            o.phone,
-//            o.address,
-//            o.note,
-//            o.shippingFee,
-//             o.discountValue,
-//            o.totalPrice,
-//            o.totalPayment,
-//            o.paymentType.paymentTypeName,
-//            o.paymentMethod.paymentMethodName,
-//            o.status,
-//            o.createdAt,
-//            o.updatedAt
-//            ) FROM  Order o
-//            """)
-//    List<OrderResponse> getAll();
-//    @Query("""
-//            SELECT new com.example.datn.dto.response.OrderResponse(
-//            o.id,
-//            o.orderCode,
-//            o.customer.id,
-//            o.employee.id,
-//            o.customerName,
-//            o.phone,
-//            o.address,
-//            o.note,
-//            o.shippingFee,
-//             o.discountValue,
-//            o.totalPrice,
-//            o.totalPayment,
-//            o.paymentType.paymentTypeName,
-//            o.paymentMethod.paymentMethodName,
-//            o.status,
-//            o.createdAt,
-//            o.updatedAt
-//            ) FROM  Order o
-//            """)
-//    List<OrderResponse> getAll(Pageable pageable);
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.paymentType LEFT JOIN FETCH o.paymentMethod")
+    List<Order> findAllWithPaymentDetails();
 }

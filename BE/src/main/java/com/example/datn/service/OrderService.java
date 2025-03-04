@@ -30,14 +30,19 @@ public class OrderService {
     }
 
     public List<OrderResponse> getAll() {
-        return mapper.toListOrders(repository.findAll());
+        return mapper.toListOrders(repository.findAllWithPaymentDetails());
     }
-
+    public OrderResponse updateStatus(Integer id, int newStatus) {
+        Order order = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+        order.setStatus(newStatus);
+        Order updatedOrder = repository.save(order);
+        return mapper.toOrderResponse(updatedOrder);
+    }
     public OrderResponse getById(Integer id) {
         Order order = repository.findById(id).get();
         return mapper.toOrderResponse(order);
     }
-
     public OrderResponse update(Integer id, OrderRequest paymentTypeRequest) {
         Order order = repository.findById(id).get();
         mapper.updateOrder(order, paymentTypeRequest);

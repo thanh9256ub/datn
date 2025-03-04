@@ -19,3 +19,15 @@ export const fetchOrders = async () => {
         throw error;
     }
 };
+// Hàm cập nhật trạng thái đơn hàng
+export const updateOrderStatus = async (id, newStatus) => {
+    try {
+        const response = await api.put(`/order/${id}/status`, null, {
+            params: { newStatus }, // Truyền tham số newStatus qua query params
+        });
+        return response.data; // Trả về dữ liệu từ backend
+    } catch (error) {
+        console.error('Error updating order status:', error);
+        throw error;
+    }
+};
