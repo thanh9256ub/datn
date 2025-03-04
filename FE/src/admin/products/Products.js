@@ -92,7 +92,7 @@ const Products = () => {
                         <div className='row'>
                             <div className='col-md-9'></div>
                             <div className='col-md-3'>
-                                <button type="button" className="btn btn-gradient-primary btn-fw float-right" onClick={handleAddProduct}>
+                                <button type="button" className="btn btn-gradient-primary float-right" onClick={handleAddProduct}>
                                     <i className='mdi mdi-plus'></i> Thêm mới
                                 </button>
                             </div>
