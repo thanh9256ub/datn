@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Form } from 'react-bootstrap'
+import { Form, Spinner } from 'react-bootstrap'
 import { createBrand, getBrands, updateBrand } from './service/BrandService'
 
 const Brands = () => {
@@ -10,9 +10,11 @@ const Brands = () => {
     const [brandName, setBrandName] = useState("")
     const [desc, setDesc] = useState("")
     const [brandId, setBrandId] = useState(null)
+    const [submitLoading, setSubmitLoading] = useState(false);
 
     const fetchBrands = async () => {
         try {
+            setLoading(true);
             const response = await getBrands();
             setBrands(response.data.data);
         } catch (err) {
@@ -33,6 +35,8 @@ const Brands = () => {
             return;
         }
 
+        setSubmitLoading(true);
+
         try {
             if (brandId) {
                 console.log("Đang cập nhật thương hiệu:", brandId, brandName, desc);
@@ -50,6 +54,8 @@ const Brands = () => {
         } catch (error) {
             console.error("Lỗi khi thêm thương hiệu:", error);
             alert("Lỗi khi thêm thương hiệu!");
+        } finally {
+            setSubmitLoading(false);
         }
     };
 
@@ -83,8 +89,10 @@ const Brands = () => {
                                         onChange={(e) => setDesc(e.target.value)}
                                     />
                                 </Form.Group>
-                                <button type="submit" className="btn btn-gradient-primary mr-2">
-                                    {brandId ? "Edit" : "Submit"}
+                                <button type="submit" className="btn btn-gradient-primary mr-2" disabled={submitLoading}>
+                                    {submitLoading ? (
+                                        <Spinner animation="border" size="sm" />
+                                    ) : brandId ? "Edit" : "Submit"}
                                 </button>
                                 <button type='button' className="btn btn-light"
                                     onClick={() => {
@@ -101,7 +109,10 @@ const Brands = () => {
                         <div className="card-body">
                             <h4 className="card-title">Danh sách thương hiệu</h4>
                             {loading ? (
-                                <div>Đang tải sản phẩm...</div>
+                                <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
+                                    <Spinner animation="border" variant="primary" />
+                                    <span className="ml-2">Đang tải dữ liệu...</span>
+                                </div>
                             ) : error ? (
                                 <div className="text-danger">{error}</div>
                             ) : (

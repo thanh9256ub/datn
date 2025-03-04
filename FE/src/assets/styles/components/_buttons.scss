@@ -12,8 +12,8 @@
     display: grid;
     place-items: center;
     padding: 0 !important;
-    width: 42px;
-    height: 42px;
+    width: 35px;
+    height: 35px;
   }
   &.btn-rounded {
     @include border-radius(50px);

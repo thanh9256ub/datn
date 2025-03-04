@@ -1,31 +1,54 @@
 import React, { useEffect, useState } from 'react';
 import { createBrand, getBrands } from '../service/BrandService';
 import { Button, Form, Modal } from 'react-bootstrap';
-// import Select from 'react-select';
+import Select from 'react-select';
 
 const BrandSelect = ({ brandId, setBrandId }) => {
     const [brandOptions, setBrandOptions] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [newBrandName, setNewBrandName] = useState("");
+    const [selectedBrand, setSelectedBrand] = useState(null);
 
     useEffect(() => {
         fetchBrands();
     }, []);
 
-    const handleBrandChange = (event) => {
-        const value = event.target.value;
-        setBrandId(value || "");
-        event.target.value ? event.target.style.color = "#000" : event.target.style.color = "#999";
+    // const handleBrandChange = (event) => {
+    //     const value = event.target.value;
+    //     setBrandId(value || "");
+    //     event.target.value ? event.target.style.color = "#000" : event.target.style.color = "#999";
+    // };
+
+    const handleBrandChange = (selectedOption) => {
+        setSelectedBrand(selectedOption);
+        setBrandId(selectedOption ? selectedOption.value : "");
     };
 
-    const fetchBrands = () => {
-        getBrands()
-            .then((response) => {
-                setBrandOptions(response.data.data);
-            })
-            .catch((error) => {
-                console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
-            });
+    // const fetchBrands = () => {
+    //     getBrands()
+    //         .then((response) => {
+    //             setBrandOptions(response.data.data);
+    //         })
+    //         .catch((error) => {
+    //             console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
+    //         });
+    // };
+
+    const fetchBrands = async () => {
+        try {
+            const response = await getBrands();
+            const formattedBrands = response.data.data.map((brand) => ({
+                value: brand.id,
+                label: brand.brandName,
+            }));
+            setBrandOptions(formattedBrands);
+
+            if (brandId) {
+                setSelectedBrand(formattedBrands.find((b) => b.value === brandId));
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
+        }
     };
 
 
@@ -40,7 +63,7 @@ const BrandSelect = ({ brandId, setBrandId }) => {
             alert("Thêm thương hiệu thành công!");
             setShowModal(false);
             setNewBrandName("");
-            fetchBrands(); // Load lại danh sách thương hiệu
+            fetchBrands();
         } catch (error) {
             console.error("Lỗi khi thêm thương hiệu:", error);
             alert("Lỗi khi thêm thương hiệu!");
@@ -50,10 +73,10 @@ const BrandSelect = ({ brandId, setBrandId }) => {
 
     return (
         <div>
-            <Form.Group className="row">
+            <Form.Group className="row d-flex align-items-center">
                 <label className="col-sm-3 col-form-label">Thương hiệu:</label>
                 <div className="col-sm-7">
-                    <select
+                    {/* <select
                         className="form-control"
                         value={brandId || ""}
                         onChange={handleBrandChange}
@@ -65,7 +88,14 @@ const BrandSelect = ({ brandId, setBrandId }) => {
                                 {brand.brandName}
                             </option>
                         ))}
-                    </select>
+                    </select> */}
+                    <Select
+                        options={brandOptions}
+                        value={selectedBrand}
+                        onChange={handleBrandChange}
+                        isClearable
+                        placeholder="Chọn thương hiệu..."
+                    />
                 </div>
                 <div className="col-sm-2">
                     <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon" onClick={() => setShowModal(true)}>

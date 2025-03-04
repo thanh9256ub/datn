@@ -168,7 +168,7 @@ const CreateProduct = () => {
                             <form className="form-sample">
                                 <div className="row">
                                     <div className="col-md-6">
-                                        <Form.Group className="row">
+                                        <Form.Group className="row d-flex align-items-center">
                                             <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
                                             <div className="col-sm-9">
                                                 <Form.Control type="text" value={productName || ""} onChange={(e) => setProductName(e.target.value)} />
@@ -176,7 +176,7 @@ const CreateProduct = () => {
                                         </Form.Group>
                                     </div>
                                     <div className="col-md-6">
-                                        <Form.Group className="row">
+                                        <Form.Group className="row d-flex align-items-center">
                                             <label className="col-sm-3 col-form-label">Mô tả:</label>
                                             <div className="col-sm-9">
                                                 <Form.Control type="text" />

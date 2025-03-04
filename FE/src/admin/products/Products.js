@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getProducts, updateStatus } from './service/ProductService';
 import { useHistory } from 'react-router-dom';
-import { Alert, Form } from 'react-bootstrap';
+import { Alert, Form, Spinner } from 'react-bootstrap';
 import { getProductDetailByProductId } from './service/ProductDetailService';
 import ModalProductDetail from './components/ModalProductDetail'
 import Switch from 'react-switch';
@@ -19,12 +19,15 @@ const Products = () => {
     const history = useHistory();
 
     const fetchProducts = async () => {
+        setLoading(true);
         try {
-            const response = await getProducts();
-            setProducts(response.data.data);
+            setTimeout(async () => {
+                const response = await getProducts();
+                setProducts(response.data.data);
+                setLoading(false);
+            }, 500); // Giả lập loading 1 giây
         } catch (err) {
             setError('Đã xảy ra lỗi khi tải sản phẩm.');
-        } finally {
             setLoading(false);
         }
     };
@@ -101,7 +104,10 @@ const Products = () => {
                             </Alert>
                         )}
                         {loading ? (
-                            <div>Đang tải sản phẩm...</div>
+                            <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
+                                <Spinner animation="border" variant="primary" />
+                                <span className="ml-2">Đang tải dữ liệu...</span>
+                            </div>
                         ) : error ? (
                             <div className="text-danger">{error}</div>
                         ) : (
