@@ -15,10 +15,8 @@ const Navbar = () => {
     }
     return (
         <div className='navbar-client'>
-
             <div className='nav-logo'>
                 <img src={logo} alt="" />
-
             </div>
             <div style={{ position: "relative" }}>
                 <img className='nav-dropdown' onClick={dropdown_toggle} src={nav_dropdown} alt="" />
@@ -31,7 +29,6 @@ const Navbar = () => {
 
                 </ul>
             </div>
-
             <div className="nav-login-cart">
                 <Link to='/login' ><button className='button-login'>Login</button></Link>
                 <Link to='/cart'><img src={cart_icon} alt="" /></Link>

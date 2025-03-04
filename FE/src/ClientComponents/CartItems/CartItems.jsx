@@ -5,7 +5,7 @@ import remove_icon from '../Assets/cart_cross_icon.png'
 const CartItems = () => {
     const { clearCart, getTotalCartAmount, all_product, cartItems, removeFromCart } = useContext(ShopContext);
     const [orderSuccess, setOrderSuccess] = useState(false);
-
+    const [selectedItems, setSelectedItems] = useState([]);
     const handleCheckout = () => {
         if (getTotalCartAmount() === 0) {
             alert("Your cart is empty!");
@@ -14,7 +14,23 @@ const CartItems = () => {
         setOrderSuccess(true);
         clearCart(); // Reset giỏ hàng về rỗng
     };
-
+    const handleCheckboxChange = (productId) => {
+        setSelectedItems((prevState) => {
+            if (prevState.includes(productId)) {
+                return prevState.filter(id => id !== productId); // Remove if already selected
+            }
+            return [...prevState, productId]; // Add if not selected
+        });
+    };
+    const handleQuantityChange = (productId, quantity) => {
+        if (quantity >= 1) { // Đảm bảo rằng số lượng không nhỏ hơn 1
+            setSelectedItems(prevState => {
+                return prevState.map(item => item === productId ? quantity : item);
+            });
+            // Cập nhật lại số lượng sản phẩm trong giỏ hàng
+            cartItems[productId] = quantity;
+        }
+    };
     return (
         <div className='cartitems'>
             {orderSuccess ? (
@@ -36,19 +52,28 @@ const CartItems = () => {
                     {all_product.map((e) => {
                         if (cartItems[e.id] > 0) {
                             return (
-                                <div>
-                                    <input type="checkbox" />
-                                    <div key={e.id}>
-                                        <div className="cartitems-format cartitems-format-main">
-                                            <img src={e.image} alt="" className='carticon-product-icon' />
-                                            <p>{e.name}</p>
-                                            <p>${e.new_price}</p>
+                                <div key={e.id}>
+                                    <input
+                                        type="checkbox"
+                                        id={`checkbox-${e.id}`}
+                                        className="cart-checkbox"
+                                        checked={selectedItems.includes(e.id)}
+                                        onChange={() => handleCheckboxChange(e.id)}
+                                    />
+                                    <label htmlFor={`checkbox-${e.id}`} className="checkbox-label"></label>
+                                    <div className="cartitems-format cartitems-format-main">
+                                        <img src={e.image} alt="" className='carticon-product-icon' />
+                                        <p>{e.name}</p>
+                                        <p>${e.new_price}</p>
+                                        <div>
+                                            <button className="quantity-button increase" onClick={() => handleQuantityChange(e.id, cartItems[e.id] + 1)}>+</button>
                                             <button className='cartitems-quantity'>{cartItems[e.id]}</button>
-                                            <p>${e.new_price * cartItems[e.id]}</p>
-                                            <img className='cartitems-remove-icon' src={remove_icon} onClick={() => removeFromCart(e.id)} alt="" />
+                                            <button className="quantity-button decrease" onClick={() => handleQuantityChange(e.id, cartItems[e.id] - 1)}>-</button>
                                         </div>
-                                        <hr />
+                                        <p>${e.new_price * cartItems[e.id]}</p>
+                                        <img className='cartitems-remove-icon' src={remove_icon} onClick={() => removeFromCart(e.id)} alt="" />
                                     </div>
+                                    <hr />
                                 </div>
                             );
                         }

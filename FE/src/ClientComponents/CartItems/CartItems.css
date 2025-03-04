@@ -87,6 +87,46 @@
 
 }
 
+.quantity-button {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    width: 40px;
+    align-items: center;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.quantity-button:hover {
+    background-color: #e0e0e0;
+}
+
+.quantity-button:focus {
+    outline: none;
+}
+
+.increase {
+    color: #28a745;
+}
+
+.decrease {
+    color: #dc3545;
+}
+
+.quantity-button:active {
+    transform: scale(0.95);
+}
+
+.cartitems-quantity {
+    width: 60px;
+    text-align: center;
+    border: 1px solid #ccc;
+    padding: 5px;
+    font-size: 18px;
+    margin: 0 5px;
+}
+
 .cartitems-promobox {
     width: 504px;
     margin-top: 15px;

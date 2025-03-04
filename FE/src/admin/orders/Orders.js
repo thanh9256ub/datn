@@ -1,86 +1,235 @@
-
-import React, { useState } from 'react';
-import { Table, Form, InputGroup, Button, Pagination } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Table, Form, InputGroup, Button, Pagination, Toast } from 'react-bootstrap';
 import { useHistory } from 'react-router-dom';
 import eyeIcon from './icons8-eyes-64.png';
-import change_status from './icons8-arrow-30.png';
+import { fetchOrders } from './OrderService/orderService';
 import trash from './icons8-trash-24.png';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+    faClock,
+    faBoxOpen,
+    faTruck,
+    faCheckCircle,
+    faTimesCircle,
+    faHome,
+    faPrint,
+} from '@fortawesome/free-solid-svg-icons';
+
 const Orders = () => {
-    const data = [
-        {
-            id: 1,
-            customer: "KhachHang1",
-            orderCode: "HD00001",
-            orderDate: "1/2/2025",
-            status: "Đang vận chuyển",
-            total: "120000VNĐ"
-        },
-        {
-            id: 2,
-            customer: "KhachHang2",
-            orderCode: "HD00002",
-            orderDate: "2/2/2025",
-            status: "Hoàn thành",
-            total: "230000VNĐ"
-        },
-        {
-            id: 3,
-            customer: "KhachHang3",
-            orderCode: "HD00003",
-            orderDate: "3/2/2025",
-            status: "Đã hủy",
-            total: "50000VNĐ"
-        },
-        {
-            id: 4,
-            customer: "KhachHang4",
-            orderDate: "1/2/2025",
-            orderCode: "HD00005",
-            status: "Đang vận chuyển",
-            total: "120000VNĐ"
-        },
-        {
-            id: 5,
-            customer: "KhachHang5",
-            orderCode: "HD00006",
-            orderDate: "2/2/2025",
-            status: "Hoàn thành",
-            total: "230000VNĐ"
-        },
-        {
-            id: 6,
-            customer: "KhachHang6",
-            orderCode: "HD00001",
-            orderDate: "3/2/2025",
-            status: "Đã hủy",
-            total: "50000VNĐ"
-        },
-    ];
-    // 1. Khai báo state quản lý trang hiện tại
-    const [currentPage, setCurrentPage] = useState(1); // Trang mặc định là 1
-    const [itemsPerPage] = useState(5); // Cố định 5 items/trang
+    const [data, setData] = useState([]); // Luôn là mảng
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(5);
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
 
-    // 2. Tính toán dữ liệu cần hiển thị
-    const indexOfLastItem = currentPage * itemsPerPage; // Vị trí cuối (5,10,15...)
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage; // Vị trí đầu (0,5,10...)
-    const currentItems = data.slice(indexOfFirstItem, indexOfLastItem); // Cắt mảng data
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = Array.isArray(data) ? data.slice(indexOfFirstItem, indexOfLastItem) : [];
 
-    // 3. Tính tổng số trang
     const totalPages = Math.ceil(data.length / itemsPerPage);
 
-    // 4. Hàm chuyển trang
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
     const nextPage = () => setCurrentPage(p => Math.min(p + 1, totalPages));
     const prevPage = () => setCurrentPage(p => Math.max(p - 1, 1));
-    const history = useHistory(); // Thay navigate bằng history
+    const history = useHistory();
+
+    useEffect(() => {
+        const getOrders = async () => {
+            try {
+                const response = await fetchOrders();
+                console.log('Dữ liệu từ API:', response); // Log dữ liệu để kiểm tra
+
+                // Kiểm tra xem response có chứa trường data và data có phải là mảng không
+                if (response && response.data && Array.isArray(response.data)) {
+                    setData(response.data); // Cập nhật state với mảng data từ API
+                } else {
+                    console.error('Dữ liệu không hợp lệ:', response);
+                    setData([]); // Đặt state thành mảng rỗng nếu dữ liệu không hợp lệ
+                }
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                setData([]); // Đặt state thành mảng rỗng nếu có lỗi
+            }
+        };
+
+        getOrders();
+    }, []);
+
+    const showNotification = (message) => {
+        setToastMessage(message);
+        setShowToast(true);
+    };
 
     const handleNavigate = (orderId) => {
-        // Tìm đơn hàng theo ID để truyền vào state
         const order = data.find(order => order.id === orderId);
         history.push({
-            pathname: `/admin/orders/${orderId}`,  // Điều hướng đến URL với id của đơn hàng
-            state: { order }  // Truyền dữ liệu qua state
+            pathname: `/admin/orders/${orderId}`,
+            state: { order }
         });
+    };
+
+    const handleRowClick = (orderId) => {
+        const order = data.find(order => order.id === orderId);
+        setSelectedOrder(order);
+    };
+
+    const handleConfirm = async () => {
+        if (!selectedOrder) return;
+
+        const nextStatus = getNextStatus(selectedOrder.status);
+        if (nextStatus === selectedOrder.status) {
+            showNotification("Đơn hàng đã ở trạng thái cuối cùng.");
+            return;
+        }
+
+        // try {
+        //     // Gọi API để cập nhật trạng thái đơn hàng
+        //     const updatedOrder = await updateOrderStatus(selectedOrder.id, nextStatus);
+
+        //     // Cập nhật state với dữ liệu mới từ API
+        //     const updatedData = data.map(order =>
+        //         order.id === updatedOrder.id ? updatedOrder : order
+        //     );
+        //     setData(updatedData);
+        //     setSelectedOrder(updatedOrder);
+
+        //     showNotification(`Đơn hàng đã được chuyển sang trạng thái: ${nextStatus}`);
+        // } catch (error) {
+        //     console.error('Error updating order status:', error);
+        //     showNotification('Có lỗi xảy ra khi cập nhật trạng thái đơn hàng.');
+        // }
+    };
+
+    const handlePrintInvoice = () => {
+        if (!selectedOrder) return;
+
+        const order = selectedOrder;
+        const invoiceContent = `
+            <html>
+                <head>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            font-size: 14px;
+                            margin: 20px;
+                        }
+                        .invoice-header {
+                            text-align: center;
+                            font-size: 18px;
+                            margin-bottom: 20px;
+                        }
+                        .invoice-details {
+                            margin-bottom: 20px;
+                        }
+                        .invoice-details th, .invoice-details td {
+                            padding: 8px;
+                            text-align: left;
+                        }
+                        .invoice-footer {
+                            margin-top: 20px;
+                            text-align: center;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="invoice-header">
+                        <h2>Hóa đơn đơn hàng: ${order.orderCode}</h2>
+                        <p>Ngày đặt hàng: ${new Date(order.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div class="invoice-details">
+                        <table border="1" width="100%">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Số lượng</th>
+                                    <th>Giá</th>
+                                    <th>Tổng</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${order.cart ? order.cart.map(item => `
+                                    <tr>
+                                        <td>${item.product}</td>
+                                        <td>${item.quantity}</td>
+                                        <td>${item.price}</td>
+                                        <td>${(parseInt(item.price.replace('VNĐ', '').trim())) * item.quantity} VNĐ</td>
+                                    </tr>
+                                `).join('') : 'Không có sản phẩm'}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="invoice-footer">
+                        <p>Tổng tiền: ${order.totalPayment.toLocaleString()} VNĐ</p>
+                    </div>
+                </body>
+            </html>
+        `;
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(invoiceContent);
+        printWindow.document.close();
+        printWindow.print();
+    };
+
+    const getNextStatus = (currentStatus) => {
+        const statusFlow = [
+            { id: 1, name: "Chờ tiếp nhận" },
+            { id: 2, name: "Đang vận chuyển" },
+            { id: 3, name: "Hoàn thành" },
+            { id: 4, name: "Đã hủy" },
+        ];
+
+        const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
+        return currentIndex < statusFlow.length - 1 ? statusFlow[currentIndex + 1].id : currentStatus;
+    };
+
+    const StatusTimeline = ({ status }) => {
+        const statusFlow = [
+            { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
+            { id: 2, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
+            { id: 3, name: "Hoàn thành", icon: faCheckCircle, color: "#4caf50" },
+            { id: 4, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+        ];
+
+        const currentIndex = statusFlow.findIndex(s => s.id === status);
+        const visibleStatuses = statusFlow.slice(0, currentIndex + 1);
+
+        return (
+            <div className="d-flex align-items-center" style={{ gap: "10px" }}>
+                {visibleStatuses.map((s, index) => (
+                    <React.Fragment key={s.id}>
+                        <div className="d-flex flex-column align-items-center" style={{ gap: "5px" }}>
+                            <FontAwesomeIcon
+                                icon={s.icon}
+                                style={{
+                                    color: s.color,
+                                    fontSize: "24px",
+                                }}
+                            />
+                            <span
+                                style={{
+                                    fontSize: "12px",
+                                    color: s.color,
+                                    textAlign: "center",
+                                }}
+                            >
+                                {s.name}
+                            </span>
+                        </div>
+                        {index < visibleStatuses.length - 1 && (
+                            <div
+                                style={{
+                                    width: "20px",
+                                    height: "2px",
+                                    backgroundColor: s.color,
+                                }}
+                            />
+                        )}
+                    </React.Fragment>
+                ))}
+            </div>
+        );
     };
 
     return (
@@ -88,6 +237,36 @@ const Orders = () => {
             <div className="card shadow">
                 <div className="card-header bg-white border-bottom-0">
                     <h2 className="mb-0">Customer's Orders</h2>
+                </div>
+
+                {/* Timeline */}
+                <div className="card-body border-bottom">
+                    <div className="row mb-4">
+                        <div className="col-12">
+                            <h5>Trạng thái đơn hàng</h5>
+                            {selectedOrder ? (
+                                <>
+                                    <h6>Đơn hàng: {selectedOrder.orderCode}</h6>
+                                    <StatusTimeline status={selectedOrder.status} />
+                                    <div className="d-flex gap-2 mt-3">
+                                        {/* Nút Xác nhận */}
+                                        {selectedOrder.status !== 3 && selectedOrder.status !== 4 && (
+                                            <Button variant="primary" onClick={handleConfirm}>
+                                                Xác nhận
+                                            </Button>
+                                        )}
+                                        {/* Nút In hóa đơn */}
+                                        <Button variant="success" onClick={handlePrintInvoice}>
+                                            <FontAwesomeIcon icon={faPrint} className="me-2" />
+                                            In hóa đơn
+                                        </Button>
+                                    </div>
+                                </>
+                            ) : (
+                                <p>Chọn một đơn hàng để xem trạng thái.</p>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Search and Filters */}
@@ -122,12 +301,11 @@ const Orders = () => {
                     <div className="d-flex overflow-auto pb-2">
                         <div className="d-flex gap-2 flex-nowrap ml-auto">
                             <select className="form-select form-select-lg rounded-pill" aria-label="Trạng thái">
-                                {['Tất cả', 'Chờ tiếp nhận', 'Chờ đóng hàng', 'Chờ vận chuyển',
-                                    'Đang vận chuyển', 'Đã nhận hàng', 'Hoàn tất', 'Hủy'].map((btn, idx) => (
-                                        <option key={idx} value={btn}>
-                                            {btn}
-                                        </option>
-                                    ))}
+                                {['Tất cả', 'Chờ tiếp nhận', 'Đang vận chuyển', 'Hoàn thành', 'Đã hủy'].map((btn, idx) => (
+                                    <option key={idx} value={btn}>
+                                        {btn}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -149,34 +327,32 @@ const Orders = () => {
                         </thead>
                         <tbody>
                             {currentItems.map((order, index) => (
-                                <tr
-                                    key={order.id}
-                                    style={{
-                                        cursor: 'pointer',
-                                        transition: 'all 0.3s ease'
-                                    }}
-                                >
+                                <tr key={order.id} onClick={() => handleRowClick(order.id)} style={{ cursor: 'pointer' }}>
                                     <td>{index + 1}</td>
-                                    <td>{order.customer}</td>
+                                    <td>{order.customer.fullName}</td>
                                     <td>{order.orderCode}</td>
-                                    <td>{order.orderDate}</td>
+                                    <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                                     <td>
                                         <span
-                                            className={`badge ${order.status === "Đang vận chuyển" ? "text-dark" : "text-white"}`}
+                                            className={`badge ${order.status === 2 ? "text-dark" : "text-white"}`}
                                             style={{
                                                 backgroundColor:
-                                                    order.status === "Đang vận chuyển" ? "#ffe8a1" :
-                                                        order.status === "Hoàn thành" ? "#b8e0c4" :
-                                                            order.status === "Đã hủy" ? "#f4b7bb" : "#d1d3d6",
+                                                    order.status === 2 ? "#ffe8a1" : // Đang vận chuyển
+                                                        order.status === 3 ? "#b8e0c4" : // Hoàn thành
+                                                            order.status === 4 ? "#f4b7bb" : // Đã hủy
+                                                                "#d1d3d6", // Chờ tiếp nhận
                                                 fontFamily: '"Roboto", sans-serif',
                                                 fontWeight: '400',
                                                 padding: '0.35rem 0.65rem',
                                                 fontSize: '0.9rem',
                                             }}>
-                                            {order.status}
+                                            {order.status === 1 ? "Chờ tiếp nhận" :
+                                                order.status === 2 ? "Đang vận chuyển" :
+                                                    order.status === 3 ? "Hoàn thành" :
+                                                        "Đã hủy"}
                                         </span>
                                     </td>
-                                    <td>{order.total}</td>
+                                    <td>{order.totalPayment.toLocaleString()} VNĐ</td>
                                     <td>
                                         <Button variant="link" className="p-0" style={{ opacity: 0, transition: 'all 0.3s ease', transform: 'scale(0.8)' }}
                                             onClick={() => handleNavigate(order.id)} >
@@ -184,27 +360,12 @@ const Orders = () => {
                                         </Button>
                                         <Button variant="link" className="p-0" style={{ opacity: 0, transition: 'all 0.3s ease', transform: 'scale(0.8)' }}
                                             onClick={() => handleNavigate(order.id)} >
-                                            <img src={change_status} alt="View" style={{ width: '24px', height: '24px', filter: 'grayscale(100%) opacity(0.8)' }} />
-                                        </Button>
-                                        <Button variant="link" className="p-0" style={{ opacity: 0, transition: 'all 0.3s ease', transform: 'scale(0.8)' }}
-                                            onClick={() => handleNavigate(order.id)} >
-                                            <img src={trash} alt="View" style={{ width: '24px', height: '24px', filter: 'grayscale(100%) opacity(0.8)' }} />
+                                            <img src={trash} alt="Delete" style={{ width: '24px', height: '24px', filter: 'grayscale(100%) opacity(0.8)' }} />
                                         </Button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
-                        <style>
-                            {`
-                            tr:hover button {
-                            opacity: 1 !important;
-                            transform: scale(1) !important;
-                            }
-                            tr:hover img {
-                            filter: none !important;
-                           }
-                            `}
-                        </style>
                     </Table>
 
                     <Pagination className="justify-content-center">
@@ -230,8 +391,27 @@ const Orders = () => {
                     </Pagination>
                 </div>
             </div>
+
+            {/* Toast */}
+            <Toast
+                onClose={() => setShowToast(false)}
+                show={showToast}
+                delay={3000}
+                autohide
+                style={{
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    zIndex: 9999,
+                }}
+            >
+                <Toast.Header>
+                    <strong className="me-auto">Thông báo</strong>
+                </Toast.Header>
+                <Toast.Body>{toastMessage}</Toast.Body>
+            </Toast>
         </div>
     );
-}
+};
 
-export default Orders
+export default Orders;

@@ -1,6 +1,8 @@
 .productdisplay {
     display: flex;
     margin: 0px 170px;
+    align-items: center;
+    justify-content: center;
 }
 
 .productdisplay-left {
@@ -78,7 +80,7 @@
 
 .productdisplay-right-colors button:hover {
     border-color: #818181;
-    color: #ffffff;
+    color: black;
 }
 
 .productdisplay-right-colors button.selected {
@@ -97,22 +99,24 @@
 
 .productdisplay-right-sizes {
     margin-bottom: 30px;
+    display: flex;
+    gap: 30px;
 }
 
-.productdisplay-right-sizes select {
-    width: 100%;
-    padding: 14px 20px;
+.productdisplay-right-sizes button {
+    padding: 12px 24px;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
-    font-size: 16px;
     background: #ffffff;
     cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1em;
+    transition: all 0.2s ease;
+    font-size: 16px;
     color: #5a5a5a;
+}
+
+.productdisplay-right-sizes button:hover {
+    border-color: #818181;
+    color: black;
 }
 
 .productdisplay-right-sizes select:focus {
@@ -139,17 +143,41 @@
     }
 }
 
-.productdisplay-right button {
+.add-to-card {
     padding: 20px 40px;
     width: 200px;
     font-size: 16px;
     font-weight: 600;
-    background: #ff4141;
+    background-color: white;
     margin-bottom: 40px;
     border: none;
     outline: none;
     cursor: pointer;
+    box-shadow: 0 1px 3px -2px black;
 }
+
+.add-to-card:hover {
+    background: linear-gradient(135deg, #9d4edd 0%, #ca51f0 100%);
+    transform: translateY(-2px);
+    color: white;
+    box-shadow: 0 6px 12px rgba(202, 81, 240, 0.3);
+}
+
+/* Hiệu ứng khi nhấn */
+.add-to-card:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(202, 81, 240, 0.2);
+}
+
+/* Hiệu ứng focus */
+.add-to-card:focus {
+    outline: none;
+    color: white;
+    box-shadow: 0 0 0 3px rgba(202, 81, 240, 0.4);
+}
+
+
+
 
 .productdisplay-right-category {
     margin-top: 10px;
