@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { createCategory, getCategorys } from '../service/CategoryService';
+import { createCategory, getCategories } from '../service/CategoryService';
 import { Button, Form, Modal } from 'react-bootstrap';
 
 const CategorySelect = ({ categoryId, setCategoryId }) => {
@@ -17,30 +17,30 @@ const CategorySelect = ({ categoryId, setCategoryId }) => {
     };
 
     const fetchCategorys = () => {
-        getCategorys()
+        getCategories()
             .then((response) => {
                 setCategoryOptions(response.data.data);
             })
             .catch((error) => {
-                console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
+                console.error("Lỗi khi lấy dữ liệu danh mục:", error);
             });
     };
 
     const handleAddCategory = async () => {
         if (!newCategoryName.trim()) {
-            alert("Vui lòng nhập tên thương hiệu!");
+            alert("Vui lòng nhập tên danh mục!");
             return;
         }
 
         try {
             const response = await createCategory({ categoryName: newCategoryName });
-            alert("Thêm thương hiệu thành công!");
+            alert("Thêm danh mục thành công!");
             setShowModal(false);
             setNewCategoryName("");
             fetchCategorys();
         } catch (error) {
-            console.error("Lỗi khi thêm thương hiệu:", error);
-            alert("Lỗi khi thêm thương hiệu!");
+            console.error("Lỗi khi thêm danh mục:", error);
+            alert("Lỗi khi thêm danh mục!");
         }
     };
 

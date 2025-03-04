@@ -1,27 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { createMaterial, getMaterials } from '../service/MaterialService';
+import { createBrand, getBrands } from '../service/BrandService';
 import { Button, Form, Modal } from 'react-bootstrap';
 // import Select from 'react-select';
 
-const MaterialSelect = ({ brandId, setMaterialId }) => {
-    const [brandOptions, setMaterialOptions] = useState([]);
+const BrandSelect = ({ brandId, setBrandId }) => {
+    const [brandOptions, setBrandOptions] = useState([]);
     const [showModal, setShowModal] = useState(false);
-    const [newMaterialName, setNewMaterialName] = useState("");
+    const [newBrandName, setNewBrandName] = useState("");
 
     useEffect(() => {
-        fetchMaterials();
+        fetchBrands();
     }, []);
 
-    const handleMaterialChange = (event) => {
+    const handleBrandChange = (event) => {
         const value = event.target.value;
-        setMaterialId(value || "");
+        setBrandId(value || "");
         event.target.value ? event.target.style.color = "#000" : event.target.style.color = "#999";
     };
 
-    const fetchMaterials = () => {
-        getMaterials()
+    const fetchBrands = () => {
+        getBrands()
             .then((response) => {
-                setMaterialOptions(response.data.data);
+                setBrandOptions(response.data.data);
             })
             .catch((error) => {
                 console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
@@ -29,18 +29,18 @@ const MaterialSelect = ({ brandId, setMaterialId }) => {
     };
 
 
-    const handleAddMaterial = async () => {
-        if (!newMaterialName.trim()) {
+    const handleAddBrand = async () => {
+        if (!newBrandName.trim()) {
             alert("Vui lòng nhập tên thương hiệu!");
             return;
         }
 
         try {
-            const response = await createMaterial({ materialName: newMaterialName });
+            const response = await createBrand({ brandName: newBrandName });
             alert("Thêm thương hiệu thành công!");
             setShowModal(false);
-            setNewMaterialName("");
-            fetchMaterials(); // Load lại danh sách thương hiệu
+            setNewBrandName("");
+            fetchBrands(); // Load lại danh sách thương hiệu
         } catch (error) {
             console.error("Lỗi khi thêm thương hiệu:", error);
             alert("Lỗi khi thêm thương hiệu!");
@@ -56,7 +56,7 @@ const MaterialSelect = ({ brandId, setMaterialId }) => {
                     <select
                         className="form-control"
                         value={brandId || ""}
-                        onChange={handleMaterialChange}
+                        onChange={handleBrandChange}
                         style={{ color: brandId ? "#000" : "#999" }}
                     >
                         <option value="">Chọn thương hiệu</option>
@@ -84,8 +84,8 @@ const MaterialSelect = ({ brandId, setMaterialId }) => {
                         <Form.Label>Tên thương hiệu</Form.Label>
                         <Form.Control
                             type="text"
-                            value={newMaterialName}
-                            onChange={(e) => setNewMaterialName(e.target.value)}
+                            value={newBrandName}
+                            onChange={(e) => setNewBrandName(e.target.value)}
                         />
                     </Form.Group>
                 </Modal.Body>
@@ -93,7 +93,7 @@ const MaterialSelect = ({ brandId, setMaterialId }) => {
                     <Button variant="secondary" onClick={() => setShowModal(false)}>
                         Hủy
                     </Button>
-                    <Button variant="primary" onClick={handleAddMaterial}>
+                    <Button variant="primary" onClick={handleAddBrand}>
                         Thêm
                     </Button>
                 </Modal.Footer>
@@ -102,4 +102,4 @@ const MaterialSelect = ({ brandId, setMaterialId }) => {
     );
 };
 
-export default MaterialSelect;
+export default BrandSelect;

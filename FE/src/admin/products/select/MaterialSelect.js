@@ -22,26 +22,26 @@ const MaterialSelect = ({ materialId, setMaterialId }) => {
                 setMaterialOptions(response.data.data);
             })
             .catch((error) => {
-                console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
+                console.error("Lỗi khi lấy dữ liệu chất liệu:", error);
             });
     };
 
 
     const handleAddMaterial = async () => {
         if (!newMaterialName.trim()) {
-            alert("Vui lòng nhập tên thương hiệu!");
+            alert("Vui lòng nhập tên chất liệu!");
             return;
         }
 
         try {
             const response = await createMaterial({ brandName: newMaterialName });
-            alert("Thêm thương hiệu thành công!");
+            alert("Thêm chất liệu thành công!");
             setShowModal(false);
             setNewMaterialName("");
-            fetchMaterials(); // Load lại danh sách thương hiệu
+            fetchMaterials();
         } catch (error) {
-            console.error("Lỗi khi thêm thương hiệu:", error);
-            alert("Lỗi khi thêm thương hiệu!");
+            console.error("Lỗi khi thêm chất liệu:", error);
+            alert("Lỗi khi thêm chất liệu!");
         }
     };
 
