@@ -53,47 +53,91 @@
     color: #ff4141;
 }
 
-.productdisplay-right-sizes {
-    display: flex;
-    margin: 30px 0px;
-    gap: 20px;
-}
-
-.productdisplay-right-size h1 {
-    margin-top: 55px;
+.productdisplay-right-color h1 {
     color: #656565;
     font-size: 20px;
     font-weight: 600;
+    margin: 25px 0 15px;
 }
 
-.productdisplay-right-sizes div {
-    padding: 18px 24px;
-    background: #fbfbfb;
-    border: 1px solid #ebebeb;
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-/* ======= */
 .productdisplay-right-colors {
     display: flex;
-    margin: 30px 0px;
-    gap: 20px;
+    gap: 15px;
+    margin-bottom: 30px;
 }
 
-.productdisplay-right-color h1 {
-    margin-top: 55px;
+.productdisplay-right-colors button {
+    padding: 12px 24px;
+    border: 1px solid #e0e0e0;
+    border-radius: 25px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    color: #5a5a5a;
+}
+
+.productdisplay-right-colors button:hover {
+    border-color: #818181;
+    color: #ffffff;
+}
+
+.productdisplay-right-colors button.selected {
+    border: 2px solid #ff4141;
+    color: #ff4141;
+    background-color: #fff0f0;
+}
+
+/* Size Selection Styles */
+.productdisplay-right-size h1 {
     color: #656565;
     font-size: 20px;
     font-weight: 600;
+    margin: 25px 0 15px;
 }
 
-.productdisplay-right-colors div {
-    padding: 18px 24px;
-    background: #fbfbfb;
-    border: 1px solid #ebebeb;
-    border-radius: 3px;
+.productdisplay-right-sizes {
+    margin-bottom: 30px;
+}
+
+.productdisplay-right-sizes select {
+    width: 100%;
+    padding: 14px 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    background: #ffffff;
     cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    color: #5a5a5a;
+}
+
+.productdisplay-right-sizes select:focus {
+    outline: none;
+    border-color: #ff4141;
+    box-shadow: 0 0 0 2px rgba(255, 65, 65, 0.2);
+}
+
+/* Responsive Styles */
+@media (max-width: 800px) {
+    .productdisplay-right-colors {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .productdisplay-right-colors button {
+        padding: 10px 18px;
+        font-size: 14px;
+    }
+
+    .productdisplay-right-sizes select {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
 }
 
 .productdisplay-right button {

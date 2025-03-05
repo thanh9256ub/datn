@@ -8,24 +8,37 @@
       border-bottom-width: 1px;
       font-weight: $font-weight-medium;
       i{
-        margin-left: 0.325rem;
+        margin-left: 0.325rem;  
       }
     }
   }
   th,
   td {
-    vertical-align: middle;
+    vertical-align: middle !important;
     font-size: $default-font-size;
     line-height: 1;
-    white-space: nowrap;
+    white-space: normal !important;
+    word-wrap: break-word;
+    overflow-wrap: break-word; 
+    max-width: 200px;
+    min-width: 50px;
     img {
-      width: 36px;
-      height: 36px;
-      border-radius: 100%;
+      // width: 36px;
+      // height: 36px;
+      // border-radius: 100%;
+      width: auto;
+    height: auto;
+    max-width: 100%; // Ảnh không vượt quá kích thước của td
+    max-height: 150px; // Giới hạn chiều cao để không quá lớn
+    display: block; // Đảm bảo căn chỉnh ảnh đúng cách
+    border-radius: 100%;
     }
     .badge {
       margin-bottom: 0;
     }
+  }
+  tbody tr {
+    height: auto !important; 
   }
   &.table-borderless{
     border: none;
@@ -33,4 +46,5 @@
       border: none;
     }
   }
+
 }

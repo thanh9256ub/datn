@@ -16,5 +16,5 @@ public class SizeResponse {
 
     String sizeName;
 
-//    String description;
+    String description;
 }
