@@ -39,9 +39,9 @@ public class OrderResponse {
 
     Double totalPayment;
 
-    PaymentType paymentTypeName;
+    PaymentType paymentType;
 
-    PaymentMethod paymentMethodName;
+    PaymentMethod paymentMethod;
 
     Integer status;
 
