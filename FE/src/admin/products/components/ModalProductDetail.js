@@ -75,7 +75,7 @@ const ProductDetail = ({
     return (
         <div>
             <div className="table-responsive">
-                <Modal show={showModal} onHide={() => setShowModal(false)} size="xl">
+                <Modal show={showModal} onHide={() => setShowModal(false)} size="xl" dialogClassName="custom-modal modal-lg">
                     <Modal.Header closeButton>
                         <Modal.Title>Chi tiết sản phẩm: {selectedProductName}</Modal.Title>
                     </Modal.Header>

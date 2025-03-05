@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form } from 'react-bootstrap';
+import { Button, Form, Modal } from 'react-bootstrap';
 import BrandSelect from '../select/BrandSelect';
 import CategorySelect from '../select/CategorySelect';
 import MaterialSelect from '../select/MaterialSelect';
@@ -21,6 +21,18 @@ const CreateProduct = () => {
     const [colorIds, setColorIds] = useState([]);
     const [sizeIds, setSizeIds] = useState([]);
     const [variantList, setVariantList] = useState([]);
+
+    const [showModal, setShowModal] = useState(false);
+
+    const [commonQuantity, setCommonQuantity] = useState("");
+    const [commonPrice, setCommonPrice] = useState("");
+
+    const handleOpenModal = () => setShowModal(true);
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setCommonQuantity("");
+        setCommonPrice("");
+    };
 
     const handleColorChange = (colors) => {
         setColorIds(colors || []); // 🛠️ Đảm bảo không có giá trị `undefined`
@@ -50,7 +62,7 @@ const CreateProduct = () => {
                     size: size.label,
                     sizeId: size.value, quantity: 0,
                     price: '',
-                    qrCode: `${productName}-${size.value}-${color.value}`
+                    qr: `${productName}-${size.value}-${color.value}`
                 });
             });
         });
@@ -156,6 +168,22 @@ const CreateProduct = () => {
         }
     };
 
+    const updateAllVariants = () => {
+        if (commonQuantity.trim() === "" && commonPrice.trim() === "") {
+            alert("Vui lòng nhập ít nhất một giá trị!");
+            return;
+        }
+
+        const updatedVariants = variantList.map(variant => ({
+            ...variant,
+            quantity: commonQuantity.trim() !== "" ? parseInt(commonQuantity, 10) : variant.quantity,
+            price: commonPrice.trim() !== "" ? parseFloat(commonPrice) : variant.price
+        }));
+
+        setVariantList(updatedVariants);
+        handleCloseModal();
+    };
+
     return (
         <div>
             <div className="row">
@@ -208,6 +236,9 @@ const CreateProduct = () => {
                                 </div>
                                 <div style={{ marginBottom: '20px' }}></div>
                                 <h6><span>Danh sách sản phẩm biến thể:</span></h6>
+                                <button type="button" className="btn btn-primary" onClick={handleOpenModal}>
+                                    + Thêm thuộc tính chung
+                                </button>
                                 <hr />
                                 <div className="row">
                                     <div className='col-md-6'>
@@ -227,6 +258,37 @@ const CreateProduct = () => {
                     </div>
                 </div>
             </div>
+            <Modal show={showModal} onHide={handleCloseModal} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Thêm thuộc tính chung</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form.Group>
+                        <Form.Label>Số lượng chung</Form.Label>
+                        <Form.Control
+                            type="number"
+                            value={commonQuantity}
+                            onChange={(e) => setCommonQuantity(e.target.value)}
+                            placeholder="Nhập số lượng"
+                        />
+                    </Form.Group>
+                    <Form.Group className="mt-3">
+                        <Form.Label>Giá chung</Form.Label>
+                        <Form.Control
+                            type="number"
+                            value={commonPrice}
+                            onChange={(e) => setCommonPrice(e.target.value)}
+                            placeholder="Nhập giá"
+                        />
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseModal}>Hủy</Button>
+                    <Button type="button" variant="primary" onClick={updateAllVariants}>
+                        Thêm
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 }

@@ -138,47 +138,49 @@ const Products = () => {
                                     </thead>
                                     <tbody>
                                         {products.length > 0 ? (
-                                            products.map((product, index) => (
-                                                <tr key={product.id}>
-                                                    <td>{index + 1}</td>
-                                                    <td>
-                                                        <span>img.png</span>
-                                                    </td>
-                                                    {/* <td>{product.productCode}</td> */}
-                                                    <td>{product.productName}</td>
-                                                    <td>{product.brand.brandName}</td>
-                                                    <td>{product.category.categoryName}</td>
-                                                    <td>{product.material.materialName}</td>
-                                                    <td>{product.totalQuantity}</td>
-                                                    <td>
-                                                        <span className={`badge ${product.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
-                                                            {product.status === 1 ? 'Hoạt động' : 'Không hoạt động'}
-                                                        </span>
-                                                    </td>
-                                                    <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                                        <button className="btn btn-outline-warning btn-sm btn-rounded btn-icon"
-                                                            onClick={() => handleShowProductDetail(product.id, product.productName)}
-                                                        >
-                                                            <i className='mdi mdi-eye'></i>
-                                                        </button>
-                                                        <Switch
-                                                            checked={product.status === 1}
-                                                            onChange={() => handleToggleStatus(product.id, product.status)}
-                                                            offColor="#888"
-                                                            onColor="#0d6efd"
-                                                            uncheckedIcon={false}
-                                                            checkedIcon={false}
-                                                            height={20}
-                                                            width={40}
-                                                        />
-                                                        <button className="btn btn-outline-danger btn-sm btn-rounded btn-icon"
-                                                            onClick={() => handleUpdateProduct(product.id)}
-                                                        >
-                                                            <i className='mdi mdi mdi-wrench'></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))
+                                            products
+                                                .filter(product => product.status === 1)
+                                                .map((product, index) => (
+                                                    <tr key={product.id}>
+                                                        <td>{index + 1}</td>
+                                                        <td>
+                                                            <span>img.png</span>
+                                                        </td>
+                                                        {/* <td>{product.productCode}</td> */}
+                                                        <td>{product.productName}</td>
+                                                        <td>{product.brand.brandName}</td>
+                                                        <td>{product.category.categoryName}</td>
+                                                        <td>{product.material.materialName}</td>
+                                                        <td>{product.totalQuantity}</td>
+                                                        <td>
+                                                            <span className={`badge ${product.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
+                                                                {product.status === 1 ? 'Hoạt động' : 'Không hoạt động'}
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                            <button className="btn btn-outline-warning btn-sm btn-rounded btn-icon"
+                                                                onClick={() => handleShowProductDetail(product.id, product.productName)}
+                                                            >
+                                                                <i className='mdi mdi-eye'></i>
+                                                            </button>
+                                                            <Switch
+                                                                checked={product.status === 1}
+                                                                onChange={() => handleToggleStatus(product.id, product.status)}
+                                                                offColor="#888"
+                                                                onColor="#0d6efd"
+                                                                uncheckedIcon={false}
+                                                                checkedIcon={false}
+                                                                height={20}
+                                                                width={40}
+                                                            />
+                                                            <button className="btn btn-outline-danger btn-sm btn-rounded btn-icon"
+                                                                onClick={() => handleUpdateProduct(product.id)}
+                                                            >
+                                                                <i className='mdi mdi mdi-wrench'></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))
                                         ) : (
                                             <tr>
                                                 <td colSpan="10" className="text-center">Không có sản phẩm nào</td>

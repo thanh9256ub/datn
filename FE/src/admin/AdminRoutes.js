@@ -27,6 +27,7 @@ import Error500 from './error-pages/Error500';
 import Login from './user-pages/Login';
 import Register1 from './user-pages/Register';
 import Lockscreen from './user-pages/Lockscreen';
+import InactiveProducts from './products/InactiveProducts';
 
 // const Dashboard = lazy(() => import('./dashboard/Dashboard'));
 // // const Buttons = lazy(() => import('./basic-ui/Buttons'));
@@ -81,6 +82,7 @@ class AdminRoutes extends Component {
           <Route exact path="/admin/products" component={Products} />
           <Route exact path="/admin/products/add" component={CreateProduct} />
           <Route exact path="/admin/products/edit/:id" component={UpdateProduct} />
+          <Route exact path="/admin/products/inactive" component={InactiveProducts} />
           <Route exact path="/admin/brands" component={Brands} />
           <Route exact path="/admin/categories" component={Categories} />
           <Route exact path="/admin/materials" component={Materials} />

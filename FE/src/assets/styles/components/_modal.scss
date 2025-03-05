@@ -1,150 +1,143 @@
-//
 // Modals
 // --------------------------------------------------
 
 // .modal-open      - body class for killing the scroll
 // .modal           - container to scroll within
 // .modal-dialog    - positioning shell for the actual modal
-// .modal-content   - actual modal w/ bg and corners and shit
+// .modal-content   - actual modal w/ bg and corners
 
 // Kill the scroll on the body
 .modal-open {
     overflow: hidden;
-  }
-  
-  // Container that the modal scrolls within
-  .modal {
+}
+
+// Container that the modal scrolls within
+.modal {
     position: fixed;
     top: 0;
-    right: 0;
-    bottom: 0;
     left: 0;
-    z-index: $zindex-modal;
+    width: 100%;
+    height: 100%;
+    z-index: 1050;
     display: none;
     overflow: hidden;
-    -webkit-overflow-scrolling: touch;
-  
-    // Prevent Chrome on Windows from adding a focus outline. For details, see
-    // https://github.com/twbs/bootstrap/pull/10951.
     outline: 0;
-  
-    // When fading in the modal, animate it to slide down
+
+    // Fade animation
     &.fade .modal-dialog {
-      @include translate(0, -25%);
-      @include transition-transform(0.3s ease-out);
+        transform: translate(0, -50px);
+        transition: transform 0.3s ease-out;
     }
-    &.in .modal-dialog { @include translate(0, 0); }
-  }
-  .modal-open .modal {
+    &.show .modal-dialog {
+        transform: translate(0, 0);
+    }
+}
+
+.modal-open .modal {
     overflow-x: hidden;
     overflow-y: auto;
-  }
-  
-  // Shell div to position the modal with bottom padding
-  .modal-dialog {
+}
+
+// Modal dialog
+.modal-dialog {
     position: relative;
     width: auto;
-    margin: 10px;
-  }
-  
-  // Actual modal
-  .modal-content {
+    margin: 1.75rem auto;
+    max-width: 500px;
+}
+
+// Modal content
+.modal-content {
     position: relative;
-    background-color: $modal-content-bg;
-    background-clip: padding-box;
-    border: 1px solid $modal-content-fallback-border-color; //old browsers fallback (ie8 etc)
-    border: 1px solid $modal-content-border-color;
-    border-radius: $border-radius-large;
-    @include box-shadow(0 3px 9px rgba(0, 0, 0, .5));
-    // Remove focus outline from opened modal
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 0.3rem;
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
     outline: 0;
-  }
-  
-  // Modal background
-  .modal-backdrop {
+}
+
+// Modal backdrop
+.modal-backdrop {
     position: fixed;
     top: 0;
-    right: 0;
-    bottom: 0;
     left: 0;
-    z-index: $zindex-modal-background;
-    background-color: $modal-backdrop-bg;
-    // Fade for backdrop
-    &.fade { @include opacity(0); }
-    &.in { @include opacity($modal-backdrop-opacity); }
-  }
-  
-  // Modal header
-  // Top section of the modal w/ title and dismiss
-  .modal-header {
-    padding: $modal-title-padding;
-    border-bottom: 1px solid $modal-header-border-color;
-    @include clearfix;
-  }
-  // Close icon
-  .modal-header .close {
-    margin-top: -2px;
-  }
-  
-  // Title text within header
-  .modal-title {
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    &.fade { opacity: 0; }
+    &.show { opacity: 1; }
+}
+
+// Modal header
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-header .close {
+    padding: 1rem;
+    margin: -1rem -1rem -1rem auto;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+}
+
+// Modal title
+.modal-title {
     margin: 0;
-    line-height: $modal-title-line-height;
-  }
-  
-  // Modal body
-  // Where all modal content resides (sibling of .modal-header and .modal-footer)
-  .modal-body {
+    font-size: 1.25rem;
+}
+
+.modal-dialog {
+  max-width: 95vw; // Tăng kích thước tối đa lên 95% màn hình
+  width: auto; // Để modal tự động mở rộng theo nội dung
+}
+
+.modal-content {
+  max-height: 85vh; // Đảm bảo modal không chiếm toàn bộ màn hình
+  overflow-y: auto; // Bật scroll khi nội dung quá dài
+}
+
+.custom-modal {
+  max-width: 90vw; // Đảm bảo modal chiếm 90% chiều rộng màn hình
+  width: 100%;
+}
+
+// Modal body
+.modal-body {
     position: relative;
-    padding: $modal-inner-padding;
-  }
-  
-  // Footer (for actions)
-  .modal-footer {
-    padding: $modal-inner-padding;
-    text-align: right; // right align buttons
-    border-top: 1px solid $modal-footer-border-color;
-    @include clearfix; // clear it in case folks use .pull-* classes on buttons
-  
-    // Properly space out buttons
+    padding: 1rem;
+}
+
+// Modal footer
+.modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 1rem;
+    border-top: 1px solid #dee2e6;
+
     .btn + .btn {
-      margin-bottom: 0; // account for input[type="submit"] which gets the bottom margin like all other inputs
-      margin-left: 5px;
+        margin-left: 0.5rem;
     }
-    // but override that for button groups
-    .btn-group .btn + .btn {
-      margin-left: -1px;
-    }
-    // and override it for block buttons as well
-    .btn-block + .btn-block {
-      margin-left: 0;
-    }
-  }
-  
-  // Measure scrollbar width for padding body during modal show/hide
-  .modal-scrollbar-measure {
-    position: absolute;
-    top: -9999px;
-    width: 50px;
-    height: 50px;
-    overflow: scroll;
-  }
-  
-  // Scale up the modal
-  @media (min-width: $screen-sm-min) {
-    // Automatically set modal's width for larger viewports
+}
+
+// Responsive modal sizes
+@media (min-width: 576px) {
     .modal-dialog {
-      width: $modal-md;
-      margin: 30px auto;
+        max-width: 500px;
     }
-    .modal-content {
-      @include box-shadow(0 5px 15px rgba(0, 0, 0, .5));
+    .modal-sm {
+        max-width: 300px;
     }
-  
-    // Modal sizes
-    .modal-sm { width: $modal-sm; }
-  }
-  
-  @media (min-width: $screen-md-min) {
-    .modal-lg { width: $modal-lg; }
-  }
+}
+
+@media (min-width: 768px) {
+    .modal-lg, .modal-xl {
+        max-width: 800px;
+    }
+}
