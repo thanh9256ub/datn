@@ -1,91 +1,76 @@
-import React from 'react'
+import React from 'react';
+import { getProductDetailByProductId } from '../service/ProductDetailService';
 
-const ProductDetail = ({ showModal, setShowModal, selectedProductName, selectedProductDetails, setSelectedProductDetails }) => {
+const ProductDetail = () => {
+    const [productdetails, setProductDetails] = useState([]);
 
-    const handleStatusChange = (index) => {
-        const updatedDetails = [...selectedProductDetails];
-        updatedDetails[index].status = updatedDetails[index].status === 1 ? 0 : 1;
-        setSelectedProductDetails(updatedDetails);
+    useEffect(() => {
+        const fetchProductDetails = async () => {
+            try {
+                const response = await getProducts();
+                setProductDetails(response.data.data);
+            } catch (err) {
+                setError('Đã xảy ra lỗi khi tải sản phẩm chi tiết.');
+            }
+        };
 
-        updateProductDetail(
-            updatedDetails[index].id,
-            updatedDetails[index].quantity,
-            updatedDetails[index].status
-        );
-    };
-
-    const handleQuantityChange = (index, event) => {
-        const updatedDetails = [...selectedProductDetails];
-        updatedDetails[index].quantity = event.target.value;
-        setSelectedProductDetails(updatedDetails);
-
-        updateProductDetail(
-            updatedDetails[index].id,
-            event.target.value,
-            updatedDetails[index].status
-        );
-    };
+        fetchProductDetails();
+    }, []);
 
     return (
         <div>
             <div className="table-responsive">
-                {selectedProductDetails.length > 0 ? (
-                    <table className='table' style={{ tableLayout: 'fixed', width: '100%' }}>
-                        <thead>
-                            <tr>
-                                <th style={{ width: '50px' }}>#</th>
-                                <th>Thương hiệu</th>
-                                <th>Danh mục</th>
-                                <th>Chất liệu</th>
-                                <th>Màu sắc</th>
-                                <th>Kích cỡ</th>
-                                <th>Số lượng</th>
-                                <th>Giá</th>
-                                <th>Trạng thái</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {selectedProductDetails.map((variant, index) => (
-                                <tr key={index}>
+                <table className="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Mã sản phẩm</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Thương hiệu</th>
+                            <th>Danh mục</th>
+                            <th>Chất liệu</th>
+                            <th>Ảnh chính</th>
+                            <th>Tổng số lượng</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {products.length > 0 ? (
+                            products.map((product, index) => (
+                                <tr key={product.id}>
                                     <td>{index + 1}</td>
-                                    <td style={{ textAlign: 'center' }}>{variant.product.brand.brandName}</td>
-                                    <td>{variant.product.category.categoryName}</td>
-                                    <td>{variant.product.material.materialName}</td>
-                                    <td>{variant.color.colorName}</td>
-                                    <td>{variant.size.sizeName}</td>
+                                    <td>{product.productCode}</td>
+                                    <td>{product.productName}</td>
+                                    <td>{product.brand.brandName}</td>
+                                    <td>{product.category.categoryName}</td>
+                                    <td>{product.material.materialName}</td>
                                     <td>
-                                        <Form.Control
-                                            type="number"
-                                            value={variant.quantity}
-                                            onChange={(e) => handleQuantityChange(index, e)}
-                                        />
+                                        <span>img.png</span>
                                     </td>
-                                    <td>{variant.price}</td>
+                                    <td>{product.totalQuantity}</td>
                                     <td>
-                                        <span className={`badge ${variant.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
-                                            {variant.status === 1 ? 'Hoạt động' : 'Không hoạt động'}
+                                        <span className={`badge ${product.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
+                                            {product.status === 1 ? 'Hoạt động' : 'Ngừng bán'}
                                         </span>
                                     </td>
                                     <td>
-                                        <Switch
-                                            checked={variant.status === 1}
-                                            onChange={() => handleStatusChange(index)}
-                                            offColor="#888"
-                                            onColor="#0d6efd"
-                                            uncheckedIcon={false}
-                                            checkedIcon={false}
-                                            height={20}
-                                            width={40}
-                                        />
+                                        <button className="btn btn-warning btn-sm" onClick={handleShowProductDetail(product.id)}>
+                                            <i className='mdi mdi-eye'></i>
+                                        </button>
+                                        <button className="btn btn-danger btn-sm ml-2">
+                                            <i className='mdi mdi-border-color'></i>
+                                        </button>
                                     </td>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (
-                    <p className="text-center">Không có biến thể nào.</p>
-                )}
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="10" className="text-center">Không có sản phẩm nào</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
         </div>
     )

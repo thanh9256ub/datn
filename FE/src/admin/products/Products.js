@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { getProducts, updateStatus } from './service/ProductService';
+import { getProducts } from './service/ProductService';
 import { useHistory } from 'react-router-dom';
-import { Alert, Form, Spinner } from 'react-bootstrap';
+import { Alert, Button, Modal, Table } from 'react-bootstrap';
 import { getProductDetailByProductId } from './service/ProductDetailService';
-import ModalProductDetail from './components/ModalProductDetail'
-import Switch from 'react-switch';
 
 const Products = () => {
+
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -18,21 +17,18 @@ const Products = () => {
 
     const history = useHistory();
 
-    const fetchProducts = async () => {
-        setLoading(true);
-        try {
-            setTimeout(async () => {
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
                 const response = await getProducts();
                 setProducts(response.data.data);
+            } catch (err) {
+                setError('Đã xảy ra lỗi khi tải sản phẩm.');
+            } finally {
                 setLoading(false);
-            }, 500); // Giả lập loading 1 giây
-        } catch (err) {
-            setError('Đã xảy ra lỗi khi tải sản phẩm.');
-            setLoading(false);
-        }
-    };
+            }
+        };
 
-    useEffect(() => {
         fetchProducts();
 
         const message = localStorage.getItem("successMessage");
@@ -44,10 +40,6 @@ const Products = () => {
 
     const handleAddProduct = () => {
         history.push('/admin/products/add');
-    }
-
-    const handleUpdateProduct = (id) => {
-        history.push(`/admin/products/edit/${id}`)
     }
 
     const handleShowProductDetail = async (productId, productName) => {
@@ -62,27 +54,6 @@ const Products = () => {
         }
     };
 
-    const handleToggleStatus = async (productId, currentStatus) => {
-        try {
-            const newStatus = currentStatus === 1 ? 0 : 1;
-
-            await updateStatus(productId, newStatus);
-
-            setProducts(prevProducts =>
-                prevProducts.map(product =>
-                    product.id === productId ? { ...product, status: newStatus } : product
-                )
-            );
-        } catch (error) {
-            console.error("Lỗi khi cập nhật trạng thái sản phẩm:", error);
-        }
-    };
-
-    const refreshProducts = () => {
-        fetchProducts();
-    };
-
-
     return (
         <div>
             <div className="col-lg-12 grid-margin stretch-card">
@@ -90,9 +61,9 @@ const Products = () => {
                     <div className="card-body">
                         <h3 className="card-title">Danh sách sản phẩm</h3>
                         <div className='row'>
-                            <div className='col-md-9'></div>
-                            <div className='col-md-3'>
-                                <button type="button" className="btn btn-gradient-primary float-right" onClick={handleAddProduct}>
+                            <div className='col-md-10'></div>
+                            <div className='col-md-2'>
+                                <button type="button" className="btn btn-primary" onClick={handleAddProduct}>
                                     <i className='mdi mdi-plus'></i> Thêm mới
                                 </button>
                             </div>
@@ -104,10 +75,7 @@ const Products = () => {
                             </Alert>
                         )}
                         {loading ? (
-                            <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
-                                <Spinner animation="border" variant="primary" />
-                                <span className="ml-2">Đang tải dữ liệu...</span>
-                            </div>
+                            <div>Đang tải sản phẩm...</div>
                         ) : error ? (
                             <div className="text-danger">{error}</div>
                         ) : (
@@ -116,15 +84,15 @@ const Products = () => {
                                     <thead>
                                         <tr>
                                             <th>#</th>
-                                            <th>Ảnh chính</th>
                                             <th>Mã sản phẩm</th>
                                             <th>Tên sản phẩm</th>
                                             <th>Thương hiệu</th>
                                             <th>Danh mục</th>
                                             <th>Chất liệu</th>
-                                            <th style={{ width: '50px' }}>Tổng số lượng</th>
-                                            <th style={{ width: '150px' }}>Trạng thái</th>
-                                            <th style={{ width: '100px' }}>Hành động</th>
+                                            <th>Ảnh chính</th>
+                                            <th>Tổng số lượng</th>
+                                            <th>Trạng thái</th>
+                                            <th>Hành động</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -132,39 +100,25 @@ const Products = () => {
                                             products.map((product, index) => (
                                                 <tr key={product.id}>
                                                     <td>{index + 1}</td>
-                                                    <td>
-                                                        <span>img.png</span>
-                                                    </td>
                                                     <td>{product.productCode}</td>
                                                     <td>{product.productName}</td>
                                                     <td>{product.brand.brandName}</td>
                                                     <td>{product.category.categoryName}</td>
                                                     <td>{product.material.materialName}</td>
+                                                    <td>
+                                                        <span>img.png</span>
+                                                    </td>
                                                     <td>{product.totalQuantity}</td>
                                                     <td>
                                                         <span className={`badge ${product.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
-                                                            {product.status === 1 ? 'Hoạt động' : 'Không hoạt động'}
+                                                            {product.status === 1 ? 'Hoạt động' : 'Ngừng bán'}
                                                         </span>
                                                     </td>
-                                                    <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                                        <button className="btn btn-warning btn-sm"
-                                                            onClick={() => handleShowProductDetail(product.id, product.productName)}
-                                                        >
+                                                    <td>
+                                                        <button className="btn btn-warning btn-sm" onClick={() => handleShowProductDetail(product.id, product.productName)}>
                                                             <i className='mdi mdi-eye'></i>
                                                         </button>
-                                                        <Switch
-                                                            checked={product.status === 1}
-                                                            onChange={() => handleToggleStatus(product.id, product.status)}
-                                                            offColor="#888"
-                                                            onColor="#0d6efd"
-                                                            uncheckedIcon={false}
-                                                            checkedIcon={false}
-                                                            height={20}
-                                                            width={40}
-                                                        />
-                                                        <button className="btn btn-danger btn-sm ml-2"
-                                                            onClick={() => handleUpdateProduct(product.id)}
-                                                        >
+                                                        <button className="btn btn-danger btn-sm ml-2">
                                                             <i className='mdi mdi-border-color'></i>
                                                         </button>
                                                     </td>
@@ -183,16 +137,44 @@ const Products = () => {
                 </div>
             </div>
 
-            <ModalProductDetail
-                showModal={showModal}
-                setShowModal={setShowModal}
-                selectedProductName={selectedProductName}
-                selectedProductDetails={selectedProductDetails}
-                setSelectedProductDetails={setSelectedProductDetails}
-                refreshProducts={fetchProducts}
-            />
-
-
+            <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>Chi tiết sản phẩm: {selectedProductName}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {selectedProductDetails.length > 0 ? (
+                        <Table striped bordered hover>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Màu sắc</th>
+                                    <th>Kích cỡ</th>
+                                    <th>Số lượng</th>
+                                    <th>Giá</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {selectedProductDetails.map((variant, index) => (
+                                    <tr key={index}>
+                                        <td>{index + 1}</td>
+                                        <td>{variant.color.colorName}</td>
+                                        <td>{variant.size.sizeName}</td>
+                                        <td>{variant.quantity}</td>
+                                        <td>{variant.price}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    ) : (
+                        <p className="text-center">Không có biến thể nào.</p>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowModal(false)}>
+                        Đóng
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     )
 }

@@ -12,8 +12,6 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductDetailRequest {
 
-    Integer id;
-
     Integer productId;
 
     Integer colorId;

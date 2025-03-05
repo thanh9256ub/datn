@@ -1,100 +1,44 @@
 import React, { useEffect, useState } from 'react'
-import { createCategory, getCategories } from '../service/CategoryService';
-import { Button, Form, Modal } from 'react-bootstrap';
-import Select from 'react-select';
+import { getCategorys } from '../service/CategoryService';
+import { Form } from 'react-bootstrap';
 
 const CategorySelect = ({ categoryId, setCategoryId }) => {
     const [categoryOptions, setCategoryOptions] = useState([]);
-    const [showModal, setShowModal] = useState(false);
-    const [newCategoryName, setNewCategoryName] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState(null);
 
     useEffect(() => {
-        fetchCategorys();
+        getCategorys()
+            .then(response => {
+                setCategoryOptions(response.data.data);
+            })
+            .catch(error => {
+                console.log("Lỗi khi lấy dữ liệu danh mục:", error)
+            })
     }, []);
 
-    const handleCategoryChange = (selectedOption) => {
-        setSelectedCategory(selectedOption);
-        setCategoryId(selectedOption ? selectedOption.value : "");
-    };
-
-    const fetchCategorys = async () => {
-        try {
-            const response = await getCategories();
-            const formattedCategorys = response.data.data.map((category) => ({
-                value: category.id,
-                label: category.categoryName,
-            }));
-            setCategoryOptions(formattedCategorys);
-
-            if (categoryId) {
-                setSelectedCategory(formattedCategorys.find((b) => b.value === categoryId));
-            }
-        } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
-        }
-    };
-
-    const handleAddCategory = async () => {
-        if (!newCategoryName.trim()) {
-            alert("Vui lòng nhập tên danh mục!");
-            return;
-        }
-
-        try {
-            const response = await createCategory({ categoryName: newCategoryName });
-            alert("Thêm danh mục thành công!");
-            setShowModal(false);
-            setNewCategoryName("");
-            fetchCategorys();
-        } catch (error) {
-            console.error("Lỗi khi thêm danh mục:", error);
-            alert("Lỗi khi thêm danh mục!");
-        }
+    const handleCategoryChange = (event) => {
+        setCategoryId(event.target.value || "");
+        event.target.value ? event.target.style.color = "#000" : event.target.style.color = "#999";
     };
 
     return (
         <div>
-            <Form.Group className="row d-flex align-items-center">
+            <Form.Group className="row">
                 <label className="col-sm-3 col-form-label">Danh mục:</label>
-                <div className='col-md-7'>
-                    <Select
-                        options={categoryOptions}
-                        value={selectedCategory}
+                <div className='col-md-9'>
+                    <select
+                        className={`form-control`}
+                        value={categoryId || ""}
                         onChange={handleCategoryChange}
-                        isClearable
-                        placeholder="Chọn danh mục..."
-                    />
-                </div>
-                <div className="col-sm-2">
-                    <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon" onClick={() => setShowModal(true)}>
-                        <i className='mdi mdi-plus'></i>
-                    </button>
+                    >
+                        <option value="">Chọn danh mục</option>
+                        {categoryOptions.map(category => (
+                            <option key={category.id} value={category.id}>
+                                {category.categoryName}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             </Form.Group>
-            <Modal show={showModal} onHide={() => setShowModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Thêm Danh Mục</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form.Group>
-                        <Form.Label>Tên danh mục</Form.Label>
-                        <Form.Control
-                            type="text"
-                            value={newCategoryName}
-                            onChange={(e) => setNewCategoryName(e.target.value)}
-                        />
-                    </Form.Group>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowModal(false)}>
-                        Hủy
-                    </Button>
-                    <Button variant="primary" onClick={handleAddCategory}>
-                        Thêm
-                    </Button>
-                </Modal.Footer>
-            </Modal>
         </div>
     )
 }

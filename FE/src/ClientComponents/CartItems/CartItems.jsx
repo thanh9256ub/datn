@@ -36,19 +36,16 @@ const CartItems = () => {
                     {all_product.map((e) => {
                         if (cartItems[e.id] > 0) {
                             return (
-                                <div>
-                                    <input type="checkbox" />
-                                    <div key={e.id}>
-                                        <div className="cartitems-format cartitems-format-main">
-                                            <img src={e.image} alt="" className='carticon-product-icon' />
-                                            <p>{e.name}</p>
-                                            <p>${e.new_price}</p>
-                                            <button className='cartitems-quantity'>{cartItems[e.id]}</button>
-                                            <p>${e.new_price * cartItems[e.id]}</p>
-                                            <img className='cartitems-remove-icon' src={remove_icon} onClick={() => removeFromCart(e.id)} alt="" />
-                                        </div>
-                                        <hr />
+                                <div key={e.id}>
+                                    <div className="cartitems-format cartitems-format-main">
+                                        <img src={e.image} alt="" className='carticon-product-icon' />
+                                        <p>{e.name}</p>
+                                        <p>${e.new_price}</p>
+                                        <button className='cartitems-quantity'>{cartItems[e.id]}</button>
+                                        <p>${e.new_price * cartItems[e.id]}</p>
+                                        <img className='cartitems-remove-icon' src={remove_icon} onClick={() => removeFromCart(e.id)} alt="" />
                                     </div>
+                                    <hr />
                                 </div>
                             );
                         }
@@ -73,14 +70,6 @@ const CartItems = () => {
                                     <p>${getTotalCartAmount()}</p>
                                 </div>
                             </div>
-                            <button onClick={handleCheckout}>PROCEED TO CHECKOUT</button>
-                        </div>
-                        <div className="cartitems-promocode">
-                            <p>If you have a promo code, Enter it here</p>
-                            <div className="cartitems-promobox">
-                                <input type="text" placeholder='Promo Code' />
-                                <button>Submit</button>
-                            </div>
                             <h2>Customer Information</h2>
                             <div className="cartitems-customer-info">
                                 <input type="text" name="name" placeholder="Full Name" />
@@ -98,6 +87,14 @@ const CartItems = () => {
                                 <label>
                                     <input type="radio" name="payment" value="bank_transfer" /> <span>Bank Transfer</span>
                                 </label>
+                            </div>
+                            <button onClick={handleCheckout}>PROCEED TO CHECKOUT</button>
+                        </div>
+                        <div className="cartitems-promocode">
+                            <p>If you have a promo code, Enter it here</p>
+                            <div className="cartitems-promobox">
+                                <input type="text" placeholder='Promo Code' />
+                                <button>Submit</button>
                             </div>
                         </div>
                     </div>

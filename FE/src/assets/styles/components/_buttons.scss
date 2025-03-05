@@ -4,24 +4,9 @@
   font-size: $btn-font-size;
   line-height: 1;
   font-weight: $font-weight-bold;
-  // margin: 3px;
-  max-width: 200px; // Giới hạn chiều rộng tối đa
-  padding: 10px 20px; // Đảm bảo padding hợp lý
-  white-space: nowrap; // Ngăn button bị xuống dòng nếu có icon + text
-  display: inline-flex; // Giữ nội dung căn giữa
-  align-items: center; // Căn giữa icon và text
-  justify-content: center; // Giữ nội dung ở giữa
-  overflow: hidden; // Tránh button bị mở rộng do nội dung dài
-  text-overflow: ellipsis;
+  margin-right: 3px;
   i {
     font-size: 1rem;
-  }
-  &.btn-icon {
-    display: grid;
-    place-items: center;
-    padding: 0 !important;
-    width: 35px;
-    height: 35px;
   }
   &.btn-rounded {
     @include border-radius(50px);
