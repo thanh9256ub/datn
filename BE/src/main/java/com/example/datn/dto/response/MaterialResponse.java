@@ -16,5 +16,5 @@ public class MaterialResponse {
 
     String materialName;
 
-    String description;
+//    String description;
 }

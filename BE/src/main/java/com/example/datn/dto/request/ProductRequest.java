@@ -29,7 +29,9 @@ public class ProductRequest {
     @NotBlank(message = "Main image is required")
     String mainImage;
 
+    @NotNull(message = "Total quantity is required")
     Integer totalQuantity;
 
+    @NotNull(message = "Status is required")
     Integer status;
 }

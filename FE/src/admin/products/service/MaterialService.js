@@ -1,15 +1,7 @@
 import axios from "axios";
 
-const BASE_URL = 'http://localhost:8080/material';
+const apiMaterials = 'http://localhost:8080/material';
 
 export const getMaterials = () => {
-    return axios.get(BASE_URL);
-}
-
-export const createMaterial = (material) => {
-    return axios.post(`${BASE_URL}/add`, material)
-}
-
-export const updateMaterial = (id, material) => {
-    return axios.put(`${BASE_URL}/edit/${id}`, material)
+    return axios.get(apiMaterials);
 }

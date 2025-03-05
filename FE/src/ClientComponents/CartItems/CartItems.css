@@ -77,9 +77,6 @@
     flex: 1;
     font-size: 16px;
     font-weight: 500;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
 }
 
 .cartitems-promocode p {
