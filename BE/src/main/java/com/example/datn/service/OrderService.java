@@ -24,9 +24,7 @@ public class OrderService {
     OrderMapper mapper;
 
     public OrderResponse create(OrderRequest request) {
-        int i= getAll().size();
         Order order = mapper.toOrder(request);
-        order.setOrderCode("HD"+(i+1)  );
         Order created = repository.save(order);
         return mapper.toOrderResponse(created);
     }
