@@ -9,3 +9,7 @@ export const getMaterials = () => {
 export const createMaterial = (material) => {
     return axios.post(`${BASE_URL}/add`, material)
 }
+
+export const updateMaterial = (id, material) => {
+    return axios.put(`${BASE_URL}/edit/${id}`, material)
+}

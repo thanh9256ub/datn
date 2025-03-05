@@ -2,6 +2,8 @@
 
 .table {
   margin-bottom: 0;
+  table-layout: auto !important; /* Cho phép bảng tự điều chỉnh kích thước */
+    width: 100%;
   thead {
     th {
       border-top: 0;
@@ -14,9 +16,10 @@
   }
   th,
   td {
+    padding: 10px;
     vertical-align: middle !important;
     font-size: $default-font-size;
-    line-height: 1;
+    line-height: 1.5;
     white-space: normal !important;
     word-wrap: break-word;
     overflow-wrap: break-word; 

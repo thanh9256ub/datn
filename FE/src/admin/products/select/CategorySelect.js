@@ -1,67 +1,70 @@
 import React, { useEffect, useState } from 'react'
-import { createCategory, getCategorys } from '../service/CategoryService';
+import { createCategory, getCategories } from '../service/CategoryService';
 import { Button, Form, Modal } from 'react-bootstrap';
+import Select from 'react-select';
 
 const CategorySelect = ({ categoryId, setCategoryId }) => {
     const [categoryOptions, setCategoryOptions] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState(null);
 
     useEffect(() => {
         fetchCategorys();
-    }, []);
+    }, [categoryId]);
 
-    const handleCategoryChange = (event) => {
-        setCategoryId(event.target.value || "");
-        event.target.value ? event.target.style.color = "#000" : event.target.style.color = "#999";
+    const handleCategoryChange = (selectedOption) => {
+        setSelectedCategory(selectedOption);
+        setCategoryId(selectedOption ? selectedOption.value : "");
     };
 
-    const fetchCategorys = () => {
-        getCategorys()
-            .then((response) => {
-                setCategoryOptions(response.data.data);
-            })
-            .catch((error) => {
-                console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
-            });
+    const fetchCategorys = async () => {
+        try {
+            const response = await getCategories();
+            const formattedCategorys = response.data.data.map((category) => ({
+                value: category.id,
+                label: category.categoryName,
+            }));
+            setCategoryOptions(formattedCategorys);
+
+            if (categoryId) {
+                setSelectedCategory(formattedCategorys.find((b) => b.value === categoryId));
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
+        }
     };
 
     const handleAddCategory = async () => {
         if (!newCategoryName.trim()) {
-            alert("Vui lòng nhập tên thương hiệu!");
+            alert("Vui lòng nhập tên danh mục!");
             return;
         }
 
         try {
             const response = await createCategory({ categoryName: newCategoryName });
-            alert("Thêm thương hiệu thành công!");
+            alert("Thêm danh mục thành công!");
             setShowModal(false);
             setNewCategoryName("");
             fetchCategorys();
         } catch (error) {
-            console.error("Lỗi khi thêm thương hiệu:", error);
-            alert("Lỗi khi thêm thương hiệu!");
+            console.error("Lỗi khi thêm danh mục:", error);
+            alert("Lỗi khi thêm danh mục!");
         }
     };
 
     return (
         <div>
-            <Form.Group className="row">
+            <Form.Group className="row d-flex align-items-center">
                 <label className="col-sm-3 col-form-label">Danh mục:</label>
                 <div className='col-md-7'>
-                    <select
-                        value={categoryId || ""}
-                        className={`form-control`}
+                    <Select
+                        options={categoryOptions}
+                        value={selectedCategory}
                         onChange={handleCategoryChange}
-                        style={{ color: categoryId ? "#000" : "#999" }}
-                    >
-                        <option value="">Chọn danh mục</option>
-                        {categoryOptions.map(category => (
-                            <option key={category.id} value={category.id}>
-                                {category.categoryName}
-                            </option>
-                        ))}
-                    </select>
+                        isClearable
+                        placeholder="Chọn danh mục..."
+                    />
                 </div>
                 <div className="col-sm-2">
                     <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon" onClick={() => setShowModal(true)}>

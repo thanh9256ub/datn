@@ -1,12 +1,35 @@
-import React, { useState } from 'react';
-import { Alert, Form } from 'react-bootstrap';
+import React, { useEffect, useState } from 'react';
+import { Alert, Form, Spinner } from 'react-bootstrap';
 import { QRCodeCanvas } from "qrcode.react";
 
 const ListAutoVariant = ({ variantList, handleInputChange, productName }) => {
 
+    const [loading, setLoading] = useState(true);
+    const [isFirstLoad, setIsFirstLoad] = useState(true);
+
+    useEffect(() => {
+        if (variantList.length > 0 && isFirstLoad) {
+            setLoading(true);
+            const timeout = setTimeout(() => {
+                setLoading(false);
+                setIsFirstLoad(false);
+            }, 1000);
+            return () => clearTimeout(timeout);
+        }
+    }, [variantList, isFirstLoad]);
+
     return (
         <div>
-            {variantList.length > 0 ? (
+            {variantList.length === 0 ? (
+                <Alert variant="info">
+                    Vui lòng chọn ít nhất một <strong>màu sắc</strong> và một <strong>kích cỡ</strong> để tạo biến thể!
+                </Alert>
+            ) : loading ? (
+                <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
+                    <Spinner animation="border" variant="primary" />
+                    <span className="ml-2">Đang tải dữ liệu...</span>
+                </div>
+            ) : (
                 <div className='table-responsive'>
                     <table className='table'>
                         <thead>
@@ -40,7 +63,7 @@ const ListAutoVariant = ({ variantList, handleInputChange, productName }) => {
                                         />
                                     </td>
                                     <td>
-                                        {variant.qrCode ? (
+                                        {variant.qr ? (
                                             <QRCodeCanvas value={variant.qrCode} size={80} />
                                         ) : (
                                             <span className="text-muted">Chưa có QR</span>
@@ -51,12 +74,7 @@ const ListAutoVariant = ({ variantList, handleInputChange, productName }) => {
                         </tbody>
                     </table>
                 </div>
-            ) : (
-                <Alert variant="info">
-                    Vui lòng chọn ít nhất một <strong>màu sắc</strong> và một <strong>kích cỡ</strong> để tạo biến thể!
-                </Alert>
             )}
-
         </div>
     )
 }

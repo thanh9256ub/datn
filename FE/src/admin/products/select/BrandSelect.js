@@ -1,46 +1,69 @@
 import React, { useEffect, useState } from 'react';
-import { createMaterial, getMaterials } from '../service/MaterialService';
+import { createBrand, getBrands } from '../service/BrandService';
 import { Button, Form, Modal } from 'react-bootstrap';
-// import Select from 'react-select';
+import Select from 'react-select';
 
-const MaterialSelect = ({ brandId, setMaterialId }) => {
-    const [brandOptions, setMaterialOptions] = useState([]);
+const BrandSelect = ({ brandId, setBrandId }) => {
+    const [brandOptions, setBrandOptions] = useState([]);
     const [showModal, setShowModal] = useState(false);
-    const [newMaterialName, setNewMaterialName] = useState("");
+    const [newBrandName, setNewBrandName] = useState("");
+    const [selectedBrand, setSelectedBrand] = useState(null);
 
     useEffect(() => {
-        fetchMaterials();
-    }, []);
+        fetchBrands();
+    }, [brandId]);
 
-    const handleMaterialChange = (event) => {
-        const value = event.target.value;
-        setMaterialId(value || "");
-        event.target.value ? event.target.style.color = "#000" : event.target.style.color = "#999";
+    // const handleBrandChange = (event) => {
+    //     const value = event.target.value;
+    //     setBrandId(value || "");
+    //     event.target.value ? event.target.style.color = "#000" : event.target.style.color = "#999";
+    // };
+
+    const handleBrandChange = (selectedOption) => {
+        setSelectedBrand(selectedOption);
+        setBrandId(selectedOption ? selectedOption.value : "");
     };
 
-    const fetchMaterials = () => {
-        getMaterials()
-            .then((response) => {
-                setMaterialOptions(response.data.data);
-            })
-            .catch((error) => {
-                console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
-            });
+    // const fetchBrands = () => {
+    //     getBrands()
+    //         .then((response) => {
+    //             setBrandOptions(response.data.data);
+    //         })
+    //         .catch((error) => {
+    //             console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
+    //         });
+    // };
+
+    const fetchBrands = async () => {
+        try {
+            const response = await getBrands();
+            const formattedBrands = response.data.data.map((brand) => ({
+                value: brand.id,
+                label: brand.brandName,
+            }));
+            setBrandOptions(formattedBrands);
+
+            if (brandId) {
+                setSelectedBrand(formattedBrands.find((b) => b.value === brandId));
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
+        }
     };
 
 
-    const handleAddMaterial = async () => {
-        if (!newMaterialName.trim()) {
+    const handleAddBrand = async () => {
+        if (!newBrandName.trim()) {
             alert("Vui lòng nhập tên thương hiệu!");
             return;
         }
 
         try {
-            const response = await createMaterial({ materialName: newMaterialName });
+            const response = await createBrand({ brandName: newBrandName });
             alert("Thêm thương hiệu thành công!");
             setShowModal(false);
-            setNewMaterialName("");
-            fetchMaterials(); // Load lại danh sách thương hiệu
+            setNewBrandName("");
+            fetchBrands();
         } catch (error) {
             console.error("Lỗi khi thêm thương hiệu:", error);
             alert("Lỗi khi thêm thương hiệu!");
@@ -50,13 +73,13 @@ const MaterialSelect = ({ brandId, setMaterialId }) => {
 
     return (
         <div>
-            <Form.Group className="row">
+            <Form.Group className="row d-flex align-items-center">
                 <label className="col-sm-3 col-form-label">Thương hiệu:</label>
                 <div className="col-sm-7">
-                    <select
+                    {/* <select
                         className="form-control"
                         value={brandId || ""}
-                        onChange={handleMaterialChange}
+                        onChange={handleBrandChange}
                         style={{ color: brandId ? "#000" : "#999" }}
                     >
                         <option value="">Chọn thương hiệu</option>
@@ -65,7 +88,14 @@ const MaterialSelect = ({ brandId, setMaterialId }) => {
                                 {brand.brandName}
                             </option>
                         ))}
-                    </select>
+                    </select> */}
+                    <Select
+                        options={brandOptions}
+                        value={selectedBrand}
+                        onChange={handleBrandChange}
+                        isClearable
+                        placeholder="Chọn thương hiệu..."
+                    />
                 </div>
                 <div className="col-sm-2">
                     <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon" onClick={() => setShowModal(true)}>
@@ -84,8 +114,8 @@ const MaterialSelect = ({ brandId, setMaterialId }) => {
                         <Form.Label>Tên thương hiệu</Form.Label>
                         <Form.Control
                             type="text"
-                            value={newMaterialName}
-                            onChange={(e) => setNewMaterialName(e.target.value)}
+                            value={newBrandName}
+                            onChange={(e) => setNewBrandName(e.target.value)}
                         />
                     </Form.Group>
                 </Modal.Body>
@@ -93,7 +123,7 @@ const MaterialSelect = ({ brandId, setMaterialId }) => {
                     <Button variant="secondary" onClick={() => setShowModal(false)}>
                         Hủy
                     </Button>
-                    <Button variant="primary" onClick={handleAddMaterial}>
+                    <Button variant="primary" onClick={handleAddBrand}>
                         Thêm
                     </Button>
                 </Modal.Footer>
@@ -102,4 +132,4 @@ const MaterialSelect = ({ brandId, setMaterialId }) => {
     );
 };
 
-export default MaterialSelect;
+export default BrandSelect;

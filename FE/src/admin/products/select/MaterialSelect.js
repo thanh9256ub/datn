@@ -1,69 +1,72 @@
 import React, { useEffect, useState } from 'react'
 import { Form, Modal, Button } from 'react-bootstrap';
 import { createMaterial, getMaterials } from '../service/MaterialService';
+import Select from 'react-select';
 
 const MaterialSelect = ({ materialId, setMaterialId }) => {
     const [materialOptions, setMaterialOptions] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [newMaterialName, setNewMaterialName] = useState("");
+    const [selectedMaterial, setSelectedMaterial] = useState(null);
 
     useEffect(() => {
         fetchMaterials();
-    }, []);
+    }, [materialId]);
 
-    const handleMaterialChange = (event) => {
-        setMaterialId(event.target.value || "");
-        event.target.value ? event.target.style.color = "#000" : event.target.style.color = "#999";
+    const handleMaterialChange = (selectedOption) => {
+        setSelectedMaterial(selectedOption);
+        setMaterialId(selectedOption ? selectedOption.value : "");
     };
 
-    const fetchMaterials = () => {
-        getMaterials()
-            .then((response) => {
-                setMaterialOptions(response.data.data);
-            })
-            .catch((error) => {
-                console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
-            });
+    const fetchMaterials = async () => {
+        try {
+            const response = await getMaterials();
+            const formattedMaterials = response.data.data.map((material) => ({
+                value: material.id,
+                label: material.materialName,
+            }));
+            setMaterialOptions(formattedMaterials);
+
+            if (materialId) {
+                setSelectedMaterial(formattedMaterials.find((b) => b.value === materialId));
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
+        }
     };
 
 
     const handleAddMaterial = async () => {
         if (!newMaterialName.trim()) {
-            alert("Vui lòng nhập tên thương hiệu!");
+            alert("Vui lòng nhập tên chất liệu!");
             return;
         }
 
         try {
-            const response = await createMaterial({ brandName: newMaterialName });
-            alert("Thêm thương hiệu thành công!");
+            const response = await createMaterial({ materialName: newMaterialName });
+            alert("Thêm chất liệu thành công!");
             setShowModal(false);
             setNewMaterialName("");
-            fetchMaterials(); // Load lại danh sách thương hiệu
+            fetchMaterials();
         } catch (error) {
-            console.error("Lỗi khi thêm thương hiệu:", error);
-            alert("Lỗi khi thêm thương hiệu!");
+            console.error("Lỗi khi thêm chất liệu:", error);
+            alert("Lỗi khi thêm chất liệu!");
         }
     };
 
 
     return (
         <div>
-            <Form.Group className="row">
+            <Form.Group className="row d-flex align-items-center">
                 <label className="col-sm-3 col-form-label">Chất liệu:</label>
                 <div className="col-sm-7">
-                    <select
-                        className={`form-control`}
-                        value={materialId || ""}
+                    <Select
+                        options={materialOptions}
+                        value={selectedMaterial}
                         onChange={handleMaterialChange}
-                        style={{ color: materialId ? "#000" : "#999" }}
-                    >
-                        <option value="">Chọn chất liệu</option>
-                        {materialOptions.map(material => (
-                            <option key={material.id} value={material.id}>
-                                {material.materialName}
-                            </option>
-                        ))}
-                    </select>
+                        isClearable
+                        placeholder="Chọn thương hiệu..."
+                    />
                 </div>
                 <div className="col-sm-2">
                     <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon" onClick={() => setShowModal(true)}>

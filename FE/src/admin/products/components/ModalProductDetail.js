@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import { updateProductDetail } from '../service/ProductDetailService';
 import Switch from 'react-switch';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -12,6 +12,18 @@ const ProductDetail = ({
     setSelectedProductDetails,
     refreshProducts
 }) => {
+
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (showModal) {
+            setLoading(true);
+            setTimeout(() => {
+                setLoading(false);
+            }, 500);
+        }
+    }, [showModal]);
+
     const handleStatusChange = (index) => {
         const updatedDetails = [...selectedProductDetails];
         updatedDetails[index].status = updatedDetails[index].status === 1 ? 0 : 1;
@@ -63,12 +75,17 @@ const ProductDetail = ({
     return (
         <div>
             <div className="table-responsive">
-                <Modal show={showModal} onHide={() => setShowModal(false)} size="xl">
+                <Modal show={showModal} onHide={() => setShowModal(false)} size="xl" dialogClassName="custom-modal modal-lg">
                     <Modal.Header closeButton>
                         <Modal.Title>Chi tiết sản phẩm: {selectedProductName}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        {selectedProductDetails.length > 0 ? (
+                        {loading ? (
+                            <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
+                                <Spinner animation="border" variant="primary" />
+                                <span className="ml-2">Đang tải dữ liệu...</span>
+                            </div>
+                        ) : selectedProductDetails.length > 0 ? (
                             <table className='table' style={{ tableLayout: 'fixed', width: '100%' }}>
                                 <thead>
                                     <tr>
