@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
 import './App.scss';
+import { withRouter } from 'react-router-dom';
 import AdminRoutes from './AdminRoutes';
 import Navbar from './shared/Navbar';
 import Sidebar from './shared/Sidebar';

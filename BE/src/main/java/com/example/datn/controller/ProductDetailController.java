@@ -3,6 +3,7 @@ package com.example.datn.controller;
 import com.example.datn.dto.request.ProductDetailRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.ProductDetailResponse;
+import com.example.datn.dto.response.ProductResponse;
 import com.example.datn.service.ProductDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,13 +14,13 @@ import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
-@RequestMapping("product-detail")
+@RequestMapping("/product-detail")
 public class ProductDetailController {
 
     @Autowired
     ProductDetailService service;
 
-    @PostMapping("add-multiple/{productId}")
+    @PostMapping("/add-multiple/{productId}")
     public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> addProductDetail(
             @PathVariable("productId") Integer productId,
             @RequestBody List<ProductDetailRequest> requests){
@@ -59,6 +60,54 @@ public class ProductDetailController {
                 200,
                 "List product detail by id: " + productId,
                 productDetails
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{pdId}")
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> updateProductDetail(
+            @PathVariable("pdId") Integer pdId,
+            @RequestParam(value = "status", required = false) Integer status,
+            @RequestParam(value = "quantity", required = false) Integer quantity) {
+
+        ProductDetailResponse productDetailResponse = service.updateProductDetail(pdId, status, quantity);
+
+        ApiResponse<ProductDetailResponse> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Updated successfully",
+                productDetailResponse
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{productId}")
+    public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> updateProductDetails(
+            @PathVariable Integer productId,
+            @RequestBody List<ProductDetailRequest> requests) {
+
+        List<ProductDetailResponse> list = service.updateProductDetails(productId, requests);
+
+        ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Updated successfully",
+                list
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{pdId}/update-qr")
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> updateQR(
+            @PathVariable("pdId") Integer pdId) {
+
+        ProductDetailResponse productDetailResponse = service.updateQR(pdId);
+
+        ApiResponse<ProductDetailResponse> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Updated successfully",
+                productDetailResponse
         );
 
         return ResponseEntity.ok(response);

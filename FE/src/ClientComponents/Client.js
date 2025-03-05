@@ -2,7 +2,8 @@ import React from 'react';
 import { Switch, Route } from 'react-router-dom';
 import Footer from './Footer/Footer';
 import Navbar from './Navbar/Navbar';
-import LoginSignup from './Pages/LoginSignup';
+import Signup from './Pages/Signup';
+import Login from './Pages/Login';
 import Shop from './Pages/Shop';
 import ShopCategory from './Pages/ShopCategory';
 import Product from './Pages/Product';
@@ -25,7 +26,8 @@ const Client = () => {
                 <Route path="/kids" component={() => <ShopCategory banner={kid_banner} category="kid" />} />
                 <Route exact path="/product/:productID" component={Product} />
                 <Route path="/cart" component={Cart} />
-                <Route path="/login" component={LoginSignup} />
+                <Route path="/signup" component={Signup} />
+                <Route path="/login" component={Login} />
             </Switch>
             <Footer />
         </div>

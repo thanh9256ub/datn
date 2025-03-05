@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 class Buttons extends Component {
-  render () {
+  render() {
     return (
       <div>
         <div className="page-header">
@@ -162,10 +162,10 @@ class Buttons extends Component {
                         <i className="mdi mdi-star text-primary"></i>
                       </button>
                       <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon">
-                        <i className="mdi mdi-signal text-info"></i>                          
+                        <i className="mdi mdi-signal text-info"></i>
                       </button>
                       <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon">
-                        <i className="mdi mdi-trending-up text-success"></i>                          
+                        <i className="mdi mdi-trending-up text-success"></i>
                       </button>
                     </div>
                     <div className="template-demo d-flex justify-content-between flex-nowrap">
@@ -179,10 +179,10 @@ class Buttons extends Component {
                         <i className="mdi mdi-star"></i>
                       </button>
                       <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon">
-                        <i className="mdi mdi-signal"></i>                          
+                        <i className="mdi mdi-signal"></i>
                       </button>
                       <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon">
-                        <i className="mdi mdi-trending-up"></i>                          
+                        <i className="mdi mdi-trending-up"></i>
                       </button>
                     </div>
                   </div>
@@ -215,7 +215,7 @@ class Buttons extends Component {
                   </button>
                   <button type="button" className="btn btn-dark btn-lg btn-block">Block buttons</button>
                   <button type="button" className="btn btn-gradient-primary btn-lg btn-block">
-                    <i className="mdi mdi-account"></i>                      
+                    <i className="mdi mdi-account"></i>
                     Block buttons
                   </button>
                   <button type="button" className="btn btn-outline-secondary btn-lg btn-block">Block buttons</button>
@@ -229,7 +229,7 @@ class Buttons extends Component {
                 <div className="row">
                   <div className="col-md-6">
                     <h4 className="card-title">Button groups</h4>
-                    <p className="card-description">Wrap a series of buttons with <code>.btn</code> 
+                    <p className="card-description">Wrap a series of buttons with <code>.btn</code>
                       in <code>.btn-group</code></p>
                     <div className="template-demo">
                       <div className="btn-group" role="group" aria-label="Basic example">
@@ -287,13 +287,13 @@ class Buttons extends Component {
                             <a className="dropdown-item" href="!#" onClick={event => event.preventDefault()}>Go back</a>
                             <a className="dropdown-item" href="!#" onClick={event => event.preventDefault()}>Delete</a>
                             <a className="dropdown-item" href="!#" onClick={event => event.preventDefault()}>Swap</a>
-                          </div>                          
+                          </div>
                         </div>
                         <button type="button" className="btn btn-outline-secondary">Default</button>
                       </div>
                       <div className="btn-group-vertical" role="group" aria-label="Basic example">
                         <button type="button" className="btn btn-outline-secondary">Top</button>
-                        <button type="button" className="btn btn-outline-secondary">Middle</button>                          
+                        <button type="button" className="btn btn-outline-secondary">Middle</button>
                         <button type="button" className="btn btn-outline-secondary">Bottom</button>
                       </div>
                     </div>
@@ -316,7 +316,7 @@ class Buttons extends Component {
                   </div>
                   <div className="col-md-6">
                     <h4 className="card-title">Button with text and icon</h4>
-                    <p className="card-description">Wrap icon and text inside <code>.btn-icon-text</code> and use <code>.btn-icon-prepend</code> 
+                    <p className="card-description">Wrap icon and text inside <code>.btn-icon-text</code> and use <code>.btn-icon-prepend</code>
                       or <code>.btn-icon-append</code> for icon tags</p>
                     <div className="template-demo">
                       <button type="button" className="btn btn-gradient-primary btn-icon-text">
@@ -325,24 +325,24 @@ class Buttons extends Component {
                       </button>
                       <button type="button" className="btn btn-gradient-dark btn-icon-text">
                         Edit
-                        <i className="mdi mdi-file-check btn-icon-append"></i>                          
+                        <i className="mdi mdi-file-check btn-icon-append"></i>
                       </button>
                       <button type="button" className="btn btn-gradient-success btn-icon-text">
-                        <i className="mdi mdi-alert btn-icon-prepend"></i>                                                    
+                        <i className="mdi mdi-alert btn-icon-prepend"></i>
                         Warning
                       </button>
                     </div>
                     <div className="template-demo">
                       <button type="button" className="btn btn-gradient-danger btn-icon-text">
-                        <i className="mdi mdi-upload btn-icon-prepend"></i>                                                    
+                        <i className="mdi mdi-upload btn-icon-prepend"></i>
                         Upload
                       </button>
                       <button type="button" className="btn btn-gradient-info btn-icon-text">
                         Print
-                        <i className="mdi mdi-printer btn-icon-append"></i>                                                                              
+                        <i className="mdi mdi-printer btn-icon-append"></i>
                       </button>
                       <button type="button" className="btn btn-gradient-warning btn-icon-text">
-                        <i className="mdi mdi-reload btn-icon-prepend"></i>                                                    
+                        <i className="mdi mdi-reload btn-icon-prepend"></i>
                         Reset
                       </button>
                     </div>
@@ -353,24 +353,24 @@ class Buttons extends Component {
                       </button>
                       <button type="button" className="btn btn-outline-secondary btn-icon-text">
                         Edit
-                        <i className="mdi mdi-file-check btn-icon-append"></i>                          
+                        <i className="mdi mdi-file-check btn-icon-append"></i>
                       </button>
                       <button type="button" className="btn btn-outline-success btn-icon-text">
-                        <i className="mdi mdi-alert btn-icon-prepend"></i>                                                    
+                        <i className="mdi mdi-alert btn-icon-prepend"></i>
                         Warning
                       </button>
                     </div>
                     <div className="template-demo">
                       <button type="button" className="btn btn-outline-danger btn-icon-text">
-                        <i className="mdi mdi-upload btn-icon-prepend"></i>                                                    
+                        <i className="mdi mdi-upload btn-icon-prepend"></i>
                         Upload
                       </button>
                       <button type="button" className="btn btn-outline-info btn-icon-text">
                         Print
-                        <i className="mdi mdi-printer btn-icon-append"></i>                                                                              
+                        <i className="mdi mdi-printer btn-icon-append"></i>
                       </button>
                       <button type="button" className="btn btn-outline-warning btn-icon-text">
-                        <i className="mdi mdi-reload btn-icon-prepend"></i>                                                    
+                        <i className="mdi mdi-reload btn-icon-prepend"></i>
                         Reset
                       </button>
                     </div>
@@ -402,7 +402,7 @@ class Buttons extends Component {
                 <p className="card-description">Add class <code>.btn-social-icon</code></p>
                 <div className="template-demo">
                   <button type="button" className="btn btn-social-icon btn-outline-facebook"><i className="mdi mdi-facebook"></i></button>
-                  <button type="button" className="btn btn-social-icon btn-outline-youtube"><i className="mdi mdi-youtube"></i></button>                                        
+                  <button type="button" className="btn btn-social-icon btn-outline-youtube"><i className="mdi mdi-youtube"></i></button>
                   <button type="button" className="btn btn-social-icon btn-outline-twitter"><i className="mdi mdi-twitter"></i></button>
                   <button type="button" className="btn btn-social-icon btn-outline-dribbble"><i className="mdi mdi-dribbble"></i></button>
                   <button type="button" className="btn btn-social-icon btn-outline-linkedin"><i className="mdi mdi-linkedin"></i></button>
@@ -410,7 +410,7 @@ class Buttons extends Component {
                 </div>
                 <div className="template-demo">
                   <button type="button" className="btn btn-social-icon btn-facebook"><i className="mdi mdi-facebook"></i></button>
-                  <button type="button" className="btn btn-social-icon btn-youtube"><i className="mdi mdi-youtube"></i></button>                                        
+                  <button type="button" className="btn btn-social-icon btn-youtube"><i className="mdi mdi-youtube"></i></button>
                   <button type="button" className="btn btn-social-icon btn-twitter"><i className="mdi mdi-twitter"></i></button>
                   <button type="button" className="btn btn-social-icon btn-dribbble"><i className="mdi mdi-dribbble"></i></button>
                   <button type="button" className="btn btn-social-icon btn-linkedin"><i className="mdi mdi-linkedin"></i></button>
@@ -418,7 +418,7 @@ class Buttons extends Component {
                 </div>
                 <div className="template-demo">
                   <button type="button" className="btn btn-social-icon btn-facebook btn-rounded"><i className="mdi mdi-facebook"></i></button>
-                  <button type="button" className="btn btn-social-icon btn-youtube btn-rounded"><i className="mdi mdi-youtube"></i></button>                                        
+                  <button type="button" className="btn btn-social-icon btn-youtube btn-rounded"><i className="mdi mdi-youtube"></i></button>
                   <button type="button" className="btn btn-social-icon btn-twitter btn-rounded"><i className="mdi mdi-twitter"></i></button>
                   <button type="button" className="btn btn-social-icon btn-dribbble btn-rounded"><i className="mdi mdi-dribbble"></i></button>
                   <button type="button" className="btn btn-social-icon btn-linkedin btn-rounded"><i className="mdi mdi-linkedin"></i></button>
@@ -434,7 +434,7 @@ class Buttons extends Component {
                 <p className="card-description">Add class <code>.btn-social-icon-text</code></p>
                 <div className="template-demo">
                   <button type="button" className="btn btn-social-icon-text btn-facebook"><i className="mdi mdi-facebook"></i>Facebook</button>
-                  <button type="button" className="btn btn-social-icon-text btn-youtube"><i className="mdi mdi-youtube"></i>Youtube</button>                                        
+                  <button type="button" className="btn btn-social-icon-text btn-youtube"><i className="mdi mdi-youtube"></i>Youtube</button>
                   <button type="button" className="btn btn-social-icon-text btn-twitter"><i className="mdi mdi-twitter"></i>Twitter</button>
                   <button type="button" className="btn btn-social-icon-text btn-dribbble"><i className="mdi mdi-dribbble"></i>Dribbble</button>
                   <button type="button" className="btn btn-social-icon-text btn-linkedin"><i className="mdi mdi-linkedin"></i>Linkedin</button>
