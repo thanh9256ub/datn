@@ -87,10 +87,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-<<<<<<< HEAD
-  }
-=======
   },
   "proxy": "http://localhost:8080"
->>>>>>> d15b376e312ff56c18effd6254c0484b8cf62eea
 }
