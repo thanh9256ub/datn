@@ -11,7 +11,7 @@ const MaterialSelect = ({ materialId, setMaterialId }) => {
 
     useEffect(() => {
         fetchMaterials();
-    }, []);
+    }, [materialId]);
 
     const handleMaterialChange = (selectedOption) => {
         setSelectedMaterial(selectedOption);

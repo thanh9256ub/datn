@@ -14,25 +14,40 @@ import Brands from './products/Brands';
 import Materials from './products/Material';
 import Categories from './products/Categories';
 
-const Dashboard = lazy(() => import('./dashboard/Dashboard'));
-const Buttons = lazy(() => import('./basic-ui/Buttons'));
-const Dropdowns = lazy(() => import('./basic-ui/Dropdowns'));
-const Typography = lazy(() => import('./basic-ui/Typography'));
+import Dashboard from './dashboard/Dashboard'
+import Buttons from './basic-ui/Buttons';
+import Dropdowns from './basic-ui/Dropdowns'
+import Typography from './basic-ui/Typography';
+import BasicElements from './form-elements/BasicElements';
+import BasicTable from './tables/BasicTable';
+import Mdi from './icons/Mdi';
+import ChartJs from './charts/ChartJs';
+import Error404 from './error-pages/Error404';
+import Error500 from './error-pages/Error500';
+import Login from './user-pages/Login';
+import Register1 from './user-pages/Register';
+import Lockscreen from './user-pages/Lockscreen';
 
-const BasicElements = lazy(() => import('./form-elements/BasicElements'));
+// const Dashboard = lazy(() => import('./dashboard/Dashboard'));
+// // const Buttons = lazy(() => import('./basic-ui/Buttons'));
 
-const BasicTable = lazy(() => import('./tables/BasicTable'));
+// const Dropdowns = lazy(() => import('./basic-ui/Dropdowns'));
+// const Typography = lazy(() => import('./basic-ui/Typography'));
 
-const Mdi = lazy(() => import('./icons/Mdi'));
+// const BasicElements = lazy(() => import('./form-elements/BasicElements'));
 
-const ChartJs = lazy(() => import('./charts/ChartJs'));
+// const BasicTable = lazy(() => import('./tables/BasicTable'));
 
-const Error404 = lazy(() => import('./error-pages/Error404'));
-const Error500 = lazy(() => import('./error-pages/Error500'));
+// const Mdi = lazy(() => import('./icons/Mdi'));
 
-const Login = lazy(() => import('./user-pages/Login'));
-const Register1 = lazy(() => import('./user-pages/Register'));
-const Lockscreen = lazy(() => import('./user-pages/Lockscreen'));
+// const ChartJs = lazy(() => import('./charts/ChartJs'));
+
+// const Error404 = lazy(() => import('./error-pages/Error404'));
+// const Error500 = lazy(() => import('./error-pages/Error500'));
+
+// const Login = lazy(() => import('./user-pages/Login'));
+// const Register1 = lazy(() => import('./user-pages/Register'));
+// const Lockscreen = lazy(() => import('./user-pages/Lockscreen'));
 
 class AdminRoutes extends Component {
   render() {

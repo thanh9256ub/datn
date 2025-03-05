@@ -115,7 +115,7 @@ const CreateProduct = () => {
 
             const updatedVariants = variantsData.map(detail => ({
                 ...detail,
-                qrCode: detail.qr || `QR-${detail.id}` // Cập nhật QR từ DB
+                qrCode: detail.qr || `QR-${detail.id}`
             }));
 
             setVariantList(updatedVariants);

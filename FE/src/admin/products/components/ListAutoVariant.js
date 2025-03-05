@@ -5,14 +5,18 @@ import { QRCodeCanvas } from "qrcode.react";
 const ListAutoVariant = ({ variantList, handleInputChange, productName }) => {
 
     const [loading, setLoading] = useState(true);
+    const [isFirstLoad, setIsFirstLoad] = useState(true);
 
     useEffect(() => {
-        if (variantList.length > 0) {
+        if (variantList.length > 0 && isFirstLoad) {
             setLoading(true);
-            const timeout = setTimeout(() => setLoading(false), 1000);
+            const timeout = setTimeout(() => {
+                setLoading(false);
+                setIsFirstLoad(false);
+            }, 1000);
             return () => clearTimeout(timeout);
         }
-    }, [variantList]);
+    }, [variantList, isFirstLoad]);
 
     return (
         <div>
@@ -59,7 +63,7 @@ const ListAutoVariant = ({ variantList, handleInputChange, productName }) => {
                                         />
                                     </td>
                                     <td>
-                                        {variant.qrCode ? (
+                                        {variant.qr ? (
                                             <QRCodeCanvas value={variant.qrCode} size={80} />
                                         ) : (
                                             <span className="text-muted">Chưa có QR</span>

@@ -11,7 +11,7 @@ const BrandSelect = ({ brandId, setBrandId }) => {
 
     useEffect(() => {
         fetchBrands();
-    }, []);
+    }, [brandId]);
 
     // const handleBrandChange = (event) => {
     //     const value = event.target.value;

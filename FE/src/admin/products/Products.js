@@ -5,6 +5,8 @@ import { Alert, Form, Spinner } from 'react-bootstrap';
 import { getProductDetailByProductId } from './service/ProductDetailService';
 import ModalProductDetail from './components/ModalProductDetail'
 import Switch from 'react-switch';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Products = () => {
     const [products, setProducts] = useState([]);
@@ -37,7 +39,14 @@ const Products = () => {
 
         const message = localStorage.getItem("successMessage");
         if (message) {
-            setSuccessMessage(message);
+            toast.success(message, {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true
+            });
             localStorage.removeItem("successMessage");
         }
     }, []);
@@ -117,7 +126,7 @@ const Products = () => {
                                         <tr>
                                             <th>#</th>
                                             <th>Ảnh chính</th>
-                                            <th>Mã sản phẩm</th>
+                                            {/* <th>Mã sản phẩm</th> */}
                                             <th>Tên sản phẩm</th>
                                             <th>Thương hiệu</th>
                                             <th>Danh mục</th>
@@ -135,7 +144,7 @@ const Products = () => {
                                                     <td>
                                                         <span>img.png</span>
                                                     </td>
-                                                    <td>{product.productCode}</td>
+                                                    {/* <td>{product.productCode}</td> */}
                                                     <td>{product.productName}</td>
                                                     <td>{product.brand.brandName}</td>
                                                     <td>{product.category.categoryName}</td>
@@ -147,7 +156,7 @@ const Products = () => {
                                                         </span>
                                                     </td>
                                                     <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                                        <button className="btn btn-warning btn-sm"
+                                                        <button className="btn btn-outline-warning btn-sm btn-rounded btn-icon"
                                                             onClick={() => handleShowProductDetail(product.id, product.productName)}
                                                         >
                                                             <i className='mdi mdi-eye'></i>
@@ -162,10 +171,10 @@ const Products = () => {
                                                             height={20}
                                                             width={40}
                                                         />
-                                                        <button className="btn btn-danger btn-sm ml-2"
+                                                        <button className="btn btn-outline-danger btn-sm btn-rounded btn-icon"
                                                             onClick={() => handleUpdateProduct(product.id)}
                                                         >
-                                                            <i className='mdi mdi-border-color'></i>
+                                                            <i className='mdi mdi mdi-wrench'></i>
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -192,7 +201,7 @@ const Products = () => {
                 refreshProducts={fetchProducts}
             />
 
-
+            <ToastContainer />
         </div>
     )
 }
