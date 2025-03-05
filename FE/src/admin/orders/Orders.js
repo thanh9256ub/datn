@@ -368,7 +368,7 @@ const Orders = () => {
                                                                     "Đã hủy"}
                                         </span>
                                     </td>
-                                    <td>{order.paymentTypeName || "Không có dữ liệu"}</td>
+                                    <td>{order.paymentType.paymentTypeName || "Không có dữ liệu"}</td>
                                     <td>{order.totalPayment.toLocaleString()} VNĐ</td>
                                     <td>
                                         <Button variant="link" className="p-0" style={{ opacity: 0, transition: 'all 0.3s ease', transform: 'scale(0.8)' }}

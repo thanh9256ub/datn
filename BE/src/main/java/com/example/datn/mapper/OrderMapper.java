@@ -23,8 +23,8 @@ public interface OrderMapper {
     @Mapping(target = "paymentMethod",ignore = true)
     Order toOrder(OrderRequest request);
 
-@Mapping(target = "paymentTypeName", source = "paymentType.paymentTypeName")
-    @Mapping(target = "paymentMethodName", source = "paymentMethod.paymentMethodName")
+    @Mapping(target = "paymentType", source = "paymentType")
+    @Mapping(target = "paymentMethod", source = "paymentMethod")
     OrderResponse toOrderResponse(Order order);
 
 
