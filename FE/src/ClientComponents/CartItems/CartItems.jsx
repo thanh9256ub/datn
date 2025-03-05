@@ -14,14 +14,14 @@ const CartItems = () => {
     const [selectedProvince, setSelectedProvince] = useState('');
     const [selectedDistrict, setSelectedDistrict] = useState('');
     const [selectedWard, setSelectedWard] = useState('');
-
-    const GHN_API_KEY = '77a508c5-f919-11ef-91ea-021c91d80158'; // Thay thế bằng API key của bạn
+    const [shippingFee, setShippingFee] = useState(0);  
+    const VIETTELPOST_API_KEY = 'eyJhbGciOiJFUzI1NiJ9.eyJVc2VySWQiOjE1ODQwNzAxLCJGcm9tU291cmNlIjo1LCJUb2tlbiI6Ik1HT0U0WEJLRTBXUDBKOFZYIiwiZXhwIjoxNzQxMjQ1MjkzLCJQYXJ0bmVyIjoxNTg0MDcwMX0.JNB0q9-06-6kSz4XcpEF8PnJBkzJt06vGEeocw0a7XBrQFcgpn937TequZDQArdyKZ5eXUDaYXJw-dH-UqS8Wg'; // Thay thế bằng API key của bạn
 
     useEffect(() => {
         // Lấy danh sách tỉnh/thành phố
-        axios.get('https://cors-anywhere.herokuapp.com/https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/province', {
+        axios.get('https://partner.viettelpost.vn/v2/categories/listProvince', {
             headers: {
-                'Token': GHN_API_KEY
+                'Token': VIETTELPOST_API_KEY
             }
         })
             .then(response => {
@@ -36,9 +36,9 @@ const CartItems = () => {
     useEffect(() => {
         if (selectedProvince) {
             // Lấy danh sách quận/huyện
-            axios.get(`https://cors-anywhere.herokuapp.com/https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=${selectedProvince}`, {
+            axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${selectedProvince}`, {
                 headers: {
-                    'Token': GHN_API_KEY
+                    'Token': VIETTELPOST_API_KEY
                 }
             })
                 .then(response => {
@@ -54,9 +54,9 @@ const CartItems = () => {
     useEffect(() => {
         if (selectedDistrict) {
             // Lấy danh sách phường/xã
-            axios.get(`https://cors-anywhere.herokuapp.com/https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=${selectedDistrict}`, {
+            axios.get(`https://partner.viettelpost.vn/v2/categories/listWards?districtId=${selectedDistrict}`, {
                 headers: {
-                    'Token': GHN_API_KEY
+                    'Token': VIETTELPOST_API_KEY
                 }
             })
                 .then(response => {
@@ -68,6 +68,48 @@ const CartItems = () => {
                 });
         }
     }, [selectedDistrict]);
+    const calculateShippingFee = async () => {
+        if (!selectedProvince || !selectedDistrict || !selectedWard) {
+            alert("Vui lòng chọn đầy đủ địa chỉ.");
+            return;
+        }
+    
+        const payload = {
+            "PRODUCT_PRICE": getTotalCartAmount(),
+            "MONEY_COLLECTION": getTotalCartAmount(),
+            "ORDER_SERVICE_ADD": "1",
+            "ORDER_SERVICE": "3",
+            "SENDER_PROVINCE": selectedProvince,
+            "SENDER_DISTRICT": selectedDistrict,
+            "RECEIVER_PROVINCE": selectedProvince,
+            "RECEIVER_DISTRICT": selectedDistrict,
+            "RECEIVER_WARDS": selectedWard,
+            "PRODUCT_WEIGHT": 1000, // Trọng lượng sản phẩm (gram)
+            "PRODUCT_TYPE": "HH" // Loại hàng hóa
+        };
+    
+        try {
+            const response = await axios.post('https://partner.viettelpost.vn/v2/order/getPrice', payload, {
+                headers: {
+                    'Token': VIETTELPOST_API_KEY,
+                    'Content-Type': 'application/json'
+                }
+            });
+    
+            if (response.data && response.data.data) {
+                setShippingFee(response.data.data.TOTAL);
+            } else {
+                console.error('Không thể tính phí vận chuyển.');
+            }
+        } catch (error) {
+            console.error('Lỗi khi tính phí vận chuyển:', error);
+        }
+    };
+    useEffect(() => {
+        if (selectedProvince && selectedDistrict && selectedWard) {
+            calculateShippingFee();
+        }
+    }, [selectedProvince, selectedDistrict, selectedWard]);
     const handleCheckout = () => {
         if (getTotalCartAmount() === 0) {
             alert("Your cart is empty!");
@@ -178,21 +220,27 @@ const CartItems = () => {
                                 <select value={selectedProvince} onChange={(e) => setSelectedProvince(e.target.value)}>
                                     <option value="">Chọn tỉnh/thành phố</option>
                                     {provinces.map(province => (
-                                        <option key={province.ProvinceID} value={province.ProvinceID}>{province.ProvinceName}</option>
+                                        <option key={province.PROVINCE_ID} value={province.PROVINCE_ID}>
+                                            {province.PROVINCE_NAME}
+                                        </option>
                                     ))}
                                 </select>
 
                                 <select value={selectedDistrict} onChange={(e) => setSelectedDistrict(e.target.value)}>
                                     <option value="">Chọn quận/huyện</option>
                                     {districts.map(district => (
-                                        <option key={district.DistrictID} value={district.DistrictID}>{district.DistrictName}</option>
+                                        <option key={district.DISTRICT_ID} value={district.DISTRICT_ID}>
+                                            {district.DISTRICT_NAME}
+                                        </option>
                                     ))}
                                 </select>
 
                                 <select value={selectedWard} onChange={(e) => setSelectedWard(e.target.value)}>
                                     <option value="">Chọn phường/xã</option>
                                     {wards.map(ward => (
-                                        <option key={ward.WardCode} value={ward.WardCode}>{ward.WardName}</option>
+                                        <option key={ward.WARDS_ID} value={ward.WARDS_ID}>
+                                            {ward.WARDS_NAME}
+                                        </option>
                                     ))}
                                 </select>
                                 <input type="text" name="address" placeholder="Detailed Address" />
