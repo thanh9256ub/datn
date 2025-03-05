@@ -43,6 +43,8 @@
     "react-images": "^1.0.0",
     "react-input-mask": "^3.0.0-alpha.0",
     "react-jvectormap": "0.0.13",
+    "react-qr-code": "^2.0.15",
+    "react-qr-scanner": "^1.0.0-alpha.11",
     "react-quill": "^1.3.3",
     "react-rating": "^1.7.2",
     "react-router-dom": "^5.0.1",
@@ -85,6 +87,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+<<<<<<< HEAD
+  }
+=======
   },
   "proxy": "http://localhost:8080"
+>>>>>>> d15b376e312ff56c18effd6254c0484b8cf62eea
 }

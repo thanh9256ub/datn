@@ -14,35 +14,21 @@ export default function PaymentInfo() {
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
   const [cashPaid, setCashPaid] = useState('');
   const [change, setChange] = useState('');
-  const [totalAmount] = useState(1500000);
+  const [totalAmount] = useState(1500000); // Tổng tiền gốc
 
-  const customers = [
-    { phone: '0375161589', name: 'Nguyễn Khách Huyền' },
-    { phone: '0123456789', name: 'Trần Văn A' },
-    { phone: '0987654321', name: 'Lê Thị B' },
-    { phone: '0912345678', name: 'Phạm Văn C' },
-    { phone: '0908765432', name: 'Nguyễn Thị D' }
-  ];
+  const [qrImageUrl, setQrImageUrl] = useState('');
 
-  const handleSearchCustomer = () => {
-    const customer = customers.find(c => c.phone === phoneNumber);
-    if (customer) {
-      setCustomerName(customer.name);
-      setCustomerType('wholesale');
-    } else {
-      setCustomerName('khách lẻ');
-      setCustomerType('guest');
-      alert('Không tìm thấy khách hàng');
-    }
-  };
-
-  const handleCloseQRModal = () => setIsQRModalVisible(false);
   const handleShowQRModal = () => {
     setIsCashPayment(false);
+
+    // URL QR từ VietQR với thông tin thanh toán
+    const qrUrl = `https://img.vietqr.io/image/MB-20046666666-compact2.jpg?amount=1500000&addInfo=thanh%20toan%20hoa%20don%20cua%20TUAN&accountName=HOANG%20VAN%20TUAN`;
+    setQrImageUrl(qrUrl);
+
     setIsQRModalVisible(true);
   };
 
-  const [delivery, setDelivery] = useState(false);
+  const handleCloseQRModal = () => setIsQRModalVisible(false);
 
   return (
     <div className="container my-4">
@@ -53,23 +39,21 @@ export default function PaymentInfo() {
       <CustomerSearch
         phoneNumber={phoneNumber}
         setPhoneNumber={setPhoneNumber}
-        handleSearchCustomer={handleSearchCustomer}
         customerName={customerName}
         setCustomerName={setCustomerName}
         setCustomerType={setCustomerType}
       />
 
-      <DeliveryInfo delivery={delivery} setDelivery={setDelivery} />
-
+      <DeliveryInfo delivery={false} setDelivery={() => {}} />
       <PromoCode selectedPromoCode={discountCode} setSelectedPromoCode={setDiscountCode} />
 
-      {/* Thông tin thanh toán */}
+      {/* Hiển thị tổng tiền */}
       <h5>Tổng tiền: {totalAmount.toLocaleString()} VND</h5>
       <h5>Giảm giá: 0 VND</h5>
       <h5>Phí vận chuyển: 0 VND</h5>
       <h5>Thanh toán: {totalAmount.toLocaleString()} VND</h5>
 
-      {/* Phương thức thanh toán */}
+      {/* Chọn phương thức thanh toán */}
       <Row className="mb-3">
         <Col sm={7}>
           <Button variant="light" className="w-100" onClick={() => setIsCashPayment(true)}>Tiền mặt</Button>
@@ -79,7 +63,7 @@ export default function PaymentInfo() {
         </Col>
       </Row>
 
-      {/* Hiển thị các trường tiền khách trả và tiền thừa khi chọn Tiền mặt */}
+      {/* Hiển thị ô nhập tiền khách trả nếu chọn tiền mặt */}
       {isCashPayment && (
         <>
           <Row className="mb-3">
@@ -122,16 +106,12 @@ export default function PaymentInfo() {
       </Row>
 
       {/* Modal hiển thị ảnh QR */}
-      <Modal show={isQRModalVisible} onHide={handleCloseQRModal}>
+      <Modal show={isQRModalVisible} onHide={handleCloseQRModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>QR Code Thanh Toán</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <img
-            src="https://via.placeholder.com/400x400.png?text=QR+Code"
-            alt="QR Code"
-            className="w-100"
-          />
+        <Modal.Body className="text-center">
+          {qrImageUrl && <img src={qrImageUrl} alt="QR Code Thanh Toán" className="img-fluid" />}
         </Modal.Body>
       </Modal>
     </div>
