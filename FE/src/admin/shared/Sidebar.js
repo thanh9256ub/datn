@@ -85,6 +85,77 @@ class Sidebar extends Component {
               <i className="mdi mdi-home menu-icon"></i>
             </Link>
           </li>
+          <li className={this.isPathActive('/admin/counter') ? 'nav-item active' : 'nav-item'}>
+            <Link className="nav-link" to="/admin/counter">
+              <span className="menu-title"><Trans>Quầy</Trans></span>
+              <i className="mdi mdi-cart menu-icon"></i>
+            </Link>
+          </li>
+          <li className={this.isPathActive('/admin/products') ? 'nav-item active' : 'nav-item'}>
+            <div className={this.state.productsPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('productsPagesMenuOpen')} data-toggle="collapse">
+              <span className="menu-title"><Trans>Sản phẩm</Trans></span>
+              <i className="menu-arrow"></i>
+              <i className="mdi mdi-archive menu-icon"></i>
+            </div>
+            <Collapse in={this.state.productsPagesMenuOpen}>
+              <ul className="nav flex-column sub-menu">
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/products') ? 'nav-link active' : 'nav-link'} to="/admin/products"><Trans>Sản phẩm</Trans></Link></li>
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/products/inactive') ? 'nav-link active' : 'nav-link'} to="/admin/products/inactive"><Trans>Kho lưu trữ</Trans></Link></li>
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/brands') ? 'nav-link active' : 'nav-link'} to="/admin/brands"><Trans>Thương hiệu</Trans></Link></li>
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/categories') ? 'nav-link active' : 'nav-link'} to="/admin/categories"><Trans>Danh mục</Trans></Link></li>
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/materials') ? 'nav-link active' : 'nav-link'} to="/admin/materials"><Trans>Chất liệu</Trans></Link></li>
+              </ul>
+            </Collapse>
+          </li>
+          <li className={this.isPathActive('/admin/employees') ? 'nav-item active' : 'nav-item'}>
+            <div className={this.state.employeesPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('employeesPagesMenuOpen')} data-toggle="collapse">
+              <span className="menu-title"><Trans>Nhân viên</Trans></span>
+              <i className="menu-arrow"></i>
+              <i className="mdi mdi-account-card-details menu-icon"></i>
+            </div>
+            <Collapse in={this.state.employeesPagesMenuOpen}>
+              <ul className="nav flex-column sub-menu">
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/employees') ? 'nav-link active' : 'nav-link'} to="/admin/employees"><Trans>Employees</Trans></Link></li>
+              </ul>
+            </Collapse>
+          </li>
+          <li className={this.isPathActive('/admin/customers') ? 'nav-item active' : 'nav-item'}>
+            <div className={this.state.customersPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('customersPagesMenuOpen')} data-toggle="collapse">
+              <span className="menu-title"><Trans>Khách hàng</Trans></span>
+              <i className="menu-arrow"></i>
+              <i className="mdi mdi-account-circle menu-icon"></i>
+            </div>
+            <Collapse in={this.state.customersPagesMenuOpen}>
+              <ul className="nav flex-column sub-menu">
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/customers') ? 'nav-link active' : 'nav-link'} to="/admin/customers"><Trans>Customers</Trans></Link></li>
+              </ul>
+            </Collapse>
+          </li>
+          <li className={this.isPathActive('/admin/orders') ? 'nav-item active' : 'nav-item'}>
+            <div className={this.state.ordersPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('ordersPagesMenuOpen')} data-toggle="collapse">
+              <span className="menu-title"><Trans>Đơn hàng</Trans></span>
+              <i className="menu-arrow"></i>
+              <i className="mdi mdi-clipboard menu-icon"></i>
+            </div>
+            <Collapse in={this.state.ordersPagesMenuOpen}>
+              <ul className="nav flex-column sub-menu">
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/orders') ? 'nav-link active' : 'nav-link'} to="/admin/orders"><Trans>Orders</Trans></Link></li>
+              </ul>
+            </Collapse>
+          </li>
+          <li className={this.isPathActive('/admin/vouchers') ? 'nav-item active' : 'nav-item'}>
+            <div className={this.state.vouchersPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('vouchersPagesMenuOpen')} data-toggle="collapse">
+              <span className="menu-title"><Trans>Khuyến mại</Trans></span>
+              <i className="menu-arrow"></i>
+              <i className="mdi mdi-sale menu-icon"></i>
+            </div>
+            <Collapse in={this.state.vouchersPagesMenuOpen}>
+              <ul className="nav flex-column sub-menu">
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/vouchers') ? 'nav-link active' : 'nav-link'} to="/admin/vouchers"><Trans>Vouchers</Trans></Link></li>
+              </ul>
+            </Collapse>
+          </li>
+          <hr />
           <li className={this.isPathActive('/admin/basic-ui') ? 'nav-item active' : 'nav-item'}>
             <div className={this.state.basicUiMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('basicUiMenuOpen')} data-toggle="collapse">
               <span className="menu-title"><Trans>Basic UI Elements</Trans></span>
@@ -171,76 +242,6 @@ class Sidebar extends Component {
               <ul className="nav flex-column sub-menu">
                 <li className="nav-item"> <Link className={this.isPathActive('/admin/error-pages/error-404') ? 'nav-link active' : 'nav-link'} to="/admin/error-pages/error-404">404</Link></li>
                 <li className="nav-item"> <Link className={this.isPathActive('/admin/error-pages/error-500') ? 'nav-link active' : 'nav-link'} to="/admin/error-pages/error-500">500</Link></li>
-              </ul>
-            </Collapse>
-          </li>
-          <li className={this.isPathActive('/admin/counter') ? 'nav-item active' : 'nav-item'}>
-            <Link className="nav-link" to="/admin/counter">
-              <span className="menu-title"><Trans>Quầy</Trans></span>
-              <i className="mdi mdi-cart menu-icon"></i>
-            </Link>
-          </li>
-          <li className={this.isPathActive('/admin/products') ? 'nav-item active' : 'nav-item'}>
-            <div className={this.state.productsPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('productsPagesMenuOpen')} data-toggle="collapse">
-              <span className="menu-title"><Trans>Sản phẩm</Trans></span>
-              <i className="menu-arrow"></i>
-              <i className="mdi mdi-archive menu-icon"></i>
-            </div>
-            <Collapse in={this.state.productsPagesMenuOpen}>
-              <ul className="nav flex-column sub-menu">
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/products') ? 'nav-link active' : 'nav-link'} to="/admin/products"><Trans>Sản phẩm</Trans></Link></li>
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/products/inactive') ? 'nav-link active' : 'nav-link'} to="/admin/products/inactive"><Trans>Kho lưu trữ</Trans></Link></li>
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/brands') ? 'nav-link active' : 'nav-link'} to="/admin/brands"><Trans>Thương hiệu</Trans></Link></li>
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/categories') ? 'nav-link active' : 'nav-link'} to="/admin/categories"><Trans>Danh mục</Trans></Link></li>
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/materials') ? 'nav-link active' : 'nav-link'} to="/admin/materials"><Trans>Chất liệu</Trans></Link></li>
-              </ul>
-            </Collapse>
-          </li>
-          <li className={this.isPathActive('/admin/employees') ? 'nav-item active' : 'nav-item'}>
-            <div className={this.state.employeesPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('employeesPagesMenuOpen')} data-toggle="collapse">
-              <span className="menu-title"><Trans>Nhân viên</Trans></span>
-              <i className="menu-arrow"></i>
-              <i className="mdi mdi-account-card-details menu-icon"></i>
-            </div>
-            <Collapse in={this.state.employeesPagesMenuOpen}>
-              <ul className="nav flex-column sub-menu">
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/employees') ? 'nav-link active' : 'nav-link'} to="/admin/employees"><Trans>Employees</Trans></Link></li>
-              </ul>
-            </Collapse>
-          </li>
-          <li className={this.isPathActive('/admin/customers') ? 'nav-item active' : 'nav-item'}>
-            <div className={this.state.customersPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('customersPagesMenuOpen')} data-toggle="collapse">
-              <span className="menu-title"><Trans>Khách hàng</Trans></span>
-              <i className="menu-arrow"></i>
-              <i className="mdi mdi-account-circle menu-icon"></i>
-            </div>
-            <Collapse in={this.state.customersPagesMenuOpen}>
-              <ul className="nav flex-column sub-menu">
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/customers') ? 'nav-link active' : 'nav-link'} to="/admin/customers"><Trans>Customers</Trans></Link></li>
-              </ul>
-            </Collapse>
-          </li>
-          <li className={this.isPathActive('/admin/orders') ? 'nav-item active' : 'nav-item'}>
-            <div className={this.state.ordersPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('ordersPagesMenuOpen')} data-toggle="collapse">
-              <span className="menu-title"><Trans>Đơn hàng</Trans></span>
-              <i className="menu-arrow"></i>
-              <i className="mdi mdi-clipboard menu-icon"></i>
-            </div>
-            <Collapse in={this.state.ordersPagesMenuOpen}>
-              <ul className="nav flex-column sub-menu">
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/orders') ? 'nav-link active' : 'nav-link'} to="/admin/orders"><Trans>Orders</Trans></Link></li>
-              </ul>
-            </Collapse>
-          </li>
-          <li className={this.isPathActive('/admin/vouchers') ? 'nav-item active' : 'nav-item'}>
-            <div className={this.state.vouchersPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('vouchersPagesMenuOpen')} data-toggle="collapse">
-              <span className="menu-title"><Trans>Khuyến mại</Trans></span>
-              <i className="menu-arrow"></i>
-              <i className="mdi mdi-sale menu-icon"></i>
-            </div>
-            <Collapse in={this.state.vouchersPagesMenuOpen}>
-              <ul className="nav flex-column sub-menu">
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/vouchers') ? 'nav-link active' : 'nav-link'} to="/admin/vouchers"><Trans>Vouchers</Trans></Link></li>
               </ul>
             </Collapse>
           </li>

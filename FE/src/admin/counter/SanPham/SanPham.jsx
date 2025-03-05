@@ -187,11 +187,11 @@ const Cart = ({ selectedInvoice }) => {
         </Col>
         <Col className="d-flex justify-content-end">
           <div className="d-flex align-items-center">
-             {/* Quét mã QR */}
-             {isQrReaderVisible && (
+            {/* Quét mã QR */}
+            {isQrReaderVisible && (
               <div>
                 <QrReader
-                  delay={2000}
+                  delay={5000}
                   style={{ width: '45%' }}
                   onError={handleError}
                   onScan={handleScan}
@@ -203,7 +203,7 @@ const Cart = ({ selectedInvoice }) => {
               style={{ fontSize: '36px', cursor: 'pointer' }}
               onClick={() => setIsQrReaderVisible(!isQrReaderVisible)}
             ></i>
-           
+
           </div>
 
         </Col>
