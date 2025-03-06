@@ -4,7 +4,7 @@ import CustomerSearch from './CustomerSearch';
 import DeliveryInfo from './DeliveryInfo';
 import PromoCode from './PromoCode';
 
-export default function PaymentInfo() {
+const PaymentInfo = ({ totalAmount }) => {
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [customerType, setCustomerType] = useState('guest');
   const [customerName, setCustomerName] = useState('khách lẻ');
@@ -14,15 +14,13 @@ export default function PaymentInfo() {
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
   const [cashPaid, setCashPaid] = useState('');
   const [change, setChange] = useState('');
-  const [totalAmount] = useState(1500000); // Tổng tiền gốc
-
   const [qrImageUrl, setQrImageUrl] = useState('');
 
   const handleShowQRModal = () => {
     setIsCashPayment(false);
 
     // URL QR từ VietQR với thông tin thanh toán
-    const qrUrl = `https://img.vietqr.io/image/MB-20046666666-compact2.jpg?amount=1500000&addInfo=thanh%20toan%20hoa%20don%20cua%20TUAN&accountName=HOANG%20VAN%20TUAN`;
+    const qrUrl = `https://img.vietqr.io/image/MB-20046666666-compact2.jpg?amount=${totalAmount}&addInfo=thanh%20toan%20hoa%20don%20cua%20TUAN&accountName=HOANG%20VAN%20TUAN`;
     setQrImageUrl(qrUrl);
 
     setIsQRModalVisible(true);
@@ -116,4 +114,6 @@ export default function PaymentInfo() {
       </Modal>
     </div>
   );
-}
+};
+
+export default PaymentInfo;

@@ -9,6 +9,7 @@ const BanHang = () => {
   const [invoices, setInvoices] = useState([]);
   const [canAdd, setCanAdd] = useState(true);
   const [invoiceCount, setInvoiceCount] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
 
   const fetchInvoices = () => {
     axios.get('http://localhost:8080/order')
@@ -65,6 +66,10 @@ const BanHang = () => {
     }
   };
 
+  const updateTotalAmount = (amount) => {
+    setTotalAmount(amount);
+  };
+
   return (
     <div style={{ backgroundColor: "white" }}>
       <Row className="align-items">
@@ -99,12 +104,12 @@ const BanHang = () => {
                 ))}
               </div>
             </div>
-            <SanPham selectedInvoice={selectedInvoiceId} />
+            <SanPham selectedInvoice={selectedInvoiceId} updateTotalAmount={updateTotalAmount} />
           </div>
         </Col>
         <Col md={4}>
           <div className="p-3 border">
-            <ThanhToan />
+            <ThanhToan totalAmount={totalAmount} />
           </div>
         </Col>
       </Row>
