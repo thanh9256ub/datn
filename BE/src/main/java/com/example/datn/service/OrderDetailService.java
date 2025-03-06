@@ -50,15 +50,19 @@ public class OrderDetailService {
 
     @Autowired
     private ProductDetailRepository productDetailRepository;
+@Autowired
+private ProductDetailService productDetailService;
 
     public void updateProductQuantity(Integer productId, Integer quantity) {
         ProductDetail productDetail = productDetailRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
         productDetail.setQuantity(productDetail.getQuantity() - quantity);
+        productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
         productDetailRepository.save(productDetail);
     }
 
     public void updateProductDetail(Integer orderid, Integer productId, Integer quantity) {
         ProductDetail productDetail = productDetailRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
+        productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
         OrderDetail orderDetail = repository.findById(orderid).orElseThrow(() -> new RuntimeException("order not found"));
         productDetail.setQuantity(productDetail.getQuantity() + orderDetail.getQuantity() - quantity);
         productDetailRepository.save(productDetail);
