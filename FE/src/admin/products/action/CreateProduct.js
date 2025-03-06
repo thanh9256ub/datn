@@ -6,10 +6,10 @@ import MaterialSelect from '../select/MaterialSelect';
 import ColorSelect from '../select/ColorSelect';
 import SizeSelect from '../select/SizeSelect';
 import ListAutoVariant from '../components/ListAutoVariant';
-import { createProduct } from '../service/ProductService';
 import { createProductDetail, updateQR } from '../service/ProductDetailService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
-import QRCode from "qrcode.react";
+import MainImage from '../components/MainImage';
+import { createProduct } from '../service/ProductService';
 
 const CreateProduct = () => {
     const [productName, setProductName] = useState("");
@@ -27,6 +27,18 @@ const CreateProduct = () => {
     const [commonQuantity, setCommonQuantity] = useState("");
     const [commonPrice, setCommonPrice] = useState("");
 
+    // const [mainImage, setMainImage] = useState(null);
+
+    const [productData, setProductData] = useState({
+        productName,
+        brandId,
+        categoryId,
+        materialId,
+        totalQuantity,
+        status,
+        mainImage: ''
+    });
+
     const handleOpenModal = () => setShowModal(true);
     const handleCloseModal = () => {
         setShowModal(false);
@@ -35,7 +47,7 @@ const CreateProduct = () => {
     };
 
     const handleColorChange = (colors) => {
-        setColorIds(colors || []); // 🛠️ Đảm bảo không có giá trị `undefined`
+        setColorIds(colors || []);
         generateVariants(colors, sizeIds);
     };
 
@@ -84,17 +96,17 @@ const CreateProduct = () => {
 
     const history = useHistory();
 
-    const createProductData = () => {
-        return {
-            productName,
-            brandId: brandId ? parseInt(brandId) : null,
-            categoryId: categoryId ? parseInt(categoryId) : null,
-            materialId: materialId ? parseInt(materialId) : null,
-            mainImage: "image.png",
-            totalQuantity,
-            status
-        }
-    }
+    // const createProductData = () => {
+    //     return {
+    //         productName,
+    //         brandId: brandId ? parseInt(brandId) : null,
+    //         categoryId: categoryId ? parseInt(categoryId) : null,
+    //         materialId: materialId ? parseInt(materialId) : null,
+    //         mainImage: mainImage,
+    //         totalQuantity,
+    //         status
+    //     }
+    // }
 
     const createProductDetails = async (productId) => {
         const variantData = variantList.map(variant => {
@@ -140,8 +152,8 @@ const CreateProduct = () => {
     };
 
     const saveProduct = async () => {
-        if (!productName || !brandId || !categoryId || !materialId) {
-            alert("Vui lòng nhập đầy đủ thông tin sản phẩm!");
+        if (!productName || !brandId || !categoryId || !materialId || !productData.mainImage) {
+            alert("Vui lòng nhập đầy đủ thông tin sản phẩm và ảnh chính!");
             return;
         }
 
@@ -149,10 +161,21 @@ const CreateProduct = () => {
         if (!isConfirmed) return;
 
         try {
-            const productData = createProductData();
-            console.log("Dữ liệu gửi lên API:", productData);
+            // const productData = createProductData();
+            // console.log("Dữ liệu gửi lên API:", productData);
 
-            const productResponse = await createProduct(productData);
+            const productRequest = {
+                productName,
+                brandId,
+                categoryId,
+                materialId,
+                totalQuantity,
+                status,
+                mainImage: productData.mainImage
+            };
+
+            // const productResponse = await createProduct(mainImage, productData);
+            const productResponse = await createProduct(productRequest);
             const productId = productResponse.data.data.id;
             console.log("Sản phẩm được tạo:", productResponse.data.data);
 
@@ -221,6 +244,10 @@ const CreateProduct = () => {
                                     </div>
                                     <div className="col-md-6">
                                         <MaterialSelect materialId={materialId} setMaterialId={setMaterialId} />
+                                    </div>
+                                    <div className="col-md-6">
+                                        {/* <MainImage setMainImage={setMainImage} /> */}
+                                        <MainImage setMainImage={(url) => setProductData({ ...productData, mainImage: url })} />
                                     </div>
                                 </div>
                                 <div style={{ marginBottom: '20px' }}></div>
