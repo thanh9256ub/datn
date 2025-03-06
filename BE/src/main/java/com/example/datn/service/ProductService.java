@@ -14,6 +14,7 @@ import com.example.datn.repository.CategoryRepository;
 import com.example.datn.repository.MaterialRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -44,7 +45,6 @@ public class ProductService {
     }
 
     public ProductResponse createProduct(ProductRequest request){
-
         Brand brand = brandRepository.findById(request.getBrandId())
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found with ID: " + request.getBrandId()));
 
