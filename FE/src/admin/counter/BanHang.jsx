@@ -13,7 +13,7 @@ const BanHang = () => {
   const fetchInvoices = () => {
     axios.get('http://localhost:8080/order')
       .then(response => {
-        const filteredInvoices = response.data.data.filter(invoice => invoice.status === 1);
+        const filteredInvoices = response.data.data.filter(invoice => invoice.status === 0);
         setInvoices(filteredInvoices);
         setInvoiceCount(filteredInvoices.length);
         console.log('Fetched orders:', filteredInvoices);

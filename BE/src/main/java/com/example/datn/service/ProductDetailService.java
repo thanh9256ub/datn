@@ -103,7 +103,7 @@ public class ProductDetailService {
         return mapper.toProductDetailResponse(productDetail);
     }
 
-    private void updateTotalQuantity(Integer productId) {
+    public void updateTotalQuantity(Integer productId) {
 
         Integer updatedTotalQuantity = repository.sumQuantityByProductId(productId);
 
