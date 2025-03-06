@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Modal, Button, Table, Form } from 'react-bootstrap';
 import axios from 'axios';
 import QrReader from 'react-qr-scanner';
-import debounce from 'lodash.debounce';
+
 
 const Cart = ({ selectedInvoice, updateTotalAmount }) => {
 
@@ -99,23 +99,20 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
 
   };
   // Hàm xử lý khi quét mã QR
-  const handleScanDebounced = debounce(handleScan, 1000);
   const handleScan = (data) => {
     if (data) {
-      setQrCodeData(data); // Lưu dữ liệu quét được vào state
-    console.log(qrCodeData.text);
-    console.log(qrCodeData);
-      axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoice}&productID=${qrCodeData.text}&purchaseQuantity=1`)
+      
+      axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoice}&productID=${data.text}&purchaseQuantity=1`)
         .then(response => {
           // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
           fetchProducts();
           fetchOrderItems();
-
         })
         .catch(error => console.error('Error adding to cart:', error));
-
     }
   };
+
+  //const handleScanDebounced = debounce(handleScan, 1000);
 
   // Hàm xử lý khi không quét được mã QR
   const handleError = (error) => {
@@ -201,17 +198,17 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
                   {isQrReaderVisible && (
                     <div>
                     <QrReader
-                      delay={1500}
+                      delay={500}
                       style={{ width: '45%' }}
                       onError={handleError}
-                      onScan={handleScanDebounced}
+                      onScan={handleScan}
                     />
                     </div> 
                   )}
                   <i
                     className="mdi mdi-qrcode-scan mr-5"
                     style={{ fontSize: '36px', cursor: 'pointer' }}
-                    onClick={() => setIsQrReaderVisible(!isQrReaderVisible)}
+                    onClick={() => setIsQrReaderVisible(!isQrReaderVisible)} 
                   ></i>
 
                   </div>
