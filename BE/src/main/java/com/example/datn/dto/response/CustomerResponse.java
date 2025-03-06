@@ -1,8 +1,7 @@
 package com.example.datn.dto.response;
 
+import com.example.datn.entity.Address;
 import com.example.datn.entity.Customer;
-import com.example.datn.entity.Role;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 @Data
 @AllArgsConstructor
@@ -23,6 +23,8 @@ public class CustomerResponse {
 
     String fullName;
 
+    String birthDate;
+
     String gender;
 
     String phone;
@@ -35,19 +37,28 @@ public class CustomerResponse {
 
     String updatedAt;
 
-    @JsonProperty("role_id")
     Integer roleId;
+
+    String address;
 
     public CustomerResponse(Customer customer) {
         this.id = customer.getId();
         this.customerCode = customer.getCustomerCode();
         this.fullName = customer.getFullName();
+        this.birthDate = customer.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         this.gender = customer.getGender();
         this.phone = customer.getPhone();
         this.email = customer.getEmail();
         this.password = customer.getPassword();
-        this.createdAt = customer.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        this.updatedAt = customer.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        this.roleId = customer.getRoLe().getId();
+        this.createdAt = customer.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        this.updatedAt = Objects.isNull(customer.getUpdatedAt())
+                ? customer.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                : customer.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        this.roleId = Objects.isNull(customer.getRole()) ? 0 : customer.getRole().getId();
+        if (customer.getAddressList() != null)
+            for (Address addressDetail : customer.getAddressList()) {
+                if (addressDetail.getDefaultAddress())
+                    this.address = addressDetail.getCity();
+            }
     }
 }

@@ -7,6 +7,9 @@ import Employees from './employees/Employees';
 import Customers from './customers/Customers';
 import Orders from './orders/Orders';
 import Vouchers from './vouchers/Vouchers';
+import CreateEmployee from './employees/action/CreateEmployee';
+import UpdateEmployee from './employees/action/UpdateEmployee';
+import CreateCustomer from './customers/action/CreateCustomer';
 
 const Dashboard = lazy(() => import('./dashboard/Dashboard'));
 const Buttons = lazy(() => import('./basic-ui/Buttons'));
@@ -58,7 +61,10 @@ class AdminRoutes extends Component {
           <Route exact path="/admin/counter" component={BanHang} />
           <Route exact path="/admin/products" component={Products} />
           <Route exact path="/admin/employees" component={Employees} />
+          <Route exact path="/admin/employees/add" component={CreateEmployee} />
+          <Route exact path="/admin/employees/update" component={UpdateEmployee} />
           <Route exact path="/admin/customers" component={Customers} />
+          <Route exact path="/admin/customers/add" component={CreateCustomer} />
           <Route exact path="/admin/orders" component={Orders} />
           <Route exact path="/admin/vouchers" component={Vouchers} />
 

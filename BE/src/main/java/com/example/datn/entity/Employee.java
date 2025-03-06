@@ -53,7 +53,7 @@ public class Employee {
 
     @ManyToOne
     @JoinColumn(name = "role_id",referencedColumnName = "id")
-    private Role roLe;
+    private Role role;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

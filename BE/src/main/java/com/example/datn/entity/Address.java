@@ -37,11 +37,14 @@ public class Address {
     private String detailedAddress;
 
     @ManyToOne
-    @JoinColumn(name = "customer_id",referencedColumnName = "id")
+    @JoinColumn(name = "customer_id", referencedColumnName = "id")
     private Customer customer;
 
     @Column(name = "status")
     private Integer status;
+
+    @Column(name = "default_address")
+    private Boolean defaultAddress;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
