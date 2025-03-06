@@ -6,9 +6,8 @@ import PromoCode from './PromoCode';
 
 const PaymentInfo = ({ totalAmount }) => {
   const [paymentMethod, setPaymentMethod] = useState('cash');
-  const [customerType, setCustomerType] = useState('guest');
-  const [customerName, setCustomerName] = useState('khách lẻ');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [customer, setCustomer] = useState(null);
+ 
   const [discountCode, setDiscountCode] = useState('');
   const [isCashPayment, setIsCashPayment] = useState(false);
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
@@ -35,11 +34,10 @@ const PaymentInfo = ({ totalAmount }) => {
       <br />
 
       <CustomerSearch
-        phoneNumber={phoneNumber}
-        setPhoneNumber={setPhoneNumber}
-        customerName={customerName}
-        setCustomerName={setCustomerName}
-        setCustomerType={setCustomerType}
+      
+        customer={customer}
+        setCustomer={setCustomer}
+       
       />
 
       <DeliveryInfo delivery={false} setDelivery={() => {}} />

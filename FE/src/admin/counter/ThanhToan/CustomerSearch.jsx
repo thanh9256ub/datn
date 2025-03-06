@@ -2,33 +2,29 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Row, Col, InputGroup, Form, Button } from 'react-bootstrap';
 
-const CustomerSearch = ({ phoneNumber, setPhoneNumber, customerName, setCustomerName, setCustomerType }) => {
+const CustomerSearch = ({ customer, setCustomer }) => {
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleSearchCustomer = async () => {
-
     setErrorMessage('Đang tìm kiếm...');
 
     axios.get('http://localhost:8080/customer')
       .then(response => {
-        // Chuẩn hóa số điện thoại: loại bỏ dấu cách và chỉ giữ lại số
-        const normalizedPhoneNumber = phoneNumber.trim().replace(/\D/g, '');
-
-        const customer = response.data.data.find(c =>
-          c.phone.replace(/\D/g, '') === normalizedPhoneNumber
-        );
+        const customer = response.data.data.find(c => c.phone === phoneNumber);
 
         if (!customer) {
           setErrorMessage('Không tìm thấy khách hàng');
           return;
         }
 
-        setCustomerName(customer.fullName);
+        setCustomer(customer);
         setErrorMessage('');
       })
-      .catch(error => console.error('Lỗi tìm kiếm khách hàng:', error));
-
-
+      .catch(error => {
+        console.error('Lỗi tìm kiếm khách hàng:', error);
+        setErrorMessage('Lỗi tìm kiếm khách hàng');
+      });
   };
 
   return (
@@ -56,12 +52,11 @@ const CustomerSearch = ({ phoneNumber, setPhoneNumber, customerName, setCustomer
       <Row className="mb-3">
         <Col sm={12}>
           <InputGroup>
-            <h5 style={{ marginRight: "15px" }}>Khách hàng: {customerName}</h5>
+            <h5 style={{ marginRight: "15px" }}>Khách hàng: {customer ? customer.fullName  : 'khách lẻ'}</h5>
             <h5
               style={{ cursor: "pointer", color: "red" }}
               onClick={() => {
-                setCustomerType('guest');
-                setCustomerName('khách lẻ');
+                setCustomer(null);
                 setPhoneNumber('');
               }}
             >
