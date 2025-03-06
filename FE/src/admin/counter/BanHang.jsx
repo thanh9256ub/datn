@@ -34,7 +34,7 @@ const BanHang = () => {
     axios.post('http://localhost:8080/order/add', newInvoice)
       .then(response => {
         setCanAdd(false);
-        fetchInvoices(); 
+        fetchInvoices();
         setCanAdd(true);
       })
       .catch(error => console.error('Error adding invoice:', error));

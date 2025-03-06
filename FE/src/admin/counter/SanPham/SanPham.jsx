@@ -199,7 +199,7 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
             {isQrReaderVisible && (
               <div>
                 <QrReader
-                  delay={2000}
+                  delay={5000}
                   style={{ width: '45%' }}
                   onError={handleError}
                   onScan={handleScan}

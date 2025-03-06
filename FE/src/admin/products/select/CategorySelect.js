@@ -11,7 +11,7 @@ const CategorySelect = ({ categoryId, setCategoryId }) => {
 
     useEffect(() => {
         fetchCategorys();
-    }, []);
+    }, [categoryId]);
 
     const handleCategoryChange = (selectedOption) => {
         setSelectedCategory(selectedOption);
