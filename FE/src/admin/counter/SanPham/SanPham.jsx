@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Modal, Button, Table, Form } from 'react-bootstrap';
 import axios from 'axios';
 import QrReader from 'react-qr-scanner';
+import debounce from 'lodash.debounce';
 
 const Cart = ({ selectedInvoice, updateTotalAmount }) => {
 
@@ -98,12 +99,13 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
 
   };
   // Hàm xử lý khi quét mã QR
+  const handleScanDebounced = debounce(handleScan, 1000);
   const handleScan = (data) => {
     if (data) {
       setQrCodeData(data); // Lưu dữ liệu quét được vào state
-      console.log("QR Code data:", data.text);
-
-      axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoice}&productID=${data.text}&purchaseQuantity=${quantity}`)
+    console.log(qrCodeData.text);
+    console.log(qrCodeData);
+      axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoice}&productID=${qrCodeData.text}&purchaseQuantity=1`)
         .then(response => {
           // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
           fetchProducts();
@@ -195,31 +197,31 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
         </Col>
         <Col className="d-flex justify-content-end">
           <div className="d-flex align-items-center">
-            {/* Quét mã QR */}
-            {isQrReaderVisible && (
-              <div>
-                <QrReader
-                  delay={5000}
-                  style={{ width: '45%' }}
-                  onError={handleError}
-                  onScan={handleScan}
-                />
-              </div>
-            )}
-            <i
-              className="mdi mdi-qrcode-scan mr-5"
-              style={{ fontSize: '36px', cursor: 'pointer' }}
-              onClick={() => setIsQrReaderVisible(!isQrReaderVisible)}
-            ></i>
+           
+                  {isQrReaderVisible && (
+                    <div>
+                    <QrReader
+                      delay={1500}
+                      style={{ width: '45%' }}
+                      onError={handleError}
+                      onScan={handleScanDebounced}
+                    />
+                    </div> 
+                  )}
+                  <i
+                    className="mdi mdi-qrcode-scan mr-5"
+                    style={{ fontSize: '36px', cursor: 'pointer' }}
+                    onClick={() => setIsQrReaderVisible(!isQrReaderVisible)}
+                  ></i>
 
-          </div>
+                  </div>
 
-        </Col>
-      </Row>
+                </Col>
+                </Row>
 
-      <hr />
+                <hr />
 
-      {/* Bảng chọn sản phẩm */}
+                {/* Bảng chọn sản phẩm */}
       <div className="table-responsive">
         <Table hover>
           <thead>
