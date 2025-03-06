@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Modal, Button, Table, Form } from 'react-bootstrap';
 import axios from 'axios';
 import QrReader from 'react-qr-scanner';
-const Cart = ({ selectedInvoice }) => {
+
+const Cart = ({ selectedInvoice, updateTotalAmount }) => {
 
   const [availableProducts, setAvailableProducts] = useState([]);
   const [items, setItems] = useState([]);
@@ -22,12 +23,19 @@ const Cart = ({ selectedInvoice }) => {
       .catch(error => console.error('Error fetching products:', error));
   };
 
+  const calculateTotalAmount = (items) => {
+    items = items.filter(item => item.order.id === selectedInvoice);
+    const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
+    updateTotalAmount(total);
+  };
+
   const fetchOrderItems = () => {
     if (selectedInvoice) {
       axios.get(`http://localhost:8080/order-detail`)
         .then(response => {
           const orderItems = response.data.data;
           setItems(orderItems);
+          calculateTotalAmount(orderItems);
         })
         .catch(error => console.error('Error fetching order items:', error));
     }
@@ -138,15 +146,16 @@ const Cart = ({ selectedInvoice }) => {
 
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <Button variant="secondary" className="rounded-pill px-3 py-2"
-                        onClick={() => handleQuantityChange(item.id, item.productDetail.id, Math.max(1, item.quantity - 1))}
 
-                      >
-                        -
-                      </Button>
+
+
+                      <button type="button" class="btn btn-outline-secondary btn-rounded btn-icon"
+                        onClick={() => handleQuantityChange(item.id, item.productDetail.id, Math.max(1, item.quantity - 1))}
+                      ><i class="mdi mdi-minus"></i></button>
+
 
                       <Form.Control
-                        type="number"
+                        type="tel"
                         min="1"
                         value={item.quantity}
                         onChange={(e) => handleQuantityChange(item.id, item.productDetail.id, Number(e.target.value))}
@@ -155,15 +164,14 @@ const Cart = ({ selectedInvoice }) => {
                             handleRemoveItem(item.id, item.productDetail.id);
                           }
                         }}
-                        style={{ width: '100px' }}
+                        style={{ width: '50px', textAlign: 'center' }}
                       />
-
-                      <Button variant="secondary" className="rounded-pill px-3 py-2"
+                      <button type="button" class="btn btn-outline-secondary btn-sm btn-rounded btn-icon "
                         onClick={() => handleQuantityChange(item.id, item.productDetail.id, item.quantity + 1)}
-
                       >
-                        +
-                      </Button>
+                        <i class="mdi mdi-plus"></i>
+                      </button>
+
                     </div>
                   </td>
 
