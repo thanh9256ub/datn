@@ -3,6 +3,7 @@ package com.example.datn.controller;
 import com.example.datn.dto.request.ProductRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.ProductResponse;
+import com.example.datn.entity.Product;
 import com.example.datn.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("products")
 public class ProductController {
@@ -21,7 +23,7 @@ public class ProductController {
     ProductService service;
 
     @PostMapping("add")
-    public ResponseEntity<ApiResponse<ProductResponse>> addProduct(@Valid @RequestBody ProductRequest request){
+    public ResponseEntity<ApiResponse<ProductResponse>> addProduct(@Valid @RequestBody ProductRequest request) {
 
         ProductResponse productResponse = service.createProduct(request);
 
@@ -35,23 +37,38 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAll(){
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAll() {
 
         List<ProductResponse> list = service.getAll();
 
         ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
-                "Brands retrieved successfully",
+                "Products retrieved successfully",
                 list
         );
 
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<ProductResponse>> getById(@PathVariable("id") Integer id){
+
+        ProductResponse productResponse = service.getById(id);
+
+        ApiResponse<ProductResponse> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Successfully",
+                productResponse
+        );
+
+        return ResponseEntity.ok(response);
+
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
-                @PathVariable("id") Integer id,
-                @Valid @RequestBody ProductRequest request){
+            @Valid @RequestBody ProductRequest request,
+            @PathVariable("id") Integer id) {
 
         ProductResponse productResponse = service.updateProduct(id, request);
 
@@ -65,7 +82,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<ProductResponse>> deleteProduct(@PathVariable("id") Integer id){
+    public ResponseEntity<ApiResponse<ProductResponse>> deleteProduct(@PathVariable("id") Integer id) {
 
         service.deleteProduct(id);
 
@@ -77,5 +94,22 @@ public class ProductController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{productId}")
+    public ResponseEntity<ApiResponse<ProductResponse>> updateProductStatus(
+            @PathVariable("productId") Integer productId,
+            @RequestParam("status") Integer status) {
+
+        ProductResponse productResponse = service.updateStatus(productId, status);
+
+        ApiResponse<ProductResponse> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Update status successfully",
+                productResponse
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
 
 }

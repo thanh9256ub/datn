@@ -29,27 +29,27 @@ const ProductDisplay = (props) => {
                     <div className="productdisplay-right-price-new">${product.new_price}</div>
                 </div>
                 <div className="productdisplay-right-description">
-                    descripstion
+                    Số lượng hàng: 20
                 </div>
                 <div className="productdisplay-right-color">
                     <h1>Select Color</h1>
                     <div className="productdisplay-right-colors">
-                        <div>Grey</div>
-                        <div>Black</div>
-                        <div>White</div>
+                        <button>Grey</button>
+                        <button>White</button>
+                        <button>Black</button>
                     </div>
                 </div>
                 <div className="productdisplay-right-size">
                     <h1>Select Size</h1>
                     <div className="productdisplay-right-sizes">
-                        <div>35</div>
-                        <div>36</div>
-                        <div>37</div>
-                        <div>38</div>
-                        <div>39</div>
+                        <button>37</button>
+                        <button>38</button>
+                        <button>39</button>
+                        <button>40</button>
+                        <button>41</button>
                     </div>
                 </div>
-                <button onClick={() => { addToCart(product.id) }}>
+                <button className='add-to-card' onClick={() => { addToCart(product.id) }}>
                     ADD TO CART
                 </button>
                 <p className='productdisplay-right-category'><span>Category:</span>Women , T-Shirt, Crop Top</p>

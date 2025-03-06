@@ -298,7 +298,7 @@ export class BasicTable extends Component {
                         <td> 7 </td>
                         <td> Henry Tom </td>
                         <td>
-                        <ProgressBar now={60} />
+                          <ProgressBar now={60} />
                           <ProgressBar variant="warning" now={20} />
                         </td>
                         <td> $ 150.00 </td>

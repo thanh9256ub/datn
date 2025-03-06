@@ -1,5 +1,6 @@
 package com.example.datn.dto.request;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -15,30 +16,28 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class VoucherRequest {
 
-    Integer id;
+    private Integer id;
 
     @NotBlank(message = "voucher code is required")
-    private String ma_khuyen_mai;
+    private String voucherCode;
 
-    private String ten_khuyen_mai;
+    private String voucherName;
 
-    private String dieu_kien;
+    private Double discountValue;
 
-    private Double gia_tri_giam;
+    private Integer quantity;
 
-    private Integer so_luong;
+    private LocalDateTime startDate;
 
-    private LocalDateTime ngay_bat_dau;
+    private LocalDateTime endDate;
 
-    private LocalDateTime ngay_ket_thuc;
+    private Double maxDiscountValue;
 
-    private Double gia_tri_giam_toi_da;
+    private String discountType;
 
-    private String kieu_giam_gia;
+    private String status;
 
-    private String trang_thai;
+    LocalDateTime createdAt ;
 
-    private LocalDateTime ngay_tao;
-
-    private LocalDateTime ngay_cap_nhat;
+    LocalDateTime updateAt ;
 }

@@ -1,21 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Row, Col, Modal, Button, Table, Form } from 'react-bootstrap';
+import axios from 'axios';
+import QrReader from 'react-qr-scanner';
 
-const Cart = () => {
-  const availableProducts = [
-    { id: 3, name: 'Giày chó - 39 - đỏ', price: 350000 },
-    { id: 4, name: 'Giày heo - 37 - hồng', price: 280000 },
-    { id: 5, name: 'Giày vịt - 40 - vàng', price: 320000 }
-  ];
 
-  const [items, setItems] = useState([
-    { id: 1, name: 'Giày gấu - 40 - cam', price: 400000, quantity: 3, total: 1200000 },
-    { id: 2, name: 'Giày mèo - 38 - xanh', price: 300000, quantity: 1, total: 300000 }
-  ]);
+const Cart = ({ selectedInvoice, updateTotalAmount }) => {
+
+  const [availableProducts, setAvailableProducts] = useState([]);
+  const [items, setItems] = useState([]);
+  const newQuantitya = 0;
 
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [qrCodeData, setQrCodeData] = useState(null); // State để lưu dữ liệu quét được từ QR
+  const [isQrReaderVisible, setIsQrReaderVisible] = useState(false);
+  const fetchProducts = () => {
+    axios.get('http://localhost:8080/product-detail')
+      .then(response => {
+        const products = response.data.data.filter(product => product.quantity > 0);
+        setAvailableProducts(products);
+      })
+      .catch(error => console.error('Error fetching products:', error));
+  };
+
+  const calculateTotalAmount = (items) => {
+    items = items.filter(item => item.order.id === selectedInvoice);
+    const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
+    updateTotalAmount(total);
+  };
+
+  const fetchOrderItems = () => {
+    if (selectedInvoice) {
+      axios.get(`http://localhost:8080/order-detail`)
+        .then(response => {
+          const orderItems = response.data.data;
+          setItems(orderItems);
+          calculateTotalAmount(orderItems);
+        })
+        .catch(error => console.error('Error fetching order items:', error));
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    fetchOrderItems();
+  }, [selectedInvoice]);
 
   const handleShowModal = () => setShowModal(true);
   const handleCloseModal = () => {
@@ -24,64 +57,73 @@ const Cart = () => {
     setQuantity(1);
   };
 
-  const handleRemoveItem = (id) => {
-    setItems(items.filter(item => item.id !== id));
+  const handleRemoveItem = (orderDetailID, productDetailID) => {
+
+
+    axios.get(`http://localhost:8080/counter/update-quantity2?orderDetailID=${orderDetailID}&productDetailID=${productDetailID}&quantity=${newQuantitya}`)
+      .then(response => {
+        fetchProducts();
+        fetchOrderItems();
+      })
+      .catch(error => console.error('Error updating quantity:', error));
+
   };
 
   const handleSelectProduct = (product) => {
     setSelectedProduct(product);
     setQuantity(1);
+    handleShowModal();
   };
 
   const handleAddToCart = () => {
     if (!selectedProduct || quantity < 1) return;
-
-    const existingItem = items.find(item => item.id === selectedProduct.id);
-
-    if (existingItem) {
-      setItems(items.map(item =>
-        item.id === selectedProduct.id
-          ? { ...item, quantity: item.quantity + quantity, total: (item.quantity + quantity) * item.price }
-          : item
-      ));
-    } else {
-      setItems([...items, { ...selectedProduct, quantity, total: selectedProduct.price * quantity }]);
-    }
-
-    handleCloseModal();
+    axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoice}&productID=${selectedProduct.id}&purchaseQuantity=${quantity}`)
+      .then(response => {
+        // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
+        fetchProducts();
+        fetchOrderItems();
+        handleCloseModal();
+      })
+      .catch(error => console.error('Error adding to cart:', error));
   };
 
-  // 🛒 Xử lý thay đổi số lượng trong giỏ hàng
-  const handleQuantityChange = (id, newQuantity) => {
-    if (newQuantity < 1) return;
+  const handleQuantityChange = (orderDetailID, productDetailID, newQuantity) => {
+    console.log(orderDetailID, productDetailID, newQuantity);
+    if (newQuantity < 0) return;
+    axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${orderDetailID}&productDetailID=${productDetailID}&quantity=${newQuantity}`)
+      .then(response => {
+        fetchProducts();
+        fetchOrderItems();
+      })
+      .catch(error => console.error('Error updating quantity:', error));
 
-    setItems(items.map(item =>
-      item.id === id
-        ? { ...item, quantity: newQuantity, total: newQuantity * item.price }
-        : item
-    ));
+  };
+  // Hàm xử lý khi quét mã QR
+  const handleScan = (data) => {
+    if (data) {
+      
+      axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoice}&productID=${data.text}&purchaseQuantity=1`)
+        .then(response => {
+          // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
+          fetchProducts();
+          fetchOrderItems();
+        })
+        .catch(error => console.error('Error adding to cart:', error));
+    }
+  };
+
+  //const handleScanDebounced = debounce(handleScan, 1000);
+
+  // Hàm xử lý khi không quét được mã QR
+  const handleError = (error) => {
+    console.error(error);
   };
 
   return (
     <div className="cart-container">
-      <Row className="d-flex align-items-center">
-        <Col className="d-flex justify-content-start">
-          <h3>Giỏ hàng</h3>
-        </Col>
-        <Col className="d-flex justify-content-end">
-          <div className="d-flex align-items-center">
-            <i 
-              className="mdi mdi-cart-plus mr-5" 
-              style={{ fontSize: '36px', cursor: 'pointer' }}
-              onClick={handleShowModal} 
-            ></i>
-            <i className="mdi mdi-qrcode-scan mr-5" style={{ fontSize: '36px' }}></i>
-          </div>
-        </Col>
-      </Row>
 
-      <hr />
-
+      <h3>Giỏ hàng </h3>
+      {/* Bảng giỏ hàng */}
       <div className="table-responsive">
         <Table hover>
           <thead>
@@ -94,66 +136,125 @@ const Cart = () => {
             </tr>
           </thead>
           <tbody>
-            {items.map(item => (
-              <tr key={item.id}>
-                <td>{item.name}</td>
-                <td>{item.price.toLocaleString()} VND</td>
-                <td>
-                  <Form.Control
-                    type="number"
-                    min="1"
-                    value={item.quantity}
-                    onChange={(e) => handleQuantityChange(item.id, Number(e.target.value))}
-                    style={{ width: "100px" }}
-                  />
-                </td>
-                <td>{item.total.toLocaleString()} VND</td>
-                <td>
+            {items
+              .filter(item => item.order.id === selectedInvoice && item.status === 0)
+              .map(item => (
+                <tr key={item.id}>
+                  <td>{item.productDetail.product.productName}</td>
+                  <td>{item.price} VND</td>
+
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+
+
+
+                      <button type="button" class="btn btn-outline-secondary btn-rounded btn-icon"
+                        onClick={() => handleQuantityChange(item.id, item.productDetail.id, Math.max(1, item.quantity - 1))}
+                      ><i class="mdi mdi-minus"></i></button>
+
+
+                      <Form.Control
+                        type="tel"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) => handleQuantityChange(item.id, item.productDetail.id, Number(e.target.value))}
+                        onBlur={() => {
+                          if (item.quantity === 0) {
+                            handleRemoveItem(item.id, item.productDetail.id);
+                          }
+                        }}
+                        style={{ width: '50px', textAlign: 'center' }}
+                      />
+                      <button type="button" class="btn btn-outline-secondary btn-sm btn-rounded btn-icon "
+                        onClick={() => handleQuantityChange(item.id, item.productDetail.id, item.quantity + 1)}
+                      >
+                        <i class="mdi mdi-plus"></i>
+                      </button>
+
+                    </div>
+                  </td>
+
+                  <td>{item.totalPrice} VND</td>
+                  <td>
+                    <i
+                      className="mdi mdi-cart-off"
+                      style={{ fontSize: '20px', cursor: 'pointer' }}
+                      onClick={() => handleRemoveItem(item.id, item.productDetail.id)}
+                    ></i>
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </Table>
+      </div>
+      <hr />
+      <Row className="d-flex align-items-center">
+        <Col className="d-flex justify-content-start">
+          <h3>Danh sach sản phẩm </h3>
+        </Col>
+        <Col className="d-flex justify-content-end">
+          <div className="d-flex align-items-center">
+           
+                  {isQrReaderVisible && (
+                    <div>
+                    <QrReader
+                      delay={500}
+                      style={{ width: '45%' }}
+                      onError={handleError}
+                      onScan={handleScan}
+                    />
+                    </div> 
+                  )}
                   <i
-                    className="mdi mdi-cart-off" 
-                    style={{ fontSize: '20px', cursor: 'pointer' }}
-                    onClick={() => handleRemoveItem(item.id)}
+                    className="mdi mdi-qrcode-scan mr-5"
+                    style={{ fontSize: '36px', cursor: 'pointer' }}
+                    onClick={() => setIsQrReaderVisible(!isQrReaderVisible)} 
                   ></i>
-                </td>
+
+                  </div>
+
+                </Col>
+                </Row>
+
+                <hr />
+
+                {/* Bảng chọn sản phẩm */}
+      <div className="table-responsive">
+        <Table hover>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Quantity</th>
+
+            </tr>
+          </thead>
+          <tbody>
+            {availableProducts.map(product => (
+              <tr key={product.id} onClick={() => handleSelectProduct(product)}>
+                <td>{product.product.productName}</td>
+                <td>{product.price ? product.price.toLocaleString() : 'N/A'} VND</td>
+                <td>{product.quantity}</td>
+
               </tr>
             ))}
           </tbody>
         </Table>
       </div>
 
-      {/* Modal để chọn sản phẩm */}
+
+
+      {/* Modal để chọn số lượng */}
       <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Chọn sản phẩm</Modal.Title>
+          <Modal.Title>Nhập số lượng</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {!selectedProduct ? (
-            <Table hover>
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Price</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {availableProducts.map(product => (
-                  <tr key={product.id}>
-                    <td>{product.name}</td>
-                    <td>{product.price.toLocaleString()} VND</td>
-                    <td>
-                      <Button variant="success" size="sm" onClick={() => handleSelectProduct(product)}>
-                        Chọn
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          ) : (
+          {selectedProduct && (
             <div>
-              <h5>{selectedProduct.name}</h5>
+              <h5>{selectedProduct.product.productName}</h5>
               <p>Giá: {selectedProduct.price.toLocaleString()} VND</p>
+              <p>Kho: {selectedProduct.quantity} </p>
               <Form.Group controlId="quantity">
                 <Form.Label>Nhập số lượng:</Form.Label>
                 <Form.Control
@@ -167,20 +268,12 @@ const Cart = () => {
           )}
         </Modal.Body>
         <Modal.Footer>
-          {selectedProduct ? (
-            <>
-              <Button variant="secondary" onClick={() => setSelectedProduct(null)}>
-                Quay lại
-              </Button>
-              <Button variant="primary" onClick={handleAddToCart}>
-                Thêm vào giỏ hàng
-              </Button>
-            </>
-          ) : (
-            <Button variant="secondary" onClick={handleCloseModal}>
-              Đóng
-            </Button>
-          )}
+          <Button variant="secondary" onClick={handleCloseModal}>
+            Đóng
+          </Button>
+          <Button variant="primary" onClick={handleAddToCart}>
+            Thêm vào giỏ hàng
+          </Button>
         </Modal.Footer>
       </Modal>
     </div>

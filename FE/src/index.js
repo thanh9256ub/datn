@@ -1,18 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
 import App from './App.js';
+import './index.css';
 import reportWebVitals from './reportWebVitals';
 import ShopContextProvider from './ClientComponents/Context/ShopContext';
 import "./i18n";
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
-  <React.StrictMode>
-    <ShopContextProvider>
-      <App />
-    </ShopContextProvider>
-  </React.StrictMode>,
+  <ShopContextProvider>
+    <App />
+  </ShopContextProvider>,
   document.getElementById('root')
 );
 
