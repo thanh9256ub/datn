@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Row, Col, InputGroup, Form, Button, Modal, Table } from 'react-bootstrap';
+import axios from 'axios';
 
 const PromoCode = ({ selectedPromoCode, setSelectedPromoCode }) => {
   const [isPromoModalVisible, setIsPromoModalVisible] = useState(false);
+  const [promoCodes, setPromoCodes] = useState([]);
 
-  const promoCodes = [
-    { code: 'DISCOUNT10', discount: '10%' },
-    { code: 'FREESHIP', discount: 'Miễn phí vận chuyển' },
-    { code: 'SALE50', discount: 'Giảm 50K' }
-  ];
+  useEffect(() => {
+    axios.get('http://localhost:8080/voucher/list')
+      .then(response => {
+        setPromoCodes(response.data.data);
+      })
+      .catch(error => console.error('Error fetching promo codes:', error));
+  }, []);
 
   const handleShowPromoModal = () => setIsPromoModalVisible(true);
   const handleClosePromoModal = () => setIsPromoModalVisible(false);
@@ -18,7 +22,6 @@ const PromoCode = ({ selectedPromoCode, setSelectedPromoCode }) => {
     setIsPromoModalVisible(false);
   };
 
-  
   return (
     <>
       {/* Mã giảm giá */}
@@ -34,26 +37,36 @@ const PromoCode = ({ selectedPromoCode, setSelectedPromoCode }) => {
       </Row>
 
       {/* Modal chọn mã giảm giá */}
-      <Modal show={isPromoModalVisible} onHide={handleClosePromoModal} centered>
+      <Modal show={isPromoModalVisible} onHide={handleClosePromoModal} centered size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Chọn Mã Khuyến Mãi</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body style={{ overflowX: 'auto' }}>
           <Table striped bordered hover>
             <thead>
               <tr>
                 <th>Mã</th>
-                <th>Ưu đãi</th>
+                <th>Tên</th>
+                <th>Điều kiện</th>
+                <th>Giá trị giảm</th>
+                <th>Số lượng</th>
+                <th>Giảm tối đa</th>
                 <th>Chọn</th>
               </tr>
             </thead>
             <tbody>
               {promoCodes.map((promo, index) => (
                 <tr key={index}>
-                  <td>{promo.code}</td>
-                  <td>{promo.discount}</td>
+                  <td>{promo.voucherCode}</td>
+                  <td>{promo.voucherName}</td>
+                  <td>{promo.condition}</td>
                   <td>
-                    <Button variant="primary" size="sm" onClick={() => handleSelectPromoCode(promo.code)}>
+                    {promo.discountValue} {promo.discountType}
+                  </td>
+                  <td>{promo.quantity}</td>
+                  <td>{promo.maxDiscountValue}</td>
+                  <td>
+                    <Button variant="primary" size="sm" onClick={() => handleSelectPromoCode(promo.voucherCode)}>
                       Chọn
                     </Button>
                   </td>
