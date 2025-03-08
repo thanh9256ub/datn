@@ -13,8 +13,9 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [qrCodeData, setQrCodeData] = useState(null); // State để lưu dữ liệu quét được từ QR
+
   const [isQrReaderVisible, setIsQrReaderVisible] = useState(false);
+
   const fetchProducts = () => {
     axios.get('http://localhost:8080/product-detail')
       .then(response => {
@@ -76,7 +77,11 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
   };
 
   const handleAddToCart = () => {
-    if (!selectedProduct || quantity < 1) return;
+    if (!selectedProduct || quantity < 1||selectedProduct.quantity<quantity){
+      alert('Số lượng không hợp lệ');
+      return;
+    } 
+    console.log(selectedProduct.id);
     axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoice}&productID=${selectedProduct.id}&purchaseQuantity=${quantity}`)
       .then(response => {
         // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
@@ -87,10 +92,10 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
       .catch(error => console.error('Error adding to cart:', error));
   };
 
-  const handleQuantityChange = (orderDetailID, productDetailID, newQuantity) => {
-    console.log(orderDetailID, productDetailID, newQuantity);
-    if (newQuantity < 0) return;
-    axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${orderDetailID}&productDetailID=${productDetailID}&quantity=${newQuantity}`)
+  const handleQuantityChange = (item, newQuantity) => {
+    console.log(item.productDetail.quantity+item.quantity);
+    if (newQuantity < 0|| item.productDetail.quantity+item.quantity<newQuantity) return;
+    axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
       .then(response => {
         fetchProducts();
         fetchOrderItems();
@@ -100,15 +105,17 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
   };
   // Hàm xử lý khi quét mã QR
   const handleScan = (data) => {
-    if (data) {
-      
+    if (data && selectedInvoice) {
+      setIsQrReaderVisible(false);
+      // Stop scanning
       axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoice}&productID=${data.text}&purchaseQuantity=1`)
         .then(response => {
           // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
           fetchProducts();
           fetchOrderItems();
         })
-        .catch(error => console.error('Error adding to cart:', error));
+        .catch(error => {
+        });
     }
   };
 
@@ -149,15 +156,16 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
 
 
                       <button type="button" class="btn btn-outline-secondary btn-rounded btn-icon"
-                        onClick={() => handleQuantityChange(item.id, item.productDetail.id, Math.max(1, item.quantity - 1))}
+                        onClick={() => handleQuantityChange(item, Math.max(1, item.quantity - 1))}
                       ><i class="mdi mdi-minus"></i></button>
 
 
                       <Form.Control
                         type="tel"
                         min="1"
+                        max={item.productDetail.quantity}
                         value={item.quantity}
-                        onChange={(e) => handleQuantityChange(item.id, item.productDetail.id, Number(e.target.value))}
+                        onChange={(e) => handleQuantityChange(item, Number(e.target.value))}
                         onBlur={() => {
                           if (item.quantity === 0) {
                             handleRemoveItem(item.id, item.productDetail.id);
@@ -166,7 +174,7 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
                         style={{ width: '50px', textAlign: 'center' }}
                       />
                       <button type="button" class="btn btn-outline-secondary btn-sm btn-rounded btn-icon "
-                        onClick={() => handleQuantityChange(item.id, item.productDetail.id, item.quantity + 1)}
+                        onClick={() => handleQuantityChange(item,Math.min(item.productDetail.quantity+item.quantity, item.quantity + 1))}
                       >
                         <i class="mdi mdi-plus"></i>
                       </button>
@@ -179,7 +187,10 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
                     <i
                       className="mdi mdi-cart-off"
                       style={{ fontSize: '20px', cursor: 'pointer' }}
-                      onClick={() => handleRemoveItem(item.id, item.productDetail.id)}
+                      onClick={() => {handleRemoveItem(item.id, item.productDetail.id)
+
+        
+                      }}
                     ></i>
                   </td>
                 </tr>
@@ -194,31 +205,31 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
         </Col>
         <Col className="d-flex justify-content-end">
           <div className="d-flex align-items-center">
-           
-                  {isQrReaderVisible && (
-                    <div>
-                    <QrReader
-                      delay={500}
-                      style={{ width: '45%' }}
-                      onError={handleError}
-                      onScan={handleScan}
-                    />
-                    </div> 
-                  )}
-                  <i
-                    className="mdi mdi-qrcode-scan mr-5"
-                    style={{ fontSize: '36px', cursor: 'pointer' }}
-                    onClick={() => setIsQrReaderVisible(!isQrReaderVisible)} 
-                  ></i>
 
-                  </div>
+            {isQrReaderVisible && (
+              <div>
+                <QrReader
+                  delay={1000}
+                  style={{ width: '45%' }}
+                  onError={handleError}
+                  onScan={handleScan}
+                />
+              </div>
+            )}
+            <i
+              className="mdi mdi-qrcode-scan mr-5"
+              style={{ fontSize: '36px', cursor: 'pointer' }}
+              onClick={() => setIsQrReaderVisible(!isQrReaderVisible)}
+            ></i>
 
-                </Col>
-                </Row>
+          </div>
 
-                <hr />
+        </Col>
+      </Row>
 
-                {/* Bảng chọn sản phẩm */}
+      <hr />
+
+      {/* Bảng chọn sản phẩm */}
       <div className="table-responsive">
         <Table hover>
           <thead>
@@ -231,7 +242,7 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
           </thead>
           <tbody>
             {availableProducts.map(product => (
-              <tr key={product.id} onClick={() => handleSelectProduct(product)}>
+              <tr key={product.id} onClick={selectedInvoice && (() => handleSelectProduct(product))}>
                 <td>{product.product.productName}</td>
                 <td>{product.price ? product.price.toLocaleString() : 'N/A'} VND</td>
                 <td>{product.quantity}</td>
