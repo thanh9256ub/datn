@@ -1,19 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Row, Col, Form, Button, Modal } from 'react-bootstrap';
 import CustomerSearch from './CustomerSearch';
 import DeliveryInfo from './DeliveryInfo';
 import PromoCode from './PromoCode';
 
 const PaymentInfo = ({ totalAmount }) => {
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [delivery, setDelivery] = useState(false);
   const [customer, setCustomer] = useState(null);
- 
-  const [discountCode, setDiscountCode] = useState('');
+  const [promo, setPromo] = useState({});
+  const [paymen, setPaymen] = useState('');
   const [isCashPayment, setIsCashPayment] = useState(false);
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
   const [cashPaid, setCashPaid] = useState('');
-  const [change, setChange] = useState('');
+  const [change, setChange] = useState();
   const [qrImageUrl, setQrImageUrl] = useState('');
+  const [promoCode, setPromoCode] = useState("");
+  const [finalAmount, setFinalAmount] = useState(totalAmount);
+  const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
+
+  useEffect(() => {
+    let calculatedDiscount = 0;
+    if (promo && totalAmount >= promo.condition) {
+      calculatedDiscount = promo.discountValue;
+      if (promo.discountType === '%') {
+        calculatedDiscount = (totalAmount * promo.discountValue) / 100;
+        if (calculatedDiscount > promo.maxDiscountValue) {
+          calculatedDiscount = promo.maxDiscountValue;
+        }
+      }
+      setPromoCode(promo.voucherCode);
+
+    } else if (promo.voucherCode) {
+      setPromo({});
+      setPromoCode("");
+    }
+    setFinalAmount(totalAmount - calculatedDiscount);
+  }, [totalAmount, promo, promoCode]);
+
+  useEffect(() => {
+    const isEligibleForPayment = (paymen === 'TM' || paymen === 'QR') && totalAmount > 0 && (paymen === 'TM' ? change >= 0 : true);
+    setIsPaymentEnabled(isEligibleForPayment);
+  }, [paymen, totalAmount, change]);
 
   const handleShowQRModal = () => {
     setIsCashPayment(false);
@@ -21,7 +48,7 @@ const PaymentInfo = ({ totalAmount }) => {
     // URL QR từ VietQR với thông tin thanh toán
     const qrUrl = `https://img.vietqr.io/image/MB-20046666666-compact2.jpg?amount=${totalAmount}&addInfo=thanh%20toan%20hoa%20don%20cua%20TUAN&accountName=HOANG%20VAN%20TUAN`;
     setQrImageUrl(qrUrl);
-
+    setPaymen('QR');
     setIsQRModalVisible(true);
   };
 
@@ -34,25 +61,30 @@ const PaymentInfo = ({ totalAmount }) => {
       <br />
 
       <CustomerSearch
-      
+
         customer={customer}
         setCustomer={setCustomer}
-       
+
       />
 
-      <DeliveryInfo delivery={false} setDelivery={() => {}} />
-      <PromoCode selectedPromoCode={discountCode} setSelectedPromoCode={setDiscountCode} />
+      <DeliveryInfo delivery={delivery} setDelivery={setDelivery} />
+      <PromoCode promoCode={promoCode} setPromo={setPromo} totalAmount={totalAmount} />
 
       {/* Hiển thị tổng tiền */}
       <h5>Tổng tiền: {totalAmount.toLocaleString()} VND</h5>
-      <h5>Giảm giá: 0 VND</h5>
+      <h5>Giảm giá: {(totalAmount - finalAmount).toLocaleString()} VND</h5>
       <h5>Phí vận chuyển: 0 VND</h5>
-      <h5>Thanh toán: {totalAmount.toLocaleString()} VND</h5>
+      <h5>Thanh toán: {finalAmount.toLocaleString()} VND</h5>
+
+
 
       {/* Chọn phương thức thanh toán */}
       <Row className="mb-3">
         <Col sm={7}>
-          <Button variant="light" className="w-100" onClick={() => setIsCashPayment(true)}>Tiền mặt</Button>
+          <Button variant="light" className="w-100" onClick={() => {
+            setPaymen('TM');
+            setIsCashPayment(true)
+          }} >Tiền mặt</Button>
         </Col>
         <Col sm={5}>
           <Button variant="light" className="w-100" onClick={handleShowQRModal}>QR</Button>
@@ -71,7 +103,8 @@ const PaymentInfo = ({ totalAmount }) => {
                   value={cashPaid}
                   onChange={(e) => {
                     setCashPaid(e.target.value);
-                    setChange(e.target.value - totalAmount);
+
+                    setChange(e.target.value - finalAmount);
                   }}
                   placeholder="Nhập số tiền khách trả"
                 />
@@ -97,7 +130,7 @@ const PaymentInfo = ({ totalAmount }) => {
       {/* Xác nhận thanh toán */}
       <Row>
         <Col sm={12}>
-          <Button variant="success" className="w-100">Xác nhận thanh toán</Button>
+          <Button variant="success" className="w-100" disabled={!isPaymentEnabled}>Xác nhận thanh toán</Button>
         </Col>
       </Row>
 
