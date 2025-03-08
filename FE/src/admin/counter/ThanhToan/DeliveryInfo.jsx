@@ -50,8 +50,12 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
   };
 
   const handleDeliveryChange = () => {
+  if (!delivery) {
     setTempDelivery(true);
     setShowModal(true);
+  }
+  else {
+    setDelivery(false);}
   };
 
   const handleCloseModal = () => {
@@ -60,8 +64,9 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
   };
 
   const handleSaveModal = () => {
+    setDelivery(true)
     setShowModal(false);
-    setDelivery(tempDelivery);
+    
   };
 
   return (
