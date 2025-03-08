@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Modal, Col, InputGroup, Container, Form } from "react-bootstrap";
-import { addEmployee, deleteEmployee, getEmployee, listEmployee, listRole, updateEmployee, updateEmployeeStatus } from './service/EmployeeService';
+import { addEmployee, deleteEmployee, listEmployee, listRole, updateEmployee, updateEmployeeStatus } from './service/EmployeeService';
 import './Employee.css';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
+
+import { useNavigate } from 'react-router-dom'
 
 
 const Employees = () => {
@@ -174,58 +176,65 @@ const Employees = () => {
         history.push('/admin/employees/add')
     }
 
-    const handleUpdateEmployee = (employee) => {
-        history.push({
-            pathname: '/admin/employees/update',
-            state: { employee: employee }
-
-        });
+    const handleUpdateEmployee = (id) => {
+        history.push(`/admin/employees/update/${id}`)
     }
 
     return (
         <div>
-            <div className='contai'>
-                <div style={{ width: "300px", overflow: "hidden" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                {/* Tìm kiếm */}
+                <div style={{ flex: 1, maxWidth: "300px" }}>
                     <InputGroup>
                         <Form.Control
                             placeholder="Tìm kiếm..."
-                            style={{ border: "none", outline: "none", padding: "8px 12px" }}
+                            style={{
+                                border: "1px solid #ccc",
+                                borderRadius: "px",
+                                padding: "8px 12px",
+                                fontSize: "16px"
+                            }}
                             value={search}
                             onChange={handleSearchChange}
                         />
-                        <Button variant="light" style={{ border: "none", padding: "8px 15px" }} onClick={handleSearch}>Tìm kiếm</Button>
+                        <Button
+                            variant="light"
+                            style={{ border: "1px solid #ccc", padding: "8px 15px", borderRadius: "4px" }}
+                            onClick={handleSearch}
+                        >
+                            Tìm kiếm
+                        </Button>
                     </InputGroup>
                 </div>
 
+                {/* Bộ lọc */}
                 <div>
                     <select
                         style={{
-                            border: '1px solid black',
-                            padding: '8px',
+                            border: '1px solid #ccc',
+                            padding: '8px 12px',
                             borderRadius: '4px',
-                            fontSize: '20px', width: "200px",
-                            marginLeft: "400px"
+                            fontSize: '16px',
+                            marginLeft: '20px', // Điều chỉnh khoảng cách giữa các phần tử
+                            width: "200px"
                         }}
                         className="form-select"
                         onChange={handleChangeStatus}
                     >
                         <option value={""}>Bộ lọc</option>
-                        <option value={"1"}>
-                            Đang hoạt động
-                        </option>
-                        <option value={"0"}>
-                            Không hoạt động
-                        </option>
+                        <option value={"1"}>Đang hoạt động</option>
+                        <option value={"0"}>Không hoạt động</option>
                     </select>
                 </div>
 
-                <div style={{ marginLeft: "10px" }}>
-                    <Button
-                        // onClick={() => setShowModalAdd(true)}
-                        onClick={handleAdd}
-                    >Thêm nhân viên</Button >
+                {/* Thêm nhân viên */}
+                <div>
+                    <button type="button" className="btn btn-gradient-primary btn-icon-text" onClick={handleAdd}>
+                        Thêm nhân viên
+                    </button>
                 </div>
             </div>
+
             <div className="col-lg-15 grid-margin stretch-card">
                 <div className="card">
                     <div className="card-body">
@@ -258,7 +267,7 @@ const Employees = () => {
                                                     <td>{employee.status ? "Đang hoạt động" : "Không hoạt động"}</td>
                                                     <td>
                                                         <Button variant="link"
-                                                            onClick={() => handleUpdateEmployee(employee)}
+                                                            onClick={() => handleUpdateEmployee(employee.id)}
                                                         // onClick={() => handleShow(employee)}
                                                         >
                                                             <i className='mdi mdi-border-color'></i>

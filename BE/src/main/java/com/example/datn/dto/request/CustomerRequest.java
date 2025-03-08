@@ -6,6 +6,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -37,4 +38,6 @@ public class CustomerRequest {
 //    LocalDateTime updatedAt;
 
     Integer roleId;
+
+    List<AddressRequest> address;
 }

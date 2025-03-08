@@ -1,342 +1,324 @@
-import React from 'react'
+
+import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { Form, Button } from 'react-bootstrap';
+import Select from 'react-select'; // Import react-select
+import { addCustomer } from '../service/CustomersService';
+import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 
 const CreateCustomer = () => {
+    const history = useHistory();
+    const [provinces, setProvinces] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [wards, setWards] = useState([]);
+    const [selectedProvince, setSelectedProvince] = useState(null);
+    const [selectedDistrict, setSelectedDistrict] = useState(null);
+    const [selectedWard, setSelectedWard] = useState(null);
+    const [addresses, setAddresses] = useState([{}]);
+    const [defaultAddressIndex, setDefaultAddressIndex] = useState(0);
+    const [customer, setCustomer] = useState({});
+
+
+    const handleSaveCustomer = () => {
+        // Cập nhật các địa chỉ với thuộc tính defaultAddress
+        const updatedAddresses = addresses.map((address, index) => ({
+            ...address,
+            city: address.province?.label,
+            district: address.district?.label,
+            ward: address.ward?.label,
+            detailedAddress: address.detail,
+            province: null,
+            detail: null,
+            defaultAddress: index === defaultAddressIndex,  // Gán defaultAddress là true cho địa chỉ mặc định
+        }));
+
+        // Gửi dữ liệu lên API
+        console.log("Địa chỉ sau khi cập nhật:", updatedAddresses);
+        const updatedCustomer = { ...customer, address: updatedAddresses };
+        addCustomer(updatedCustomer)
+            .then(response => {
+                console.log("Thêm khách hàng thành công:", response);
+                alert("Thêm khách hàng thành công");
+                history.push('/admin/customers');
+            })
+            .catch(error => {
+                console.error("Lỗi thêm khách hàng:", error);
+                alert("Lỗi thêm khách hàng");
+            }); // Gọi hàm addCustomer từ CustomersService          
+
+    };
+
+    const handleAddAddress = () => {
+        setAddresses([...addresses, {}]); // Thêm địa chỉ mới vào danh sách
+    };
+
+    const handleInputChange = (index, field, value) => {
+        const newAddresses = [...addresses];
+        newAddresses[index] = {
+            ...newAddresses[index],
+            [field]: value,
+        };
+        setAddresses(newAddresses);
+    };
+
+    useEffect(() => {
+        // Fetch provinces from API
+        axios.get("https://provinces.open-api.vn/api/?depth=1")
+            .then(response => setProvinces(response.data))
+            .catch(error => console.error("Lỗi lấy tỉnh/thành phố:", error));
+    }, []);
+
+    const handleProvinceChange = (index, selectedOption) => {
+        setSelectedProvince(selectedOption);
+        setSelectedDistrict(null);
+        setSelectedWard(null);
+        setDistricts([]);
+        setWards([]);
+        handleInputChange(index, 'province', selectedOption);
+        // Fetch districts based on selected province
+        if (selectedOption) {
+            axios.get(`https://provinces.open-api.vn/api/p/${selectedOption.value}?depth=2`)
+                .then(response => setDistricts(response.data.districts))
+                .catch(error => console.error("Lỗi lấy quận/huyện:", error));
+        }
+    };
+
+    const handleDistrictChange = (index, selectedOption) => {
+        setSelectedDistrict(selectedOption);
+        setSelectedWard(null);
+        setWards([]);
+        handleInputChange(index, 'district', selectedOption);
+        // Fetch wards based on selected district
+        if (selectedOption) {
+            axios.get(`https://provinces.open-api.vn/api/d/${selectedOption.value}?depth=2`)
+                .then(response => setWards(response.data.wards))
+                .catch(error => console.error("Lỗi lấy phường/xã:", error));
+        }
+    };
+
+    const handleWardChange = (index, selectedOption) => {
+        setSelectedWard(selectedOption);
+        handleInputChange(index, 'ward', selectedOption);
+    };
+    const handleSetDefaultAddress = (index) => {
+        // Cập nhật địa chỉ mặc định
+        setDefaultAddressIndex(index);
+    };
+    const handleRemoveAddress = (index) => {
+        // Nếu địa chỉ đang xóa là địa chỉ mặc định, cần cập nhật lại
+        if (defaultAddressIndex === index) {
+            setDefaultAddressIndex(0); // Xóa địa chỉ mặc định
+        }
+
+        const newAddresses = addresses.filter((_, i) => i !== index); // Loại bỏ địa chỉ tại index
+        setAddresses(newAddresses);
+    };
     return (
         <div>
-            <h2 style={{ textAlign: "center" }}>Thêm khách hàng</h2>
-            <hr></hr>
-            <form >
-                <div style={{ display: 'flex' }}>
-                    <div style={{ width: "50%" }}>
-                        <div>
-                            <div>
-                                <label htmlFor="customerCodeInput" className="form-label">
-                                    Mã khách hàng
-                                </label>
-                            </div>
-                            <div>
-                                <input
-                                    style={{
-                                        border: '1px solid black',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        fontSize: '16px', width: "90%"
-                                    }}
-                                    type="text"
-                                    className="form-control"
-                                    id="customerCodeInput"
-                                // value={newCustomer.customerCode}
-                                // onChange={(e) => {
-                                //     setNewCustomer({ ...newCustomer, customerCode: e.target.value });
-                                // }}
-                                />
-                            </div>
-                        </div>
+            <div className="row">
+                <div className="col-12 grid-margin">
+                    <div className="card">
+                        <div className="card-body">
+                            <h3 style={{ textAlign: "center" }}>Thêm khách hàng</h3>
+                            <hr></hr>
+                            <form className="form-sample" >
+                                <div className="row g-4">
+                                    {/* Cột 1 */}
+                                    <div className="col-md-6 col-12">
+                                        <Form.Group className="mb-3">
+                                            <label className="form-label">Tên khách hàng</label>
+                                            <Form.Control type="text" id="fullNameInput"
+                                                value={customer.fullName}
+                                                onChange={(e) => {
+                                                    setCustomer({ ...customer, fullName: e.target.value });
+                                                }} />
+                                        </Form.Group>
 
-                        <div style={{ marginTop: "10px" }}>
-                            <div>
-                                <label htmlFor="fullNameInput" className="form-label">
-                                    Tên khách hàng
-                                </label>
-                            </div>
-                            <div>
-                                <input
-                                    style={{
-                                        border: '1px solid black',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        fontSize: '16px', width: "90%"
-                                    }}
-                                    type="text"
-                                    className="form-control"
-                                    id="fullNameInput" // Thay đổi id 
-                                // value={newCustomer.fullName}
-                                // onChange={(e) => {
-                                //     setNewCustomer({ ...newCustomer, fullName: e.target.value });
-                                // }}
-                                />
-                            </div>
-                        </div>
+                                        <Form.Group className="mb-3">
+                                            <label className="form-label">Giới tính</label>
+                                            <div className="d-flex align-items-center">
+                                                {/* Nam */}
+                                                <div className="form-check me-3">
+                                                    <Form.Check
+                                                        type="radio"
+                                                        label="Nam"
+                                                        name="gender"
+                                                        value="Nam"
+                                                        checked={customer.gender === 'Nam'}
+                                                        onChange={(e) => setCustomer({ ...customer, gender: e.target.value })}
+                                                        id="genderNam"
+                                                        custom
+                                                    />
+                                                </div>
 
-                        <div style={{ marginTop: "10px" }}>
-                            <div>
-                                <label htmlFor="genderLabel" className="form-label">
-                                    Giới tính
-                                </label>
-                            </div>
-                            <div className='container' style={{ display: "flex", marginBottom: "10px", fontSize: '20px' }}>
+                                                {/* Nữ */}
+                                                <div className="form-check" style={{ marginLeft: "20px" }}>
+                                                    <Form.Check
+                                                        type="radio"
+                                                        label="Nữ"
+                                                        name="gender"
+                                                        value="Nữ"
+                                                        checked={customer.gender === 'Nữ'}
+                                                        onChange={(e) => setCustomer({ ...customer, gender: e.target.value })}
+                                                        id="genderNu"
+                                                        custom
+                                                    />
+                                                </div>
+                                            </div>
+                                        </Form.Group>
+
+                                        <Form.Group className="mb-3">
+                                            <label className="form-label">Ngày sinh</label>
+                                            <Form.Control type="date" id="birthDateInput"
+                                                value={customer.birthDate}
+                                                onChange={(e) => {
+                                                    setCustomer({ ...customer, birthDate: e.target.value });
+                                                }} />
+                                        </Form.Group>
+                                    </div>
+
+                                    {/* Cột 2 */}
+                                    <div className="col-md-6 col-12">
+                                        {/* <Form.Group className="mb-3">
+                                            <label className="form-label">Username</label>
+                                            <Form.Control type="text" id="usernameInput" value={customer.fullName}
+                                            onChange={(e) => {
+                                                setCustomer({ ...customer, fullName: e.target.value });
+                                            }} />
+                                        </Form.Group> */}
+
+                                        <Form.Group className="mb-3">
+                                            <label className="form-label">Email</label>
+                                            <Form.Control type="email" id="emailInput"
+                                                value={customer.email}
+                                                onChange={(e) => {
+                                                    setCustomer({ ...customer, email: e.target.value });
+                                                }} />
+                                        </Form.Group>
+
+                                        <Form.Group className="mb-3">
+                                            <label className="form-label">Số điện thoại</label>
+                                            <Form.Control type="tel" id="phoneInput"
+                                                value={customer.phone}
+                                                onChange={(e) => {
+                                                    setCustomer({ ...customer, phone: e.target.value });
+                                                }} />
+                                        </Form.Group>
+                                    </div>
+
+                                </div>
+                                <hr></hr>
                                 <div>
-                                    <input
+                                    {/* Button to add new address */}
 
-                                        type="radio" className="form-check-input" name="gender" id="male"
-                                        value="Nam"
-                                    // checked={newCustomer.gender === "Nam"}
-                                    // onChange={(e) => {
-                                    //     setNewCustomer({ ...newCustomer, gender: e.target.value });
-                                    // }}
-                                    />
-                                    <label htmlFor="male" className="form-check-label">Nam</label>
+
+                                    {/* Render multiple address forms */}
+                                    {addresses.map((address, index) => (
+                                        <div key={index} className="address-form">
+                                            <h4>Địa chỉ {index + 1}</h4>
+                                            <div className="row g-3">
+                                                {/* Tỉnh/thành phố */}
+                                                <div className="col-md-3">
+                                                    <Form.Group className="mb-3">
+                                                        <label className="form-label">Tỉnh/thành phố</label>
+                                                        <Select
+                                                            options={provinces.map((province) => ({
+                                                                value: province.code,
+                                                                label: province.name,
+                                                            }))}
+                                                            value={address.province}
+                                                            onChange={(selectedOption) => handleProvinceChange(index, selectedOption)}
+                                                            placeholder="Chọn tỉnh/thành phố"
+                                                        />
+                                                    </Form.Group>
+                                                </div>
+
+                                                {/* Quận/huyện */}
+                                                <div className="col-md-3">
+                                                    <Form.Group className="mb-3">
+                                                        <label className="form-label">Quận/huyện</label>
+                                                        <Select
+                                                            options={districts.map((district) => ({
+                                                                value: district.code,
+                                                                label: district.name,
+                                                            }))}
+                                                            value={address.district}
+                                                            onChange={(selectedOption) => handleDistrictChange(index, selectedOption)}
+                                                            isDisabled={!address.province}
+                                                            placeholder="Chọn quận/huyện"
+                                                        />
+                                                    </Form.Group>
+                                                </div>
+
+                                                {/* Phường/xã */}
+                                                <div className="col-md-3">
+                                                    <Form.Group className="mb-3">
+                                                        <label className="form-label">Phường/xã</label>
+                                                        <Select
+                                                            options={wards.map((ward) => ({
+                                                                value: ward.code,
+                                                                label: ward.name,
+                                                            }))}
+                                                            value={address.ward}
+                                                            onChange={(selectedOption) => handleWardChange(index, selectedOption)}
+                                                            isDisabled={!address.district}
+                                                            placeholder="Chọn phường/xã"
+                                                        />
+                                                    </Form.Group>
+                                                </div>
+
+                                                {/* Địa chỉ chi tiết */}
+                                                <div className="col-md-6">
+                                                    <Form.Group className="mb-3">
+                                                        <label className="form-label">Địa chỉ chi tiết</label>
+                                                        <Form.Control
+                                                            type="text"
+                                                            value={address.detail}
+                                                            onChange={(e) => handleInputChange(index, 'detail', e.target.value)}
+                                                        />
+                                                    </Form.Group>
+                                                </div>
+                                            </div>
+
+                                            {/* Chọn làm địa chỉ mặc định */}
+                                            <div>
+                                                <div className="mt-6 flex items-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="h-16 w-16 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                        checked={defaultAddressIndex === index}  // Nếu là địa chỉ mặc định, checkbox sẽ được chọn
+                                                        onChange={() => handleSetDefaultAddress(index)}  // Khi chọn địa chỉ, sẽ set nó là mặc định
+                                                    />
+                                                    <span className="ml-6 text-4xl text-gray-900 font-extrabold">Chọn làm địa chỉ mặc định</span>
+                                                </div>
+                                            </div>
+                                            <div className="mt-3">
+                                                <Button
+                                                    variant="danger"
+                                                    onClick={() => handleRemoveAddress(index)}
+                                                    disabled={addresses.length === 1} // Không cho xóa nếu chỉ còn 1 địa chỉ
+                                                >
+                                                    Xóa địa chỉ
+                                                </Button>
+                                            </div>
+                                            <hr />
+                                        </div>
+                                    ))}
+
+                                    <div className="d-flex justify-content-end mt-7">
+                                        <Button onClick={handleAddAddress} variant="primary" className="btn btn-gradient-primary btn-icon-text">
+                                            Thêm địa chỉ mới
+                                        </Button>
+                                        <Button onClick={handleSaveCustomer} variant="primary" className="btn btn-gradient-primary btn-icon-text">
+                                            Lưu thông tin
+                                        </Button>
+                                    </div>
                                 </div>
-
-                                <div style={{ marginLeft: "60px" }} >
-                                    <input
-
-                                        type="radio" className="form-check-input" name="gender" id="female"
-                                        value="Nữ"
-                                    // checked={newCustomer.gender === "Nữ"}
-                                    // onChange={(e) => {
-                                    //     setNewCustomer({ ...newCustomer, gender: e.target.value });
-                                    // }}
-
-                                    />
-                                    <label htmlFor="female" className="form-check-label">Nữ</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div style={{ marginTop: "10px" }} >
-                            <div>
-                                <label htmlFor="birthDateInput" className="form-label">
-                                    Ngày sinh
-                                </label>
-                            </div>
-                            <div>
-                                <input
-                                    style={{
-                                        border: '1px solid black',
-                                        padding: '8px',
-                                        borderRadius: '4px', fontSize: '16px', width: "90%"
-                                    }}
-                                    type="date"
-                                    className="form-control"
-                                    id="birthDateInput"
-                                // value={newEmployee.birthDate}
-                                // onChange={(e) => {
-                                //     const selectedDate = new Date(e.target.value);
-                                //     const currentYear = 2025;
-                                //     const minBirthYear = currentYear - 18;
-                                //     const selectedYear = selectedDate.getFullYear();
-                                //     if (selectedYear <= minBirthYear) {
-                                //         setNewEmployee({ ...newEmployee, birthDate: e.target.value });
-                                //         setBirthDateError("");
-                                //     } else {
-                                //         setBirthDateError("Tuổi phải từ 18 trở lên.");
-                                //         setNewEmployee({ ...newEmployee, birthDate: "" });
-                                //     }
-                                // }}
-                                />
-                                {/* {birthDateError && (<div style={{ color: "red", marginTop: "5px" }}>{birthDateError}</div>)} */}
-                            </div>
-                        </div>
-
-                    </div>
-                    <div style={{ width: "50%" }}>
-                        <div>
-                            <div>
-                                <label htmlFor="phoneInput" className="form-label">
-                                    Số điện thoại
-                                </label>
-                            </div>
-                            <div>
-                                <input
-                                    style={{
-                                        border: '1px solid black',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        fontSize: '16px', width: "90%"
-                                    }}
-                                    type="tel"
-                                    className="form-control"
-                                    id="phoneInput"
-                                // value={newCustomer.phone}
-                                // onChange={(e) => {
-                                //     setNewCustomer({ ...newCustomer, phone: e.target.value });
-                                // }}
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <div>
-                                <label htmlFor="emailInput" className="form-label">
-                                    Email
-                                </label>
-                            </div>
-                            <div>
-                                <input
-                                    style={{
-                                        border: '1px solid black',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        fontSize: '16px', width: "90%"
-                                    }}
-                                    type="email"
-                                    className="form-control"
-                                    id="emailInput"
-                                // value={newCustomer.email}
-                                // onChange={(e) => {
-                                //     setNewCustomer({ ...newCustomer, email: e.target.value });
-                                // }}
-                                />
-                            </div>
-                        </div>
-
-                        <div style={{ marginTop: "10px" }}>
-                            <div>
-                                <label htmlFor="passwordInput" className="form-label">
-                                    Password
-                                </label>
-                            </div>
-                            <div style={{ position: 'relative' }}>
-
-                                <input
-                                    style={{
-                                        border: '1px solid black',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        fontSize: '16px', width: "90%"
-                                    }}
-                                    type={"" ? 'text' : 'password'} // Use "text" for password
-                                    className="form-control"
-                                    id="passwordInput" // Change id to passwordInput
-                                // value={newCustomer.password} // Change value to detail.username
-
-                                // onChange={(e) => {
-                                //     setNewCustomer({ ...newCustomer, password: e.target.value }); // Change to update username
-                                // }}
-                                />
-                                {/* <i
-                                    type="button"
-                                    onClick={toggleShowPassword}
-                                    className="mdi mdi-eye"
-                                    style={{
-                                        position: 'absolute',
-                                        top: '50%',
-                                        right: '10px',
-                                        transform: 'translateY(-50%)',
-                                        cursor: 'pointer',
-                                    }}
-                                >
-                                    {showPassword ? '' : ''}
-                                </i> */}
-
-                            </div>
-                        </div>
-                        <div style={{ marginTop: '20px', marginLeft: "50%" }}>
-                            <button type="button" className="btn btn-primary">
-                                Thêm khách hàng
-                            </button>
+                            </form>
                         </div>
                     </div>
                 </div>
-                <hr></hr>
-                <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                        <div style={{ width: "30%" }}>
-                            <div>
-                                <label htmlFor="addressInputCity" className="form-label">
-                                    Tỉnh/Thành phố
-                                </label>
-                            </div>
-                            <div>
-                                <input
-                                    style={{
-                                        border: '1px solid black',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        fontSize: '16px',
-                                        width: "80%",
-                                    }}
-                                    className="form-control"
-                                    id="addressInputCity"
-                                />
-                            </div>
-                        </div>
-
-                        <div style={{ width: "30%" }}>
-                            <div>
-                                <label htmlFor="addressInputDistrict" className="form-label">
-                                    Quận/Huyện
-                                </label>
-                            </div>
-                            <div>
-                                <input
-                                    style={{
-                                        border: '1px solid black',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        fontSize: '16px',
-                                        width: "80%",
-                                    }}
-                                    className="form-control"
-                                    id="addressInputDistrict"
-                                />
-                            </div>
-                        </div>
-
-                        <div style={{ width: "30%" }}>
-                            <div>
-                                <label htmlFor="addressInputWard" className="form-label">
-                                    Phường/Xã
-                                </label>
-                            </div>
-                            <div>
-                                <input
-                                    style={{
-                                        border: '1px solid black',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        fontSize: '16px',
-                                        width: "80%",
-                                    }}
-                                    className="form-control"
-                                    id="addressInputWard"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div style={{ marginTop: "10px", width: "94%" }}>
-                            <div>
-                                <label htmlFor="addressInput" className="form-label">
-                                    Địa chỉ chi tiết
-                                </label>
-                            </div>
-                            <div>
-                                <input style={{
-                                    border: '1px solid black',
-                                    padding: '8px',
-                                    borderRadius: '4px',
-                                    fontSize: '16px', width: "100%"
-                                }}
-                                    className="form-control"
-                                    id="addressInput"
-                                // value={addressCusstomer.detailedAddress}
-                                // onChange={(e) => {
-                                //     setAddressCusstomer({ ...addressCusstomer, detailedAddress: e.target.value });
-                                // }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="mt-2">
-                            <div className="mt-6 flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id="addressInput"
-                                    className="h-16 w-16 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                />
-                                <span className="ml-6 text-4xl text-gray-900 font-extrabold">Chọn làm địa chỉ mặc định</span>
-                            </div>
-                        </div>
-                        <div style={{ marginTop: '20px', marginLeft: "78%" }}>
-                            <button type="button" className="btn btn-primary">
-                                Thêm địa chỉ
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-            </form>
+            </div>
         </div>
     )
 }

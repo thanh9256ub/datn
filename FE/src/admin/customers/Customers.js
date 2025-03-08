@@ -9,7 +9,7 @@ const Customers = () => {
 
     const [page, setPage] = useState(1);
 
-    const [totalPage, setTotalPage] = useState(9999999);
+    const [totalPage, setTotalPage] = useState(999);
 
     const [search, setSearch] = useState('');
 
@@ -180,6 +180,10 @@ const Customers = () => {
         history.push('/admin/customers/add');
     }
 
+    const handleUpdateCustomer = (id) => {
+        history.push(`/admin/customers/update/${id}`)
+    }
+
     return (
         <div>
             <div className='container' style={{ display: "flex", marginBottom: "10px" }}>
@@ -219,9 +223,7 @@ const Customers = () => {
                                             <th>Giới tính</th>
                                             <th>Số điện thoại</th>
                                             <th>Địa chỉ</th>
-                                            <th>Địa chỉ giao hàng</th>
                                             <th>Chỉnh sửa</th>
-
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -242,6 +244,9 @@ const Customers = () => {
                                                         </td> */}
                                                         <td>
                                                             <Button variant="link" onClick={() => handleShow(customer)}>
+                                                                <i className='mdi mdi-eye'></i>
+                                                            </Button>
+                                                            <Button variant="link" onClick={() => handleUpdateCustomer(customer.id)}>
                                                                 <i className='mdi mdi-border-color'></i>
                                                             </Button>
                                                         </td>
@@ -424,8 +429,33 @@ const Customers = () => {
 
 
                                             </div>
-                                            <div style={{ width: "50%", marginLeft: "50px" }}>
 
+                                            <div style={{ width: "50%", marginLeft: "50px" }}>
+                                                <div style={{ marginTop: "10px" }}>
+                                                    <div>
+                                                        <label htmlFor="birthDateInput" className="form-label">
+                                                            Ngày sinh
+                                                        </label>
+                                                    </div>
+                                                    <div>
+                                                        <input
+                                                            style={{
+                                                                border: '1px solid black',
+                                                                padding: '8px',
+                                                                borderRadius: '4px',
+                                                                fontSize: '16px', width: "100%"
+                                                            }}
+
+                                                            type="date"
+                                                            className="form-control"
+                                                            id="birthDateInput"
+                                                            value={detail.birthDate}
+                                                            onChange={(e) => {
+                                                                setDetail({ ...detail, birthDate: e.target.value });
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
                                                 <div>
                                                     <div>
                                                         <label htmlFor="emailInput" className="form-label">
@@ -578,11 +608,11 @@ const Customers = () => {
                                 </Modal.Body>
                                 <Modal.Footer>
                                     <div style={{ display: "flex" }}>
-                                        <div>
+                                        {/* <div>
                                             <Button variant="primary" type="submit" onClick={() => handleUpdate(detail.id, detail)}>
                                                 Lưu thay đổi
                                             </Button>
-                                        </div>
+                                        </div> */}
                                         <div>
                                             <Button variant="primary" onClick={handleClose}>
                                                 Đóng
@@ -905,160 +935,6 @@ const Customers = () => {
                                         <div>
                                             <Button variant="primary" type="submit" onClick={() => handleAddCustomer()}>
                                                 Thêm khách hàng
-                                            </Button>
-                                        </div>
-                                        <div>
-                                            <Button variant="primary" onClick={handleCloseAdd}>
-                                                Hủy
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </Modal.Footer>
-                            </Modal>
-
-                            <Modal show={showModalAddress} onHide={handleCloseAddress} size='lg'>
-                                <Modal.Header closeButton>
-                                    <Modal.Title>Địa chỉ</Modal.Title>
-                                </Modal.Header>
-                                <Modal.Body>
-                                    {/* Nội dung của Modal */}
-                                    <form >
-                                        <div style={{ display: 'flex' }}>
-                                            <div style={{ width: "50%" }}>
-                                                <div>
-                                                    <div>
-                                                        <div>
-                                                            <label htmlFor="cityInput" className="form-label">
-                                                                Tên khách hàng
-                                                            </label>
-                                                        </div>
-                                                        <div>
-                                                            <input
-                                                                style={{
-                                                                    border: '1px solid black',
-                                                                    padding: '8px',
-                                                                    borderRadius: '4px',
-                                                                    fontSize: '16px', width: "100%"
-                                                                }}
-                                                                type="text"
-                                                                className="form-control"
-                                                                id="cityInput"
-                                                                value={newCustomer.customerCode}
-                                                                onChange={(e) => {
-                                                                    setNewCustomer({ ...newCustomer, customerCode: e.target.value });
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <label htmlFor="cityInput" className="form-label">
-                                                            City
-                                                        </label>
-                                                    </div>
-                                                    <div>
-                                                        <input
-                                                            style={{
-                                                                border: '1px solid black',
-                                                                padding: '8px',
-                                                                borderRadius: '4px',
-                                                                fontSize: '16px', width: "100%"
-                                                            }}
-                                                            type="text"
-                                                            className="form-control"
-                                                            id="cityInput"
-                                                            value={newCustomer.customerCode}
-                                                            onChange={(e) => {
-                                                                setNewCustomer({ ...newCustomer, customerCode: e.target.value });
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div style={{ marginTop: "10px" }}>
-                                                    <div>
-                                                        <label htmlFor="districtInput" className="form-label">
-                                                            District
-                                                        </label>
-                                                    </div>
-                                                    <div>
-                                                        <input
-                                                            style={{
-                                                                border: '1px solid black',
-                                                                padding: '8px',
-                                                                borderRadius: '4px',
-                                                                fontSize: '16px', width: "100%"
-                                                            }}
-                                                            type="text"
-                                                            className="form-control"
-                                                            id="districtInput" // Thay đổi id 
-                                                            value={newCustomer.fullName}
-                                                            onChange={(e) => {
-                                                                setNewCustomer({ ...newCustomer, fullName: e.target.value });
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div style={{ marginTop: "10px" }}>
-                                                    <div>
-                                                        <label htmlFor="wardInput" className="form-label">
-                                                            Ward
-                                                        </label>
-                                                    </div>
-                                                    <div>
-                                                        <input
-                                                            style={{
-                                                                border: '1px solid black',
-                                                                padding: '8px',
-                                                                borderRadius: '4px',
-                                                                fontSize: '16px', width: "100%"
-                                                            }}
-                                                            type="tel"
-                                                            className="form-control"
-                                                            id="wardInput"
-                                                            value={newCustomer.phone}
-                                                            onChange={(e) => {
-                                                                setNewCustomer({ ...newCustomer, phone: e.target.value });
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div style={{ marginTop: "10px" }}>
-                                                    <div>
-                                                        <label htmlFor="detailedAddressInput" className="form-label">
-                                                            Detailed Address
-                                                        </label>
-                                                    </div>
-                                                    <div>
-                                                        <textarea style={{
-                                                            border: '1px solid black',
-                                                            padding: '8px',
-                                                            borderRadius: '4px',
-                                                            fontSize: '16px', width: "100%"
-                                                        }}
-                                                            className="form-control"
-                                                            id="detailedAddressInput"
-                                                            value={detail.address}
-                                                            onChange={(e) => {
-                                                                setDetail({ ...detail, address: e.target.value });
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div style={{ width: "50%", marginLeft: "50px" }}>
-
-                                            </div>
-                                        </div>
-                                    </form>
-                                </Modal.Body>
-                                <Modal.Footer>
-                                    <div style={{ display: "flex" }}>
-                                        <div>
-                                            <Button variant="primary" type="submit" onClick={() => handleAddCustomer()}>
-                                                Thêm
                                             </Button>
                                         </div>
                                         <div>

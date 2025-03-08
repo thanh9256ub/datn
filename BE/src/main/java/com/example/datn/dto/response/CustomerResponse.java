@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Data
@@ -41,6 +43,8 @@ public class CustomerResponse {
 
     String address;
 
+    List<AddressResponse> addressList;
+
     public CustomerResponse(Customer customer) {
         this.id = customer.getId();
         this.customerCode = customer.getCustomerCode();
@@ -55,8 +59,10 @@ public class CustomerResponse {
                 ? customer.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                 : customer.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         this.roleId = Objects.isNull(customer.getRole()) ? 0 : customer.getRole().getId();
+        this.addressList = new ArrayList<>();
         if (customer.getAddressList() != null)
             for (Address addressDetail : customer.getAddressList()) {
+                this.addressList.add(new AddressResponse(addressDetail));
                 if (addressDetail.getDefaultAddress())
                     this.address = addressDetail.getCity();
             }

@@ -31,7 +31,7 @@ export { listRole };
 
 export const getEmployee = (id) => {
     const response = axios.get("http://localhost:8080/employee" + '/' + id)
-    return response.data
+    return response
 }
 
 export const updateEmployee = async (id, employee) => {
