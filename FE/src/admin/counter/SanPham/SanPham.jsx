@@ -77,7 +77,10 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
   };
 
   const handleAddToCart = () => {
-    if (!selectedProduct || quantity < 1) return;
+    if (!selectedProduct || quantity < 1||selectedProduct.quantity<quantity){
+      alert('Số lượng không hợp lệ');
+      return;
+    } 
     console.log(selectedProduct.id);
     axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoice}&productID=${selectedProduct.id}&purchaseQuantity=${quantity}`)
       .then(response => {
@@ -89,10 +92,10 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
       .catch(error => console.error('Error adding to cart:', error));
   };
 
-  const handleQuantityChange = (orderDetailID, productDetailID, newQuantity) => {
-    console.log(orderDetailID, productDetailID, newQuantity);
-    if (newQuantity < 0) return;
-    axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${orderDetailID}&productDetailID=${productDetailID}&quantity=${newQuantity}`)
+  const handleQuantityChange = (item, newQuantity) => {
+    console.log(item.productDetail.quantity+item.quantity);
+    if (newQuantity < 0|| item.productDetail.quantity+item.quantity<newQuantity) return;
+    axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
       .then(response => {
         fetchProducts();
         fetchOrderItems();
@@ -153,15 +156,16 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
 
 
                       <button type="button" class="btn btn-outline-secondary btn-rounded btn-icon"
-                        onClick={() => handleQuantityChange(item.id, item.productDetail.id, Math.max(1, item.quantity - 1))}
+                        onClick={() => handleQuantityChange(item, Math.max(1, item.quantity - 1))}
                       ><i class="mdi mdi-minus"></i></button>
 
 
                       <Form.Control
                         type="tel"
                         min="1"
+                        max={item.productDetail.quantity}
                         value={item.quantity}
-                        onChange={(e) => handleQuantityChange(item.id, item.productDetail.id, Number(e.target.value))}
+                        onChange={(e) => handleQuantityChange(item, Number(e.target.value))}
                         onBlur={() => {
                           if (item.quantity === 0) {
                             handleRemoveItem(item.id, item.productDetail.id);
@@ -170,7 +174,7 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
                         style={{ width: '50px', textAlign: 'center' }}
                       />
                       <button type="button" class="btn btn-outline-secondary btn-sm btn-rounded btn-icon "
-                        onClick={() => handleQuantityChange(item.id, item.productDetail.id, item.quantity + 1)}
+                        onClick={() => handleQuantityChange(item,Math.min(item.productDetail.quantity+item.quantity, item.quantity + 1))}
                       >
                         <i class="mdi mdi-plus"></i>
                       </button>
