@@ -187,7 +187,10 @@ const Cart = ({ selectedInvoice, updateTotalAmount }) => {
                     <i
                       className="mdi mdi-cart-off"
                       style={{ fontSize: '20px', cursor: 'pointer' }}
-                      onClick={() => handleRemoveItem(item.id, item.productDetail.id)}
+                      onClick={() => {handleRemoveItem(item.id, item.productDetail.id)
+
+        
+                      }}
                     ></i>
                   </td>
                 </tr>
