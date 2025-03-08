@@ -8,47 +8,28 @@ export const getProducts = () => {
     return axios.get(BASE_URL);
 }
 
-// const uploadImage = async (file) => {
-//     const formData = new FormData();
-//     formData.append('file', file);
+export const uploadImageToCloudinary = async (imageFile) => {
+    const formData = new FormData();
+    formData.append("file", imageFile);
+    formData.append("upload_preset", "long_preset");
+    formData.append("cloud_name", "dgj9htnpn");
 
-//     try {
-//         const response = await axios.post(`${BASE_URL}/upload`, formData, {
-//             headers: {
-//                 'Content-Type': 'multipart/form-data',
-//             }
-//         });
-//         return response.data.data;  // URL ảnh trả về
-//     } catch (error) {
-//         console.error('Lỗi khi tải ảnh lên:', error);
-//         return null;
-//     }
-// };
+    try {
+        const response = await axios.post('https://api.cloudinary.com/v1_1/dgj9htnpn/image/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            }
+        });
 
-// export const createProduct = async (file, productData) => {
-//     const imageUrl = await uploadImage(file);
-
-//     if (imageUrl) {
-//         const productRequest = {
-//             ...productData,
-//             mainImage: imageUrl,
-//         };
-
-//         try {
-//             const response = await axios.post(`${BASE_URL}/add`, productRequest, {
-//                 headers: {
-//                     'Content-Type': 'application/json',
-//                 }
-//             });
-
-//             if (response.status === 201) {
-//                 console.log('Sản phẩm đã được tạo:', response.data);
-//             }
-//         } catch (error) {
-//             console.error('Lỗi khi thêm sản phẩm:', error);
-//         }
-//     }
-// }
+        if (response.status === 200) {
+            return response.data.secure_url; // Trả về URL ảnh sau khi upload lên Cloudinary
+        }
+    } catch (error) {
+        console.error("Lỗi khi tải ảnh lên Cloudinary:", error);
+        alert("Có lỗi xảy ra khi tải ảnh lên Cloudinary.");
+        return null;
+    }
+};
 
 export const createProduct = (product) => {
     return axios.post(`${BASE_URL}/add`, product);

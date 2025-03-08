@@ -7,7 +7,6 @@ import ModalProductDetail from './components/ModalProductDetail'
 import Switch from 'react-switch';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import ModalImage from 'react-modal-image';
 
 const Products = () => {
     const [products, setProducts] = useState([]);
@@ -19,7 +18,7 @@ const Products = () => {
     const [selectedProductDetails, setSelectedProductDetails] = useState([]);
     const [selectedProductName, setSelectedProductName] = useState("");
 
-    const [showImageModal, setShowImageModal] = useState(false);  // State để hiển thị modal ảnh
+    const [showImageModal, setShowImageModal] = useState(false);
     const [imageUrl, setImageUrl] = useState("");
 
     const history = useHistory();
@@ -27,11 +26,9 @@ const Products = () => {
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            setTimeout(async () => {
-                const response = await getProducts();
-                setProducts(response.data.data);
-                setLoading(false);
-            }, 500);
+            const response = await getProducts();
+            setProducts(response.data.data);
+            setLoading(false);
         } catch (err) {
             setError('Đã xảy ra lỗi khi tải sản phẩm.');
             setLoading(false);
@@ -91,10 +88,6 @@ const Products = () => {
         }
     };
 
-    const refreshProducts = () => {
-        fetchProducts();
-    };
-
     const handleShowImageModal = (imageUrl) => {
         setImageUrl(imageUrl);
         setShowImageModal(true);
@@ -152,11 +145,11 @@ const Products = () => {
                                                     <tr key={product.id}>
                                                         <td>{index + 1}</td>
                                                         <td>
-                                                            {product.mainImage ? (
+                                                            {product.mainImage != "image.png" ? (
                                                                 <img
                                                                     src={product.mainImage}
                                                                     alt="Product"
-                                                                    style={{ width: '100px', height: 'auto', cursor: 'pointer', borderRadius: '0%', objectFit: 'contain' }}
+                                                                    style={{ width: '100px', height: 'auto', cursor: 'pointer', borderRadius: '5%', objectFit: 'contain' }}
                                                                     onClick={() => handleShowImageModal(product.mainImage)}  // Mở modal khi click vào ảnh
                                                                 />
                                                             ) : (

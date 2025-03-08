@@ -9,7 +9,7 @@ import ListAutoVariant from '../components/ListAutoVariant';
 import { createProductDetail, updateQR } from '../service/ProductDetailService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import MainImage from '../components/MainImage';
-import { createProduct } from '../service/ProductService';
+import { createProduct, uploadImageToCloudinary } from '../service/ProductService';
 
 const CreateProduct = () => {
     const [productName, setProductName] = useState("");
@@ -163,6 +163,12 @@ const CreateProduct = () => {
         try {
             // const productData = createProductData();
             // console.log("Dữ liệu gửi lên API:", productData);
+            const uploadedImageUrl = await uploadImageToCloudinary(productData.mainImage);
+
+            if (!uploadedImageUrl) {
+                alert("Lỗi khi tải ảnh lên Cloudinary.");
+                return;
+            }
 
             const productRequest = {
                 productName,
@@ -171,7 +177,7 @@ const CreateProduct = () => {
                 materialId,
                 totalQuantity,
                 status,
-                mainImage: productData.mainImage
+                mainImage: uploadedImageUrl
             };
 
             // const productResponse = await createProduct(mainImage, productData);
