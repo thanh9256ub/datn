@@ -100,10 +100,12 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
                     <table border="1" width="100%">
                         <thead>
                             <tr>
-                                <th>Sản phẩm</th>
+                                <th>Tên sản phẩm</th>
+                                <th>Màu sắc</th>
+                                <th>Kích thước</th>
                                 <th>Số lượng</th>
                                 <th>Giá</th>
-                                <th>Tổng</th>
+                                <th>Tổng tiền </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -114,6 +116,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
           .map(item => `
                 <tr>
                     <td>${item.productDetail.product.productName}</td>
+                    <td>${item.productDetail.color.colorName }</td>
+                    <td>${item.productDetail.size.sizeName }</td>
                     <td>${item.quantity}</td>
                     <td>${item.price} VNĐ</td>
                     <td>${item.quantity*item.price} VNĐ</td>
