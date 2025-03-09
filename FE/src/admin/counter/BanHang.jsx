@@ -231,6 +231,8 @@ const BanHang = () => {
                   <thead>
                     <tr>
                       <th>Tên sản phẩm </th>
+                      <th>Màu sắc </th>
+                      <th>Kích thước </th>
                       <th>Giá </th>
                       <th>Số lượng </th>
                       <th>Tổng tiền </th>
@@ -243,6 +245,8 @@ const BanHang = () => {
                       .map(item => (
                         <tr key={item.id}>
                           <td>{item.productDetail.product.productName}</td>
+                          <td>{item.productDetail.color.colorName} </td>
+                          <td>{item.productDetail.size.sizeName} </td>
                           <td>{item.price} VND</td>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -316,6 +320,8 @@ const BanHang = () => {
                   <thead>
                     <tr>
                       <th>Tên sản phẩm </th>
+                      <th>Màu sắc </th>
+                      <th>Kích thước </th>
                       <th>Giá </th>
                       <th>Số lượng </th>
                     </tr>
@@ -324,6 +330,8 @@ const BanHang = () => {
                     {availableProducts.map(product => (
                       <tr key={product.id} onClick={selectedInvoiceId && (() => handleSelectProduct(product))}>
                         <td>{product.product.productName}</td>
+                        <td>{product.color.colorName} </td>
+                          <td>{product.size.sizeName} </td>
                         <td>{product.price ? product.price.toLocaleString() : 'N/A'} VND</td>
                         <td>{product.quantity}</td>
                       </tr>
