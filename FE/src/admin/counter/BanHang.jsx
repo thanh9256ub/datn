@@ -3,7 +3,7 @@ import { Row, Col, Modal, Button, Table, Form } from 'react-bootstrap';
 import axios from 'axios';
 import QrReader from 'react-qr-scanner';
 import ThanhToan from "./ThanhToan/ThanhToan";
-
+import { toast,ToastContainer } from "react-toastify";
 const BanHang = () => {
   const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
   const [invoices, setInvoices] = useState([]);
@@ -99,6 +99,19 @@ const BanHang = () => {
   };
 
   const handleSelectProduct = (product) => {
+    if (selectedInvoiceId===null) {
+      toast.warn("Vui lòng chọn hóa đơn trước khi thêm sản phẩm 🥰", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+     return 
+    }
     setSelectedProduct(product);
     setQuantity(1);
     handleShowModal();
@@ -106,7 +119,16 @@ const BanHang = () => {
 
   const handleAddToCart = () => {
     if (!selectedProduct || quantity < 1 || selectedProduct.quantity < quantity) {
-      alert('Số lượng không hợp lệ');
+      toast.error("Vui lòng nhập lại số lượng 🥰", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
       return;
     }
   
@@ -140,6 +162,16 @@ const BanHang = () => {
           // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
           fetchProducts();
           fetchOrderItems();
+          toast.success("Thêm sản phẩm thành công 🥰", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+          });
         })
         .catch(error => {
         });
@@ -328,7 +360,7 @@ const BanHang = () => {
                   </thead>
                   <tbody>
                     {availableProducts.map(product => (
-                      <tr key={product.id} onClick={selectedInvoiceId && (() => handleSelectProduct(product))}>
+                      <tr key={product.id} onClick={ (() => handleSelectProduct(product))}>
                         <td>{product.product.productName}</td>
                         <td>{product.color.colorName} </td>
                           <td>{product.size.sizeName} </td>
@@ -377,6 +409,7 @@ const BanHang = () => {
         <Col md={4}>
           <div className="p-3 border">
             <ThanhToan idOrder={selectedInvoiceId} orderDetail ={items}  totalAmount={totalAmount} />
+            <ToastContainer />
           </div>
         </Col>
       </Row>
