@@ -284,9 +284,9 @@ const BanHang = () => {
                           <td>{item.price} VND</td>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center' }}>
-                              <button type="button" class="btn btn-outline-secondary btn-rounded btn-icon"
+                              <button type="button" className ="btn btn-outline-secondary btn-rounded btn-icon"
                                 onClick={() => handleQuantityChange(item, Math.max(1, item.quantity - 1))}
-                              ><i class="mdi mdi-minus"></i></button>
+                              ><i className ="mdi mdi-minus"></i></button>
                               <Form.Control
                                 type="tel"
                                 min="1"
@@ -300,10 +300,10 @@ const BanHang = () => {
                                 }}
                                 style={{ width: '50px', textAlign: 'center' }}
                               />
-                              <button type="button" class="btn btn-outline-secondary btn-sm btn-rounded btn-icon "
+                              <button type="button" className="btn btn-outline-secondary btn-sm btn-rounded btn-icon "
                                 onClick={() => handleQuantityChange(item, Math.min(item.productDetail.quantity + item.quantity, item.quantity + 1))}
                               >
-                                <i class="mdi mdi-plus"></i>
+                                <i className ="mdi mdi-plus"></i>
                               </button>
                             </div>
                           </td>
