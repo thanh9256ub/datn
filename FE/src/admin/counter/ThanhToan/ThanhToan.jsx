@@ -3,6 +3,7 @@ import { Row, Col, Form, Button, Modal } from 'react-bootstrap';
 import CustomerSearch from './CustomerSearch';
 import DeliveryInfo from './DeliveryInfo';
 import PromoCode from './PromoCode';
+import { toast } from "react-toastify";
 
 const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
   const [delivery, setDelivery] = useState(false);
@@ -140,6 +141,33 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
     printWindow.document.write(invoiceContent);
     printWindow.document.close();
     printWindow.print();
+
+
+  };
+ const  handlePaymentConfirmation = () => {
+    if (!isPaymentEnabled) {
+       toast.warn("Vui lòng thực hiện đủ các bước 🥰", {
+              position: "top-right",
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+            });
+      return;
+    } 
+    toast.success("Thanh toán thành công 🥰", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+    });
   };
   return (
     <div className="container my-4">
@@ -192,7 +220,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
                     setCashPaid(e.target.value);
 
                     setChange(e.target.value - finalAmount);
-                  }}
+                  } }
                   placeholder="Nhập số tiền khách trả"
                 />
               </Form.Group>
@@ -217,7 +245,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
       {/* Xác nhận thanh toán */}
       <Row>
         <Col sm={12}>
-          <Button variant="success" className="w-100" disabled={!isPaymentEnabled} >Xác nhận thanh toán</Button>
+          <Button variant="success" className="w-100" onClick={handlePaymentConfirmation} >Xác nhận thanh toán</Button>
           <Button onClick={handlePrintInvoice}> in </Button>
         </Col>
       </Row>
