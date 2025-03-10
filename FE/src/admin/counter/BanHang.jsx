@@ -27,7 +27,7 @@ const BanHang = () => {
         const filteredInvoices = response.data.data.filter(invoice => invoice.status === 0);
         setInvoices(filteredInvoices);
         setInvoiceCount(filteredInvoices.length);
-        console.log('Fetched orders:', filteredInvoices);
+       
       })
       .catch(error => console.error('Error fetching orders:', error));
   };
@@ -109,7 +109,7 @@ const BanHang = () => {
       alert('Số lượng không hợp lệ');
       return;
     }
-    console.log(selectedProduct.id);
+  
     axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoiceId}&productID=${selectedProduct.id}&purchaseQuantity=${quantity}`)
       .then(response => {
         // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
@@ -121,7 +121,7 @@ const BanHang = () => {
   };
 
   const handleQuantityChange = (item, newQuantity) => {
-    console.log(item.productDetail.quantity + item.quantity);
+   
     if (newQuantity < 0 || item.productDetail.quantity + item.quantity < newQuantity) return;
     axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
       .then(response => {
@@ -189,6 +189,7 @@ const BanHang = () => {
   };
 
   return (
+   
     <div style={{ backgroundColor: "white" }}>
       <Row className="align-items">
         <Col md={8}>
@@ -229,11 +230,13 @@ const BanHang = () => {
                 <Table hover>
                   <thead>
                     <tr>
-                      <th>Product</th>
-                      <th>Price</th>
-                      <th>Quantity</th>
-                      <th>Total</th>
-                      <th>Actions</th>
+                      <th>Tên sản phẩm </th>
+                      <th>Màu sắc </th>
+                      <th>Kích thước </th>
+                      <th>Giá </th>
+                      <th>Số lượng </th>
+                      <th>Tổng tiền </th>
+                      <th>Hàng động </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -242,6 +245,8 @@ const BanHang = () => {
                       .map(item => (
                         <tr key={item.id}>
                           <td>{item.productDetail.product.productName}</td>
+                          <td>{item.productDetail.color.colorName} </td>
+                          <td>{item.productDetail.size.sizeName} </td>
                           <td>{item.price} VND</td>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -314,15 +319,19 @@ const BanHang = () => {
                 <Table hover>
                   <thead>
                     <tr>
-                      <th>Product</th>
-                      <th>Price</th>
-                      <th>Quantity</th>
+                      <th>Tên sản phẩm </th>
+                      <th>Màu sắc </th>
+                      <th>Kích thước </th>
+                      <th>Giá </th>
+                      <th>Số lượng </th>
                     </tr>
                   </thead>
                   <tbody>
                     {availableProducts.map(product => (
                       <tr key={product.id} onClick={selectedInvoiceId && (() => handleSelectProduct(product))}>
                         <td>{product.product.productName}</td>
+                        <td>{product.color.colorName} </td>
+                          <td>{product.size.sizeName} </td>
                         <td>{product.price ? product.price.toLocaleString() : 'N/A'} VND</td>
                         <td>{product.quantity}</td>
                       </tr>
@@ -367,7 +376,7 @@ const BanHang = () => {
         </Col>
         <Col md={4}>
           <div className="p-3 border">
-            <ThanhToan totalAmount={totalAmount} />
+            <ThanhToan idOrder={selectedInvoiceId} orderDetail ={items}  totalAmount={totalAmount} />
           </div>
         </Col>
       </Row>
