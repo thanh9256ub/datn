@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Form } from 'react-bootstrap';
-import axios from 'axios';
-import { uploadImageToCloudinary } from '../service/ProductService';
 
-const MainImage = ({ setMainImage }) => {
+const MainImage = ({ setMainImage, initialImage }) => {
     const [file, setFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
-    const [isUploading, setIsUploading] = useState(false);
+
+    useEffect(() => {
+        if (initialImage) {
+            setImagePreview(initialImage);
+        }
+    }, [initialImage]);
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
@@ -17,48 +20,71 @@ const MainImage = ({ setMainImage }) => {
         }
     };
 
-    // const handleUpload = async () => {
-    //     if (!file) {
-    //         alert("Vui lòng chọn ảnh!");
-    //         return;
-    //     }
+    const renderImagePreview = () => {
+        if (initialImage && typeof initialImage === 'string') {
+            // Nếu initialImage là URL, hiển thị ảnh từ URL
+            return <img src={initialImage} alt="Preview" style={previewImageStyle} />;
+        } else if (initialImage && initialImage instanceof File) {
+            // Nếu initialImage là File, hiển thị ảnh preview
+            return <img src={URL.createObjectURL(initialImage)} alt="Preview" style={previewImageStyle} />;
+        }
+        return null; // Không hiển thị gì nếu không có ảnh
+    };
 
-    //     setIsUploading(true);
-    //     try {
-    //         const imageUrl = await uploadImageToCloudinary(file) // URL ảnh từ Cloudinary
-    //         setMainImage(imageUrl);  // Cập nhật mainImage với URL ảnh
-    //         console.log("Ảnh đã được tải lên Cloudinary:", imageUrl);
-    //     } catch (error) {
-    //         console.error("Lỗi khi tải ảnh lên Cloudinary:", error);
-    //     } finally {
-    //         setIsUploading(false);
-    //     }
-    // };
+    const previewContainerStyle = {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        marginTop: '15px',
+        marginBottom: '15px',
+    };
+
+    const previewImageStyle = {
+        maxWidth: '200px',
+        height: 'auto',
+        borderRadius: '8px',
+        border: '2px solid #ddd',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+    };
 
     return (
         <div>
-            <Form.Group>
-                <Form.Label>Ảnh chính</Form.Label>
-                <Form.Control
-                    type="file"
-                    onChange={handleFileChange}
-                />
+            {/* {imagePreview && ( */}
+            <div style={previewContainerStyle}>
+                {/* <img src={imagePreview} alt="Preview"
+                        // style={{ width: '200px', height: 'auto' }} 
+                        style={previewImageStyle}
+                        onMouseOver={(e) => {
+                            e.target.style.transform = 'scale(1.05)';
+                            e.target.style.boxShadow = '0px 6px 12px rgba(0, 0, 0, 0.2)';
+                        }}
+                        onMouseOut={(e) => {
+                            e.target.style.transform = 'scale(1)';
+                            e.target.style.boxShadow = '0px 4px 6px rgba(0, 0, 0, 0.1)';
+                        }}
+                    /> */}
+                {renderImagePreview()}
+            </div>
+            {/*  )} */}
+
+            <Form.Group className='row d-flex align-items-center'>
+                <label className="col-sm-3 col-form-label">Ảnh chính:</label>
+                <div className="custom-file col-sm-6">
+                    <input
+                        type="file"
+                        className="custom-file-input"
+                        id="customFile"
+                        onChange={handleFileChange}
+                        style={{ marginLeft: '50px !important' }}
+                    />
+                    <label className="custom-file-label" htmlFor="customFile">
+                        {file ? file.name : 'Chọn ảnh'}
+                    </label>
+                </div>
             </Form.Group>
 
-            {imagePreview && (
-                <div>
-                    <h6>Preview ảnh:</h6>
-                    <img src={imagePreview} alt="Preview" style={{ width: '200px', height: 'auto' }} />
-                </div>
-            )}
 
-            {/* <Button
-                variant="primary"
-                onClick={handleUpload}
-                disabled={isUploading}
-            >
-                {isUploading ? "Đang tải lên..." : "Tải ảnh lên"}
-            </Button> */}
         </div>
     );
 };

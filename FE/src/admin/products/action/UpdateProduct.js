@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
 import { useParams, useHistory } from 'react-router-dom';
-import { getProductById, updateProduct } from '../service/ProductService';
+import { getProductById, updateProduct, uploadImageToCloudinary } from '../service/ProductService';
 import { getProductDetailByProductId, updateProductDetails } from '../service/ProductDetailService';
 import BrandSelect from '../select/BrandSelect';
 import CategorySelect from '../select/CategorySelect';
 import MaterialSelect from '../select/MaterialSelect';
-import ColorSelect from '../select/ColorSelect';
-import SizeSelect from '../select/SizeSelect';
+// import ColorSelect from '../select/ColorSelect';
+// import SizeSelect from '../select/SizeSelect';
 import ListAutoVariant from '../components/ListAutoVariant';
+import MainImage from '../components/MainImage';
 
 const UpdateProduct = () => {
     const { id } = useParams();
@@ -20,9 +21,10 @@ const UpdateProduct = () => {
     const [materialId, setMaterialId] = useState(null);
     const [totalQuantity, setTotalQuantity] = useState(0);
     const [status, setStatus] = useState(0);
-    const [colorIds, setColorIds] = useState([]);
-    const [sizeIds, setSizeIds] = useState([]);
+    // const [colorIds, setColorIds] = useState([]);
+    // const [sizeIds, setSizeIds] = useState([]);
     const [variantList, setVariantList] = useState([]);
+    const [mainImage, setMainImage] = useState(null);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -33,6 +35,7 @@ const UpdateProduct = () => {
                 setBrandId(product.brand.id);
                 setCategoryId(product.category.id);
                 setMaterialId(product.material.id);
+                setMainImage(product.mainImage)
 
                 const variantResponse = await getProductDetailByProductId(id);
                 console.log(variantResponse.data.data)
@@ -52,18 +55,27 @@ const UpdateProduct = () => {
     };
 
     const saveProduct = async () => {
-        if (!productName || !brandId || !categoryId || !materialId) {
+        if (!productName || !brandId || !categoryId || !materialId || !mainImage) {
             alert("Vui lòng nhập đầy đủ thông tin sản phẩm!");
             return;
         }
 
+        const isConfirmed = window.confirm("Bạn có chắc chắn muốn sửa sản phẩm này?");
+        if (!isConfirmed) return;
+
         try {
+            let imageUrl;
+
+            if (mainImage && mainImage instanceof File) {
+                imageUrl = await uploadImageToCloudinary(mainImage);
+            }
+
             const productData = {
                 productName,
                 brandId: brandId ? parseInt(brandId) : null,
                 categoryId: categoryId ? parseInt(categoryId) : null,
                 materialId: materialId ? parseInt(materialId) : null,
-                mainImage: "image.png",
+                mainImage: imageUrl,
                 totalQuantity,
                 status
             };
@@ -102,6 +114,14 @@ const UpdateProduct = () => {
                             <hr />
                             <form className="form-sample">
                                 <div className="row">
+                                    <div className="col-md-6">
+                                        {/* <MainImage setMainImage={setMainImage} /> */}
+                                        <MainImage setMainImage={setMainImage} initialImage={mainImage} />
+                                    </div>
+                                </div>
+                                <div className="row">
+
+
                                     <div className="col-md-6">
                                         <Form.Group className="row">
                                             <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
