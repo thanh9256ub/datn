@@ -6,10 +6,10 @@ import MaterialSelect from '../select/MaterialSelect';
 import ColorSelect from '../select/ColorSelect';
 import SizeSelect from '../select/SizeSelect';
 import ListAutoVariant from '../components/ListAutoVariant';
-import { createProduct } from '../service/ProductService';
 import { createProductDetail, updateQR } from '../service/ProductDetailService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
-import QRCode from "qrcode.react";
+import MainImage from '../components/MainImage';
+import { createProduct, uploadImageToCloudinary } from '../service/ProductService';
 
 const CreateProduct = () => {
     const [productName, setProductName] = useState("");
@@ -27,6 +27,18 @@ const CreateProduct = () => {
     const [commonQuantity, setCommonQuantity] = useState("");
     const [commonPrice, setCommonPrice] = useState("");
 
+    // const [mainImage, setMainImage] = useState(null);
+
+    const [productData, setProductData] = useState({
+        productName,
+        brandId,
+        categoryId,
+        materialId,
+        totalQuantity,
+        status,
+        mainImage: ''
+    });
+
     const handleOpenModal = () => setShowModal(true);
     const handleCloseModal = () => {
         setShowModal(false);
@@ -35,7 +47,7 @@ const CreateProduct = () => {
     };
 
     const handleColorChange = (colors) => {
-        setColorIds(colors || []); // 🛠️ Đảm bảo không có giá trị `undefined`
+        setColorIds(colors || []);
         generateVariants(colors, sizeIds);
     };
 
@@ -76,6 +88,12 @@ const CreateProduct = () => {
         setVariantList(updatedVariants);
     };
 
+    const handleRemoveVariant = (index) => {
+        const updatedVariants = [...variantList];
+        updatedVariants.splice(index, 1); // Xóa biến thể theo index
+        setVariantList(updatedVariants);
+    };
+
     useEffect(() => {
         const total = variantList.reduce((sum, variant) => sum + (parseInt(variant.quantity) || 0), 0);
         setTotalQuantity(total);
@@ -84,17 +102,17 @@ const CreateProduct = () => {
 
     const history = useHistory();
 
-    const createProductData = () => {
-        return {
-            productName,
-            brandId: brandId ? parseInt(brandId) : null,
-            categoryId: categoryId ? parseInt(categoryId) : null,
-            materialId: materialId ? parseInt(materialId) : null,
-            mainImage: "image.png",
-            totalQuantity,
-            status
-        }
-    }
+    // const createProductData = () => {
+    //     return {
+    //         productName,
+    //         brandId: brandId ? parseInt(brandId) : null,
+    //         categoryId: categoryId ? parseInt(categoryId) : null,
+    //         materialId: materialId ? parseInt(materialId) : null,
+    //         mainImage: mainImage,
+    //         totalQuantity,
+    //         status
+    //     }
+    // }
 
     const createProductDetails = async (productId) => {
         const variantData = variantList.map(variant => {
@@ -140,8 +158,8 @@ const CreateProduct = () => {
     };
 
     const saveProduct = async () => {
-        if (!productName || !brandId || !categoryId || !materialId) {
-            alert("Vui lòng nhập đầy đủ thông tin sản phẩm!");
+        if (!productName || !brandId || !categoryId || !materialId || !productData.mainImage) {
+            alert("Vui lòng nhập đầy đủ thông tin sản phẩm và ảnh chính!");
             return;
         }
 
@@ -149,10 +167,27 @@ const CreateProduct = () => {
         if (!isConfirmed) return;
 
         try {
-            const productData = createProductData();
-            console.log("Dữ liệu gửi lên API:", productData);
+            // const productData = createProductData();
+            // console.log("Dữ liệu gửi lên API:", productData);
+            const uploadedImageUrl = await uploadImageToCloudinary(productData.mainImage);
 
-            const productResponse = await createProduct(productData);
+            if (!uploadedImageUrl) {
+                alert("Lỗi khi tải ảnh lên Cloudinary.");
+                return;
+            }
+
+            const productRequest = {
+                productName,
+                brandId,
+                categoryId,
+                materialId,
+                totalQuantity,
+                status,
+                mainImage: uploadedImageUrl
+            };
+
+            // const productResponse = await createProduct(mainImage, productData);
+            const productResponse = await createProduct(productRequest);
             const productId = productResponse.data.data.id;
             console.log("Sản phẩm được tạo:", productResponse.data.data);
 
@@ -184,6 +219,23 @@ const CreateProduct = () => {
         handleCloseModal();
     };
 
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSaveClick = async () => {
+        if (isSaving) return; // Nếu đang lưu, không cho phép nhấn lại
+
+        setIsSaving(true); // Đánh dấu là đang lưu
+
+        try {
+            // Giả sử saveProduct là một hàm lưu dữ liệu
+            await saveProduct();
+        } catch (error) {
+            console.error('Lỗi khi lưu sản phẩm:', error);
+        } finally {
+            setIsSaving(false); // Hoàn thành, bật lại nút
+        }
+    };
+
     return (
         <div>
             <div className="row">
@@ -192,8 +244,14 @@ const CreateProduct = () => {
                         <div className="card-body">
                             <h3 className="card-title">Thêm mới sản phẩm</h3>
                             <hr />
-                            <div style={{ marginBottom: '50px' }}></div>
+                            <div style={{ marginBottom: '20px' }}></div>
                             <form className="form-sample">
+                                <div className="row">
+                                    <div className="col-md-6">
+                                        {/* <MainImage setMainImage={setMainImage} /> */}
+                                        <MainImage setMainImage={(url) => setProductData({ ...productData, mainImage: url })} />
+                                    </div>
+                                </div>
                                 <div className="row">
                                     <div className="col-md-6">
                                         <Form.Group className="row d-flex align-items-center">
@@ -203,16 +261,7 @@ const CreateProduct = () => {
                                             </div>
                                         </Form.Group>
                                     </div>
-                                    <div className="col-md-6">
-                                        <Form.Group className="row d-flex align-items-center">
-                                            <label className="col-sm-3 col-form-label">Mô tả:</label>
-                                            <div className="col-sm-9">
-                                                <Form.Control type="text" />
-                                            </div>
-                                        </Form.Group>
-                                    </div>
-                                </div>
-                                <div className="row">
+
                                     <div className="col-md-6">
                                         <BrandSelect brandId={brandId} setBrandId={setBrandId} />
                                     </div>
@@ -222,6 +271,7 @@ const CreateProduct = () => {
                                     <div className="col-md-6">
                                         <MaterialSelect materialId={materialId} setMaterialId={setMaterialId} />
                                     </div>
+
                                 </div>
                                 <div style={{ marginBottom: '20px' }}></div>
                                 <h6><span>Chọn các biến thể:</span></h6>
@@ -245,14 +295,31 @@ const CreateProduct = () => {
                                         <ListAutoVariant
                                             variantList={variantList}
                                             handleInputChange={handleInputChange}
-                                            productName={productName} />
+                                            handleRemoveVariant={handleRemoveVariant}
+                                        />
                                     </div>
                                 </div>
                                 <hr />
-                                <button type="button" className="btn btn-gradient-primary btn-icon-text" onClick={saveProduct}>
-                                    <i className="mdi mdi-file-check btn-icon-prepend"></i>
-                                    Save
-                                </button>
+                                <div className="d-flex justify-content-end mt-4">
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary btn-icon-text"
+                                        onClick={() => history.push('/admin/products')}
+                                    >
+                                        <i className="mdi mdi-subdirectory-arrow-left"></i>
+                                        Quay lại
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn btn-gradient-primary btn-icon-text"
+                                        onClick={handleSaveClick}
+                                        disabled={isSaving}
+                                    >
+                                        <i className="mdi mdi-file-check btn-icon-prepend"></i>
+                                        {isSaving ? 'Đang lưu...' : 'Lưu'}
+                                    </button>
+                                </div>
+
                             </form>
                         </div>
                     </div>

@@ -4,6 +4,8 @@ import axios from 'axios';
 import QrReader from 'react-qr-scanner';
 import ThanhToan from "./ThanhToan/ThanhToan";
 import { toast,ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const BanHang = () => {
   const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
   const [invoices, setInvoices] = useState([]);

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Form, Spinner } from 'react-bootstrap';
+import { Alert, Button, Form, Spinner } from 'react-bootstrap';
 import { QRCodeCanvas } from "qrcode.react";
 
-const ListAutoVariant = ({ variantList, handleInputChange, productName }) => {
+const ListAutoVariant = ({ variantList, handleInputChange, handleRemoveVariant }) => {
 
     const [loading, setLoading] = useState(true);
     const [isFirstLoad, setIsFirstLoad] = useState(true);
@@ -40,6 +40,7 @@ const ListAutoVariant = ({ variantList, handleInputChange, productName }) => {
                                 <th>Số lượng</th>
                                 <th>Giá</th>
                                 <th>QR Code</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -68,6 +69,16 @@ const ListAutoVariant = ({ variantList, handleInputChange, productName }) => {
                                         ) : (
                                             <span className="text-muted">Chưa có QR</span>
                                         )}
+                                    </td>
+                                    <td>
+                                        <button className="btn btn-outline-secondary btn-sm btn-rounded btn-icon"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                handleRemoveVariant(index)
+                                            }}
+                                        >
+                                            <i className='mdi mdi-minus-circle-outline'></i>
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

@@ -4,6 +4,7 @@ import CustomerSearch from './CustomerSearch';
 import DeliveryInfo from './DeliveryInfo';
 import PromoCode from './PromoCode';
 import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
   const [delivery, setDelivery] = useState(false);
