@@ -64,7 +64,7 @@ const Orders = () => {
     const handleNavigate = (orderId) => {
         const order = data.find(order => order.id === orderId);
         history.push({
-            pathname: `/admin/orders/${orderId}`,
+            pathname: `/admin/order-detail/orders/${orderId}`,
             state: { order }
         });
     };
@@ -329,19 +329,43 @@ const Orders = () => {
                                 <th>Khách hàng</th>
                                 <th>Mã đơn hàng</th>
                                 <th>Ngày đặt hàng</th>
-                                <th>Trạng thái</th>
-                                <th>Hình thức thanh toán</th>
                                 <th>Tổng tiền</th>
+                                <th>Loại hóa đơn</th>
+                                <th></th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {currentItems.map((order, index) => (
-                                <tr key={order.id} onClick={() => handleRowClick(order.id)} style={{ cursor: 'pointer' }}>
+                                <tr
+                                    key={order.id}
+                                    onClick={() => handleRowClick(order.id)}
+                                    style={{ cursor: 'pointer' }}
+                                    onMouseEnter={(e) => e.currentTarget.querySelector('button').style.opacity = 1}
+                                    onMouseLeave={(e) => e.currentTarget.querySelector('button').style.opacity = 0}
+                                >
                                     <td>{index + 1}</td>
                                     <td>{order.customerName}</td>
                                     <td>{order.orderCode}</td>
                                     <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+
+                                    <td>{order.totalPayment.toLocaleString()} VNĐ</td>
+                                    <td> <span
+                                        className={`badge ${order.type === 0 || order.type === 1 ? "text-dark" : "text-white"}`}
+                                        style={{
+                                            backgroundColor:
+                                                order.type === 0 ? "#d1d3d6" :
+                                                    order.type === 1 ? "#ffe8a1" :
+                                                        "#ef476f",
+                                            fontFamily: '"Roboto", sans-serif',
+                                            fontWeight: '400',
+                                            padding: '0.35rem 0.65rem',
+                                            fontSize: '0.9rem',
+                                        }}>
+                                        {order.type === 0 ? "Tại quầy" :
+                                            order.type === 1 ? "Trực tuyến" :
+                                                ""}
+                                    </span></td>
                                     <td>
                                         <span
                                             className={`badge ${order.status === 2 || order.status === 3 || order.status === 4 ? "text-dark" : "text-white"}`}
@@ -368,16 +392,15 @@ const Orders = () => {
                                                                     "Đã hủy"}
                                         </span>
                                     </td>
-                                    <td>{order.paymentType.paymentTypeName || "Không có dữ liệu"}</td>
-                                    <td>{order.totalPayment.toLocaleString()} VNĐ</td>
+
                                     <td>
-                                        <Button variant="link" className="p-0" style={{ opacity: 0, transition: 'all 0.3s ease', transform: 'scale(0.8)' }}
-                                            onClick={() => handleNavigate(order.id)} >
+                                        <Button
+                                            variant="link"
+                                            className="p-0"
+                                            style={{ opacity: 0, transition: 'all 0.3s ease', transform: 'scale(0.8)' }}
+                                            onClick={() => handleNavigate(order.id)}
+                                        >
                                             <img src={eyeIcon} alt="View" style={{ width: '24px', height: '24px', filter: 'grayscale(100%) opacity(0.8)' }} />
-                                        </Button>
-                                        <Button variant="link" className="p-0" style={{ opacity: 0, transition: 'all 0.3s ease', transform: 'scale(0.8)' }}
-                                            onClick={() => handleNavigate(order.id)} >
-                                            <img src={trash} alt="Delete" style={{ width: '24px', height: '24px', filter: 'grayscale(100%) opacity(0.8)' }} />
                                         </Button>
                                     </td>
                                 </tr>

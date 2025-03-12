@@ -50,6 +50,10 @@ public class OrderDetailService {
 
     @Autowired
     private ProductDetailRepository productDetailRepository;
+    public List<OrderDetailResponse> getOrderDetailsByOrderId(Integer orderId) {
+        List<OrderDetail> orderDetails = repository.findByOrderId(orderId);
+        return mapper.toListResponses(orderDetails);
+    }
 @Autowired
 private ProductDetailService productDetailService;
 

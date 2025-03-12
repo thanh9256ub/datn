@@ -31,3 +31,13 @@ export const updateOrderStatus = async (id, newStatus) => {
         throw error;
     }
 };
+// Hàm lấy danh sách OrderDetail theo orderID
+export const fetchOrderDetailsByOrderId = async (orderId) => {
+    try {
+        const response = await api.get(`/order-detail/order/${orderId}`); // Thay thế endpoint tương ứng
+        return response.data; // Trả về danh sách OrderDetail từ backend
+    } catch (error) {
+        console.error('Error fetching order details by order ID:', error);
+        throw error;
+    }
+};
