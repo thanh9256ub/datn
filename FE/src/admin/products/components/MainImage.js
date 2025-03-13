@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Form } from 'react-bootstrap';
+import { FaImage } from "react-icons/fa";
 
 const MainImage = ({ setMainImage, initialImage }) => {
     const [file, setFile] = useState(null);
@@ -28,7 +28,7 @@ const MainImage = ({ setMainImage, initialImage }) => {
             // Nếu initialImage là File, hiển thị ảnh preview
             return <img src={URL.createObjectURL(initialImage)} alt="Preview" style={previewImageStyle} />;
         }
-        return null; // Không hiển thị gì nếu không có ảnh
+        return <div><FaImage size={80} color="#007bff" /> <br /> Chọn ảnh chính</div>; // Không hiển thị gì nếu không có ảnh
     };
 
     const previewContainerStyle = {
@@ -50,41 +50,28 @@ const MainImage = ({ setMainImage, initialImage }) => {
 
     return (
         <div>
-            {/* {imagePreview && ( */}
-            <div style={previewContainerStyle}>
-                {/* <img src={imagePreview} alt="Preview"
-                        // style={{ width: '200px', height: 'auto' }} 
-                        style={previewImageStyle}
-                        onMouseOver={(e) => {
-                            e.target.style.transform = 'scale(1.05)';
-                            e.target.style.boxShadow = '0px 6px 12px rgba(0, 0, 0, 0.2)';
-                        }}
-                        onMouseOut={(e) => {
-                            e.target.style.transform = 'scale(1)';
-                            e.target.style.boxShadow = '0px 4px 6px rgba(0, 0, 0, 0.1)';
-                        }}
-                    /> */}
-                {renderImagePreview()}
-            </div>
-            {/*  )} */}
-
-            <Form.Group className='row d-flex align-items-center'>
-                <label className="col-sm-3 col-form-label">Ảnh chính:</label>
-                <div className="custom-file col-sm-6">
-                    <input
-                        type="file"
-                        className="custom-file-input"
-                        id="customFile"
-                        onChange={handleFileChange}
-                        style={{ marginLeft: '50px !important' }}
-                    />
-                    <label className="custom-file-label" htmlFor="customFile">
-                        {file ? file.name : 'Chọn ảnh'}
-                    </label>
+            <td
+                style={{
+                    position: "relative",
+                    textAlign: "center",
+                    opacity: imagePreview ? 1 : 0.5, // Làm mờ nếu chưa có ảnh
+                    cursor: "pointer",
+                }}
+                onClick={() => document.getElementById("main-image-input").click()} // Cho phép click để chọn ảnh
+            >
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }} >
+                    {renderImagePreview()}
                 </div>
-            </Form.Group>
 
-
+                {/* Input file ẩn */}
+                <input
+                    type="file"
+                    id="main-image-input"
+                    style={{ display: "none" }}
+                    onChange={handleFileChange}
+                />
+            </td>
+            <div style={{ marginBottom: '20px' }}></div>
         </div>
     );
 };

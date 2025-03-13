@@ -3,6 +3,7 @@ package com.example.datn.dto.response;
 import com.example.datn.entity.Material;
 import com.example.datn.entity.Category;
 import com.example.datn.entity.Brand;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,6 +29,8 @@ public class ProductResponse {
     Category category;
 
     Material material;
+
+    String description;
 
     String mainImage;
 

@@ -125,13 +125,14 @@ const Products = () => {
                                 <table className="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th>#</th>
+                                            <th></th>
                                             <th>Ảnh chính</th>
-                                            {/* <th>Mã sản phẩm</th> */}
+                                            <th>Mã sản phẩm</th>
                                             <th>Tên sản phẩm</th>
                                             <th>Thương hiệu</th>
                                             <th>Danh mục</th>
                                             <th>Chất liệu</th>
+                                            <th>Mô tả</th>
                                             <th style={{ width: '50px' }}>Tổng số lượng</th>
                                             <th style={{ width: '150px' }}>Trạng thái</th>
                                             <th style={{ width: '100px' }}>Hành động</th>
@@ -143,7 +144,14 @@ const Products = () => {
                                                 .filter(product => product.status === 1)
                                                 .map((product, index) => (
                                                     <tr key={product.id}>
-                                                        <td>{index + 1}</td>
+                                                        <td>
+                                                            <div className="form-check">
+                                                                <label className="form-check-label">
+                                                                    <input type="checkbox" className="form-check-input" />
+                                                                    <i className="input-helper"></i>
+                                                                </label>
+                                                            </div>
+                                                        </td>
                                                         <td>
                                                             {product.mainImage != "image.png" ? (
                                                                 <img
@@ -156,11 +164,12 @@ const Products = () => {
                                                                 <span>No Image</span>
                                                             )}
                                                         </td>
-                                                        {/* <td>{product.productCode}</td> */}
+                                                        <td>{product.productCode}</td>
                                                         <td>{product.productName}</td>
                                                         <td>{product.brand.brandName}</td>
                                                         <td>{product.category.categoryName}</td>
                                                         <td>{product.material.materialName}</td>
+                                                        <td class="long-content">{product.description}</td>
                                                         <td>{product.totalQuantity}</td>
                                                         <td>
                                                             <span className={`badge ${product.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
