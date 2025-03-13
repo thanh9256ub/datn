@@ -45,6 +45,10 @@ public class Product {
     @NotNull(message = "Material ID is required")
     Material material;
 
+    @Column(name = "[description]")
+    @NotNull(message = "Description is required")
+    String description;
+
     @Column(name = "main_image")
     @NotBlank(message = "Main image is required")
     String mainImage;
