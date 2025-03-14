@@ -14,6 +14,7 @@ import com.example.datn.repository.ColorRepository;
 import com.example.datn.repository.ImageRepository;
 import com.example.datn.repository.ProductColorRepository;
 import com.example.datn.repository.ProductRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -88,4 +89,45 @@ public class ProductColorService {
     public List<ImageResponse> getImages(){
         return mapper.toListImageResponse(imageRepository.findAll());
     }
+
+    public List<ProductColorResponse> getProductColorsByProduct(Integer productId){
+
+        Product product = productRepository.findById(productId).orElseThrow(
+                () -> new ResourceNotFoundException("Product not exist"));
+
+        List<ProductColor> productColors = repository.findByProductId(productId);
+
+        return mapper.toListResponse(productColors);
+    }
+
+    public List<ImageResponse> getImagesByProductColor(Integer productColorId){
+        ProductColor productColor = repository.findById(productColorId).orElseThrow(
+                () -> new ResourceNotFoundException("ProductColor not exist"));
+
+        List<Image> images = imageRepository.findByProductColorId(productColorId);
+
+        return mapper.toListImageResponse(images);
+    }
+
+    @Transactional
+    public List<ImageResponse> updateImagesForProductColor(Integer productColorId, List<ImageRequest> newImageRequests) {
+        ProductColor productColor = repository.findById(productColorId).orElseThrow(
+                () -> new ResourceNotFoundException("ProductColor not exist"));
+
+        imageRepository.deleteByProductColorId(productColorId);
+
+        List<Image> newImages = newImageRequests.stream()
+                .map(request -> {
+                    Image image = new Image();
+                    image.setProductColor(productColor);
+                    image.setImage(request.getImage());
+                    return image;
+                })
+                .collect(Collectors.toList());
+
+        imageRepository.saveAll(newImages);
+
+        return mapper.toListImageResponse(newImages);
+    }
+
 }

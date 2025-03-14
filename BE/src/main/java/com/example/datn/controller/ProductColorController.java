@@ -79,4 +79,51 @@ public class ProductColorController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("{productId}")
+    public ResponseEntity<ApiResponse<List<ProductColorResponse>>> getProductColorsByProduct(
+            @PathVariable("productId") Integer productId
+    ){
+
+        List<ProductColorResponse> listResponses = service.getProductColorsByProduct(productId);
+
+        ApiResponse<List<ProductColorResponse>> response = new ApiResponse<>(
+                HttpStatus.CREATED.value(),
+                "Successfully",
+                listResponses
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("{productColorId}/images")
+    public ResponseEntity<ApiResponse<List<ImageResponse>>> getImagesByProductColor(
+            @PathVariable("productColorId") Integer productColorId
+    ){
+
+        List<ImageResponse> listResponses = service.getImagesByProductColor(productColorId);
+
+        ApiResponse<List<ImageResponse>> response = new ApiResponse<>(
+                HttpStatus.CREATED.value(),
+                "Successfully",
+                listResponses
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/update-images/{productColorId}")
+    public ResponseEntity<ApiResponse<List<ImageResponse>>> updateImagesForProductColor(
+            @PathVariable("productColorId") Integer productColorId,
+            @RequestBody List<ImageRequest> newImageRequests) {
+        List<ImageResponse> updatedImages = service.updateImagesForProductColor(productColorId, newImageRequests);
+
+        ApiResponse<List<ImageResponse>> response = new ApiResponse<>(
+                HttpStatus.CREATED.value(),
+                "Successfully",
+                updatedImages
+        );
+
+        return ResponseEntity.ok(response);
+    }
 }

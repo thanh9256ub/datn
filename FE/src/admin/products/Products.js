@@ -169,7 +169,7 @@ const Products = () => {
                                                         <td>{product.brand.brandName}</td>
                                                         <td>{product.category.categoryName}</td>
                                                         <td>{product.material.materialName}</td>
-                                                        <td class="long-content">{product.description}</td>
+                                                        <td className="long-content">{product.description}</td>
                                                         <td>{product.totalQuantity}</td>
                                                         <td>
                                                             <span className={`badge ${product.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>

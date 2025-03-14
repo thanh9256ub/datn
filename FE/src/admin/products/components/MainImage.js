@@ -50,11 +50,12 @@ const MainImage = ({ setMainImage, initialImage }) => {
 
     return (
         <div>
-            <td
+            <div
+                className='float-left'
                 style={{
                     position: "relative",
                     textAlign: "center",
-                    opacity: imagePreview ? 1 : 0.5, // Làm mờ nếu chưa có ảnh
+                    opacity: imagePreview ? 1 : 0.5,
                     cursor: "pointer",
                 }}
                 onClick={() => document.getElementById("main-image-input").click()} // Cho phép click để chọn ảnh
@@ -70,8 +71,7 @@ const MainImage = ({ setMainImage, initialImage }) => {
                     style={{ display: "none" }}
                     onChange={handleFileChange}
                 />
-            </td>
-            <div style={{ marginBottom: '20px' }}></div>
+            </div>
         </div>
     );
 };
