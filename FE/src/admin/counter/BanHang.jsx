@@ -23,6 +23,15 @@ const BanHang = () => {
 
   const [isQrReaderVisible, setIsQrReaderVisible] = useState(false);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
+  const [selectedSize, setSelectedSize] = useState("");
+
+  const [currentCartPage, setCurrentCartPage] = useState(1);
+  const [cartItemsPerPage] = useState(5);
+  const [currentProductPage, setCurrentProductPage] = useState(1);
+  const [productsPerPage] = useState(5);
+
   const fetchInvoices = () => {
     axios.get('http://localhost:8080/order')
       .then(response => {
@@ -222,6 +231,34 @@ const BanHang = () => {
     }
   };
 
+  const filteredProducts = availableProducts.filter(product => {
+    return (
+      product.product.productName.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (selectedColor ? product.color.colorName === selectedColor : true) &&
+      (selectedSize ? product.size.sizeName === selectedSize : true)
+    );
+  });
+
+  // Pagination logic for cart items
+  const indexOfLastCartItem = currentCartPage * cartItemsPerPage;
+  const indexOfFirstCartItem = indexOfLastCartItem - cartItemsPerPage;
+  const currentCartItems = items
+    .filter(item => item.order.id === selectedInvoiceId && item.status === 0)
+    .slice(indexOfFirstCartItem, indexOfLastCartItem);
+
+  const paginateCart = (pageNumber) => {
+    setCurrentCartPage(pageNumber);
+  };
+
+  // Pagination logic for products
+  const indexOfLastProduct = currentProductPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+
+  const paginateProduct = (pageNumber) => {
+    setCurrentProductPage(pageNumber);
+  };
+
   return (
    
     <div style={{ backgroundColor: "white" }}>
@@ -260,8 +297,9 @@ const BanHang = () => {
             <div className="cart-container">
               <h3>Giỏ hàng </h3>
               {/* Bảng giỏ hàng */}
-              <div className="table-responsive">
-                <Table hover>
+              <div className="table-responsive" >
+                <div style={{ height: '300px',overflowY: 'auto'}}>
+                <Table hover >
                   <thead>
                     <tr>
                       <th>Tên sản phẩm </th>
@@ -274,61 +312,101 @@ const BanHang = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {items
-                      .filter(item => item.order.id === selectedInvoiceId && item.status === 0)
-                      .map(item => (
-                        <tr key={item.id}>
-                          <td>{item.productDetail.product.productName}</td>
-                          <td>{item.productDetail.color.colorName} </td>
-                          <td>{item.productDetail.size.sizeName} </td>
-                          <td>{item.price} VND</td>
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                              <button type="button" className ="btn btn-outline-secondary btn-rounded btn-icon"
-                                onClick={() => handleQuantityChange(item, Math.max(1, item.quantity - 1))}
-                              ><i className ="mdi mdi-minus"></i></button>
-                              <Form.Control
-                                type="tel"
-                                min="1"
-                                max={item.productDetail.quantity}
-                                value={item.quantity}
-                                onChange={(e) => handleQuantityChange(item, Number(e.target.value))}
-                                onBlur={() => {
-                                  if (item.quantity === 0) {
-                                    handleRemoveItem(item.id, item.productDetail.id);
-                                  }
-                                }}
-                                style={{ width: '50px', textAlign: 'center' }}
-                              />
-                              <button type="button" className="btn btn-outline-secondary btn-sm btn-rounded btn-icon "
-                                onClick={() => handleQuantityChange(item, Math.min(item.productDetail.quantity + item.quantity, item.quantity + 1))}
-                              >
-                                <i className ="mdi mdi-plus"></i>
-                              </button>
-                            </div>
-                          </td>
-                          <td>{item.totalPrice} VND</td>
-                          <td>
-                            <i
-                              className="mdi mdi-cart-off"
-                              style={{ fontSize: '20px', cursor: 'pointer' }}
-                              onClick={() => {
-                                handleRemoveItem(item.id, item.productDetail.id);
+                    {currentCartItems.map(item => (
+                      <tr key={item.id}>
+                        <td>{item.productDetail.product.productName}</td>
+                        <td>{item.productDetail.color.colorName} </td>
+                        <td>{item.productDetail.size.sizeName} </td>
+                        <td>{item.price.toLocaleString()} </td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <button type="button" className="btn btn-outline-secondary btn-sm btn-rounded btn-icon"
+                              onClick={() => handleQuantityChange(item, Math.max(1, item.quantity - 1))}
+                              style={{width: '20px', height: '20px' }}
+                            ><i className="mdi mdi-minus"></i></button>
+                            <Form.Control
+                              type="tel"
+                              min="1"
+                              max={item.productDetail.quantity}
+                              value={item.quantity}
+                              onChange={(e) => handleQuantityChange(item, Number(e.target.value))}
+                              onBlur={() => {
+                                if (item.quantity === 0) {
+                                  handleRemoveItem(item.id, item.productDetail.id);
+                                }
                               }}
-                            ></i>
-                          </td>
-                        </tr>
-                      ))}
+                              style={{ width: '40px', textAlign: 'center', height: '20px' }}
+                            />
+                            <button type="button" className="btn btn-outline-secondary btn-sm btn-rounded btn-icon"
+                              onClick={() => handleQuantityChange(item, Math.min(item.productDetail.quantity + item.quantity, item.quantity + 1))}
+                              style={{width: '20px', height: '20px' }}
+                            >
+                              <i className="mdi mdi-plus"></i>
+                            </button>
+                          </div>
+                        </td>
+                        <td>{item.totalPrice.toLocaleString()} </td>
+                        <td>
+                          <i
+                            className="mdi mdi-cart-off"
+                            style={{ fontSize: '20px', cursor: 'pointer'}}
+                            onClick={() => {
+                              handleRemoveItem(item.id, item.productDetail.id);
+                            }}
+                          ></i>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </Table>
+                </div>
+                <div  >
+                <Pagination 
+                  itemsPerPage={cartItemsPerPage}
+                  totalItems={items.filter(item => item.order.id === selectedInvoiceId && item.status === 0).length}
+                  paginate={paginateCart}
+                  currentPage={currentCartPage}
+                />
+                </div>
               </div>
               <hr />
               <Row className="d-flex align-items-center">
                 <Col className="d-flex justify-content-start">
                   <h3>Danh sach sản phẩm </h3>
                 </Col>
+                </Row>
+                <Row>
                 <Col className="d-flex justify-content-end">
                   <div className="d-flex align-items-center">
+                    <Form.Control
+                      type="text"
+                      placeholder="Tìm kiếm sản phẩm"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      style={{ marginRight: "10px" , width:'150px ',height: '30px'}}
+                    />
+                    <Form.Control
+                      as="select"
+                      value={selectedColor}
+                      onChange={(e) => setSelectedColor(e.target.value)}
+                      style={{ marginRight: "10px" , width:'150px ',height: '30px'}}
+                    >
+                      <option value="">Tất cả màu sắc</option>
+                      {[...new Set(availableProducts.map(product => product.color.colorName))].map(color => (
+                        <option key={color} value={color}>{color}</option>
+                      ))}
+                    </Form.Control>
+                    <Form.Control
+                      as="select"
+                      value={selectedSize}
+                      onChange={(e) => setSelectedSize(e.target.value)}
+                      style={{ marginRight: "10px" , width:'150px ',height: '30px'}}
+                    >
+                      <option value="">Tất cả kích thước</option>
+                      {[...new Set(availableProducts.map(product => product.size.sizeName))].map(size => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </Form.Control>
                     {isQrReaderVisible && (
                       <div>
                         <QrReader
@@ -350,6 +428,7 @@ const BanHang = () => {
               <hr />
               {/* Bảng chọn sản phẩm */}
               <div className="table-responsive">
+              <div style={{ height: '250px',overflowY: 'auto'}}>
                 <Table hover>
                   <thead>
                     <tr>
@@ -361,7 +440,7 @@ const BanHang = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {availableProducts.map(product => (
+                    {currentProducts.map(product => (
                       <tr key={product.id} onClick={ (() => handleSelectProduct(product))}>
                         <td>{product.product.productName}</td>
                         <td>{product.color.colorName} </td>
@@ -372,6 +451,13 @@ const BanHang = () => {
                     ))}
                   </tbody>
                 </Table>
+                </div>
+                <Pagination
+                  itemsPerPage={productsPerPage}
+                  totalItems={filteredProducts.length}
+                  paginate={paginateProduct}
+                  currentPage={currentProductPage}
+                />
               </div>
               {/* Modal để chọn số lượng */}
               <Modal show={showModal} onHide={handleCloseModal} centered>
@@ -416,6 +502,28 @@ const BanHang = () => {
         </Col>
       </Row>
     </div>
+  );
+};
+
+const Pagination = ({ itemsPerPage, totalItems, paginate, currentPage }) => {
+  const pageNumbers = [];
+
+  for (let i = 1; i <= Math.ceil(totalItems / itemsPerPage); i++) {
+    pageNumbers.push(i);
+  }
+
+  return (
+    <nav >
+      <ul className="pagination">
+        {pageNumbers.map(number => (
+          <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
+            <button onClick={() => paginate(number)} className="page-link">
+              {number}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 };
 
