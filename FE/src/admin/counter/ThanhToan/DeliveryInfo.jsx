@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Form, Modal, Button } from 'react-bootstrap';
 import axios from 'axios';
 
-const DeliveryInfo = ({ delivery, setDelivery }) => {
+const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
   const [tempDelivery, setTempDelivery] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [provinces, setProvinces] = useState([]);
@@ -11,6 +11,14 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedWard, setSelectedWard] = useState('');
+  const [customerInfo, setCustomerInfo] = useState({
+    name: '',
+    phone: '',
+    province: '',
+    district: '',
+    ward: '',
+    address: ''
+  });
 
   useEffect(() => {
     // Fetch provinces from API
@@ -26,6 +34,7 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
     setSelectedWard('');
     setDistricts([]);
     setWards([]);
+    setCustomerInfo({ ...customerInfo, province: e.target.options[e.target.selectedIndex].text });
 
     // Fetch districts based on selected province
     axios.get(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
@@ -38,6 +47,7 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
     setSelectedDistrict(districtCode);
     setSelectedWard('');
     setWards([]);
+    setCustomerInfo({ ...customerInfo, district: e.target.options[e.target.selectedIndex].text });
 
     // Fetch wards based on selected district
     axios.get(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
@@ -47,15 +57,16 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
 
   const handleWardChange = (e) => {
     setSelectedWard(e.target.value);
+    setCustomerInfo({ ...customerInfo, ward: e.target.options[e.target.selectedIndex].text });
   };
 
   const handleDeliveryChange = () => {
-  if (!delivery) {
-    setTempDelivery(true);
-    setShowModal(true);
-  }
-  else {
-    setDelivery(false);}
+    if (!delivery) {
+      setTempDelivery(true);
+      setShowModal(true);
+    } else {
+      setDelivery(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -64,9 +75,9 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
   };
 
   const handleSaveModal = () => {
-    setDelivery(true)
+    setDelivery(true);
     setShowModal(false);
-    
+    onSave(customerInfo);
   };
 
   return (
@@ -99,7 +110,12 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
                 <Form.Label>Họ tên</Form.Label>
               </Col>
               <Col sm={8}>
-                <Form.Control type="text" placeholder="Nguyễn Khách Huyền" />
+                <Form.Control
+                  type="text"
+                  placeholder="Nguyễn Khách Huyền"
+                  value={customerInfo.name}
+                  onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
+                />
               </Col>
             </Row>
 
@@ -108,7 +124,12 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
                 <Form.Label>Số điện thoại</Form.Label>
               </Col>
               <Col sm={8}>
-                <Form.Control type="text" placeholder="0375161589" />
+                <Form.Control
+                  type="text"
+                  placeholder="0375161589"
+                  value={customerInfo.phone}
+                  onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
+                />
               </Col>
             </Row>
 
@@ -159,7 +180,12 @@ const DeliveryInfo = ({ delivery, setDelivery }) => {
                 <Form.Label>Địa chỉ cụ thể</Form.Label>
               </Col>
               <Col sm={8}>
-                <Form.Control type="text" placeholder="Nhập địa chỉ cụ thể" />
+                <Form.Control
+                  type="text"
+                  placeholder="Nhập địa chỉ cụ thể"
+                  value={customerInfo.address}
+                  onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
+                />
               </Col>
             </Row>
 
