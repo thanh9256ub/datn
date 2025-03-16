@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getProducts, updateStatus } from './service/ProductService';
 import { useHistory } from 'react-router-dom';
-import { Alert, Form, Spinner } from 'react-bootstrap';
+import { Alert, Form, Modal, Spinner } from 'react-bootstrap';
 import { getProductDetailByProductId } from './service/ProductDetailService';
 import ModalProductDetail from './components/ModalProductDetail'
 import Switch from 'react-switch';
@@ -18,16 +18,17 @@ const Products = () => {
     const [selectedProductDetails, setSelectedProductDetails] = useState([]);
     const [selectedProductName, setSelectedProductName] = useState("");
 
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [imageUrl, setImageUrl] = useState("");
+
     const history = useHistory();
 
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            setTimeout(async () => {
-                const response = await getProducts();
-                setProducts(response.data.data);
-                setLoading(false);
-            }, 500); // Giả lập loading 1 giây
+            const response = await getProducts();
+            setProducts(response.data.data);
+            setLoading(false);
         } catch (err) {
             setError('Đã xảy ra lỗi khi tải sản phẩm.');
             setLoading(false);
@@ -87,10 +88,10 @@ const Products = () => {
         }
     };
 
-    const refreshProducts = () => {
-        fetchProducts();
+    const handleShowImageModal = (imageUrl) => {
+        setImageUrl(imageUrl);
+        setShowImageModal(true);
     };
-
 
     return (
         <div>
@@ -124,13 +125,14 @@ const Products = () => {
                                 <table className="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th>#</th>
+                                            <th></th>
                                             <th>Ảnh chính</th>
-                                            {/* <th>Mã sản phẩm</th> */}
+                                            <th>Mã sản phẩm</th>
                                             <th>Tên sản phẩm</th>
                                             <th>Thương hiệu</th>
                                             <th>Danh mục</th>
                                             <th>Chất liệu</th>
+                                            <th>Mô tả</th>
                                             <th style={{ width: '50px' }}>Tổng số lượng</th>
                                             <th style={{ width: '150px' }}>Trạng thái</th>
                                             <th style={{ width: '100px' }}>Hành động</th>
@@ -142,42 +144,69 @@ const Products = () => {
                                                 .filter(product => product.status === 1)
                                                 .map((product, index) => (
                                                     <tr key={product.id}>
-                                                        <td>{index + 1}</td>
                                                         <td>
-                                                            <span>img.png</span>
+                                                            <div className="form-check">
+                                                                <label className="form-check-label">
+                                                                    <input type="checkbox" className="form-check-input" />
+                                                                    <i className="input-helper"></i>
+                                                                </label>
+                                                            </div>
                                                         </td>
-                                                        {/* <td>{product.productCode}</td> */}
+                                                        <td>
+                                                            {product.mainImage != "image.png" ? (
+                                                                <img
+                                                                    src={product.mainImage}
+                                                                    alt="Product"
+                                                                    style={{ width: '100px', height: 'auto', cursor: 'pointer', borderRadius: '5%', objectFit: 'contain' }}
+                                                                    onClick={() => handleShowImageModal(product.mainImage)}  // Mở modal khi click vào ảnh
+                                                                />
+                                                            ) : (
+                                                                <span>No Image</span>
+                                                            )}
+                                                        </td>
+                                                        <td>{product.productCode}</td>
                                                         <td>{product.productName}</td>
                                                         <td>{product.brand.brandName}</td>
                                                         <td>{product.category.categoryName}</td>
                                                         <td>{product.material.materialName}</td>
+                                                        <td className="long-content">{product.description}</td>
                                                         <td>{product.totalQuantity}</td>
                                                         <td>
                                                             <span className={`badge ${product.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
                                                                 {product.status === 1 ? 'Hoạt động' : 'Không hoạt động'}
                                                             </span>
                                                         </td>
-                                                        <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                                            <button className="btn btn-outline-warning btn-sm btn-rounded btn-icon"
-                                                                onClick={() => handleShowProductDetail(product.id, product.productName)}
-                                                            >
-                                                                <i className='mdi mdi-eye'></i>
-                                                            </button>
-                                                            <Switch
-                                                                checked={product.status === 1}
-                                                                onChange={() => handleToggleStatus(product.id, product.status)}
-                                                                offColor="#888"
-                                                                onColor="#0d6efd"
-                                                                uncheckedIcon={false}
-                                                                checkedIcon={false}
-                                                                height={20}
-                                                                width={40}
-                                                            />
-                                                            <button className="btn btn-outline-danger btn-sm btn-rounded btn-icon"
-                                                                onClick={() => handleUpdateProduct(product.id)}
-                                                            >
-                                                                <i className='mdi mdi mdi-wrench'></i>
-                                                            </button>
+                                                        <td>
+                                                            <div style={{
+                                                                display: 'flex',
+                                                                justifyContent: 'center',
+                                                                alignItems: 'center',
+                                                                gap: '10px',
+                                                                textAlign: 'center',
+                                                                height: '100%',
+                                                                padding: '10px'
+                                                            }} >
+                                                                <button className="btn btn-outline-warning btn-sm btn-rounded btn-icon"
+                                                                    onClick={() => handleShowProductDetail(product.id, product.productName)}
+                                                                >
+                                                                    <i className='mdi mdi-eye'></i>
+                                                                </button>
+                                                                <Switch
+                                                                    checked={product.status === 1}
+                                                                    onChange={() => handleToggleStatus(product.id, product.status)}
+                                                                    offColor="#888"
+                                                                    onColor="#0d6efd"
+                                                                    uncheckedIcon={false}
+                                                                    checkedIcon={false}
+                                                                    height={20}
+                                                                    width={40}
+                                                                />
+                                                                <button className="btn btn-outline-danger btn-sm btn-rounded btn-icon"
+                                                                    onClick={() => handleUpdateProduct(product.id)}
+                                                                >
+                                                                    <i className='mdi mdi mdi-wrench'></i>
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))
@@ -193,6 +222,16 @@ const Products = () => {
                     </div>
                 </div>
             </div>
+
+            <Modal show={showImageModal} onHide={() => setShowImageModal(false)} centered>
+                <Modal.Body>
+                    <img
+                        src={imageUrl}
+                        alt="Large Product"
+                        style={{ width: '100%', height: 'auto' }}
+                    />
+                </Modal.Body>
+            </Modal>
 
             <ModalProductDetail
                 showModal={showModal}

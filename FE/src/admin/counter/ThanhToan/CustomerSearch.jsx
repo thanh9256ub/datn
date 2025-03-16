@@ -1,29 +1,37 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Row, Col, InputGroup, Form, Button } from 'react-bootstrap';
-
+import { toast } from "react-toastify";
 const CustomerSearch = ({ customer, setCustomer }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-
+ 
   const handleSearchCustomer = async () => {
-    setErrorMessage('Đang tìm kiếm...');
+   
 
     axios.get('http://localhost:8080/customer')
       .then(response => {
         const customer = response.data.data.find(c => c.phone === phoneNumber);
 
         if (!customer) {
-          setErrorMessage('Không tìm thấy khách hàng');
+          toast.error("Không tìn thấy khách hàng ", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+          });
           return;
         }
 
         setCustomer(customer);
-        setErrorMessage('');
+       
       })
       .catch(error => {
         console.error('Lỗi tìm kiếm khách hàng:', error);
-        setErrorMessage('Lỗi tìm kiếm khách hàng');
+       
       });
   };
 
@@ -45,7 +53,7 @@ const CustomerSearch = ({ customer, setCustomer }) => {
               Tìm kiếm
             </Button>
           </InputGroup>
-          {errorMessage && <p className="text-danger mt-2">{errorMessage}</p>}
+        
         </Col>
       </Row>
 

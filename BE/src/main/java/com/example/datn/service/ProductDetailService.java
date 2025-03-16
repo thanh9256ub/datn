@@ -71,6 +71,7 @@ public class ProductDetailService {
 
             productDetail.setId(null);
             productDetail.setProduct(product);
+
             productDetail.setColor(color);
             productDetail.setSize(size);
             productDetail.setStatus(request.getQuantity() > 0 ? 1 : 0);

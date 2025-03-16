@@ -73,7 +73,7 @@ private ProductDetailService productDetailService;
 
     public OrderDetailResponse updateOrAddOrderDetail(Integer orderId, Integer productId, Integer quantity) {
         for (OrderDetail o : repository.findAll()) {
-            if (o.getOrder().getId().equals(orderId) && o.getProductDetail().getProduct().getId().equals(productId)) {
+            if (o.getOrder().getId().equals(orderId) && o.getProductDetail().getId().equals(productId)) {
                 o.setQuantity(o.getQuantity() + quantity);
                 o.setTotalPrice(o.getQuantity() * o.getPrice());
                 o.setStatus(0);
