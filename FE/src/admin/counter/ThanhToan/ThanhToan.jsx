@@ -51,19 +51,21 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Token': 'DF3A1FFAD54059E69C484A8B2C3E571D' // Replace with your actual API key
+          'Token': 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwMzM1NjAyMTE1IiwiVXNlcklkIjoxNTgzOTczNCwiRnJvbVNvdXJjZSI6NSwiVG9rZW4iOiJKWEdZV0Q5QTkwQyIsImV4cCI6MTc0MjE4MjU2MCwiUGFydG5lciI6MTU4Mzk3MzR9.hdibqEJCL4qN1qO7JGPMEnisfUgvRdng1pWDaBhVL_Iz71NhRWMCCPXyz9GydOhazXxIzjLYzS26mdacsyRlYg' // Replace with your actual API key
         },
         body: JSON.stringify({
-          "SENDER_PROVINCE": 1,
-          "SENDER_DISTRICT": 5,
-          "RECEIVER_PROVINCE": 28,
-          "RECEIVER_DISTRICT": 1,
-          "PRODUCT_WEIGHT": 1500,
-          "PRODUCT_PRICE": ""
+          
+            "PRODUCT_WEIGHT":500,
+            "ORDER_SERVICE":"LCOD",
+            "SENDER_PROVINCE":"1",
+            "SENDER_DISTRICT":"14",
+            "RECEIVER_PROVINCE":"2",
+            "RECEIVER_DISTRICT":"43"
+          
         })
       });
       const data = await response.json();
-      return data.data.TOTAL_FEE;
+      return data.data.MONEY_TOTAL_FEE;
     } catch (error) {
       console.error('Error fetching shipping fee:', error);
       return 0;
