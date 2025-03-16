@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
 import { useParams, useHistory } from 'react-router-dom';
-import { getProductById, updateProduct, uploadImageToCloudinary } from '../service/ProductService';
+import { getImagesByProductColor, getProductById, getProductColorsByProductId, updateProduct, uploadImageToCloudinary } from '../service/ProductService';
 import { getProductDetailByProductId, updateProductDetails } from '../service/ProductDetailService';
 import BrandSelect from '../select/BrandSelect';
 import CategorySelect from '../select/CategorySelect';
@@ -10,6 +10,7 @@ import MaterialSelect from '../select/MaterialSelect';
 // import SizeSelect from '../select/SizeSelect';
 import ListAutoVariant from '../components/ListAutoVariant';
 import MainImage from '../components/MainImage';
+import axios from 'axios';
 
 const UpdateProduct = () => {
     const { id } = useParams();
@@ -25,6 +26,8 @@ const UpdateProduct = () => {
     // const [sizeIds, setSizeIds] = useState([]);
     const [variantList, setVariantList] = useState([]);
     const [mainImage, setMainImage] = useState(null);
+    const [hasError, setHasError] = useState(false);
+    const [description, setDescription] = useState("");
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -35,11 +38,48 @@ const UpdateProduct = () => {
                 setBrandId(product.brand.id);
                 setCategoryId(product.category.id);
                 setMaterialId(product.material.id);
-                setMainImage(product.mainImage)
+                setDescription(product.description);
+                setMainImage(product.mainImage);
 
                 const variantResponse = await getProductDetailByProductId(id);
-                console.log(variantResponse.data.data)
-                setVariantList(variantResponse.data.data);
+                const variants = variantResponse.data.data || [];
+                console.log("✅ Danh sách biến thể nhận được:", variants);
+
+                const productColorsResponse = await getProductColorsByProductId(id);
+
+                const productColors = productColorsResponse.data.data;
+                console.log("🎨 Danh sách ProductColor:", productColors);
+
+                const productColorList = Array.isArray(productColors) ? productColors : [];
+                console.log("ProductColorList: ", productColorList)
+
+                const imagePromises = variants.map(async (variant) => {
+                    const variantColorId = variant.color ? variant.color.id : undefined;
+                    console.log("Variant Color ID:", variantColorId);
+
+                    const productColor = productColorList.find(color => color.color.id === variantColorId);
+                    console.log("ProductColor: ", productColor)
+
+                    if (productColor) {
+                        console.log("ProductColor ID:", productColor.id);
+
+                        const imagesResponse = await getImagesByProductColor(productColor.id);
+                        console.log("Images for productColor:", imagesResponse.data);
+
+                        return {
+                            ...variant,
+                            imageUrls: imagesResponse.data.data.map(image => image.image),
+                        };
+                    }
+
+                    return { ...variant, imageUrls: [] };
+                });
+
+                const updatedVariants = await Promise.all(imagePromises);
+
+                console.log("UpdateVariants: ", updatedVariants)
+                setVariantList(updatedVariants);
+
             } catch (error) {
                 console.error("Lỗi khi lấy dữ liệu sản phẩm:", error);
             }
@@ -60,6 +100,11 @@ const UpdateProduct = () => {
             return;
         }
 
+        if (hasError) {
+            alert("Vui lòng sửa lỗi trước khi lưu!");
+            return;
+        }
+
         const isConfirmed = window.confirm("Bạn có chắc chắn muốn sửa sản phẩm này?");
         if (!isConfirmed) return;
 
@@ -75,7 +120,8 @@ const UpdateProduct = () => {
                 brandId: brandId ? parseInt(brandId) : null,
                 categoryId: categoryId ? parseInt(categoryId) : null,
                 materialId: materialId ? parseInt(materialId) : null,
-                mainImage: imageUrl,
+                description,
+                mainImage: imageUrl || mainImage,
                 totalQuantity,
                 status
             };
@@ -96,12 +142,79 @@ const UpdateProduct = () => {
 
             await updateProductDetails(id, formattedVariants);
 
+            await handleImagesForProductColors(id)
+
             localStorage.setItem("successMessage", "Sản phẩm đã được cập nhật thành công!");
             history.push('/admin/products');
         } catch (error) {
             console.error("Lỗi khi cập nhật sản phẩm:", error);
             alert("Cập nhật sản phẩm thất bại!");
         }
+    };
+
+    const handleImagesForProductColors = async (productId) => {
+        try {
+            // Lấy danh sách productColorId từ API
+            const productColorsResponse = await getProductColorsByProductId(productId);
+            const productColors = productColorsResponse.data.data;
+
+            if (productColors && productColors.length > 0) {
+                const imagePromises = productColors.map(async (productColor) => {
+                    const productColorId = productColor.id;
+                    console.log("ProductColors: ", productColors);
+                    console.log("VariantList: ", variantList);
+                    // Kiểm tra xem có ảnh mới cho productColor không
+                    const variantWithColor = variantList.find(variant => variant.color.id === productColor.color.id);
+                    console.log("Variant with color: ", variantWithColor)
+                    if (variantWithColor && variantWithColor.images && variantWithColor.images.length > 0) {
+                        // Tải ảnh lên Cloudinary và lấy URL
+                        const uploadedImageUrls = [];
+                        for (const imageFile of variantWithColor.images) {
+                            const imageUrl = await uploadImageToCloudinary(imageFile);
+
+                            console.log("Image Url: ", imageUrl)
+                            if (imageUrl) {
+                                uploadedImageUrls.push(imageUrl);
+                            }
+                        }
+
+                        // Lưu ảnh vào cơ sở dữ liệu cho productColorId
+                        if (uploadedImageUrls.length > 0) {
+                            const imageRequests = uploadedImageUrls.map(url => ({ image: url }));
+                            console.log(`Updating images for ProductColor ID: ${productColorId} with images:`, imageRequests);
+                            await axios.put(`http://localhost:8080/product-color/update-images/${productColorId}`, imageRequests);
+                        }
+                    }
+                });
+
+                // Đợi tất cả các ảnh được tải lên và lưu vào cơ sở dữ liệu
+                await Promise.all(imagePromises);
+            }
+
+        } catch (error) {
+            console.error("Lỗi khi tải ảnh lên Cloudinary hoặc lưu vào ProductColor:", error);
+            alert("Lỗi khi tải ảnh lên Cloudinary hoặc lưu vào ProductColor.");
+        }
+    };
+
+    const handleImageChange = (index, event) => {
+        const files = Array.from(event.target.files);
+
+        if (files.length > 6) {
+            alert("Bạn chỉ có thể chọn tối đa 6 ảnh.");
+            return;
+        }
+
+        const imageUrls = files.map(file => URL.createObjectURL(file));
+
+        setVariantList(prevVariants => {
+            const updatedVariants = prevVariants.map((variant, idx) =>
+                idx === index
+                    ? { ...variant, images: files, imageUrls }
+                    : variant
+            );
+            return updatedVariants;
+        });
     };
 
     return (
@@ -117,11 +230,11 @@ const UpdateProduct = () => {
                                     <div className="col-md-6">
                                         {/* <MainImage setMainImage={setMainImage} /> */}
                                         <MainImage setMainImage={setMainImage} initialImage={mainImage} />
+
                                     </div>
                                 </div>
+                                <div style={{ marginBottom: '20px' }}></div>
                                 <div className="row">
-
-
                                     <div className="col-md-6">
                                         <Form.Group className="row">
                                             <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
@@ -139,21 +252,43 @@ const UpdateProduct = () => {
                                     <div className="col-md-6">
                                         <MaterialSelect materialId={materialId} setMaterialId={setMaterialId} />
                                     </div>
-                                </div>
-                                <div style={{ marginBottom: '20px' }}></div>
-                                <h6><span>Danh sách sản phẩm biến thể:</span></h6>
-                                <hr />
-                                <div className="row">
-                                    <div className='col-md-6'>
-                                        <ListAutoVariant variantList={variantList} handleInputChange={handleInputChange} />
+                                    <div className='col-md-12'>
+                                        <Form.Group>
+                                            <label htmlFor="exampleTextarea1">Mô tả:</label>
+                                            <textarea className="form-control" id="exampleTextarea1" rows="4" value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
+                                        </Form.Group>
                                     </div>
                                 </div>
-                                <hr />
-                                <button type="button" className="btn btn-gradient-primary btn-icon-text" onClick={saveProduct}>
-                                    <i className="mdi mdi-file-check btn-icon-prepend"></i>
-                                    Update
-                                </button>
+                                <div style={{ marginBottom: '20px' }}></div>
+
                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12 grid-margin">
+                    <div className="card">
+                        <div className="card-body">
+                            <h6><span>Danh sách sản phẩm biến thể:</span></h6>
+                            <hr />
+                            <div className="row">
+                                <div className='col-md-12'>
+                                    <ListAutoVariant
+                                        variantList={variantList}
+                                        handleInputChange={handleInputChange}
+                                        // handleRemoveVariant={handleRemoveVariant}
+                                        setHasError={setHasError}
+                                        onImagesSelected={handleImageChange}
+                                        setVariantList={setVariantList}
+                                    />
+                                </div>
+                            </div>
+                            <hr />
+                            <button type="button" className="btn btn-gradient-primary btn-icon-text" onClick={saveProduct}>
+                                <i className="mdi mdi-file-check btn-icon-prepend"></i>
+                                Update
+                            </button>
                         </div>
                     </div>
                 </div>

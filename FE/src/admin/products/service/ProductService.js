@@ -8,6 +8,8 @@ export const getProducts = () => {
     return axios.get(BASE_URL);
 }
 
+const PCOLOR_URL = 'http://localhost:8080/product-color';
+
 export const uploadImageToCloudinary = async (imageFile) => {
     const formData = new FormData();
     formData.append("file", imageFile);
@@ -47,3 +49,13 @@ export const getProductById = (id) => {
 export const updateProduct = (id, product) => {
     return axios.put(`http://localhost:8080/products/${id}`, product)
 }
+
+export const getProductColorsByProductId = (productId) => {
+    return axios.get(`${PCOLOR_URL}/${productId}`)
+}
+
+export const getImagesByProductColor = (productColorId) => {
+    return axios.get(`${PCOLOR_URL}/${productColorId}/images`)
+}
+
+

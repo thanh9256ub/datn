@@ -17,7 +17,7 @@ const CreateProduct = () => {
     const [brandId, setBrandId] = useState(null);
     const [categoryId, setCategoryId] = useState(null);
     const [materialId, setMaterialId] = useState(null);
-    const [description, setDescription] = useState("")
+    const [description, setDescription] = useState("");
     const [totalQuantity, setTotalQuantity] = useState(0);
     const [status, setStatus] = useState(0);
     const [colorIds, setColorIds] = useState([]);
@@ -356,12 +356,13 @@ const CreateProduct = () => {
                                         <MainImage setMainImage={handleFileChange} initialImage={productData.mainImage} />
                                     </div>
                                 </div>
+                                <div style={{ marginBottom: '20px' }}></div>
                                 <div className="row">
                                     <div className="col-md-6">
                                         <Form.Group className="row d-flex align-items-center">
                                             <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
                                             <div className="col-sm-9">
-                                                <Form.Control type="text" value={productName || ""} onChange={(e) => setProductName(e.target.value)} />
+                                                <Form.Control type="text" value={productName || ""} onChange={(e) => setProductName(e.target.value)} placeholder='Nhập tên sản phẩm' />
                                             </div>
                                         </Form.Group>
                                     </div>
@@ -377,7 +378,7 @@ const CreateProduct = () => {
                                     </div>
                                     <div className='col-md-12'>
                                         <Form.Group>
-                                            <label htmlFor="exampleTextarea1">Mô tả</label>
+                                            <label htmlFor="exampleTextarea1">Mô tả:</label>
                                             <textarea className="form-control" id="exampleTextarea1" rows="4" onChange={(e) => setDescription(e.target.value)}></textarea>
                                         </Form.Group>
                                     </div>

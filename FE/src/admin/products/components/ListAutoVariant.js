@@ -53,28 +53,26 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
 
     console.log("Nhóm theo màu sắc:", colorGroups);
 
-    const handleReplaceImage = (index) => {
-        const fileInput = document.createElement("input");
-        fileInput.type = "file";
-        fileInput.accept = "image/*";
-        fileInput.multiple = true; // Cho phép chọn nhiều ảnh
+    // const handleReplaceImage = (index) => {
+    //     const fileInput = document.createElement("input");
+    //     fileInput.type = "file";
+    //     fileInput.accept = "image/*";
+    //     fileInput.multiple = true; // Cho phép chọn nhiều ảnh
 
-        fileInput.onchange = (e) => {
-            const files = Array.from(e.target.files);
-            if (files.length > 0) {
-                const imageUrls = files.map((file) => URL.createObjectURL(file));
+    //     fileInput.onchange = (e) => {
+    //         const files = Array.from(e.target.files);
+    //         if (files.length > 0) {
+    //             const imageUrls = files.map((file) => URL.createObjectURL(file));
 
-                setVariantList((prevVariants) => {
-                    const newVariants = [...prevVariants];
-                    newVariants[index].imageUrls = imageUrls;
-                    return newVariants;
-                });
-            }
-        };
-        fileInput.click();
-    };
-
-
+    //             setVariantList((prevVariants) => {
+    //                 const newVariants = [...prevVariants];
+    //                 newVariants[index].imageUrls = imageUrls;
+    //                 return newVariants;
+    //             });
+    //         }
+    //     };
+    //     fileInput.click();
+    // };
 
     return (
         <div>
@@ -124,7 +122,7 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                                                 <img
                                                                     key={idx}
                                                                     src={url}
-                                                                    alt="Ảnh sản phẩm"
+                                                                    alt={`Ảnh sản phẩm ${idx}`}
                                                                     style={{
                                                                         width: "100px",
                                                                         height: "100px",
