@@ -17,7 +17,7 @@ const UpdateEmployee = () => {
 
     const [showPassword, setShowPassword] = useState(false); // Thêm state để theo dõi trạng thái hiển thị mật khẩu
 
-    const [roles, setRoles] = useState([]);
+    const [roleOptions, setRoleOptions] = useState([]);
 
     const [page, setPage] = useState(1);
 
@@ -51,8 +51,13 @@ const UpdateEmployee = () => {
 
     function getAllEmployee() {
         listEmployee(page).then((response) => {
-            setEmployees(response.data.data);
-            setTotalPage(response.data.totalPage);
+            if (response.status === 200) {
+                setEmployees(response.data.data);
+                setTotalPage(response.data.totalPage);
+            }
+            else if (response.status === 401) {
+                history.push('/admin/user-pages/login-1');
+            }
         }).catch(error => {
             console.error(error);
         })
@@ -61,7 +66,9 @@ const UpdateEmployee = () => {
     useEffect(async () => {
         // getAllROle()
         let req = await listRole();
-        setRoles(req.data.data);
+        setRoleOptions(req.data?.data?.
+            map(role => ({ value: role.id, label: role.roleName })).
+            filter(option => option.value !== 1));
     }, [])
 
 
@@ -219,14 +226,11 @@ const UpdateEmployee = () => {
                                                 value={detail.updatedAt}
                                             />
                                         </Form.Group>
-
-
-
                                         <Form.Group>
                                             <label className="form-label">Vai trò</label>
                                             <Select
-                                                options={roles.map(role => ({ value: role.id, label: role.roleName }))}
-                                                value={roles.find(role => role.id === detail.roleId) || null}
+                                                options={roleOptions} // Lọc ra vai trò customer
+                                                value={roleOptions.find(option => option.value === detail.roleId) || null}
                                                 onChange={(selected) => setDetail({ ...detail, roleId: selected.value })}
                                             />
                                         </Form.Group>
@@ -235,7 +239,7 @@ const UpdateEmployee = () => {
                                 <hr></hr>
                                 {/* Nút Thêm nhân viên */}
                                 <div className="text-end mt-4">
-                                    <button type="button" className="btn btn-primary" onClick={() => handleUpdate(detail.id,detail)}>
+                                    <button type="button" className="btn btn-primary" onClick={() => handleUpdate(detail.id, detail)}>
                                         Lưu
                                     </button>
                                 </div>

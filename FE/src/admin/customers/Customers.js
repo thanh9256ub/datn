@@ -431,7 +431,7 @@ const Customers = () => {
                                             </div>
 
                                             <div style={{ width: "50%", marginLeft: "50px" }}>
-                                                <div style={{ marginTop: "10px" }}>
+                                                <div>
                                                     <div>
                                                         <label htmlFor="birthDateInput" className="form-label">
                                                             Ngày sinh
@@ -584,7 +584,7 @@ const Customers = () => {
                                                             }}
                                                             className="form-select"
                                                             id="roleIdInput"
-
+                                                           
                                                             // value= "Amin"
                                                             onChange={(e) => {
                                                                 setDetail({ ...detail, roleId: e.target.value });

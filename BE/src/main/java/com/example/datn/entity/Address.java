@@ -40,9 +40,6 @@ public class Address {
     @Column(name = "status")
     private Integer status;
 
-    @Column(name = "default_address")
-    private Boolean defaultAddress;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -54,11 +51,10 @@ public class Address {
         this.district = addressRequest.getDistrict();
         this.ward = addressRequest.getWard();
         this.detailedAddress = addressRequest.getDetailedAddress();
-        this.defaultAddress = addressRequest.getDefaultAddress();
         this.customer = customer;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-        this.status = 1;
+        this.status = addressRequest.getDefaultAddress() ? 1 : 0;
     }
 
 }

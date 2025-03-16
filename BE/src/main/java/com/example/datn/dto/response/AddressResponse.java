@@ -46,7 +46,7 @@ public class AddressResponse {
         this.detailedAddress = address.getDetailedAddress();
         this.customerId = Objects.isNull(address.getCustomer()) ? 0 : address.getCustomer().getId();
         this.status = address.getStatus();
-        this.defaultAddress = address.getDefaultAddress();
+        this.defaultAddress = address.getStatus() == 1;
         this.createdAt = address.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         this.updatedAt = address.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }

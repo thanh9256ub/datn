@@ -244,7 +244,7 @@ const CreateEmployee = () => {
                                         <Form.Group className="mb-3" style={{ marginTop: "20px" }}>
                                             <label className="form-label">Vai trò</label>
                                             <Select
-                                                options={roles.map(role => ({ value: role.id, label: role.roleName }))}
+                                                options={roles.map(role => ({ value: role.id, label: role.roleName })).filter(role => role.value !== 1)}
                                                 value={roles.find(role => role.id === newEmployee.roleId) ? { value: newEmployee.roleId, label: roles.find(role => role.id === newEmployee.roleId).roleName } : null}
                                                 onChange={(selectedOption) => setNewEmployee({ ...newEmployee, roleId: selectedOption.value })}
                                             />

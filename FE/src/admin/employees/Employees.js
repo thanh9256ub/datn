@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Button, Modal, Col, InputGroup, Container, Form } from "react-bootstrap";
+import { Button, Modal, InputGroup, Form } from "react-bootstrap";
 import { addEmployee, deleteEmployee, listEmployee, listRole, updateEmployee, updateEmployeeStatus } from './service/EmployeeService';
 import './Employee.css';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
-
-import { useNavigate } from 'react-router-dom'
-
 
 const Employees = () => {
 
@@ -65,11 +62,18 @@ const Employees = () => {
 
     function getAllEmployee() {
         listEmployee(search, page, statusFilter).then((response) => {
-            setEmployees(response.data.data);
-            setTotalPage(response.data.totalPage);
+            if (response.status === 200) {
+                setEmployees(response.data.data);
+                setTotalPage(response.data.totalPage);
+            }
+            else if (response.status === 401) {
+                history.push('/admin/user-pages/login-1');
+            }
         }).catch(error => {
             console.error(error);
+            history.push('/admin/user-pages/login-1');
         })
+
     }
 
     function removeEmployee(id) {

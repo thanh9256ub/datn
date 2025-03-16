@@ -32,6 +32,7 @@ import CreateEmployee from './employees/action/CreateEmployee';
 import UpdateEmployee from './employees/action/UpdateEmployee';
 import CreateCustomer from './customers/action/CreateCustomer';
 import UpdateCustomer from './customers/action/UpdateCustomer';
+import { useAuth } from '../context/AuthContext';
 
 // const Dashboard = lazy(() => import('./dashboard/Dashboard'));
 // // const Buttons = lazy(() => import('./basic-ui/Buttons'));
@@ -53,7 +54,20 @@ import UpdateCustomer from './customers/action/UpdateCustomer';
 // const Login = lazy(() => import('./user-pages/Login'));
 // const Register1 = lazy(() => import('./user-pages/Register'));
 // const Lockscreen = lazy(() => import('./user-pages/Lockscreen'));
+// Component bảo vệ route (AuthGuard)
+const ProtectedRoute = ({ component: Component, ...rest }) => {
+  const { token } = useAuth();
 
+  return (
+    <Route
+      {...rest}
+      render={(props) =>
+        console.log("token: " + !!token) ||
+        !!token ? <Component {...props} /> : <Redirect to="/admin/user-pages/login-1" />
+      }
+    />
+  );
+};
 class AdminRoutes extends Component {
   render() {
     return (
@@ -91,12 +105,12 @@ class AdminRoutes extends Component {
           <Route exact path="/admin/categories" component={Categories} />
           <Route exact path="/admin/materials" component={Materials} />
 
-          <Route exact path="/admin/employees" component={Employees} />
-          <Route exact path="/admin/employees/add" component={CreateEmployee} />
-          <Route exact path="/admin/employees/update/:id" component={UpdateEmployee} />
-          <Route exact path="/admin/customers" component={Customers} />
-          <Route exact path="/admin/customers/update/:id" component={UpdateCustomer} />
-          <Route exact path="/admin/customers/add" component={CreateCustomer} />
+          <ProtectedRoute exact path="/admin/employees" component={Employees} />
+          <ProtectedRoute exact path="/admin/employees/add" component={CreateEmployee} />
+          <ProtectedRoute exact path="/admin/employees/update/:id" component={UpdateEmployee} />
+          <ProtectedRoute exact path="/admin/customers" component={Customers} />
+          <ProtectedRoute exact path="/admin/customers/update/:id" component={UpdateCustomer} />
+          <ProtectedRoute exact path="/admin/customers/add" component={CreateCustomer} />
           <Route exact path="/admin/orders" component={Orders} />
           <Route exact path="/admin/orders/:id" component={OrderDetail} />
           <Route exact path="/admin/vouchers" component={Vouchers} />

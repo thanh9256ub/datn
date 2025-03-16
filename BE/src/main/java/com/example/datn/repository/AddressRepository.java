@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Integer> {
 
-    Address findAddressByCustomerIdAndDefaultAddress(Integer customerId, Boolean defaultAddress);
+    Address findAddressByCustomerIdAndStatus(Integer customerId, Integer status);
 
-    List<Address> findAddressByCustomerIdInAndDefaultAddress(List<Integer> customerIds, Boolean defaultAddress);
+    List<Address> findAddressByCustomerIdInAndStatus(List<Integer> customerIds, Integer status);
 }

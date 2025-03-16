@@ -36,3 +36,8 @@ export const updateCustomer = async (id, customer) => {
     const response = await axios.put("http://localhost:8080/customer/update" + '/' + id, customer)
     return response.data
 }
+
+export const getCusomer = (id) => {
+    const response = axios.get("http://localhost:8080/customer" + '/' + id)
+    return response
+}

@@ -63,7 +63,7 @@ public class CustomerResponse {
         if (customer.getAddressList() != null)
             for (Address addressDetail : customer.getAddressList()) {
                 this.addressList.add(new AddressResponse(addressDetail));
-                if (addressDetail.getDefaultAddress())
+                if (addressDetail.getStatus() == 1)
                     this.address = addressDetail.getCity();
             }
     }

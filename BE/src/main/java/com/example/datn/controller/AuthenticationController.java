@@ -7,18 +7,16 @@ import com.example.datn.dto.response.AuthenticationResponse;
 import com.example.datn.dto.response.IntrospectResponse;
 import com.example.datn.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.KeyLengthException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.security.sasl.AuthenticationException;
 import java.text.ParseException;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("auth")
 @RequiredArgsConstructor
@@ -30,7 +28,7 @@ public class AuthenticationController {
     AuthenticationService authenticationService;
 
     @PostMapping("token")
-     public ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest authenticationRequest) {
+    public ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest authenticationRequest) throws AuthenticationException {
 
         var result = authenticationService.authentication(authenticationRequest);
 

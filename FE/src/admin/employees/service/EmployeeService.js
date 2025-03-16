@@ -1,6 +1,11 @@
 import axios from "axios";
 
+const token = localStorage.getItem('token');  // Đảm bảo rằng 'token' là khóa bạn đã lưu token
 
+if (token) {
+  // Thiết lập Bearer Token vào header Authorization của axios
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+}
 
 const listEmployee = async (searchInput, pageInput, statusInput) => {
     return await axios.get("http://localhost:8080/employee", {
@@ -8,13 +13,20 @@ const listEmployee = async (searchInput, pageInput, statusInput) => {
             search: searchInput,
             page: pageInput,
             status: statusInput
+        },
+        headers: {
+            Authorization: `Bearer ${token}`
         }
     })
 }
 export { listEmployee };
 
 const listRole = () => {
-    return axios.get("http://localhost:8080/role")
+    return axios.get("http://localhost:8080/role", {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    })
 }
 export { listRole };
 

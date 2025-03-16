@@ -48,12 +48,12 @@ public class AddressService {
         if (customer.isEmpty()) throw new ResourceNotFoundException("Customer is not found");
         address.setCustomer(customer.get());
 
-        Address oldDefaultAddress = addressRepository.findAddressByCustomerIdAndDefaultAddress(customer.get().getId(), true);
+        Address oldDefaultAddress = addressRepository.findAddressByCustomerIdAndStatus(customer.get().getId(), 1);
         if (Objects.isNull(oldDefaultAddress))
-            address.setDefaultAddress(Boolean.TRUE);
-        else if (address.getDefaultAddress()) {
-            oldDefaultAddress.setDefaultAddress(Boolean.FALSE);
-            address.setDefaultAddress(Boolean.TRUE);
+            address.setStatus(1);
+        else if (address.getStatus() == 1) {
+            oldDefaultAddress.setStatus(0);
+            address.setStatus(1);
             addressRepository.save(oldDefaultAddress);
         }
 
