@@ -1,15 +1,16 @@
-package com.example.datn.dto.response;
+package com.example.datn.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Getter
+@Data
 @Setter
+@Getter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ApiResponse<T> {
-    int status;
-    String message;
-    T data;
+public class IntrospectRequest {
+
+    String token;
 }

@@ -12,7 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class AddressService {
@@ -27,21 +30,34 @@ public class AddressService {
     AddressMapper addressMapper;
 
     public List<AddressResponse> getAll() {
-
-        return addressMapper.toListResponses(addressRepository.findAll());
+        List<AddressResponse> responseList = new ArrayList<>();
+        addressRepository.findAll().forEach(address -> {
+            responseList.add(new AddressResponse(address));
+        });
+        return responseList;
+//        return addressMapper.toListResponses(addressRepository.findAll());
     }
 
-    public AddressResponse creAddress(AddressRequest addressRequest) {
+    public AddressResponse creaAddress(AddressRequest addressRequest) {
 
         Address address = addressMapper.toAddress(addressRequest);
         address.setCreatedAt(LocalDateTime.now());
         address.setUpdatedAt(LocalDateTime.now());
 
-        Customer customer = customerRepository.findById(addressRequest.getCustomerId()).get();
-        address.setCustomer(customer);
+        Optional<Customer> customer = customerRepository.findById(addressRequest.getCustomerId());
+        if (customer.isEmpty()) throw new ResourceNotFoundException("Customer is not found");
+        address.setCustomer(customer.get());
+
+        Address oldDefaultAddress = addressRepository.findAddressByCustomerIdAndStatus(customer.get().getId(), 1);
+        if (Objects.isNull(oldDefaultAddress))
+            address.setStatus(1);
+        else if (address.getStatus() == 1) {
+            oldDefaultAddress.setStatus(0);
+            address.setStatus(1);
+            addressRepository.save(oldDefaultAddress);
+        }
 
         Address created = addressRepository.save(address);
-
         return new AddressResponse(created);
 
     }
