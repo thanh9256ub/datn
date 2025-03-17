@@ -16,7 +16,7 @@ function App() {
 
           <Route path="/admin" component={Admin} />
 
-          <Route path="/LoginTest" component={LoginTest} />
+          <Route path="/LoginNhanVien" component={LoginTest} />
 
           <Route path="/" component={Client} />
 

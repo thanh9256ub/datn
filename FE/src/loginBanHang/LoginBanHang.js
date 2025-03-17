@@ -4,7 +4,6 @@ import { Button, Form } from 'react-bootstrap';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import { getToken } from './service/Loginservice';
 import { useAuth } from '../context/AuthContext';
-import axios from "axios";
 
 const LoginBanHang = () => {
   const [username, setUsername] = useState("");
