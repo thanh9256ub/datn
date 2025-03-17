@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Form, Modal, Button } from 'react-bootstrap';
 import axios from 'axios';
 
-const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
+const DeliveryInfo = ({ delivery, setDelivery, onSave, customer }) => {
   const [tempDelivery, setTempDelivery] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [provinces, setProvinces] = useState([]);
@@ -62,8 +62,35 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
 
   const handleDeliveryChange = () => {
     if (!delivery) {
-      setTempDelivery(true);
-      setShowModal(true);
+      if (customer) {
+        axios.get(`http://localhost:8080/address`)
+          .then(response => {
+            const address = response.data.find(item => item.customer.id === customer.id);
+            if (address) {
+              setCustomerInfo({
+                name: address.customer.fullName,
+                phone: address.customer.phone,
+                province: address.city,
+                district: address.district,
+                ward: address.ward,
+                address: address.detailedAddress
+              });
+              setSelectedProvince(address.city);
+              setSelectedDistrict(address.district);
+              setSelectedWard(address.ward);
+            }
+            setTempDelivery(true);
+            setShowModal(true);
+          })
+          .catch(error => {
+            console.error('Lỗi lấy địa chỉ:', error);
+            setTempDelivery(true);
+            setShowModal(true);
+          });
+      } else {
+        setTempDelivery(true);
+        setShowModal(true);
+      }
     } else {
       setDelivery(false);
     }
@@ -112,7 +139,6 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
               <Col sm={8}>
                 <Form.Control
                   type="text"
-                  placeholder="Nguyễn Khách Huyền"
                   value={customerInfo.name}
                   onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
                 />
@@ -126,7 +152,6 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
               <Col sm={8}>
                 <Form.Control
                   type="text"
-                  placeholder="0375161589"
                   value={customerInfo.phone}
                   onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
                 />
