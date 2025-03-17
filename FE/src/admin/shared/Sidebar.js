@@ -107,18 +107,20 @@ class Sidebar extends Component {
               </ul>
             </Collapse>
           </li>
-          <li className={this.isPathActive('/admin/employees') ? 'nav-item active' : 'nav-item'}>
-            <div className={this.state.employeesPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('employeesPagesMenuOpen')} data-toggle="collapse">
-              <span className="menu-title"><Trans>Nhân viên</Trans></span>
-              <i className="menu-arrow"></i>
-              <i className="mdi mdi-account-card-details menu-icon"></i>
-            </div>
-            <Collapse in={this.state.employeesPagesMenuOpen}>
-              <ul className="nav flex-column sub-menu">
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/employees') ? 'nav-link active' : 'nav-link'} to="/admin/employees"><Trans>Employees</Trans></Link></li>
-              </ul>
-            </Collapse>
-          </li>
+          {localStorage.getItem("role") === "ADMIN" &&
+            <li className={this.isPathActive('/admin/employees') ? 'nav-item active' : 'nav-item'}>
+              <div className={this.state.employeesPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('employeesPagesMenuOpen')} data-toggle="collapse">
+                <span className="menu-title"><Trans>Nhân viên</Trans></span>
+                <i className="menu-arrow"></i>
+                <i className="mdi mdi-account-card-details menu-icon"></i>
+              </div>
+              <Collapse in={this.state.employeesPagesMenuOpen}>
+                <ul className="nav flex-column sub-menu">
+                  <li className="nav-item"> <Link className={this.isPathActive('/admin/employees') ? 'nav-link active' : 'nav-link'} to="/admin/employees"><Trans>Employees</Trans></Link></li>
+                </ul>
+              </Collapse>
+            </li>
+          }
           <li className={this.isPathActive('/admin/customers') ? 'nav-item active' : 'nav-item'}>
             <div className={this.state.customersPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('customersPagesMenuOpen')} data-toggle="collapse">
               <span className="menu-title"><Trans>Khách hàng</Trans></span>

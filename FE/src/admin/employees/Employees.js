@@ -67,11 +67,13 @@ const Employees = () => {
                 setTotalPage(response.data.totalPage);
             }
             else if (response.status === 401) {
-                history.push('/admin/user-pages/login-1');
+                alert("Bạn không có quyền truy cập vào trang này");
+                history.push('/admin/dashboard')
             }
         }).catch(error => {
             console.error(error);
-            history.push('/admin/user-pages/login-1');
+            alert("Bạn không có quyền truy cập vào trang này");
+            history.push('/admin/dashboard')
         })
 
     }

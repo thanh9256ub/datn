@@ -63,8 +63,12 @@ const CreateCustomer = () => {
 
     useEffect(() => {
         // Fetch provinces from API
-        axios.get("https://provinces.open-api.vn/api/?depth=1")
-            .then(response => setProvinces(response.data))
+        axios.get("https://partner.viettelpost.vn/v2/categories/listProvinceById?provinceId=-1")
+            .then(response => {
+                setProvinces(response.data.data || []);
+                console.log("Tỉnh/thành phố:", response.data.data)
+            })
+
             .catch(error => console.error("Lỗi lấy tỉnh/thành phố:", error));
     }, []);
 
@@ -77,8 +81,8 @@ const CreateCustomer = () => {
         handleInputChange(index, 'province', selectedOption);
         // Fetch districts based on selected province
         if (selectedOption) {
-            axios.get(`https://provinces.open-api.vn/api/p/${selectedOption.value}?depth=2`)
-                .then(response => setDistricts(response.data.districts))
+            axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${selectedOption.value}`)
+                .then(response => setDistricts(response.data.data || []))
                 .catch(error => console.error("Lỗi lấy quận/huyện:", error));
         }
     };
@@ -90,8 +94,8 @@ const CreateCustomer = () => {
         handleInputChange(index, 'district', selectedOption);
         // Fetch wards based on selected district
         if (selectedOption) {
-            axios.get(`https://provinces.open-api.vn/api/d/${selectedOption.value}?depth=2`)
-                .then(response => setWards(response.data.wards))
+            axios.get(`https://partner.viettelpost.vn/v2/categories/listWards?districtId=${selectedOption.value}`)
+                .then(response => setWards(response.data.data || []))
                 .catch(error => console.error("Lỗi lấy phường/xã:", error));
         }
     };
@@ -223,8 +227,8 @@ const CreateCustomer = () => {
                                                         <label className="form-label">Tỉnh/thành phố</label>
                                                         <Select
                                                             options={provinces.map((province) => ({
-                                                                value: province.code,
-                                                                label: province.name,
+                                                                value: province.PROVINCE_ID,
+                                                                label: province.PROVINCE_NAME,
                                                             }))}
                                                             value={address.province}
                                                             onChange={(selectedOption) => handleProvinceChange(index, selectedOption)}
@@ -239,8 +243,8 @@ const CreateCustomer = () => {
                                                         <label className="form-label">Quận/huyện</label>
                                                         <Select
                                                             options={districts.map((district) => ({
-                                                                value: district.code,
-                                                                label: district.name,
+                                                                value: district.DISTRICT_ID,
+                                                                label: district.DISTRICT_NAME,
                                                             }))}
                                                             value={address.district}
                                                             onChange={(selectedOption) => handleDistrictChange(index, selectedOption)}
@@ -256,8 +260,8 @@ const CreateCustomer = () => {
                                                         <label className="form-label">Phường/xã</label>
                                                         <Select
                                                             options={wards.map((ward) => ({
-                                                                value: ward.code,
-                                                                label: ward.name,
+                                                                value: ward.WARDS_ID,
+                                                                label: ward.WARDS_NAME,
                                                             }))}
                                                             value={address.ward}
                                                             onChange={(selectedOption) => handleWardChange(index, selectedOption)}
