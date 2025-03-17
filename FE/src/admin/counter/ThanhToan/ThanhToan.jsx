@@ -226,7 +226,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
 
       />
 
-      <DeliveryInfo delivery={delivery} setDelivery={setDelivery} onSave={handleSaveDeliveryInfo} />
+      <DeliveryInfo delivery={delivery} setDelivery={setDelivery} onSave={handleSaveDeliveryInfo} customer={customer} />
       <PromoCode promoCode={promoCode} setPromo={setPromo} totalAmount={totalAmount} />
 
       {/* Hiển thị tổng tiền */}
