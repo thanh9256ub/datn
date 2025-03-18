@@ -7,6 +7,7 @@ import Employees from './employees/Employees';
 import Customers from './customers/Customers';
 import Orders from './orders/Orders';
 import Vouchers from './vouchers/Vouchers';
+import CreateVoucher from './vouchers/CreateVoucher';
 import CreateProduct from './products/components/CreateProduct';
 
 const Dashboard = lazy(() => import('./dashboard/Dashboard'));
@@ -64,7 +65,9 @@ class AdminRoutes extends Component {
           <Route exact path="/admin/employees" component={Employees} />
           <Route exact path="/admin/customers" component={Customers} />
           <Route exact path="/admin/orders" component={Orders} />
+
           <Route exact path="/admin/vouchers" component={Vouchers} />
+          <Route exact path="/admin/vouchers/add" component={CreateVoucher} />
 
           <Redirect to="/admin/dashboard" />
         </Switch>

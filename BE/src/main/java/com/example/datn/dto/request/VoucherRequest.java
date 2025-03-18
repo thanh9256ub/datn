@@ -18,10 +18,11 @@ public class VoucherRequest {
 
     private Integer id;
 
-    @NotBlank(message = "voucher code is required")
     private String voucherCode;
 
     private String voucherName;
+
+    private String condition;
 
     private Double discountValue;
 

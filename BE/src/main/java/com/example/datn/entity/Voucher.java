@@ -28,7 +28,6 @@ public class Voucher {
     private Integer id;
 
     @Column(name = "voucher_code")
-    @NotBlank(message = "voucher code is required")
     private String voucherCode;
 
     @Column(name = "voucher_name")
