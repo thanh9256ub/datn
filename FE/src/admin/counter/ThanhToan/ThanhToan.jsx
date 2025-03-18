@@ -19,6 +19,15 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
   const [promoCode, setPromoCode] = useState("");
   const [finalAmount, setFinalAmount] = useState(totalAmount);
   const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
+  const [shippingFee, setShippingFee] = useState(0);
+  const [customerInfo, setCustomerInfo] = useState({
+    name: '',
+    phone: '',
+    province: '',
+    district: '',
+    ward: '',
+    address: ''
+  });
 
   useEffect(() => {
     let calculatedDiscount = 0;
@@ -44,11 +53,48 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
     setIsPaymentEnabled(isEligibleForPayment);
   }, [paymen, totalAmount, change]);
 
-  //   useEffect(() => {
+  const fetchShippingFee = async (customerInfo) => {
+    
+    try {
+      // Calculate total weight
+      const selectedOrderDetail = orderDetail.filter(item => String(item.order.id) === String(idOrder));
+      const totalWeight = selectedOrderDetail.reduce((sum, item) => sum + item.quantity, 0) * 600;
 
+      const response = await fetch('https://partner.viettelpost.vn/v2/order/getPrice', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Token': 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwMzM1NjAyMTE1IiwiVXNlcklkIjoxNTgzOTczNCwiRnJvbVNvdXJjZSI6NSwiVG9rZW4iOiJKWEdZV0Q5QTkwQyIsImV4cCI6MTc0MjE4MjU2MCwiUGFydG5lciI6MTU4Mzk3MzR9.hdibqEJCL4qN1qO7JGPMEnisfUgvRdng1pWDaBhVL_Iz71NhRWMCCPXyz9GydOhazXxIzjLYzS26mdacsyRlYg' // Replace with your actual API key
+        },
+        body: JSON.stringify({
+          PRODUCT_WEIGHT: totalWeight,
+          ORDER_SERVICE: customerInfo.province == 1 ? "PHS" : "LCOD",
+          SENDER_PROVINCE: "1",
+          SENDER_DISTRICT: "25",
+          RECEIVER_PROVINCE: customerInfo.province,
+          RECEIVER_DISTRICT: customerInfo.district
+        })
+      });
+      const data = await response.json();
+      return data.data.MONEY_TOTAL;
+    } catch (error) {
+      console.error('Error fetching shipping fee:', error);
+      return 0;
+    }
+  };
 
-  //     setFilteredOrder(filteredData);
-  // }, [orderDetails , idOrder]);
+  useEffect(() => {
+    const updateShippingFee = async () => {
+      if (delivery && customer) {
+        const fee = await fetchShippingFee(customer);
+        setShippingFee(fee);
+      } else {
+        setShippingFee(0);
+      }
+    };
+    updateShippingFee();
+  }, [delivery, customer,orderDetail]);
+
   const handleShowQRModal = () => {
     setIsCashPayment(false);
 
@@ -118,11 +164,11 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
           .map(item => `
                 <tr>
                     <td>${item.productDetail.product.productName}</td>
-                    <td>${item.productDetail.color.colorName }</td>
-                    <td>${item.productDetail.size.sizeName }</td>
+                    <td>${item.productDetail.color.colorName}</td>
+                    <td>${item.productDetail.size.sizeName}</td>
                     <td>${item.quantity}</td>
                     <td>${item.price} VNĐ</td>
-                    <td>${item.quantity*item.price} VNĐ</td>
+                    <td>${item.quantity * item.price} VNĐ</td>
                 </tr>
             `).join('')
         : '<tr><td colspan="4">Không có sản phẩm</td></tr>'}
@@ -131,7 +177,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
                     </table>
                 </div>
                 <div class="invoice-footer">
-                    <p>Tổng tiền: ${finalAmount.toLocaleString()} VNĐ</p>
+                    <p>Tổng tiền: ${finalAmount ? finalAmount.toLocaleString() : 0} VNĐ</p>
                 </div>
             </body>
         </html>
@@ -145,20 +191,20 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
 
 
   };
- const  handlePaymentConfirmation = () => {
+  const handlePaymentConfirmation = () => {
     if (!isPaymentEnabled) {
-       toast.warn("Vui lòng thực hiện đủ các bước 🥰", {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-            });
+      toast.warn("Vui lòng thực hiện đủ các bước 🥰", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
       return;
-    } 
+    }
     toast.success("Thanh toán thành công 🥰", {
       position: "top-right",
       autoClose: 3000,
@@ -170,6 +216,14 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
       theme: "light",
     });
   };
+
+  const handleSaveDeliveryInfo = async (customer) => {
+    setCustomer(customer);
+    setDelivery(true);
+    const fee = await fetchShippingFee(customer);
+    setShippingFee(fee);
+  };
+
   return (
     <div className="container my-4">
       <h3>Thông tin thanh toán</h3>
@@ -183,14 +237,14 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
 
       />
 
-      <DeliveryInfo delivery={delivery} setDelivery={setDelivery} />
+      <DeliveryInfo delivery={delivery} setDelivery={setDelivery} onSave={handleSaveDeliveryInfo} customer={customer} customerInfo={customerInfo} setCustomerInfo={setCustomerInfo} />
       <PromoCode promoCode={promoCode} setPromo={setPromo} totalAmount={totalAmount} />
 
       {/* Hiển thị tổng tiền */}
       <h5>Tổng tiền: {totalAmount.toLocaleString()} VND</h5>
       <h5>Giảm giá: {(totalAmount - finalAmount).toLocaleString()} VND</h5>
-      <h5>Phí vận chuyển: 0 VND</h5>
-      <h5>Thanh toán: {finalAmount.toLocaleString()} VND</h5>
+      <h5>Phí vận chuyển: {shippingFee ? shippingFee.toLocaleString() : 0} VND</h5>
+      <h5>Thanh toán: {(finalAmount + shippingFee).toLocaleString()} VND</h5>
 
 
 
@@ -221,7 +275,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
                     setCashPaid(e.target.value);
 
                     setChange(e.target.value - finalAmount);
-                  } }
+                  }}
                   placeholder="Nhập số tiền khách trả"
                 />
               </Form.Group>
