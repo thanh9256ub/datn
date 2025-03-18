@@ -28,8 +28,27 @@
 }
 
 .form-control {
-  border: 1px solid $border-color;
-  font-size: $input-font-size;
+  // border: 1px solid $border-color;
+  // font-size: $input-font-size;
+  
+  font-size: 14px;
+  border: 1px solid #ccc; // Border giống react-select
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: #333;
+  background-color: #fff;
+  height: 38px; // Căn chỉnh chiều cao giống react-select
+  transition: all 0.2s ease-in-out;
+
+  &:focus {
+    border-color: #2684FF;
+    box-shadow: 0 0 3px rgba(38, 132, 255, 0.5);
+    outline: none;
+  }
+
+  &::placeholder {
+    color: #aaa; // Placeholder giống react-select
+  }
 }
 
 select {
@@ -74,6 +93,7 @@ select {
   }
 }
 .custom-file {
+  margin-left: 25px;
   .visibility-hidden {
     visibility: hidden;
   }

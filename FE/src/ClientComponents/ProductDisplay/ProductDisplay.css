@@ -1,6 +1,8 @@
 .productdisplay {
     display: flex;
     margin: 0px 170px;
+    align-items: center;
+    justify-content: center;
 }
 
 .productdisplay-left {
@@ -53,60 +55,129 @@
     color: #ff4141;
 }
 
-.productdisplay-right-sizes {
-    display: flex;
-    margin: 30px 0px;
-    gap: 20px;
-}
-
-.productdisplay-right-size h1 {
-    margin-top: 55px;
+.productdisplay-right-color h1 {
     color: #656565;
     font-size: 20px;
     font-weight: 600;
+    margin: 20px 0 5px;
 }
 
-.productdisplay-right-sizes div {
-    padding: 18px 24px;
-    background: #fbfbfb;
-    border: 1px solid #ebebeb;
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-/* ======= */
 .productdisplay-right-colors {
     display: flex;
-    margin: 30px 0px;
-    gap: 20px;
+    gap: 15px;
 }
 
-.productdisplay-right-color h1 {
-    margin-top: 55px;
+.productdisplay-right-colors button {
+    padding: 12px 24px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    color: #5a5a5a;
+}
+
+.productdisplay-right-colors button:hover {
+    border-color: #818181;
+    color: black;
+}
+
+.productdisplay-right-colors button.selected {
+    border: 2px solid #ff4141;
+    color: #ff4141;
+    background-color: #fff0f0;
+}
+
+/* Size Selection Styles */
+.productdisplay-right-size h1 {
     color: #656565;
     font-size: 20px;
     font-weight: 600;
+    margin: 25px 0 15px;
 }
 
-.productdisplay-right-colors div {
-    padding: 18px 24px;
-    background: #fbfbfb;
-    border: 1px solid #ebebeb;
-    border-radius: 3px;
+.productdisplay-right-sizes {
+    margin-bottom: 30px;
+    display: flex;
+    gap: 30px;
+}
+
+.productdisplay-right-sizes button {
+    padding: 12px 24px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #ffffff;
     cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    color: #5a5a5a;
 }
 
-.productdisplay-right button {
+.productdisplay-right-sizes button:hover {
+    border-color: #818181;
+    color: black;
+}
+
+.productdisplay-right-sizes select:focus {
+    outline: none;
+    border-color: #ff4141;
+    box-shadow: 0 0 0 2px rgba(255, 65, 65, 0.2);
+}
+
+/* Responsive Styles */
+@media (max-width: 800px) {
+    .productdisplay-right-colors {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .productdisplay-right-colors button {
+        padding: 10px 18px;
+        font-size: 14px;
+    }
+
+    .productdisplay-right-sizes select {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+}
+
+.add-to-card {
     padding: 20px 40px;
     width: 200px;
     font-size: 16px;
     font-weight: 600;
-    background: #ff4141;
+    background-color: white;
     margin-bottom: 40px;
     border: none;
     outline: none;
     cursor: pointer;
+    box-shadow: 0 1px 3px -2px black;
 }
+
+.add-to-card:hover {
+    background: linear-gradient(135deg, #9d4edd 0%, #ca51f0 100%);
+    transform: translateY(-2px);
+    color: white;
+    box-shadow: 0 6px 12px rgba(202, 81, 240, 0.3);
+}
+
+/* Hiệu ứng khi nhấn */
+.add-to-card:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(202, 81, 240, 0.2);
+}
+
+/* Hiệu ứng focus */
+.add-to-card:focus {
+    outline: none;
+    color: white;
+    box-shadow: 0 0 0 3px rgba(202, 81, 240, 0.4);
+}
+
+
+
 
 .productdisplay-right-category {
     margin-top: 10px;

@@ -34,23 +34,22 @@ const ProductDisplay = (props) => {
                 <div className="productdisplay-right-color">
                     <h1>Select Color</h1>
                     <div className="productdisplay-right-colors">
-                       <button>Grey</button>   
-                       <button>White</button>  
-                       <button>Black</button>  
+                        <button>Grey</button>
+                        <button>White</button>
+                        <button>Black</button>
                     </div>
                 </div>
                 <div className="productdisplay-right-size">
-                <h1>Select Size</h1>
+                    <h1>Select Size</h1>
                     <div className="productdisplay-right-sizes">
-                        <select>
-                            <option value="">36</option>
-                            <option value="">37</option>
-                            <option value="">38</option>
-                            <option value="">39</option>
-                        </select>
+                        <button>37</button>
+                        <button>38</button>
+                        <button>39</button>
+                        <button>40</button>
+                        <button>41</button>
                     </div>
                 </div>
-                <button onClick={() => { addToCart(product.id) }}>
+                <button className='add-to-card' onClick={() => { addToCart(product.id) }}>
                     ADD TO CART
                 </button>
                 <p className='productdisplay-right-category'><span>Category:</span>Women , T-Shirt, Crop Top</p>

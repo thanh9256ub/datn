@@ -9,20 +9,14 @@ import com.example.datn.entity.Order;
 import com.example.datn.service.DonHangService;
 import com.example.datn.service.OrderService;
 import com.example.datn.service.PaymentMethodService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("order")
 
@@ -64,6 +58,27 @@ public class OrderController {
         service.detele(id);
         ApiResponse<OrderResponse> apiResponse=new ApiResponse<>(
                 HttpStatus.OK.value(), "PaymentMethod deleted successfully",null);
+        return ResponseEntity.ok(apiResponse);
+    }
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ApiResponse<OrderResponse>> updateStatus(
+            @PathVariable("id") Integer id,
+            @RequestParam int newStatus,
+            HttpServletResponse response) {
+
+        // Thêm headers CORS vào phản hồi
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+        // Gọi service để cập nhật trạng thái
+        OrderResponse orderResponse = service.updateStatus(id, newStatus);
+
+        // Tạo phản hồi API
+        ApiResponse<OrderResponse> apiResponse = new ApiResponse<>(
+                HttpStatus.OK.value(), "Order status updated successfully", orderResponse);
+
+        // Trả về phản hồi
         return ResponseEntity.ok(apiResponse);
     }
 

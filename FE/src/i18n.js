@@ -236,16 +236,21 @@ i18n
             }
         },
         fallbackLng: "en",
-        debug: true,
+        debug: false,
 
         // have a common namespace used around the full app
         ns: ["translations"],
         defaultNS: "translations",
 
-        keySeparator: false, // we use content as keys
+        keySeparator: '.', // we use content as keys
 
         interpolation: {
             escapeValue: false
+        },
+
+        detection: {
+            order: ['navigator', 'cookie', 'localStorage', 'sessionStorage', 'querystring', 'path', 'subdomain'],
+            caches: ['localStorage', 'cookie'],
         }
     });
 

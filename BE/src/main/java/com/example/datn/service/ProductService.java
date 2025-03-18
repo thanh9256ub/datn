@@ -14,6 +14,7 @@ import com.example.datn.repository.CategoryRepository;
 import com.example.datn.repository.MaterialRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -44,7 +45,6 @@ public class ProductService {
     }
 
     public ProductResponse createProduct(ProductRequest request){
-
         Brand brand = brandRepository.findById(request.getBrandId())
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found with ID: " + request.getBrandId()));
 
@@ -60,8 +60,6 @@ public class ProductService {
         product.setBrand(brand);
         product.setCategory(category);
         product.setMaterial(material);
-        product.setTotalQuantity(0);
-        product.setStatus(0);
 
         return mapper.toProductResponse(repository.save(product));
     }
@@ -70,6 +68,13 @@ public class ProductService {
         return mapper.toListProduct(repository.findAll());
     }
 
+    public ProductResponse getById(Integer id){
+
+        Product product = repository.findById(id).orElseThrow(
+                () -> new RuntimeException("Product not exist"));
+
+        return mapper.toProductResponse(product);
+    }
 
     public ProductResponse updateProduct(Integer id, ProductRequest request){
 
@@ -100,10 +105,19 @@ public class ProductService {
     }
 
     public void deleteProduct(Integer id){
-        Product product = repository.findById(id).orElseThrow(
+        repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Product not found with ID: " + id)
         );
 
         repository.deleteById(id);
     }
+
+    public ProductResponse updateStatus(Integer productId, Integer status) {
+        Product product = repository.findById(productId).orElseThrow(() -> new RuntimeException("Product not exist"));
+
+        product.setStatus(status);
+
+        return mapper.toProductResponse(repository.save(product));
+    }
+
 }

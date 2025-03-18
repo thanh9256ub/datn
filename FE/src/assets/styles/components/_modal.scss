@@ -1,0 +1,143 @@
+// Modals
+// --------------------------------------------------
+
+// .modal-open      - body class for killing the scroll
+// .modal           - container to scroll within
+// .modal-dialog    - positioning shell for the actual modal
+// .modal-content   - actual modal w/ bg and corners
+
+// Kill the scroll on the body
+.modal-open {
+    overflow: hidden;
+}
+
+// Container that the modal scrolls within
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1050;
+    display: none;
+    overflow: hidden;
+    outline: 0;
+
+    // Fade animation
+    &.fade .modal-dialog {
+        transform: translate(0, -50px);
+        transition: transform 0.3s ease-out;
+    }
+    &.show .modal-dialog {
+        transform: translate(0, 0);
+    }
+}
+
+.modal-open .modal {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+// Modal dialog
+.modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 1.75rem auto;
+    max-width: 500px;
+}
+
+// Modal content
+.modal-content {
+    position: relative;
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 0.3rem;
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+    outline: 0;
+}
+
+// Modal backdrop
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    &.fade { opacity: 0; }
+    &.show { opacity: 1; }
+}
+
+// Modal header
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-header .close {
+    padding: 1rem;
+    margin: -1rem -1rem -1rem auto;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+}
+
+// Modal title
+.modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.modal-dialog {
+  max-width: 95vw; // Tăng kích thước tối đa lên 95% màn hình
+  width: auto; // Để modal tự động mở rộng theo nội dung
+}
+
+.modal-content {
+  max-height: 85vh; // Đảm bảo modal không chiếm toàn bộ màn hình
+  overflow-y: auto; // Bật scroll khi nội dung quá dài
+}
+
+.custom-modal {
+  max-width: 90vw; // Đảm bảo modal chiếm 90% chiều rộng màn hình
+  width: 100%;
+}
+
+// Modal body
+.modal-body {
+    position: relative;
+    padding: 1rem;
+}
+
+// Modal footer
+.modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 1rem;
+    border-top: 1px solid #dee2e6;
+
+    .btn + .btn {
+        margin-left: 0.5rem;
+    }
+}
+
+// Responsive modal sizes
+@media (min-width: 576px) {
+    .modal-dialog {
+        max-width: 500px;
+    }
+    .modal-sm {
+        max-width: 300px;
+    }
+}
+
+@media (min-width: 768px) {
+    .modal-lg, .modal-xl {
+        max-width: 800px;
+    }
+}

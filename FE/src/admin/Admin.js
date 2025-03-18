@@ -1,8 +1,7 @@
-// Admin.js
 import React, { Component } from 'react';
+import './App.scss';
 import { withRouter } from 'react-router-dom';
-import './App.scss'; // Đảm bảo các style của Admin được sử dụng
-import AdminRoutes from './AdminRoutes'; // Các route con của admin
+import AdminRoutes from './AdminRoutes';
 import Navbar from './shared/Navbar';
 import Sidebar from './shared/Sidebar';
 import SettingsPanel from './shared/SettingsPanel';
@@ -28,7 +27,6 @@ class Admin extends Component {
                     {sidebarComponent}
                     <div className="main-panel">
                         <div className="content-wrapper">
-                            {/* AppRoutes chứa các route con */}
                             <AdminRoutes />
                             {SettingsPanelComponent}
                         </div>
