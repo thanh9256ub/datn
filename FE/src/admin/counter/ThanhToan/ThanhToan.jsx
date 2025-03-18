@@ -20,6 +20,14 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
   const [finalAmount, setFinalAmount] = useState(totalAmount);
   const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
   const [shippingFee, setShippingFee] = useState(0);
+  const [customerInfo, setCustomerInfo] = useState({
+    name: '',
+    phone: '',
+    province: '',
+    district: '',
+    ward: '',
+    address: ''
+  });
 
   useEffect(() => {
     let calculatedDiscount = 0;
@@ -45,8 +53,13 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
     setIsPaymentEnabled(isEligibleForPayment);
   }, [paymen, totalAmount, change]);
 
-  const fetchShippingFee = async (customer) => {
+  const fetchShippingFee = async (customerInfo) => {
+    
     try {
+      // Calculate total weight
+      const selectedOrderDetail = orderDetail.filter(item => String(item.order.id) === String(idOrder));
+      const totalWeight = selectedOrderDetail.reduce((sum, item) => sum + item.quantity, 0) * 600;
+
       const response = await fetch('https://partner.viettelpost.vn/v2/order/getPrice', {
         method: 'POST',
         headers: {
@@ -54,18 +67,16 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
           'Token': 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwMzM1NjAyMTE1IiwiVXNlcklkIjoxNTgzOTczNCwiRnJvbVNvdXJjZSI6NSwiVG9rZW4iOiJKWEdZV0Q5QTkwQyIsImV4cCI6MTc0MjE4MjU2MCwiUGFydG5lciI6MTU4Mzk3MzR9.hdibqEJCL4qN1qO7JGPMEnisfUgvRdng1pWDaBhVL_Iz71NhRWMCCPXyz9GydOhazXxIzjLYzS26mdacsyRlYg' // Replace with your actual API key
         },
         body: JSON.stringify({
-          
-            "PRODUCT_WEIGHT":500,
-            "ORDER_SERVICE":"LCOD",
-            "SENDER_PROVINCE":"1",
-            "SENDER_DISTRICT":"14",
-            "RECEIVER_PROVINCE":"2",
-            "RECEIVER_DISTRICT":"43"
-          
+          PRODUCT_WEIGHT: totalWeight,
+          ORDER_SERVICE: customerInfo.province == 1 ? "PHS" : "LCOD",
+          SENDER_PROVINCE: "1",
+          SENDER_DISTRICT: "25",
+          RECEIVER_PROVINCE: customerInfo.province,
+          RECEIVER_DISTRICT: customerInfo.district
         })
       });
       const data = await response.json();
-      return data.data.MONEY_TOTAL_FEE;
+      return data.data.MONEY_TOTAL;
     } catch (error) {
       console.error('Error fetching shipping fee:', error);
       return 0;
@@ -82,7 +93,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
       }
     };
     updateShippingFee();
-  }, [delivery, customer]);
+  }, [delivery, customer,orderDetail]);
 
   const handleShowQRModal = () => {
     setIsCashPayment(false);
@@ -226,7 +237,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
 
       />
 
-      <DeliveryInfo delivery={delivery} setDelivery={setDelivery} onSave={handleSaveDeliveryInfo} customer={customer} />
+      <DeliveryInfo delivery={delivery} setDelivery={setDelivery} onSave={handleSaveDeliveryInfo} customer={customer} customerInfo={customerInfo} setCustomerInfo={setCustomerInfo} />
       <PromoCode promoCode={promoCode} setPromo={setPromo} totalAmount={totalAmount} />
 
       {/* Hiển thị tổng tiền */}
