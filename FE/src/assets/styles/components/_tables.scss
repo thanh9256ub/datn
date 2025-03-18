@@ -39,6 +39,12 @@
     .badge {
       margin-bottom: 0;
     }
+    &.long-content {
+      max-height: 120px; /* Giới hạn chiều cao cho td */
+      overflow-y: auto; /* Hiển thị thanh cuộn dọc nếu nội dung vượt quá */
+      display: block; /* Đảm bảo ô có thể cuộn */
+      line-height: 1.5;
+    }
   }
   tbody tr {
     height: auto !important; 

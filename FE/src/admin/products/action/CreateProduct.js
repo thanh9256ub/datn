@@ -10,30 +10,32 @@ import { createProductDetail, updateQR } from '../service/ProductDetailService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import MainImage from '../components/MainImage';
 import { createProduct, uploadImageToCloudinary } from '../service/ProductService';
+import axios from 'axios';
 
 const CreateProduct = () => {
     const [productName, setProductName] = useState("");
     const [brandId, setBrandId] = useState(null);
     const [categoryId, setCategoryId] = useState(null);
     const [materialId, setMaterialId] = useState(null);
+    const [description, setDescription] = useState("");
     const [totalQuantity, setTotalQuantity] = useState(0);
     const [status, setStatus] = useState(0);
     const [colorIds, setColorIds] = useState([]);
     const [sizeIds, setSizeIds] = useState([]);
     const [variantList, setVariantList] = useState([]);
+    const [hasError, setHasError] = useState(false);
 
     const [showModal, setShowModal] = useState(false);
 
     const [commonQuantity, setCommonQuantity] = useState("");
     const [commonPrice, setCommonPrice] = useState("");
 
-    // const [mainImage, setMainImage] = useState(null);
-
     const [productData, setProductData] = useState({
         productName,
         brandId,
         categoryId,
         materialId,
+        description,
         totalQuantity,
         status,
         mainImage: ''
@@ -48,6 +50,7 @@ const CreateProduct = () => {
 
     const handleColorChange = (colors) => {
         setColorIds(colors || []);
+        console.log(colorIds)
         generateVariants(colors, sizeIds);
     };
 
@@ -72,9 +75,11 @@ const CreateProduct = () => {
                     color: color.label,
                     colorId: color.value,
                     size: size.label,
-                    sizeId: size.value, quantity: 0,
+                    sizeId: size.value,
+                    quantity: '',
                     price: '',
-                    qr: `${productName}-${size.value}-${color.value}`
+                    qr: `${productName}-${size.value}-${color.value}`,
+                    images: []
                 });
             });
         });
@@ -84,13 +89,29 @@ const CreateProduct = () => {
 
     const handleInputChange = (index, field, value) => {
         const updatedVariants = [...variantList];
-        updatedVariants[index][field] = value;
+        updatedVariants[index] = { ...updatedVariants[index], [field]: value };
         setVariantList(updatedVariants);
     };
+    // const handleInputChange = (index, field, value) => {
+    //     setVariantList((prevList) => {
+    //         // Kiểm tra index hợp lệ để tránh lỗi
+    //         if (index < 0 || index >= prevList.length) {
+    //             console.warn(`❌ Index ${index} không hợp lệ!`);
+    //             return prevList;
+    //         }
+
+    //         const newList = prevList.map((variant, i) =>
+    //             i === index ? { ...variant, [field]: value } : variant
+    //         );
+
+    //         console.log("✅ Danh sách sau khi nhập:", newList);
+    //         return [...newList]; // Buộc React cập nhật lại state
+    //     });
+    // };
 
     const handleRemoveVariant = (index) => {
         const updatedVariants = [...variantList];
-        updatedVariants.splice(index, 1); // Xóa biến thể theo index
+        updatedVariants.splice(index, 1);
         setVariantList(updatedVariants);
     };
 
@@ -101,18 +122,6 @@ const CreateProduct = () => {
     }, [variantList]);
 
     const history = useHistory();
-
-    // const createProductData = () => {
-    //     return {
-    //         productName,
-    //         brandId: brandId ? parseInt(brandId) : null,
-    //         categoryId: categoryId ? parseInt(categoryId) : null,
-    //         materialId: materialId ? parseInt(materialId) : null,
-    //         mainImage: mainImage,
-    //         totalQuantity,
-    //         status
-    //     }
-    // }
 
     const createProductDetails = async (productId) => {
         const variantData = variantList.map(variant => {
@@ -163,12 +172,15 @@ const CreateProduct = () => {
             return;
         }
 
+        if (hasError) {
+            alert("Vui lòng sửa lỗi trước khi lưu!");
+            return;
+        }
+
         const isConfirmed = window.confirm("Bạn có chắc chắn muốn thêm sản phẩm này?");
         if (!isConfirmed) return;
 
         try {
-            // const productData = createProductData();
-            // console.log("Dữ liệu gửi lên API:", productData);
             const uploadedImageUrl = await uploadImageToCloudinary(productData.mainImage);
 
             if (!uploadedImageUrl) {
@@ -178,21 +190,28 @@ const CreateProduct = () => {
 
             const productRequest = {
                 productName,
-                brandId,
-                categoryId,
-                materialId,
+                brandId: brandId ? parseInt(brandId) : null,
+                categoryId: categoryId ? parseInt(categoryId) : null,
+                materialId: materialId ? parseInt(materialId) : null,
+                description,
                 totalQuantity,
                 status,
                 mainImage: uploadedImageUrl
             };
 
-            // const productResponse = await createProduct(mainImage, productData);
             const productResponse = await createProduct(productRequest);
             const productId = productResponse.data.data.id;
             console.log("Sản phẩm được tạo:", productResponse.data.data);
 
+            const colorIdsFromVariants = [...new Set(variantList.map(v => v.colorId))];
+
+            const productColorIds = await createProductColor(productId, colorIdsFromVariants);
+            console.log("Extracted Product Color IDs:", productColorIds);
+
             if (variantList.length > 0) {
                 await createProductDetails(productId);
+
+                await handleImagesForProductColors(productColorIds);
             }
 
             localStorage.setItem("successMessage", "Sản phẩm đã được thêm thành công!");
@@ -200,6 +219,68 @@ const CreateProduct = () => {
         } catch (error) {
             console.error("Lỗi khi lưu sản phẩm:", error);
             alert("Lưu sản phẩm thất bại! Kiểm tra console log.");
+        }
+    };
+
+    const createProductColor = async (productId, colorIds) => {
+        if (!colorIds || colorIds.length === 0 || colorIds.includes(null)) {
+            alert("Vui lòng chọn màu hợp lệ.");
+            return [];
+        }
+
+        try {
+            const response = await axios.post('http://localhost:8080/product-color/add', {
+                productId: parseInt(productId),
+                colorIds: colorIds.map(id => parseInt(id))
+            });
+
+            if (response.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
+                const productColorIds = response.data.data.map(color => color.id);
+                console.log("ProductColor created:", response.data);
+                return productColorIds;
+            } else {
+                console.error("Không có dữ liệu trả về hoặc dữ liệu không hợp lệ:", response);
+                alert("Không có dữ liệu ProductColor trả về.");
+                return [];
+            }
+        } catch (error) {
+            console.error("Error creating ProductColor:", error);
+            alert("Lỗi khi tạo ProductColor!");
+
+            if (error.response) {
+                console.log('Response Error Data:', error.response.data);
+                console.log('Response Error Status:', error.response.status);
+            }
+        }
+    };
+
+    const handleImagesForProductColors = async (productColorIds) => {
+        try {
+            const uploadedImageUrls = [];
+
+            for (const variant of variantList) {
+                if (variant.images && variant.images.length > 0) {
+                    for (const imageFile of variant.images) {
+                        const imageUrl = await uploadImageToCloudinary(imageFile);
+
+                        if (imageUrl) {
+                            uploadedImageUrls.push(imageUrl);
+                        }
+                    }
+                }
+            }
+
+            if (uploadedImageUrls.length > 0) {
+                for (let i = 0; i < productColorIds.length; i++) {
+                    const imageRequests = uploadedImageUrls.map(url => ({ image: url }));
+
+                    await axios.post(`http://localhost:8080/product-color/add-images/${productColorIds[i]}`, imageRequests);
+                }
+            }
+
+        } catch (error) {
+            console.error("Lỗi khi tải ảnh lên Cloudinary hoặc lưu vào ProductColor:", error);
+            alert("Lỗi khi tải ảnh lên Cloudinary hoặc lưu vào ProductColor.");
         }
     };
 
@@ -222,18 +303,41 @@ const CreateProduct = () => {
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSaveClick = async () => {
-        if (isSaving) return; // Nếu đang lưu, không cho phép nhấn lại
+        if (isSaving) return;
 
-        setIsSaving(true); // Đánh dấu là đang lưu
+        setIsSaving(true);
 
         try {
-            // Giả sử saveProduct là một hàm lưu dữ liệu
             await saveProduct();
         } catch (error) {
             console.error('Lỗi khi lưu sản phẩm:', error);
         } finally {
-            setIsSaving(false); // Hoàn thành, bật lại nút
+            setIsSaving(false);
         }
+    };
+
+    const handleImageChange = (index, event) => {
+        const files = Array.from(event.target.files);
+
+        if (files.length > 6) {
+            alert("Bạn chỉ có thể chọn tối đa 6 ảnh.");
+            return;
+        }
+
+        const imageUrls = files.map(file => URL.createObjectURL(file)); // Tạo URL tạm thời
+
+        setVariantList(prevVariants => {
+            const updatedVariants = prevVariants.map((variant, idx) =>
+                idx === index
+                    ? { ...variant, images: files, imageUrls }
+                    : variant
+            );
+            return updatedVariants;
+        });
+    };
+
+    const handleFileChange = (file) => {
+        setProductData({ ...productData, mainImage: file });
     };
 
     return (
@@ -249,15 +353,16 @@ const CreateProduct = () => {
                                 <div className="row">
                                     <div className="col-md-6">
                                         {/* <MainImage setMainImage={setMainImage} /> */}
-                                        <MainImage setMainImage={(url) => setProductData({ ...productData, mainImage: url })} />
+                                        <MainImage setMainImage={handleFileChange} initialImage={productData.mainImage} />
                                     </div>
                                 </div>
+                                <div style={{ marginBottom: '20px' }}></div>
                                 <div className="row">
                                     <div className="col-md-6">
                                         <Form.Group className="row d-flex align-items-center">
                                             <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
                                             <div className="col-sm-9">
-                                                <Form.Control type="text" value={productName || ""} onChange={(e) => setProductName(e.target.value)} />
+                                                <Form.Control type="text" value={productName || ""} onChange={(e) => setProductName(e.target.value)} placeholder='Nhập tên sản phẩm' />
                                             </div>
                                         </Form.Group>
                                     </div>
@@ -271,56 +376,79 @@ const CreateProduct = () => {
                                     <div className="col-md-6">
                                         <MaterialSelect materialId={materialId} setMaterialId={setMaterialId} />
                                     </div>
+                                    <div className='col-md-12'>
+                                        <Form.Group>
+                                            <label htmlFor="exampleTextarea1">Mô tả:</label>
+                                            <textarea className="form-control" id="exampleTextarea1" rows="4" onChange={(e) => setDescription(e.target.value)}></textarea>
+                                        </Form.Group>
+                                    </div>
 
                                 </div>
                                 <div style={{ marginBottom: '20px' }}></div>
-                                <h6><span>Chọn các biến thể:</span></h6>
-                                <hr />
-                                <div className="row">
-                                    <div className="col-md-6">
-                                        <ColorSelect colorIds={colorIds} setColorIds={handleColorChange} />
-                                    </div>
-                                    <div className="col-md-6">
-                                        <SizeSelect sizeIds={sizeIds} setSizeIds={handleSizeChange} />
-                                    </div>
-                                </div>
-                                <div style={{ marginBottom: '20px' }}></div>
-                                <h6><span>Danh sách sản phẩm biến thể:</span></h6>
-                                <button type="button" className="btn btn-primary" onClick={handleOpenModal}>
-                                    + Thêm thuộc tính chung
-                                </button>
-                                <hr />
-                                <div className="row">
-                                    <div className='col-md-6'>
-                                        <ListAutoVariant
-                                            variantList={variantList}
-                                            handleInputChange={handleInputChange}
-                                            handleRemoveVariant={handleRemoveVariant}
-                                        />
-                                    </div>
-                                </div>
-                                <hr />
-                                <div className="d-flex justify-content-end mt-4">
-                                    <button
-                                        type="button"
-                                        className="btn btn-secondary btn-icon-text"
-                                        onClick={() => history.push('/admin/products')}
-                                    >
-                                        <i className="mdi mdi-subdirectory-arrow-left"></i>
-                                        Quay lại
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="btn btn-gradient-primary btn-icon-text"
-                                        onClick={handleSaveClick}
-                                        disabled={isSaving}
-                                    >
-                                        <i className="mdi mdi-file-check btn-icon-prepend"></i>
-                                        {isSaving ? 'Đang lưu...' : 'Lưu'}
-                                    </button>
-                                </div>
+
 
                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12 grid-margin">
+                    <div className="card">
+                        <div className="card-body">
+                            <h6><span>Chọn các biến thể:</span></h6>
+                            <hr />
+                            <div className="row">
+                                <div className="col-md-6">
+                                    <ColorSelect colorIds={colorIds} setColorIds={handleColorChange} />
+                                </div>
+                                <div className="col-md-6">
+                                    <SizeSelect sizeIds={sizeIds} setSizeIds={handleSizeChange} />
+                                </div>
+                            </div>
+                            <div style={{ marginBottom: '20px' }}></div>
+                            <h6><span>Danh sách sản phẩm biến thể:</span></h6>
+                            <div className='row'>
+                                <div className='col-md-9'></div>
+                                <div className='col-md-3'>
+                                    <button type="button" className="btn btn-primary float-right" onClick={handleOpenModal}>
+                                        + Thêm thuộc tính chung
+                                    </button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="row">
+                                <div className='col-md-12'>
+                                    <ListAutoVariant
+                                        variantList={variantList}
+                                        handleInputChange={handleInputChange}
+                                        handleRemoveVariant={handleRemoveVariant}
+                                        setHasError={setHasError}
+                                        onImagesSelected={handleImageChange}
+                                        setVariantList={setVariantList}
+                                    />
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="d-flex justify-content-end mt-4">
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary btn-icon-text"
+                                    onClick={() => history.push('/admin/products')}
+                                >
+                                    <i className="mdi mdi-subdirectory-arrow-left"></i>
+                                    Quay lại
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-gradient-primary btn-icon-text"
+                                    onClick={handleSaveClick}
+                                    disabled={hasError || isSaving}
+                                >
+                                    <i className="mdi mdi-file-check btn-icon-prepend"></i>
+                                    {isSaving ? 'Đang lưu...' : 'Lưu'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
