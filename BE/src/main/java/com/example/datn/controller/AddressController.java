@@ -23,7 +23,7 @@ public class AddressController {
     @PostMapping("add")
     public ResponseEntity<ApiResponse<AddressResponse>> addAddress(@Valid @RequestBody AddressRequest addressRequest) {
 
-        AddressResponse addressResponse = addressService.creAddress(addressRequest);
+        AddressResponse addressResponse = addressService.creaAddress(addressRequest);
 
         ApiResponse<AddressResponse> response = new ApiResponse<>(
                 HttpStatus.CREATED.value(),
