@@ -38,7 +38,7 @@ public class OrderResponse {
     Double totalPrice;
 
     Double totalPayment;
-Integer type;
+
     PaymentType paymentType;
 
     PaymentMethod paymentMethod;

@@ -61,8 +61,7 @@ public class Order {
 
     @Column(name = "total_payment")
     Double totalPayment;
-    @Column(name = "[type]")
-    Integer type;
+
     @ManyToOne
     @JoinColumn(name = "payment_type_id")
     PaymentType paymentType;

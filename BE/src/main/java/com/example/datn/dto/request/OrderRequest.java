@@ -43,7 +43,7 @@ public class OrderRequest {
     Double totalPrice;
 
     Double totalPayment;
-Integer type;
+
     PaymentType paymentType;
 
     PaymentMethod paymentMethod;

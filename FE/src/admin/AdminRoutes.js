@@ -104,7 +104,7 @@ class AdminRoutes extends Component {
           <Route exact path="/admin/employees" component={Employees} />
           <Route exact path="/admin/customers" component={Customers} />
           <Route exact path="/admin/orders" component={Orders} />
-          <Route exact path="/admin/orders/:id" component={OrderDetail} />
+          <Route exact path="/admin/order-detail/orders/:orderId" component={OrderDetail} />
           <Route exact path="/admin/vouchers" component={Vouchers} />
 
           <Redirect to="/admin/dashboard" />
