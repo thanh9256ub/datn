@@ -246,15 +246,25 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
       <h5>Phí vận chuyển: {shippingFee ? shippingFee.toLocaleString() : 0} VND</h5>
       <h5>Thanh toán: {(finalAmount + shippingFee).toLocaleString()} VND</h5>
 
-
-
       {/* Chọn phương thức thanh toán */}
       <Row className="mb-3">
         <Col sm={7}>
-          <Button variant="light" className="w-100" onClick={() => {
-            setPaymen('TM');
-            setIsCashPayment(true)
-          }} >Tiền mặt</Button>
+          {!delivery && (
+            <Button variant="light" className="w-100" onClick={() => {
+              setPaymen('TM');
+              setIsCashPayment(true);
+            }}>
+              Tiền mặt
+            </Button>
+          )}
+          {delivery && (
+            <Button variant="light" className="w-100" onClick={() => {
+              setPaymen('TS');
+              setIsCashPayment(false);
+            }}>
+              Trả sau
+            </Button>
+          )}
         </Col>
         <Col sm={5}>
           <Button variant="light" className="w-100" onClick={handleShowQRModal}>QR</Button>
@@ -262,7 +272,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
       </Row>
 
       {/* Hiển thị ô nhập tiền khách trả nếu chọn tiền mặt */}
-      {isCashPayment && (
+      {!delivery && isCashPayment && (
         <>
           <Row className="mb-3">
             <Col sm={12}>
