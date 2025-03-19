@@ -93,6 +93,7 @@ const ProductDetail = ({
                                         <th>Thương hiệu</th>
                                         <th>Danh mục</th>
                                         <th>Chất liệu</th>
+                                        <th>Màu sắc</th>
                                         <th>Kích cỡ</th>
                                         <th>Số lượng</th>
                                         <th>Giá</th>
@@ -108,14 +109,9 @@ const ProductDetail = ({
                                             <td style={{ textAlign: 'center' }}>{variant.product.brand.brandName}</td>
                                             <td>{variant.product.category.categoryName}</td>
                                             <td>{variant.product.material.materialName}</td>
+                                            <td>{variant.color.colorName}</td>
                                             <td>{variant.size.sizeName}</td>
-                                            <td>
-                                                <Form.Control
-                                                    type="number"
-                                                    value={variant.quantity}
-                                                    onChange={(e) => handleQuantityChange(index, e)}
-                                                />
-                                            </td>
+                                            <td>{variant.quantity}</td>
                                             <td>{variant.price}</td>
                                             <td>
                                                 {variant.qr ? (
