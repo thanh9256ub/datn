@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { Dropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { Trans } from 'react-i18next';
-import logo from '../../assets/images/logo.svg';
-import logoMini from '../../assets/images/logo-mini.svg';
+import logo from '../../assets/images/logo_h2tl.png';
+import logoMini from '../../assets/images/logo_mini_h2tl.png';
 
 
 class Navbar extends Component {

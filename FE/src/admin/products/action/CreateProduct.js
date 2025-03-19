@@ -11,6 +11,9 @@ import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import MainImage from '../components/MainImage';
 import { createProduct, uploadImageToCloudinary } from '../service/ProductService';
 import axios from 'axios';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Swal from "sweetalert2";
 
 const CreateProduct = () => {
     const [productName, setProductName] = useState("");
@@ -23,12 +26,15 @@ const CreateProduct = () => {
     const [colorIds, setColorIds] = useState([]);
     const [sizeIds, setSizeIds] = useState([]);
     const [variantList, setVariantList] = useState([]);
-    const [hasError, setHasError] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const [showModal, setShowModal] = useState(false);
 
     const [commonQuantity, setCommonQuantity] = useState("");
     const [commonPrice, setCommonPrice] = useState("");
+    const [colorImages, setColorImages] = useState({});
+    const [isSaving, setIsSaving] = useState(false);
+
 
     const [productData, setProductData] = useState({
         productName,
@@ -93,10 +99,96 @@ const CreateProduct = () => {
         setVariantList(updatedVariants);
     };
 
+    // const handleRemoveVariant = (index) => {
+    //     const updatedVariants = [...variantList];
+    //     updatedVariants.splice(index, 1);
+    //     setVariantList(updatedVariants);
+    // };
+
+    // const handleRemoveVariant = (index) => {
+    //     Cách 1:
+    //     setVariantList(prevVariants => prevVariants.filter((_, i) => i !== index));
+
+    //     Cách 2:
+    //     const updatedVariants = [...variantList];
+    //     const removedVariant = updatedVariants[index];
+
+    //     updatedVariants.splice(index, 1);
+    //     setVariantList(updatedVariants);
+
+    //     const remainingVariantsWithColor = updatedVariants.some(v => v.colorId === removedVariant.colorId);
+    //     if (!remainingVariantsWithColor) {
+    //         setColorIds(prev => prev.filter(color => color.value !== removedVariant.colorId));
+    //     }
+    // }
+
+    //Cách 3:
     const handleRemoveVariant = (index) => {
-        const updatedVariants = [...variantList];
-        updatedVariants.splice(index, 1);
-        setVariantList(updatedVariants);
+        setVariantList(prevVariants => {
+            const updatedVariants = [...prevVariants];
+            const removedVariant = updatedVariants[index];
+
+            updatedVariants.splice(index, 1);
+
+            const remainingVariantsWithColor = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
+            if (remainingVariantsWithColor.length === 0) {
+                setColorIds(prev => prev.filter(c => c.value !== removedVariant.colorId));
+                setColorImages(prev => {
+                    const newColorImages = { ...prev };
+                    delete newColorImages[removedVariant.colorId];
+                    return newColorImages;
+                });
+            } else {
+                if (index === 0 && colorImages[removedVariant.colorId]) {
+                    const nextVariant = remainingVariantsWithColor[0];
+                    setColorImages(prev => ({
+                        ...prev,
+                        [nextVariant.colorId]: prev[removedVariant.colorId]
+                    }));
+                }
+            }
+
+
+            const remainingVariantsWithSize = updatedVariants.some(v => v.sizeId === removedVariant.sizeId);
+            if (!remainingVariantsWithSize) {
+                setSizeIds(prev => prev.filter(s => s.value !== removedVariant.sizeId));
+            }
+
+            if (updatedVariants.length === 0) {
+                setColorImages({});
+            }
+
+            return updatedVariants;
+        });
+    };
+
+    const handleImageChange = (index, event) => {
+        const files = Array.from(event.target.files);
+
+        if (files.length > 6) {
+            alert("Bạn chỉ có thể chọn tối đa 6 ảnh.");
+            return;
+        }
+
+        const imageUrls = files.map(file => URL.createObjectURL(file));
+
+        setVariantList(prevVariants => {
+            const updatedVariants = prevVariants.map((variant, idx) =>
+                idx === index
+                    ? { ...variant, images: files, imageUrls }
+                    : variant
+            );
+            return updatedVariants;
+        });
+
+        setColorImages(prev => ({
+            ...prev,
+            [variantList[index].colorId]: imageUrls
+        }));
+    };
+
+    const handleFileChange = (file) => {
+        setProductData({ ...productData, mainImage: file });
     };
 
     useEffect(() => {
@@ -151,18 +243,19 @@ const CreateProduct = () => {
     };
 
     const saveProduct = async () => {
-        if (!productName || !brandId || !categoryId || !materialId || !productData.mainImage) {
-            alert("Vui lòng nhập đầy đủ thông tin sản phẩm và ảnh chính!");
-            return;
-        }
 
-        if (hasError) {
-            alert("Vui lòng sửa lỗi trước khi lưu!");
-            return;
-        }
+        const result = await Swal.fire({
+            title: "Xác nhận thêm sản phẩm?",
+            text: "Bạn có chắc chắn muốn thêm sản phẩm này?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Đồng ý",
+            cancelButtonText: "Hủy",
+        });
 
-        const isConfirmed = window.confirm("Bạn có chắc chắn muốn thêm sản phẩm này?");
-        if (!isConfirmed) return;
+        if (!result.isConfirmed) return;
 
         try {
             const uploadedImageUrl = await uploadImageToCloudinary(productData.mainImage);
@@ -250,13 +343,28 @@ const CreateProduct = () => {
         }
     };
 
+    const urlToFile = async (url, filename) => {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new File([blob], filename, { type: blob.type });
+    };
 
     const handleImagesForProductColors = async (productColorMapping) => {
         try {
             for (const { productColorId, colorId } of productColorMapping) {
-                const imagesForColor = variantList
-                    .filter(variant => variant.colorId === colorId)
-                    .flatMap(variant => variant.images || []);
+                // const imagesForColor = variantList
+                //     .filter(variant => variant.colorId === colorId)
+                //     .flatMap(variant => variant.images || []);
+                let imagesForColor = [...(variantList.filter(v => v.colorId === colorId).flatMap(v => v.images || []))];
+
+                if (colorImages[colorId] && colorImages[colorId].length > 0) {
+                    const urlFiles = await Promise.all(
+                        colorImages[colorId].map((url, index) =>
+                            urlToFile(url, `color_${colorId}_${index}.jpg`)
+                        )
+                    );
+                    imagesForColor = [...imagesForColor, ...urlFiles];
+                }
 
                 if (imagesForColor.length === 0) continue;
 
@@ -293,10 +401,59 @@ const CreateProduct = () => {
         handleCloseModal();
     };
 
-    const [isSaving, setIsSaving] = useState(false);
 
     const handleSaveClick = async () => {
         if (isSaving) return;
+
+        let newErrors = {};
+
+        if (!productName.trim()) newErrors.productName = "Tên sản phẩm không được để trống";
+        if (!brandId) newErrors.brandId = "Vui lòng chọn thương hiệu";
+        if (!categoryId) newErrors.categoryId = "Vui lòng chọn danh mục";
+        if (!materialId) newErrors.materialId = "Vui lòng chọn chất liệu";
+        if (!description.trim()) newErrors.description = "Mô tả không được để trống";
+        if (!productData.mainImage) newErrors.mainImage = "Vui lòng chọn ảnh chính";
+        if (!variantList.length) newErrors.variantList = "Vui lòng thêm ít nhất một biến thể";
+
+        if (!colorIds.length) newErrors.colorIds = "Vui lòng chọn ít nhất một màu!";
+        if (!sizeIds.length) newErrors.sizeIds = "Vui lòng chọn ít nhất một kích cỡ!";
+
+        variantList.forEach((variant, index) => {
+            const variantInfo = `Biến thể (Màu: ${variant.color}, Size: ${variant.size})`;
+
+            if (!variant.colorId) newErrors[`colorId_${index}`] = `${variantInfo}: Chưa chọn màu sắc`;
+            if (!variant.sizeId) newErrors[`sizeId_${index}`] = `${variantInfo}: Chưa chọn kích cỡ`;
+
+            if (!variant.price) {
+                newErrors[`price_${index}`] = `${variantInfo}: Chưa nhập giá`;
+            } else if (variant.price <= 0) {
+                newErrors[`price_${index}`] = `${variantInfo}: Giá phải lớn hơn 0`;
+            }
+
+            if (!variant.quantity) {
+                newErrors[`quantity_${index}`] = `${variantInfo}: Chưa nhập số lượng`;
+            } else if (variant.quantity <= 0) {
+                newErrors[`quantity_${index}`] = `${variantInfo}: Số lượng phải lớn hơn 0`;
+            }
+        });
+
+        colorIds.forEach(color => {
+            const colorName = color.label;
+            const colorImageList = colorImages[color.value] || [];
+
+            if (colorImageList.length === 0) {
+                newErrors[`images_${color.value}`] = `Màu ${colorName}: Cần tải lên ít nhất một ảnh!`;
+            }
+        });
+
+        setErrors(newErrors);
+
+        if (Object.keys(newErrors).length > 0) {
+            Object.values(newErrors).forEach((error) => {
+                toast.error(error);
+            });
+            return;
+        }
 
         setIsSaving(true);
 
@@ -309,29 +466,6 @@ const CreateProduct = () => {
         }
     };
 
-    const handleImageChange = (index, event) => {
-        const files = Array.from(event.target.files);
-
-        if (files.length > 6) {
-            alert("Bạn chỉ có thể chọn tối đa 6 ảnh.");
-            return;
-        }
-
-        const imageUrls = files.map(file => URL.createObjectURL(file)); // Tạo URL tạm thời
-
-        setVariantList(prevVariants => {
-            const updatedVariants = prevVariants.map((variant, idx) =>
-                idx === index
-                    ? { ...variant, images: files, imageUrls }
-                    : variant
-            );
-            return updatedVariants;
-        });
-    };
-
-    const handleFileChange = (file) => {
-        setProductData({ ...productData, mainImage: file });
-    };
 
     return (
         <div>
@@ -349,7 +483,13 @@ const CreateProduct = () => {
                                             <Form.Group className="row d-flex align-items-center">
                                                 <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
                                                 <div className="col-sm-9">
-                                                    <Form.Control type="text" value={productName || ""} onChange={(e) => setProductName(e.target.value)} placeholder='Nhập tên sản phẩm' required />
+                                                    <Form.Control
+                                                        type="text"
+                                                        value={productName || ""}
+                                                        onChange={(e) => setProductName(e.target.value)}
+                                                        placeholder='Nhập tên sản phẩm'
+                                                        required
+                                                    />
                                                 </div>
                                             </Form.Group>
                                         </div>
@@ -404,9 +544,11 @@ const CreateProduct = () => {
                             <div className='row'>
                                 <div className='col-md-9'></div>
                                 <div className='col-md-3'>
-                                    <button type="button" className="btn btn-primary float-right" onClick={handleOpenModal}>
-                                        + Thêm thuộc tính chung
-                                    </button>
+                                    {variantList.length > 0 && (
+                                        <button type="button" className="btn btn-primary float-right" onClick={handleOpenModal}>
+                                            + Thêm thuộc tính chung
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                             <hr />
@@ -416,10 +558,12 @@ const CreateProduct = () => {
                                         variantList={variantList}
                                         handleInputChange={handleInputChange}
                                         handleRemoveVariant={handleRemoveVariant}
-                                        setHasError={setHasError}
                                         onImagesSelected={handleImageChange}
                                         setVariantList={setVariantList}
+                                        colorImages={colorImages}
+                                        errors={errors}
                                     />
+                                    {errors.variantList && <small className="text-danger">{errors.variantList}</small>}
                                 </div>
                             </div>
                             <hr />
@@ -436,7 +580,7 @@ const CreateProduct = () => {
                                     type="button"
                                     className="btn btn-gradient-primary btn-icon-text"
                                     onClick={handleSaveClick}
-                                    disabled={hasError || isSaving}
+                                    disabled={isSaving}
                                 >
                                     <i className="mdi mdi-file-check btn-icon-prepend"></i>
                                     {isSaving ? 'Đang lưu...' : 'Lưu'}
@@ -477,6 +621,8 @@ const CreateProduct = () => {
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+            <ToastContainer />
         </div>
     );
 }
