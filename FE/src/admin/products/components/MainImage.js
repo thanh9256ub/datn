@@ -40,12 +40,12 @@ const MainImage = ({ setMainImage, initialImage }) => {
     };
 
     const previewImageStyle = {
-        maxWidth: '210px',
+        maxWidth: '200px',
         height: 'auto',
         borderRadius: '8px',
         border: '2px solid #ddd',
         boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-        transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
     };
 
     return (

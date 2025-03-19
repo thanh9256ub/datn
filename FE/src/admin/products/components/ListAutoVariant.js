@@ -2,11 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Button, Form, Spinner } from 'react-bootstrap';
 import { QRCodeCanvas } from "qrcode.react";
 import { FaImage } from "react-icons/fa";
-import { useParams } from 'react-router-dom/cjs/react-router-dom.min';
 
 const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handleRemoveVariant, setHasError, onImagesSelected }) => {
 
-    const { id } = useParams();
     const [loading, setLoading] = useState(true);
     const [isFirstLoad, setIsFirstLoad] = useState(true);
     const [errors, setErrors] = useState({
@@ -53,6 +51,29 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
         return acc;
     }, {});
 
+    console.log("Nhóm theo màu sắc:", colorGroups);
+
+    // const handleReplaceImage = (index) => {
+    //     const fileInput = document.createElement("input");
+    //     fileInput.type = "file";
+    //     fileInput.accept = "image/*";
+    //     fileInput.multiple = true; // Cho phép chọn nhiều ảnh
+
+    //     fileInput.onchange = (e) => {
+    //         const files = Array.from(e.target.files);
+    //         if (files.length > 0) {
+    //             const imageUrls = files.map((file) => URL.createObjectURL(file));
+
+    //             setVariantList((prevVariants) => {
+    //                 const newVariants = [...prevVariants];
+    //                 newVariants[index].imageUrls = imageUrls;
+    //                 return newVariants;
+    //             });
+    //         }
+    //     };
+    //     fileInput.click();
+    // };
+
     return (
         <div>
             {variantList.length === 0 ? (
@@ -75,9 +96,7 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                 <th>Số lượng</th>
                                 <th>Giá</th>
                                 <th>QR Code</th>
-                                {id ? (<th></th>) : (
-                                    <th>Thao tác</th>
-                                )}
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -168,25 +187,21 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                             </td>
                                             <td>
                                                 {variant.qr ? (
-                                                    <QRCodeCanvas value={variant.qr.toString()} size={50} />
+                                                    <QRCodeCanvas value={variant.qrCode} size={80} />
                                                 ) : (
                                                     <span className="text-muted">Chưa có QR</span>
                                                 )}
                                             </td>
-                                            {id ? (
-                                                (<td></td>)
-                                            ) : (
-                                                <td>
-                                                    <button className="btn btn-outline-secondary btn-sm btn-rounded btn-icon"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            handleRemoveVariant(variant.id, originalIndex);
-                                                        }}
-                                                    >
-                                                        <i className='mdi mdi-minus-circle-outline'></i>
-                                                    </button>
-                                                </td>
-                                            )}
+                                            <td>
+                                                <button className="btn btn-outline-secondary btn-sm btn-rounded btn-icon"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleRemoveVariant(originalIndex);
+                                                    }}
+                                                >
+                                                    <i className='mdi mdi-minus-circle-outline'></i>
+                                                </button>
+                                            </td>
                                         </tr>
                                     );
                                 })

@@ -12,9 +12,7 @@ import com.example.datn.repository.ProductRepository;
 import com.example.datn.repository.BrandRepository;
 import com.example.datn.repository.CategoryRepository;
 import com.example.datn.repository.MaterialRepository;
-import com.example.datn.specification.ProductSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -120,33 +118,6 @@ public class ProductService {
         product.setStatus(status);
 
         return mapper.toProductResponse(repository.save(product));
-    }
-
-    public List<ProductResponse> getActiveProducts(){
-
-        List<Product> productList = repository.findByStatus(1);
-
-        return mapper.toListProduct(productList);
-    }
-
-    public List<ProductResponse> getInactiveProducts(){
-
-        List<Product> productList = repository.findByStatus(0);
-
-        return mapper.toListProduct(productList);
-    }
-
-    public List<ProductResponse> searchProducts(String name, Integer brandId, Integer categoryId, Integer materialId, Integer status) {
-        Specification<Product> spec = Specification
-                .where(ProductSpecification.hasName(name))
-                .and(ProductSpecification.hasBrandId(brandId))
-                .and(ProductSpecification.hasCategoryId(categoryId))
-                .and(ProductSpecification.hasMaterialId(materialId))
-                .and(ProductSpecification.hasStatus(status));
-
-        List<Product> products = repository.findAll(spec);
-
-        return mapper.toListProduct(products);
     }
 
 }
