@@ -1,7 +1,6 @@
 package com.example.datn.exception;
 
 import com.example.datn.dto.response.ApiResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -9,21 +8,19 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import javax.security.sasl.AuthenticationException;
 import java.util.HashMap;
 import java.util.Map;
 
-@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHanler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handlerValidationExceptions(
-            MethodArgumentNotValidException exception) {
+    public ResponseEntity<ApiResponse<Map<String, String >>> handlerValidationExceptions(
+            MethodArgumentNotValidException exception){
 
         Map<String, String> errors = new HashMap<>();
 
-        for (FieldError fieldError : exception.getBindingResult().getFieldErrors()) {
+        for (FieldError fieldError : exception.getBindingResult().getFieldErrors()){
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
 
@@ -48,7 +45,7 @@ public class GlobalExceptionHanler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<String>> handlerGlobalExceptions(Exception e) {
+    public ResponseEntity<ApiResponse<String>> handlerGlobalExceptions(Exception e){
 
         ApiResponse<String> response = new ApiResponse<>(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
@@ -57,30 +54,5 @@ public class GlobalExceptionHanler {
         );
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
-
-    @ExceptionHandler(DataInvalidException.class)
-    public ResponseEntity<ApiResponse<String>> handlerDataInvalidExceptions(DataInvalidException e) {
-
-        ApiResponse<String> response = new ApiResponse<>(
-                HttpStatus.BAD_REQUEST.value(),
-                "Validation failed",
-                e.getMessage()
-        );
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
-
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiResponse<String>> handlerDataInvalidExceptions(AuthenticationException e) {
-
-        ApiResponse<String> response = new ApiResponse<>(
-                HttpStatus.UNAUTHORIZED.value(),
-                "Validation failed",
-                e.getMessage()
-        );
-        log.error("AuthenticationException: ", e);
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 }

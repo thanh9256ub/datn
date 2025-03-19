@@ -4,8 +4,6 @@ import { Link } from 'react-router-dom';
 import { Trans } from 'react-i18next';
 import logo from '../../assets/images/logo.svg';
 import logoMini from '../../assets/images/logo-mini.svg';
-import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
-import { useAuth } from '../../context/AuthContext';
 
 
 class Navbar extends Component {
@@ -15,8 +13,6 @@ class Navbar extends Component {
   toggleRightSidebar() {
     document.querySelector('.right-sidebar').classList.toggle('open');
   }
-
-
   render() {
     return (
       <nav className="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">

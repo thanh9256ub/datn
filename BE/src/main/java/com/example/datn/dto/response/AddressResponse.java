@@ -1,14 +1,15 @@
 package com.example.datn.dto.response;
 
 import com.example.datn.entity.Address;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 
 @Data
 @AllArgsConstructor
@@ -26,10 +27,10 @@ public class AddressResponse {
 
     String ward;
 
+    @JsonProperty("detailed_address")
     String detailedAddress;
 
-    Boolean defaultAddress;
-
+    @JsonProperty("customer_id")
     Integer customerId;
 
     Integer status;
@@ -44,10 +45,9 @@ public class AddressResponse {
         this.district = address.getDistrict();
         this.ward = address.getWard();
         this.detailedAddress = address.getDetailedAddress();
-        this.customerId = Objects.isNull(address.getCustomer()) ? 0 : address.getCustomer().getId();
+        this.customerId = address.getCustomer().getId();
         this.status = address.getStatus();
-        this.defaultAddress = address.getStatus() == 1;
-        this.createdAt = address.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        this.updatedAt = address.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        this.createdAt = address.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        this.updatedAt = address.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 }

@@ -46,14 +46,14 @@ public class Employee {
     private String email;
 
     @Column(name = "username")
-    private String username;
+    private String userName;
 
     @Column(name = "password")
-    private String password;
+    private String passWord;
 
     @ManyToOne
     @JoinColumn(name = "role_id",referencedColumnName = "id")
-    private Role role;
+    private Role roLe;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

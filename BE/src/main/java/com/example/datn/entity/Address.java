@@ -1,8 +1,11 @@
 package com.example.datn.entity;
 
-import com.example.datn.dto.request.AddressRequest;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
@@ -34,7 +37,7 @@ public class Address {
     private String detailedAddress;
 
     @ManyToOne
-    @JoinColumn(name = "customer_id", referencedColumnName = "id")
+    @JoinColumn(name = "customer_id",referencedColumnName = "id")
     private Customer customer;
 
     @Column(name = "status")
@@ -45,17 +48,6 @@ public class Address {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public Address(AddressRequest addressRequest, Customer customer) {
-        this.city = addressRequest.getCity();
-        this.district = addressRequest.getDistrict();
-        this.ward = addressRequest.getWard();
-        this.detailedAddress = addressRequest.getDetailedAddress();
-        this.customer = customer;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-        this.status = addressRequest.getDefaultAddress() ? 1 : 0;
-    }
 
 }
 
