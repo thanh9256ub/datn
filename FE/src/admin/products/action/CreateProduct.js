@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
-import BrandSelect from '../select/BrandSelect';
-import CategorySelect from '../select/CategorySelect';
-import MaterialSelect from '../select/MaterialSelect';
+import BrandContainer from '../components/BrandContainer';
+import CategoryContainer from '../components/CategoryContainer';
+import MaterialContainer from '../components/MaterialContainer';
 import ColorSelect from '../select/ColorSelect';
 import SizeSelect from '../select/SizeSelect';
 import ListAutoVariant from '../components/ListAutoVariant';
@@ -92,22 +92,6 @@ const CreateProduct = () => {
         updatedVariants[index] = { ...updatedVariants[index], [field]: value };
         setVariantList(updatedVariants);
     };
-    // const handleInputChange = (index, field, value) => {
-    //     setVariantList((prevList) => {
-    //         // Kiểm tra index hợp lệ để tránh lỗi
-    //         if (index < 0 || index >= prevList.length) {
-    //             console.warn(`❌ Index ${index} không hợp lệ!`);
-    //             return prevList;
-    //         }
-
-    //         const newList = prevList.map((variant, i) =>
-    //             i === index ? { ...variant, [field]: value } : variant
-    //         );
-
-    //         console.log("✅ Danh sách sau khi nhập:", newList);
-    //         return [...newList]; // Buộc React cập nhật lại state
-    //     });
-    // };
 
     const handleRemoveVariant = (index) => {
         const updatedVariants = [...variantList];
@@ -154,7 +138,7 @@ const CreateProduct = () => {
 
             const updatedVariants = variantsData.map(detail => ({
                 ...detail,
-                qrCode: detail.qr || `QR-${detail.id}`
+                qr: detail.qr || `${detail.id}`
             }));
 
             setVariantList(updatedVariants);
@@ -205,13 +189,19 @@ const CreateProduct = () => {
 
             const colorIdsFromVariants = [...new Set(variantList.map(v => v.colorId))];
 
-            const productColorIds = await createProductColor(productId, colorIdsFromVariants);
-            console.log("Extracted Product Color IDs:", productColorIds);
+            const productColorMapping = await createProductColor(productId, colorIdsFromVariants);
+
+            if (!Array.isArray(productColorMapping) || productColorMapping.length === 0) {
+                alert("Lỗi: Không lấy được ProductColorId.");
+                return;
+            }
+
+            console.log("Mapping giữa productColorId và colorId:", productColorMapping);
 
             if (variantList.length > 0) {
                 await createProductDetails(productId);
 
-                await handleImagesForProductColors(productColorIds);
+                await handleImagesForProductColors(productColorMapping);
             }
 
             localStorage.setItem("successMessage", "Sản phẩm đã được thêm thành công!");
@@ -235,54 +225,57 @@ const CreateProduct = () => {
             });
 
             if (response.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
-                const productColorIds = response.data.data.map(color => color.id);
-                console.log("ProductColor created:", response.data);
-                return productColorIds;
+                const productColorMapping = response.data.data.map(color => ({
+                    productColorId: color.id,  // Lấy productColorId
+                    colorId: color.color.id     // Lấy colorId từ color object
+                }));
+
+                console.log("Danh sách ProductColor đã tạo:", productColorMapping);
+                return productColorMapping;
             } else {
                 console.error("Không có dữ liệu trả về hoặc dữ liệu không hợp lệ:", response);
                 alert("Không có dữ liệu ProductColor trả về.");
                 return [];
             }
         } catch (error) {
-            console.error("Error creating ProductColor:", error);
+            console.error("Lỗi khi tạo ProductColor:", error);
             alert("Lỗi khi tạo ProductColor!");
 
             if (error.response) {
                 console.log('Response Error Data:', error.response.data);
                 console.log('Response Error Status:', error.response.status);
             }
+
+            return [];
         }
     };
 
-    const handleImagesForProductColors = async (productColorIds) => {
+
+    const handleImagesForProductColors = async (productColorMapping) => {
         try {
-            const uploadedImageUrls = [];
+            for (const { productColorId, colorId } of productColorMapping) {
+                const imagesForColor = variantList
+                    .filter(variant => variant.colorId === colorId)
+                    .flatMap(variant => variant.images || []);
 
-            for (const variant of variantList) {
-                if (variant.images && variant.images.length > 0) {
-                    for (const imageFile of variant.images) {
-                        const imageUrl = await uploadImageToCloudinary(imageFile);
+                if (imagesForColor.length === 0) continue;
 
-                        if (imageUrl) {
-                            uploadedImageUrls.push(imageUrl);
-                        }
-                    }
-                }
+                const uploadedImageUrls = await Promise.all(
+                    imagesForColor.map(imageFile => uploadImageToCloudinary(imageFile))
+                );
+
+                await axios.post(`http://localhost:8080/product-color/add-images/${productColorId}`,
+                    uploadedImageUrls.map(url => ({ image: url }))
+                );
+
+                console.log(`Ảnh đã được gán vào productColorId ${productColorId}:`, uploadedImageUrls);
             }
-
-            if (uploadedImageUrls.length > 0) {
-                for (let i = 0; i < productColorIds.length; i++) {
-                    const imageRequests = uploadedImageUrls.map(url => ({ image: url }));
-
-                    await axios.post(`http://localhost:8080/product-color/add-images/${productColorIds[i]}`, imageRequests);
-                }
-            }
-
         } catch (error) {
             console.error("Lỗi khi tải ảnh lên Cloudinary hoặc lưu vào ProductColor:", error);
             alert("Lỗi khi tải ảnh lên Cloudinary hoặc lưu vào ProductColor.");
         }
     };
+
 
     const updateAllVariants = () => {
         if (commonQuantity.trim() === "" && commonPrice.trim() === "") {
@@ -348,45 +341,45 @@ const CreateProduct = () => {
                         <div className="card-body">
                             <h3 className="card-title">Thêm mới sản phẩm</h3>
                             <hr />
-                            <div style={{ marginBottom: '20px' }}></div>
+                            <div style={{ marginBottom: '50px' }}></div>
                             <form className="form-sample">
                                 <div className="row">
-                                    <div className="col-md-6">
-                                        {/* <MainImage setMainImage={setMainImage} /> */}
-                                        <MainImage setMainImage={handleFileChange} initialImage={productData.mainImage} />
+                                    <div className='col-md-8'>
+                                        <div className="col-md-12">
+                                            <Form.Group className="row d-flex align-items-center">
+                                                <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
+                                                <div className="col-sm-9">
+                                                    <Form.Control type="text" value={productName || ""} onChange={(e) => setProductName(e.target.value)} placeholder='Nhập tên sản phẩm' required />
+                                                </div>
+                                            </Form.Group>
+                                        </div>
+                                        <div className="col-md-12">
+                                            <BrandContainer brandId={brandId} setBrandId={setBrandId} />
+                                        </div>
+                                        <div className="col-md-12">
+                                            <CategoryContainer categoryId={categoryId} setCategoryId={setCategoryId} />
+                                        </div>
+                                        <div className="col-md-12">
+                                            <MaterialContainer materialId={materialId} setMaterialId={setMaterialId} />
+                                        </div>
                                     </div>
-                                </div>
-                                <div style={{ marginBottom: '20px' }}></div>
-                                <div className="row">
-                                    <div className="col-md-6">
-                                        <Form.Group className="row d-flex align-items-center">
-                                            <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
-                                            <div className="col-sm-9">
-                                                <Form.Control type="text" value={productName || ""} onChange={(e) => setProductName(e.target.value)} placeholder='Nhập tên sản phẩm' />
+                                    <div className="col-md-4" style={{ display: 'grid', placeItems: 'center' }}>
+                                        <center>
+                                            <div className='col-md-12'>
+                                                <MainImage setMainImage={handleFileChange} initialImage={productData.mainImage} />
                                             </div>
-                                        </Form.Group>
-                                    </div>
-
-                                    <div className="col-md-6">
-                                        <BrandSelect brandId={brandId} setBrandId={setBrandId} />
-                                    </div>
-                                    <div className="col-md-6">
-                                        <CategorySelect categoryId={categoryId} setCategoryId={setCategoryId} />
-                                    </div>
-                                    <div className="col-md-6">
-                                        <MaterialSelect materialId={materialId} setMaterialId={setMaterialId} />
+                                        </center>
                                     </div>
                                     <div className='col-md-12'>
-                                        <Form.Group>
-                                            <label htmlFor="exampleTextarea1">Mô tả:</label>
-                                            <textarea className="form-control" id="exampleTextarea1" rows="4" onChange={(e) => setDescription(e.target.value)}></textarea>
-                                        </Form.Group>
+                                        <div className='col-md-12'>
+                                            <Form.Group>
+                                                <label htmlFor="exampleTextarea1">Mô tả:</label>
+                                                <div style={{ marginBottom: '10px' }}></div>
+                                                <textarea className="form-control" id="exampleTextarea1" rows="4" onChange={(e) => setDescription(e.target.value)}></textarea>
+                                            </Form.Group>
+                                        </div>
                                     </div>
-
                                 </div>
-                                <div style={{ marginBottom: '20px' }}></div>
-
-
                             </form>
                         </div>
                     </div>
@@ -396,7 +389,7 @@ const CreateProduct = () => {
                 <div className="col-12 grid-margin">
                     <div className="card">
                         <div className="card-body">
-                            <h6><span>Chọn các biến thể:</span></h6>
+                            <h5><span>Sản phẩm biến thể:</span></h5>
                             <hr />
                             <div className="row">
                                 <div className="col-md-6">
