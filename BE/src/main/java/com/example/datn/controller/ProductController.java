@@ -49,6 +49,34 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getActiveProducts() {
+
+        List<ProductResponse> list = service.getActiveProducts();
+
+        ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Products active retrieved successfully",
+                list
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/inactive")
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getInactiveProducts() {
+
+        List<ProductResponse> list = service.getInactiveProducts();
+
+        ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Products inactive retrieved successfully",
+                list
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> getById(@PathVariable("id") Integer id){
 
@@ -111,5 +139,22 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProducts(
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "brandId", required = false) Integer brandId,
+            @RequestParam(value = "categoryId", required = false) Integer categoryId,
+            @RequestParam(value = "materialId", required = false) Integer materialId,
+            @RequestParam(value = "status", required = false) Integer status) {
 
+        List<ProductResponse> list = service.searchProducts(name, brandId, categoryId, materialId, status);
+
+        ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
+                200,
+                "Products retrieved successfully",
+                list
+        );
+
+        return ResponseEntity.ok(response);
+    }
 }

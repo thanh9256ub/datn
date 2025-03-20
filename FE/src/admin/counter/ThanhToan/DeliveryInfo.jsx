@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Form, Modal, Button } from 'react-bootstrap';
 import axios from 'axios';
 
-const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
+const DeliveryInfo = ({ delivery, setDelivery, onSave, customer,customerInfo,setCustomerInfo }) => {
   const [tempDelivery, setTempDelivery] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [provinces, setProvinces] = useState([]);
@@ -11,25 +11,19 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedWard, setSelectedWard] = useState('');
-  const [customerInfo, setCustomerInfo] = useState({
-    name: '',
-    phone: '',
-    province: '',
-    district: '',
-    ward: '',
-    address: ''
-  });
+  
 
   useEffect(() => {
-    // Fetch provinces from API
-    axios.get("https://provinces.open-api.vn/api/?depth=1")
-      .then(response => setProvinces(response.data))
+    // Fetch provinces from Viettel Post API
+    axios.get("https://partner.viettelpost.vn/v2/categories/listProvinceById?provinceId=-1")
+      .then(response => setProvinces(response.data.data))
       .catch(error => console.error("Lỗi lấy tỉnh/thành phố:", error));
   }, []);
 
   const handleProvinceChange = (e) => {
-    const provinceCode = e.target.value;
-    setSelectedProvince(provinceCode);
+    // console.log(e.target.value);
+    const provinceId = e.target.value;
+    setSelectedProvince(provinceId);
     setSelectedDistrict('');
     setSelectedWard('');
     setDistricts([]);
@@ -37,33 +31,76 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
     setCustomerInfo({ ...customerInfo, province: e.target.options[e.target.selectedIndex].text });
 
     // Fetch districts based on selected province
-    axios.get(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
-      .then(response => setDistricts(response.data.districts))
+    axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${provinceId}`)
+      .then(response => setDistricts(response.data.data))
       .catch(error => console.error("Lỗi lấy quận/huyện:", error));
   };
 
   const handleDistrictChange = (e) => {
-    const districtCode = e.target.value;
-    setSelectedDistrict(districtCode);
+   // console.log(e.target.value);
+    const districtId = e.target.value;
+    setSelectedDistrict(districtId);
     setSelectedWard('');
     setWards([]);
     setCustomerInfo({ ...customerInfo, district: e.target.options[e.target.selectedIndex].text });
 
     // Fetch wards based on selected district
-    axios.get(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
-      .then(response => setWards(response.data.wards))
+    axios.get(`https://partner.viettelpost.vn/v2/categories/listWards?districtId=${districtId}`)
+      .then(response => setWards(response.data.data))
       .catch(error => console.error("Lỗi lấy phường/xã:", error));
   };
 
   const handleWardChange = (e) => {
+    //console.log(e.target.value);
     setSelectedWard(e.target.value);
     setCustomerInfo({ ...customerInfo, ward: e.target.options[e.target.selectedIndex].text });
   };
 
   const handleDeliveryChange = () => {
     if (!delivery) {
-      setTempDelivery(true);
-      setShowModal(true);
+      if (customer) {
+        axios.get(`http://localhost:8080/address`)
+          .then(response => {
+            const address = response.data.data.find(item => item.customerId === customer.id);
+            if (address) {
+              setCustomerInfo({
+                name: customer.fullName,
+                phone: customer.phone,
+                province: address.city,
+                district: address.district,
+                ward: address.ward,
+                address: address.detailedAddress
+              });
+
+              // Set province and fetch districts
+              setSelectedProvince(address.city);
+              axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${address.city}`)
+                .then(response => {
+                  setDistricts(response.data.data);
+                  setSelectedDistrict(address.district);
+
+                  // Fetch wards for the selected district
+                  axios.get(`https://partner.viettelpost.vn/v2/categories/listWards?districtId=${address.district}`)
+                    .then(response => {
+                      setWards(response.data.data);
+                      setSelectedWard(address.ward);
+                    })
+                    .catch(error => console.error("Lỗi lấy phường/xã:", error));
+                })
+                .catch(error => console.error("Lỗi lấy quận/huyện:", error));
+            }
+            setTempDelivery(true);
+            setShowModal(true);
+          })
+          .catch(error => {
+            console.error('Lỗi lấy địa chỉ:', error);
+            setTempDelivery(true);
+            setShowModal(true);
+          });
+      } else {
+        setTempDelivery(true);
+        setShowModal(true);
+      }
     } else {
       setDelivery(false);
     }
@@ -75,9 +112,16 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
   };
 
   const handleSaveModal = () => {
+    const updatedCustomerInfo = {
+      ...customerInfo,
+      province: selectedProvince,
+      district: selectedDistrict,
+      ward: selectedWard
+    };
+
     setDelivery(true);
     setShowModal(false);
-    onSave(customerInfo);
+    onSave(updatedCustomerInfo);
   };
 
   return (
@@ -112,7 +156,6 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
               <Col sm={8}>
                 <Form.Control
                   type="text"
-                  placeholder="Nguyễn Khách Huyền"
                   value={customerInfo.name}
                   onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
                 />
@@ -126,7 +169,6 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
               <Col sm={8}>
                 <Form.Control
                   type="text"
-                  placeholder="0375161589"
                   value={customerInfo.phone}
                   onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
                 />
@@ -141,7 +183,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
                 <Form.Control as="select" value={selectedProvince} onChange={handleProvinceChange}>
                   <option value="">Chọn tỉnh/thành phố</option>
                   {provinces.map(province => (
-                    <option key={province.code} value={province.code}>{province.name}</option>
+                    <option key={province.PROVINCE_ID} value={province.PROVINCE_ID}>{province.PROVINCE_NAME}</option>
                   ))}
                 </Form.Control>
               </Col>
@@ -155,7 +197,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
                 <Form.Control as="select" value={selectedDistrict} onChange={handleDistrictChange} disabled={!selectedProvince}>
                   <option value="">Chọn quận/huyện</option>
                   {districts.map(district => (
-                    <option key={district.code} value={district.code}>{district.name}</option>
+                    <option key={district.DISTRICT_ID} value={district.DISTRICT_ID}>{district.DISTRICT_NAME}</option>
                   ))}
                 </Form.Control>
               </Col>
@@ -169,7 +211,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave }) => {
                 <Form.Control as="select" value={selectedWard} onChange={handleWardChange} disabled={!selectedDistrict}>
                   <option value="">Chọn phường/xã</option>
                   {wards.map(ward => (
-                    <option key={ward.code} value={ward.name}>{ward.name}</option>
+                    <option key={ward.WARDS_ID} value={ward.WARDS_ID}>{ward.WARDS_NAME}</option>
                   ))}
                 </Form.Control>
               </Col>
