@@ -43,6 +43,9 @@ public class Customer {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "status")
+    private Integer status;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

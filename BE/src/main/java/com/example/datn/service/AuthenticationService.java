@@ -76,7 +76,7 @@ public class AuthenticationService {
                 .issuer("hien.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
+                        Instant.now().plus(9, ChronoUnit.HOURS).toEpochMilli()
                 ))
                 .claim("roles", List.of(roleName))
                 .build();
