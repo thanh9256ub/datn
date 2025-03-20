@@ -5,21 +5,37 @@ import { Form, Button } from 'react-bootstrap';
 import Select from 'react-select'; // Import react-select
 import { addCustomer } from '../service/CustomersService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
-
+import { Spinner } from 'react-bootstrap';
+import "./ActionCustomer.css";
 const CreateCustomer = () => {
+
     const history = useHistory();
+
     const [provinces, setProvinces] = useState([]);
+
     const [districts, setDistricts] = useState([]);
+
     const [wards, setWards] = useState([]);
+
     const [selectedProvince, setSelectedProvince] = useState(null);
+
     const [selectedDistrict, setSelectedDistrict] = useState(null);
+
     const [selectedWard, setSelectedWard] = useState(null);
+
     const [addresses, setAddresses] = useState([{}]);
+
     const [defaultAddressIndex, setDefaultAddressIndex] = useState(0);
+
     const [customer, setCustomer] = useState({});
+
+    const [loading, setLoading] = useState(false);
 
 
     const handleSaveCustomer = () => {
+        if (!window.confirm('Bạn có chắc chắn muốn thêm khách hàng?')) return;
+
+        setLoading(true);
         // Cập nhật các địa chỉ với thuộc tính defaultAddress
         const updatedAddresses = addresses.map((address, index) => ({
             ...address,
@@ -38,13 +54,15 @@ const CreateCustomer = () => {
         addCustomer(updatedCustomer)
             .then(response => {
                 console.log("Thêm khách hàng thành công:", response);
-                alert("Thêm khách hàng thành công");
+                localStorage.setItem("successMessage", "Thêm khách hàng thành công!");
                 history.push('/admin/customers');
             })
             .catch(error => {
                 console.error("Lỗi thêm khách hàng:", error);
                 alert("Lỗi thêm khách hàng");
-            }); // Gọi hàm addCustomer từ CustomersService          
+            }) . finally(() =>{
+                setLoading(false);
+            } )// Gọi hàm addCustomer từ CustomersService          
 
     };
 
@@ -81,6 +99,7 @@ const CreateCustomer = () => {
         handleInputChange(index, 'province', selectedOption);
         // Fetch districts based on selected province
         if (selectedOption) {
+            delete axios.defaults.headers.common["Authorization"];
             axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${selectedOption.value}`)
                 .then(response => setDistricts(response.data.data || []))
                 .catch(error => console.error("Lỗi lấy quận/huyện:", error));
@@ -119,6 +138,12 @@ const CreateCustomer = () => {
     };
     return (
         <div>
+             {loading && (
+                <div className="loading-overlay">
+                    <Spinner animation="border" role="status" />
+                    <span>Đang xử lý...</span>
+                </div>
+            )}
             <div className="row">
                 <div className="col-12 grid-margin">
                     <div className="card">
@@ -147,9 +172,9 @@ const CreateCustomer = () => {
                                                         type="radio"
                                                         label="Nam"
                                                         name="gender"
-                                                        value="Nam"
-                                                        checked={customer.gender === 'Nam'}
-                                                        onChange={(e) => setCustomer({ ...customer, gender: e.target.value })}
+                                                        value="1"
+                                                        checked={customer.gender === 1}
+                                                        onChange={(e) => setCustomer({ ...customer, gender: e.target.value ? 1 : 0 })} // Nếu chọn Nam thì gán 1, Nữ thì gán 0
                                                         id="genderNam"
                                                         custom
                                                     />
@@ -161,9 +186,9 @@ const CreateCustomer = () => {
                                                         type="radio"
                                                         label="Nữ"
                                                         name="gender"
-                                                        value="Nữ"
-                                                        checked={customer.gender === 'Nữ'}
-                                                        onChange={(e) => setCustomer({ ...customer, gender: e.target.value })}
+                                                        value="0"
+                                                        checked={customer.gender === 0}
+                                                        onChange={(e) => setCustomer({ ...customer, gender: e.target.value ? 0 : 1 })} // Nếu chọn Nam thì gán 1, Nữ thì gán 0
                                                         id="genderNu"
                                                         custom
                                                     />

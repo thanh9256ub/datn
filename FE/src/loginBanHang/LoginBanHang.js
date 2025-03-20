@@ -4,14 +4,25 @@ import { Button, Form } from 'react-bootstrap';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import { getToken } from './service/Loginservice';
 import { useAuth } from '../context/AuthContext';
+import { Spinner } from 'react-bootstrap';
 
 const LoginBanHang = () => {
+
   const [username, setUsername] = useState("");
+
   const [password, setPassword] = useState("");
+
   const { login } = useAuth();
+
   const history = useHistory();
 
+  const [loading, setLoading] = useState(false);
+
   const handleLogin = (e) => {
+
+    if (!window.confirm('Bạn có chắc chắn muốn đăng nhập?')) return;
+
+    setLoading(true);
 
     e.preventDefault();
 
@@ -22,18 +33,30 @@ const LoginBanHang = () => {
         login(response.data.data.token);
         localStorage.setItem("fullName", response.data.data.fullName);
         localStorage.setItem("role", response.data.data.role);
+        localStorage.setItem("successMessage", "Đăng nhập thành công!");
         history.push('/admin/dashboard');
+
       }
       else {
         alert("Đăng nhập thất bại");
       }
     }).catch((error) => {
+
       console.log(error);
       alert("Đăng nhập thất bại");
-    });
+
+    }).finally(() => {
+      setLoading(false);
+    })
   };
   return (
     <div>
+      {loading && (
+        <div className="loading-overlay">
+          <Spinner animation="border" role="status" />
+          <span>Đang xử lý...</span>
+        </div>
+      )}
       <div className="d-flex align-items-center auth px-0">
         <div className="row w-100 mx-0">
           <div className="col-lg-6 mx-auto">

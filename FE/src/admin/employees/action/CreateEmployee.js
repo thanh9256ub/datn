@@ -3,7 +3,8 @@ import { Button, Modal, Col, InputGroup, Container, Form, Row } from "react-boot
 import { addEmployee, listEmployee, listRole } from '../service/EmployeeService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import Select from 'react-select';
-
+import { Spinner } from 'react-bootstrap';
+import "./CreateEmployee.css";
 
 
 const CreateEmployee = () => {
@@ -25,6 +26,7 @@ const CreateEmployee = () => {
 
     const history = useHistory();
 
+    const [loading, setLoading] = useState(false);
 
 
     useEffect(async () => {
@@ -55,6 +57,8 @@ const CreateEmployee = () => {
     const handleAddEmployee = async () => {
         if (!window.confirm('Bạn có chắc chắn muốn thêm nhân viên?')) return;
 
+        setLoading(true);
+
         try {
             // Gọi API để thêm nhân viên
             await addEmployee(newEmployee);
@@ -66,12 +70,14 @@ const CreateEmployee = () => {
             setEmployees(response.data.data);
             setTotalPage(response.data.totalPage);
 
-            localStorage.setItem("successMessage", "Sản phẩm đã được thêm thành công!");
+            localStorage.setItem("successMessage", "Thêm nhân viên thành công!");
             // Chuyển hướng đến trang quản lý nhân viên
             history.push('/admin/employees');
         } catch (error) {
             console.error('Lỗi khi thêm nhân viên:', error);
             alert('Có lỗi xảy ra khi thêm nhân viên. Vui lòng thử lại!');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -81,6 +87,12 @@ const CreateEmployee = () => {
 
     return (
         <div>
+            {loading && (
+                <div className="loading-overlay">
+                    <Spinner animation="border" role="status" />
+                    <span>Đang xử lý...</span>
+                </div>
+            )}
             <div className="row">
                 <div className="col-12 grid-margin">
                     <div className="card">
@@ -168,9 +180,9 @@ const CreateEmployee = () => {
                                                         type="radio"
                                                         label="Nam"
                                                         name="gender"
-                                                        value="Nam"
-                                                        checked={newEmployee.gender === 'Nam'}
-                                                        onChange={(e) => setNewEmployee({ ...newEmployee, gender: e.target.value })}
+                                                        value="1"
+                                                        checked={newEmployee.gender === 1}
+                                                        onChange={(e) => setNewEmployee({ ...newEmployee, gender: e.target.value ? 1 : 0 })} //
                                                         id="genderNam"
                                                         custom
                                                     />
@@ -182,9 +194,9 @@ const CreateEmployee = () => {
                                                         type="radio"
                                                         label="Nữ"
                                                         name="gender"
-                                                        value="Nữ"
-                                                        checked={newEmployee.gender === 'Nữ'}
-                                                        onChange={(e) => setNewEmployee({ ...newEmployee, gender: e.target.value })}
+                                                        value="0"
+                                                        checked={newEmployee.gender === 0}
+                                                        onChange={(e) => setNewEmployee({ ...newEmployee, gender: e.target.value ? 0 : 1 })}
                                                         id="genderNu"
                                                         custom
                                                     />
@@ -253,7 +265,7 @@ const CreateEmployee = () => {
                                 </div>
                                 <hr></hr>
                                 {/* Nút Thêm nhân viên */}
-                                <div className="text-end mt-4">
+                                <div className="d-flex justify-content-end mt-4">
                                     <button type="button" className="btn btn-gradient-primary btn-icon-text" onClick={() => handleAddEmployee()}>
                                         Thêm nhân viên
                                     </button>

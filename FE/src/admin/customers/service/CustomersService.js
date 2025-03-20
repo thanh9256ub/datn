@@ -8,14 +8,12 @@ import axios from "axios"
 
 
 const listCustomer = async (searchInput, pageInput) => {
-    let token = localStorage.getItem('token'); 
+    let token = localStorage.getItem('token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     return await axios.get("http://localhost:8080/customer", {
         params: {
             search: searchInput,
             page: pageInput
-        },
-        headers: {
-            Authorization: `Bearer ${token}`
         }
     })
 }
@@ -23,42 +21,44 @@ export { listCustomer };
 
 
 const listAddress = () => {
-    let token = localStorage.getItem('token'); 
-    return axios.get("http://localhost:8080/address"),{
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    }
-    
+    let token = localStorage.getItem('token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    return axios.get("http://localhost:8080/address")
+
 }
 export { listAddress };
 
 export const addCustomer = async (customer) => {
-    let token = localStorage.getItem('token'); 
+    let token = localStorage.getItem('token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     const response = await axios.post("http://localhost:8080/customer/add", customer)
-    return response.data,{
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    }
+    return response.data
 }
 
 export const addAddressCustomer = async (addressCustomer) => {
+    let token = localStorage.getItem('token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     const response = await axios.post("http://localhost:8080/address/add", addressCustomer)
     return response.data
 }
 
 const listRole = () => {
+    let token = localStorage.getItem('token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     return axios.get("http://localhost:8080/role")
 }
 export { listRole };
 
 export const updateCustomer = async (id, customer) => {
+    let token = localStorage.getItem('token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     const response = await axios.put("http://localhost:8080/customer/update" + '/' + id, customer)
     return response.data
 }
 
 export const getCusomer = (id) => {
+    let token = localStorage.getItem('token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     const response = axios.get("http://localhost:8080/customer" + '/' + id)
     return response
 }

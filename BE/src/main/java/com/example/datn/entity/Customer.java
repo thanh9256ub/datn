@@ -32,7 +32,7 @@ public class Customer {
     private LocalDate birthDate;
 
     @Column(name = "gender")
-    private String gender;
+    private Integer gender;
 
     @Column(name = "phone")
     private String phone;

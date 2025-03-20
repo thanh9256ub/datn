@@ -78,7 +78,7 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
           {...rest}
           render={(props) =>
               console.log("token: " + !!token) ||
-              !!token ? <Component {...props} /> : <Redirect to="/admin/user-pages/login-1" />
+              !!token ? <Component {...props} /> : <Redirect to="/LoginNhanVien" />
           }
       />
   );
