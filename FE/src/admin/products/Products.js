@@ -9,7 +9,7 @@ import SearchProducts from './action/SearchProducts';
 
 const Products = () => {
     const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+        const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState("");
 

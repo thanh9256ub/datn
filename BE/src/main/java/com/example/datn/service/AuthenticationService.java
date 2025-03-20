@@ -50,7 +50,8 @@ public class AuthenticationService {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
 
         boolean authentiated = passwordEncoder.matches(authenticationRequest.getPassword(),
-                "$2a$10$m3Dp6sBrBrUr2ZfOcCFxBefZL0QA2C2h7Zm95DsnH3wkz81CulfjC");
+                employee.getPassword());
+//                "$2a$10$m3Dp6sBrBrUr2ZfOcCFxBefZL0QA2C2h7Zm95DsnH3wkz81CulfjC");
 
         if (!authentiated) {
             throw new AuthenticationException("Unauthenticated");
@@ -61,6 +62,8 @@ public class AuthenticationService {
         return AuthenticationResponse.builder()
                 .token(token)
                 .authenticated(true)
+                .fullName(employee.getFullName())
+                .role(employee.getRole().getRoleName())
                 .build();
     }
 

@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { createContext, useState, useContext, useEffect } from "react";
 
 const AuthContext = createContext();
@@ -9,8 +10,11 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (token) {
       localStorage.setItem("token", token);
+      // Thiết lập Bearer Token vào header Authorization của axios
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
       localStorage.removeItem("token");
+      axios.defaults.headers.common['Authorization'] = ``;
     }
   }, [token]);
 

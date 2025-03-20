@@ -34,40 +34,40 @@ import CreateCustomer from './customers/action/CreateCustomer';
 import UpdateCustomer from './customers/action/UpdateCustomer';
 import { useAuth } from '../context/AuthContext';
 
-const Dashboard = lazy(() => import('./dashboard/Dashboard'));
-const Buttons = lazy(() => import('./basic-ui/Buttons'));
+// const Dashboard = lazy(() => import('./dashboard/Dashboard'));
+// const Buttons = lazy(() => import('./basic-ui/Buttons'));
 
-const Dropdowns = lazy(() => import('./basic-ui/Dropdowns'));
-const Typography = lazy(() => import('./basic-ui/Typography'));
+// const Dropdowns = lazy(() => import('./basic-ui/Dropdowns'));
+// const Typography = lazy(() => import('./basic-ui/Typography'));
 
-const BasicElements = lazy(() => import('./form-elements/BasicElements'));
+// const BasicElements = lazy(() => import('./form-elements/BasicElements'));
 
-const BasicTable = lazy(() => import('./tables/BasicTable'));
+// const BasicTable = lazy(() => import('./tables/BasicTable'));
 
-const Mdi = lazy(() => import('./icons/Mdi'));
+// const Mdi = lazy(() => import('./icons/Mdi'));
 
-const ChartJs = lazy(() => import('./charts/ChartJs'));
+// const ChartJs = lazy(() => import('./charts/ChartJs'));
 
-const Error404 = lazy(() => import('./error-pages/Error404'));
-const Error500 = lazy(() => import('./error-pages/Error500'));
+// const Error404 = lazy(() => import('./error-pages/Error404'));
+// const Error500 = lazy(() => import('./error-pages/Error500'));
 
-const Login = lazy(() => import('./user-pages/Login'));
-const Register1 = lazy(() => import('./user-pages/Register'));
-const Lockscreen = lazy(() => import('./user-pages/Lockscreen'));
+// const Login = lazy(() => import('./user-pages/Login'));
+// const Register1 = lazy(() => import('./user-pages/Register'));
+// const Lockscreen = lazy(() => import('./user-pages/Lockscreen'));
 
-const BanHang = lazy(() => import('./counter/BanHang'));
-const Products = lazy(() => import('./products/Products'));
-const InactiveProducts = lazy(() => import('./products/InactiveProducts'));
-const Employees = lazy(() => import('./employees/Employees'));
-const Customers = lazy(() => import('./customers/Customers'));
-const Orders = lazy(() => import('./orders/Orders'));
-const OrderDetail = lazy(() => import('./orders/OderDetail/OrderDetail'));
-const Vouchers = lazy(() => import('./vouchers/Vouchers'));
-const CreateProduct = lazy(() => import('./products/action/CreateProduct'));
-const UpdateProduct = lazy(() => import('./products/action/UpdateProduct'));
-const Brands = lazy(() => import('./products/Brands'));
-const Materials = lazy(() => import('./products/Material'));
-const Categories = lazy(() => import('./products/Categories'));
+// const BanHang = lazy(() => import('./counter/BanHang'));
+// const Products = lazy(() => import('./products/Products'));
+// const InactiveProducts = lazy(() => import('./products/InactiveProducts'));
+// const Employees = lazy(() => import('./employees/Employees'));
+// const Customers = lazy(() => import('./customers/Customers'));
+// const Orders = lazy(() => import('./orders/Orders'));
+// const OrderDetail = lazy(() => import('./orders/OderDetail/OrderDetail'));
+// const Vouchers = lazy(() => import('./vouchers/Vouchers'));
+// const CreateProduct = lazy(() => import('./products/action/CreateProduct'));
+// const UpdateProduct = lazy(() => import('./products/action/UpdateProduct'));
+// const Brands = lazy(() => import('./products/Brands'));
+// const Materials = lazy(() => import('./products/Material'));
+// const Categories = lazy(() => import('./products/Categories'));
 
 // Component bảo vệ route (AuthGuard)
 const ProtectedRoute = ({ component: Component, ...rest }) => {
@@ -78,7 +78,7 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
           {...rest}
           render={(props) =>
               console.log("token: " + !!token) ||
-              !!token ? <Component {...props} /> : <Redirect to="/admin/user-pages/login-1" />
+              !!token ? <Component {...props} /> : <Redirect to="/LoginNhanVien" />
           }
       />
   );

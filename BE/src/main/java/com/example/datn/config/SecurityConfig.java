@@ -37,7 +37,7 @@ public class SecurityConfig {
                     .requestMatchers("/auth/token",
                             "auth/introspect")
                     .permitAll()
-                    .requestMatchers("/address/**")
+                    .requestMatchers("/address/**", "/role/**")
                     .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")
                     .requestMatchers(
                             "/customer/**")
