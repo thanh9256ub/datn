@@ -268,6 +268,7 @@ const Orders = () => {
                             <tr>
                                 <th className="py-3 px-4">STT</th>
                                 <th className="py-3 px-4">Khách hàng</th>
+                                <th className="py-3 px-4">Số điện thoại</th>
                                 <th className="py-3 px-4">Mã đơn hàng</th>
                                 <th className="py-3 px-4">Ngày đặt hàng</th>
                                 <th className="py-3 px-4">Tổng tiền</th>
@@ -296,8 +297,9 @@ const Orders = () => {
                                 >
                                     <td className="py-3 px-4">{indexOfFirstItem + index + 1}</td>
                                     <td className="py-3 px-4">{order.customerName || 'N/A'}</td>
+                                    <td className="py-3 px-4">{order.phone || 'N/A'}</td>
                                     <td className="py-3 px-4">{order.orderCode}</td>
-                                    <td className="py-3 px-4">{new Date(order.createdDate).toLocaleDateString()}</td>
+                                    <td className="py-3 px-4">{new Date(order.createdAt).toLocaleDateString()}</td>
                                     <td className="py-3 px-4">{order.totalPrice.toLocaleString()} VNĐ</td>
                                     <td className="py-3 px-4">
                                         <span
