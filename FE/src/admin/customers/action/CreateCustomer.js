@@ -81,6 +81,7 @@ const CreateCustomer = () => {
 
     useEffect(() => {
         // Fetch provinces from API
+        delete axios.defaults.headers.common["Authorization"];
         axios.get("https://partner.viettelpost.vn/v2/categories/listProvinceById?provinceId=-1")
             .then(response => {
                 setProvinces(response.data.data || []);

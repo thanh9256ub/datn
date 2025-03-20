@@ -391,10 +391,10 @@ const Customers = () => {
                                                                 <input
 
                                                                     type="radio" className="form-check-input" name="gender" id="male"
-                                                                    value="Nam"
-                                                                    checked={detail.gender === "Nam"}
+                                                                    value="1"
+                                                                    checked={detail.gender === 1}
                                                                     onChange={(e) => {
-                                                                        setDetail({ ...detail, gender: e.target.value });
+                                                                        setDetail({ ...detail, gender: e.target.value ? 1 : 0 });
                                                                     }}
                                                                 />
                                                                 <label htmlFor="male" className="form-check-label">Nam</label>
@@ -404,10 +404,10 @@ const Customers = () => {
                                                                 <input
 
                                                                     type="radio" className="form-check-input" name="gender" id="female"
-                                                                    value="Nữ"
-                                                                    checked={detail.gender === "Nữ"}
+                                                                    value="0"
+                                                                    checked={detail.gender === 0}
                                                                     onChange={(e) => {
-                                                                        setDetail({ ...detail, gender: e.target.value });
+                                                                        setDetail({ ...detail, gender: e.target.value ? 0 : 1 });
                                                                     }}
 
                                                                 />
