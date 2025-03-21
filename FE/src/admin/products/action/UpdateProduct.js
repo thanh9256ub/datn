@@ -13,6 +13,7 @@ import MainImage from '../components/MainImage';
 import axios from 'axios';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Swal from "sweetalert2";
 
 const UpdateProduct = () => {
     const { id } = useParams();
@@ -94,23 +95,23 @@ const UpdateProduct = () => {
 
     const handleInputChange = (index, field, value) => {
         const updatedVariants = [...variantList];
-        updatedVariants[index][field] = value;
+        updatedVariants[index] = { ...updatedVariants[index], [field]: value };
         setVariantList(updatedVariants);
     };
 
     const saveProduct = async () => {
-        if (!productName || !brandId || !categoryId || !materialId || !mainImage) {
-            alert("Vui lòng nhập đầy đủ thông tin sản phẩm!");
-            return;
-        }
+        const result = await Swal.fire({
+            title: "Xác nhận",
+            text: "Bạn có chắc chắn muốn sửa sản phẩm này?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Đồng ý",
+            cancelButtonText: "Hủy",
+        });
 
-        if (hasError) {
-            alert("Vui lòng sửa lỗi trước khi lưu!");
-            return;
-        }
-
-        const isConfirmed = window.confirm("Bạn có chắc chắn muốn sửa sản phẩm này?");
-        if (!isConfirmed) return;
+        if (!result.isConfirmed) return;
 
         try {
             let imageUrl;
@@ -266,9 +267,6 @@ const UpdateProduct = () => {
         if (isSaving) return;
 
         if (!validateProduct()) return;
-
-        const isConfirmed = window.confirm("Bạn có chắc chắn muốn sửa sản phẩm này?");
-        if (!isConfirmed) return;
 
         setIsSaving(true);
 

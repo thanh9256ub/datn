@@ -3,8 +3,8 @@ import { Button, Form, Modal } from 'react-bootstrap';
 import BrandContainer from '../components/BrandContainer';
 import CategoryContainer from '../components/CategoryContainer';
 import MaterialContainer from '../components/MaterialContainer';
-import ColorSelect from '../select/ColorSelect';
-import SizeSelect from '../select/SizeSelect';
+import ColorSelect from '../components/ColorContainer';
+import SizeSelect from '../components/SizeContainer';
 import ListAutoVariant from '../components/ListAutoVariant';
 import { createProductDetail, updateQR } from '../service/ProductDetailService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
@@ -245,7 +245,7 @@ const CreateProduct = () => {
     const saveProduct = async () => {
 
         const result = await Swal.fire({
-            title: "Xác nhận thêm sản phẩm?",
+            title: "Xác nhận",
             text: "Bạn có chắc chắn muốn thêm sản phẩm này?",
             icon: "warning",
             showCancelButton: true,

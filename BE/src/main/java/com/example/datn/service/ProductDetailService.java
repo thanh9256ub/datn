@@ -128,23 +128,32 @@ public class ProductDetailService {
         productRepository.save(product);
     }
 
-    public ProductDetailResponse updateProductDetail(Integer pdId, Integer status, Integer quantity) {
-        ProductDetail productDetail = repository.findById(pdId).orElseThrow(
-                () -> new ResourceNotFoundException("Product Detail not found ID: " + pdId));
+    public ProductDetailResponse updateProductDetail(Integer pdId, ProductDetailRequest request) {
+        ProductDetail productDetail = repository.findById(pdId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + pdId));
 
-        Integer originalQuantity = productDetail.getQuantity();
-
-        if (quantity != null && quantity >= 0) {
-            productDetail.setQuantity(quantity);
-        } else {
-            productDetail.setQuantity(originalQuantity);
+        if (request.getQuantity() != null && request.getQuantity() >= 0) {
+            productDetail.setQuantity(request.getQuantity());
         }
 
+        if (request.getPrice() != null && request.getPrice() >= 0) {
+            productDetail.setPrice(request.getPrice());
+        }
 
-        if (status != null) {
-            productDetail.setStatus(status);
-        } else {
-            productDetail.setStatus(productDetail.getStatus());
+        if (request.getStatus() != null) {
+            productDetail.setStatus(request.getStatus());
+        }
+
+        if (request.getColorId() != null) {
+            Color color = colorRepository.findById(request.getColorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Color not found with ID: " + request.getColorId()));
+            productDetail.setColor(color);
+        }
+
+        if (request.getSizeId() != null) {
+            Size size = sizeRepository.findById(request.getSizeId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Size not found with ID: " + request.getSizeId()));
+            productDetail.setSize(size);
         }
 
         repository.save(productDetail);
@@ -153,6 +162,7 @@ public class ProductDetailService {
 
         return mapper.toProductDetailResponse(productDetail);
     }
+
 
     public List<ProductDetailResponse> updateProductDetails(Integer productId, List<ProductDetailRequest> requests) {
 

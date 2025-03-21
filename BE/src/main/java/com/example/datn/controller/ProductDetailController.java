@@ -65,13 +65,12 @@ public class ProductDetailController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/{pdId}")
+    @PutMapping("/{pdId}")
     public ResponseEntity<ApiResponse<ProductDetailResponse>> updateProductDetail(
             @PathVariable("pdId") Integer pdId,
-            @RequestParam(value = "status", required = false) Integer status,
-            @RequestParam(value = "quantity", required = false) Integer quantity) {
+            @RequestBody ProductDetailRequest request) {
 
-        ProductDetailResponse productDetailResponse = service.updateProductDetail(pdId, status, quantity);
+        ProductDetailResponse productDetailResponse = service.updateProductDetail(pdId, request);
 
         ApiResponse<ProductDetailResponse> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
@@ -82,7 +81,7 @@ public class ProductDetailController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{productId}")
+    @PutMapping("/{productId}/update-list")
     public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> updateProductDetails(
             @PathVariable Integer productId,
             @RequestBody List<ProductDetailRequest> requests) {

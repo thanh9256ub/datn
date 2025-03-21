@@ -66,8 +66,8 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                         <tbody>
                             {Object.entries(colorGroups).map(([colorName, variants]) =>
                                 variants.map((variant, index) => {
-                                    // const originalIndex = variantList.indexOf(variant);
-                                    const originalIndex = variantList.findIndex(v => v.colorId === variant.colorId && v.sizeId === variant.sizeId);
+                                    const originalIndex = variantList.indexOf(variant);
+                                    // const originalIndex = variantList.findIndex(v => v.colorId === variant.colorId && v.sizeId === variant.sizeId);
 
                                     return (
                                         <tr key={`${colorName}-${index}`}>
