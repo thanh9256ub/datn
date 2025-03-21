@@ -26,6 +26,10 @@ const BanHang = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
+  const [selectedBrand, setSelectedBrand] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedMaterial, setSelectedMaterial] = useState("");
+  const [priceRange, setPriceRange] = useState({ min: 0, max: Infinity });
 
   const [currentCartPage, setCurrentCartPage] = useState(1);
   const [cartItemsPerPage] = useState(5);
@@ -82,7 +86,7 @@ const BanHang = () => {
   const addInvoice = () => {
     if (!canAdd) return;
 
-    const newInvoice = { employee: 1, status: 0 };
+    const newInvoice = { employeeId: 1,orderType:0, status: 0 };
 
     axios.post('http://localhost:8080/order/add', newInvoice)
       .then(response => {
@@ -235,7 +239,11 @@ const BanHang = () => {
     return (
       product.product.productName.toLowerCase().includes(searchTerm.toLowerCase()) &&
       (selectedColor ? product.color.colorName === selectedColor : true) &&
-      (selectedSize ? product.size.sizeName === selectedSize : true)
+      (selectedSize ? product.size.sizeName === selectedSize : true) &&
+      (selectedBrand ? product.product.brand.brandName === selectedBrand : true) &&
+      (selectedCategory ? product.product.category.categoryName === selectedCategory : true) &&
+      (selectedMaterial ? product.product.material.materialName === selectedMaterial : true) &&
+      (product.price >= priceRange.min && product.price <= priceRange.max)
     );
   });
 
@@ -303,6 +311,9 @@ const BanHang = () => {
                   <thead>
                     <tr>
                       <th>Tên sản phẩm </th>
+                      <th>Thương hiệu  </th>
+                      <th>Danh mục  </th>
+                      <th>Chất liệu </th>
                       <th>Màu sắc </th>
                       <th>Kích thước </th>
                       <th>Giá </th>
@@ -315,6 +326,9 @@ const BanHang = () => {
                     {currentCartItems.map(item => (
                       <tr key={item.id}>
                         <td>{item.productDetail.product.productName}</td>
+                        <td>{item.productDetail.product.brand.brandName }</td>
+                        <td>{item.productDetail.product.category.categoryName }</td>
+                        <td>{item.productDetail.product.material.materialName }</td>
                         <td>{item.productDetail.color.colorName} </td>
                         <td>{item.productDetail.size.sizeName} </td>
                         <td>{item.price.toLocaleString()} </td>
@@ -407,6 +421,51 @@ const BanHang = () => {
                         <option key={size} value={size}>{size}</option>
                       ))}
                     </Form.Control>
+                    <Form.Control
+                      as="select"
+                      value={selectedBrand}
+                      onChange={(e) => setSelectedBrand(e.target.value)}
+                      style={{ marginRight: "10px", width: "150px", height: "30px" }}
+                    >
+                      <option value="">Tất cả thương hiệu</option>
+                      {[...new Set(availableProducts.map(product => product.product.brand.brandName))].map(brand => (
+                        <option key={brand} value={brand}>{brand}</option>
+                      ))}
+                    </Form.Control>
+                    <Form.Control
+                      as="select"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      style={{ marginRight: "10px", width: "150px", height: "30px" }}
+                    >
+                      <option value="">Tất cả danh mục</option>
+                      {[...new Set(availableProducts.map(product => product.product.category.categoryName))].map(category => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </Form.Control>
+                    <Form.Control
+                      as="select"
+                      value={selectedMaterial}
+                      onChange={(e) => setSelectedMaterial(e.target.value)}
+                      style={{ marginRight: "10px", width: "150px", height: "30px" }}
+                    >
+                      <option value="">Tất cả chất liệu</option>
+                      {[...new Set(availableProducts.map(product => product.product.material.materialName))].map(material => (
+                        <option key={material} value={material}>{material}</option>
+                      ))}
+                    </Form.Control>
+                    <Form.Control
+                      type="number"
+                      placeholder="Giá từ"
+                      onChange={(e) => setPriceRange({ ...priceRange, min: Number(e.target.value) || 0 })}
+                      style={{ marginRight: "10px", width: "100px", height: "30px" }}
+                    />
+                    <Form.Control
+                      type="number"
+                      placeholder="Giá đến"
+                      onChange={(e) => setPriceRange({ ...priceRange, max: Number(e.target.value) || Infinity })}
+                      style={{ marginRight: "10px", width: "100px", height: "30px" }}
+                    />
                     {isQrReaderVisible && (
                       <div>
                         <QrReader
@@ -433,6 +492,9 @@ const BanHang = () => {
                   <thead>
                     <tr>
                       <th>Tên sản phẩm </th>
+                      <th>Thương hiệu  </th>
+                      <th>Danh mục  </th>
+                      <th>Chất liệu </th>
                       <th>Màu sắc </th>
                       <th>Kích thước </th>
                       <th>Giá </th>
@@ -443,6 +505,9 @@ const BanHang = () => {
                     {currentProducts.map(product => (
                       <tr key={product.id} onClick={ (() => handleSelectProduct(product))}>
                         <td>{product.product.productName}</td>
+                        <td>{product.product.brand.brandName }</td>
+                        <td>{product.product.category.categoryName }</td>
+                        <td>{product.product.material.materialName }</td>
                         <td>{product.color.colorName} </td>
                           <td>{product.size.sizeName} </td>
                         <td>{product.price ? product.price.toLocaleString() : 'N/A'} VND</td>
@@ -496,7 +561,12 @@ const BanHang = () => {
         </Col>
         <Col md={4}>
           <div className="p-3 border">
-            <ThanhToan idOrder={selectedInvoiceId} orderDetail ={items}  totalAmount={totalAmount} />
+            <ThanhToan 
+              idOrder={selectedInvoiceId} 
+              orderDetail={items} 
+              totalAmount={totalAmount} 
+             
+            />
             <ToastContainer />
           </div>
         </Col>

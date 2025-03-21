@@ -26,7 +26,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
     province: '',
     district: '',
     ward: '',
-    address: ''
+    address: '',
+    note: '',
   });
 
   useEffect(() => {
@@ -49,7 +50,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
   }, [totalAmount, promo, promoCode]);
 
   useEffect(() => {
-    const isEligibleForPayment = (paymen === 'TM' || paymen === 'QR') && totalAmount > 0 && (paymen === 'TM' ? change >= 0 : true);
+    const isEligibleForPayment = (paymen === 1 || paymen === 3|| paymen === 2) && totalAmount > 0 && (paymen === 1 ? change >= 0 : true);
     setIsPaymentEnabled(isEligibleForPayment);
   }, [paymen, totalAmount, change]);
 
@@ -101,7 +102,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
     // URL QR từ VietQR với thông tin thanh toán
     const qrUrl = `https://img.vietqr.io/image/MB-20046666666-compact2.jpg?amount=${totalAmount}&addInfo=thanh%20toan%20hoa%20don%20cua%20TUAN&accountName=HOANG%20VAN%20TUAN`;
     setQrImageUrl(qrUrl);
-    setPaymen('QR');
+    setPaymen(3);
     setIsQRModalVisible(true);
   };
 
@@ -145,7 +146,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
                     <p>Ngày :${selectedOrderDetail.order.createdAt} </p>
                 </div>
                 <div class="invoice-details">
-                    <table border="1" width="100%">
+                    <table border="1" width="100%" >
                         <thead>
                             <tr>
                                 <th>Tên sản phẩm</th>
@@ -160,7 +161,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
                             
                          ${Array.isArray(orderDetail) && orderDetail.length > 0
         ? orderDetail
-          .filter(item => String(item.order.id) === String(idOrder)) // Chuyển kiểu để đảm bảo so sánh chính xác
+          .filter(item => String(item.order.id) === String(idOrder)&& item.quantity > 0 ) // Chuyển kiểu để đảm bảo so sánh chính xác
           .map(item => `
                 <tr>
                     <td>${item.productDetail.product.productName}</td>
@@ -191,7 +192,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
 
 
   };
-  const handlePaymentConfirmation = () => {
+  const handlePaymentConfirmation = async () => {
     if (!isPaymentEnabled) {
       toast.warn("Vui lòng thực hiện đủ các bước 🥰", {
         position: "top-right",
@@ -205,17 +206,84 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
       });
       return;
     }
-    toast.success("Thanh toán thành công 🥰", {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
-    });
+  
+    const requestBody = {
+      customerId: customer?.id || null,
+      customerName: customerInfo.name,
+      phone: customerInfo.phone,
+      address: `${customerInfo.address}, ${customerInfo.ward}, ${customerInfo.district}, ${customerInfo.province}`,
+      note: customerInfo.note || "",
+      shippingFee: shippingFee,
+      discountValue: totalAmount - finalAmount,
+      totalPrice: totalAmount,
+      totalPayment: finalAmount + shippingFee,
+      paymentTypeId: delivery ? 2 : 1,
+      paymentMethodId: paymen,
+    };
+  
+    try {
+      const response = await fetch(`http://localhost:8080/counter/comfirm/${idOrder}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+  
+      if (response.ok) {
+        toast.success("Thanh toán thành công 🥰", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+    if (promo) {
+        const response = await fetch(`http://localhost:8080/voucher/edit/${promo.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...promo,
+            quantity: promo.quantity - 1,
+          }),
+        });
+        
+    }
+    handlePrintInvoice();
+        window.location.reload();
+        
+      } else {
+        toast.error("Thanh toán thất bại. Vui lòng thử lại!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+      }
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      toast.error("Đã xảy ra lỗi. Vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    }
   };
+  
 
   const handleSaveDeliveryInfo = async (customer) => {
     setCustomer(customer);
@@ -246,15 +314,26 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
       <h5>Phí vận chuyển: {shippingFee ? shippingFee.toLocaleString() : 0} VND</h5>
       <h5>Thanh toán: {(finalAmount + shippingFee).toLocaleString()} VND</h5>
 
-
-
       {/* Chọn phương thức thanh toán */}
       <Row className="mb-3">
         <Col sm={7}>
-          <Button variant="light" className="w-100" onClick={() => {
-            setPaymen('TM');
-            setIsCashPayment(true)
-          }} >Tiền mặt</Button>
+          {!delivery && (
+            <Button variant="light" className="w-100" onClick={() => {
+              setPaymen(1);
+              setIsCashPayment(true);
+            }}>
+              Tiền mặt
+            </Button>
+          )}
+          {delivery && (
+            <Button variant="light" className="w-100" onClick={()=>{
+              setPaymen(2);
+              
+              setIsCashPayment(false);
+             } }>
+              Trả sau
+            </Button>
+          )}
         </Col>
         <Col sm={5}>
           <Button variant="light" className="w-100" onClick={handleShowQRModal}>QR</Button>
@@ -262,7 +341,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount }) => {
       </Row>
 
       {/* Hiển thị ô nhập tiền khách trả nếu chọn tiền mặt */}
-      {isCashPayment && (
+      {!delivery && isCashPayment && (
         <>
           <Row className="mb-3">
             <Col sm={12}>

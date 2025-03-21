@@ -25,7 +25,7 @@ public class CustomerController {
     @PostMapping("add")
     public ResponseEntity<ApiResponse<CustomerResponse>> addCustomer(@Valid @RequestBody CustomerRequest customerRequest) {
 
-        CustomerResponse customerResponse = customerService.creatCustomer(customerRequest);
+        CustomerResponse customerResponse = customerService.creatCustomerT(customerRequest);
 
         ApiResponse<CustomerResponse> response = new ApiResponse<>(
                 HttpStatus.CREATED.value(),

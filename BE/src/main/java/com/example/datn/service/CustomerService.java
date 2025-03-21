@@ -31,15 +31,13 @@ public class CustomerService {
         return customerMapper.toListResponse(customerRepository.findAll());
     }
 
-    public CustomerResponse creatCustomer(CustomerRequest customerRequest) {
-
+    public CustomerResponse creatCustomerT(CustomerRequest customerRequest) {
+        int i = getAll().size();
         Customer customer = customerMapper.toCustomer(customerRequest);
-        customer.setCreatedAt(LocalDateTime.now());
-        customer.setUpdatedAt(LocalDateTime.now());
-
-        Role role = roleRepository.findById(customerRequest.getRoleId()).get();
-        customer.setRoLe(role);
-
+        customer.setCreatedAt(LocalDateTime.now().withNano(0));
+        customer.setUpdatedAt(LocalDateTime.now().withNano(0));
+        customer.setRoLe(roleRepository.findById(1).get());
+        customer.setCustomerCode("KH" + (i + 1));
         Customer created = customerRepository.save(customer);
 
         return new CustomerResponse(created);

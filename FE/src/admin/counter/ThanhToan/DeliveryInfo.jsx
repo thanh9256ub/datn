@@ -88,6 +88,19 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer,customerInfo,set
                     .catch(error => console.error("Lỗi lấy phường/xã:", error));
                 })
                 .catch(error => console.error("Lỗi lấy quận/huyện:", error));
+            }else{
+              setCustomerInfo({
+                name: customer.fullName,
+                phone: customer.phone,
+                province: "",
+                district: "",
+                ward: "",
+                address: "",
+                note: ""
+              });
+              setSelectedProvince('');
+              setSelectedDistrict('');
+              setSelectedWard('');
             }
             setTempDelivery(true);
             setShowModal(true);
@@ -98,6 +111,18 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer,customerInfo,set
             setShowModal(true);
           });
       } else {
+        setCustomerInfo({
+          name: "",
+          phone: "",
+          province: "",
+          district: "",
+          ward: "",
+          address: "",
+          note: ""
+        });
+        setSelectedProvince('');
+        setSelectedDistrict('');
+        setSelectedWard('');
         setTempDelivery(true);
         setShowModal(true);
       }
@@ -147,7 +172,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer,customerInfo,set
         <Modal.Header closeButton>
           <Modal.Title>Thông tin giao hàng</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body style={{ overflow: 'hidden' }}> {/* Prevent scrollbars */}
           <Form>
             <Row className="mb-3">
               <Col sm={4}>
@@ -236,7 +261,10 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer,customerInfo,set
                 <Form.Label>Ghi chú</Form.Label>
               </Col>
               <Col sm={8}>
-                <Form.Control as="textarea" rows={3} placeholder="Nhập ghi chú" />
+                <Form.Control as="textarea" rows={3} placeholder="Nhập ghi chú" 
+                 value={customerInfo.note }
+                 onChange={(e) => setCustomerInfo({ ...customerInfo, note : e.target.value })}
+                />
                 <Form.Check 
                   type="checkbox" 
                   label="Lưu địa chỉ của khách hàng"

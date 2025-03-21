@@ -43,6 +43,8 @@ public class OrderResponse {
 
     PaymentMethod paymentMethod;
 
+    Integer orderType;
+
     Integer status;
 
     LocalDateTime createdAt;
