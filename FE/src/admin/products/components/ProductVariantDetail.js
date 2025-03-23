@@ -1,5 +1,5 @@
 import { QRCodeCanvas } from 'qrcode.react';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Form } from 'react-bootstrap';
 import ReactSelect from 'react-select';
 import { toast } from 'react-toastify';
@@ -10,6 +10,7 @@ import Swal from 'sweetalert2';
 const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colors, sizes, colorImages, refreshProductDetail, handleVariantClick, productDetails }) => {
 
     const [isSaving, setIsSaving] = useState(false);
+    const qrRef = useRef(null);
 
     useEffect(() => {
         if (selectedVariant && productDetails.length > 0) {
@@ -20,56 +21,75 @@ const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colors, siz
         }
     }, [productDetails]);
 
-    const handleUpdateVariant = async () => {
-        if (!selectedVariant) return;
+    // const handleUpdateVariant = async () => {
+    //     if (!selectedVariant) return;
 
-        const result = await Swal.fire({
-            title: "Bạn có chắc muốn cập nhật?",
-            text: "Thao tác này sẽ cập nhật thông tin biến thể!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Xác nhận",
-            cancelButtonText: "Hủy"
-        });
+    //     const result = await Swal.fire({
+    //         title: "Bạn có chắc muốn cập nhật?",
+    //         text: "Thao tác này sẽ cập nhật thông tin biến thể!",
+    //         icon: "warning",
+    //         showCancelButton: true,
+    //         confirmButtonColor: "#3085d6",
+    //         cancelButtonColor: "#d33",
+    //         confirmButtonText: "Xác nhận",
+    //         cancelButtonText: "Hủy"
+    //     });
 
-        if (!result.isConfirmed) return;
+    //     if (!result.isConfirmed) return;
 
-        setIsSaving(true);
+    //     setIsSaving(true);
 
-        const updateData = {
-            quantity: selectedVariant.quantity,
-            price: selectedVariant.price,
-            status: selectedVariant.status,
-            colorId: selectedVariant.color?.id,
-            sizeId: selectedVariant.size?.id
-        };
+    //     const updateData = {
+    //         quantity: selectedVariant.quantity,
+    //         price: selectedVariant.price,
+    //         status: selectedVariant.status,
+    //         colorId: selectedVariant.color?.id,
+    //         sizeId: selectedVariant.size?.id
+    //     };
 
-        try {
-            const response = await updateProductDetail(selectedVariant.id, updateData);
-            // setSelectedVariant(response.data);
+    //     try {
+    //         const response = await updateProductDetail(selectedVariant.id, updateData);
+    //         // setSelectedVariant(response.data);
 
-            await refreshProductDetail();
+    //         await refreshProductDetail();
 
-            // setTimeout(() => {
-            //     const updatedVariant = productDetails.find(pd => pd.id === selectedVariant.id);
-            //     setSelectedVariant(updatedVariant);
-            // }, 500);
+    //         // setTimeout(() => {
+    //         //     const updatedVariant = productDetails.find(pd => pd.id === selectedVariant.id);
+    //         //     setSelectedVariant(updatedVariant);
+    //         // }, 500);
 
-            toast.success("Cập nhật biến thể thành công!");
+    //         toast.success("Cập nhật biến thể thành công!");
 
 
 
-        } catch (error) {
-            console.error("Lỗi khi cập nhật biến thể:", error);
-            alert("Có lỗi xảy ra khi cập nhật biến thể!");
+    //     } catch (error) {
+    //         console.error("Lỗi khi cập nhật biến thể:", error);
+    //         alert("Có lỗi xảy ra khi cập nhật biến thể!");
+    //     }
+    //     setIsSaving(false);
+    // };
+
+    const handleDownloadQR = () => {
+        if (!qrRef.current) return;
+
+        const canvas = qrRef.current.querySelector('canvas'); // Lấy thẻ canvas QR
+        if (!canvas) {
+            toast.error("Không thể tải mã QR!");
+            return;
         }
-        setIsSaving(false);
+
+        const image = canvas.toDataURL("image/png"); // Chuyển QR thành ảnh
+        const link = document.createElement("a");
+        link.href = image;
+        link.download = `QRCode_${selectedVariant?.qr || "default"}.png`;
+        link.click();
     };
 
     return (
         <div>
+            <div style={{ marginBottom: '20px' }}>
+                <h4><strong>Danh sách ảnh giày theo màu:</strong></h4>
+            </div>
             <hr />
             {colorImages.length > 0 && (
                 <div style={{
@@ -178,17 +198,26 @@ const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colors, siz
                             />
                         </Form.Group>
                         <hr />
-                        <button
+                        {/* <button
                             type="button"
                             className="btn btn-gradient-primary btn-sm float-right"
                             onClick={handleUpdateVariant}
                             disabled={isSaving}
                         >
                             {isSaving ? "Đang lưu..." : "Sửa"}
-                        </button>
+                        </button> */}
                     </div>
                     <div className="col-lg-4" style={{ textAlign: "center" }}>
-                        <QRCodeCanvas value={selectedVariant?.qr ? selectedVariant.qr.toString() : "N/A"} size={100} />
+                        {/* <QRCodeCanvas value={selectedVariant?.qr ? selectedVariant.qr.toString() : "N/A"} size={100} /> */}
+                        <div ref={qrRef}>
+                            <QRCodeCanvas value={selectedVariant?.qr ? selectedVariant.qr.toString() : "N/A"} size={100} />
+                        </div>
+                        <button
+                            className="btn btn-outline-primary mt-2"
+                            onClick={handleDownloadQR}
+                        >
+                            <i className='mdi mdi-download'></i>
+                        </button>
                     </div>
                 </div>
             )}

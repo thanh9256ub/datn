@@ -156,7 +156,7 @@ const Products = () => {
                                                 <th>Chất liệu</th>
                                                 <th>Mô tả</th>
                                                 <th style={{ width: '50px' }}>Tổng số lượng</th>
-                                                <th style={{ width: '150px' }}>Trạng thái</th>
+                                                <th>Trạng thái</th>
                                                 <th style={{ width: '100px' }}>Hành động</th>
                                             </tr>
                                         </thead>
@@ -194,7 +194,7 @@ const Products = () => {
                                                             <td>{product.totalQuantity}</td>
                                                             <td>
                                                                 <span className={`badge ${product.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
-                                                                    {product.status === 1 ? 'Hoạt động' : 'Không hoạt động'}
+                                                                    {product.status === 1 ? 'Đang bán' : 'Hết hàng'}
                                                                 </span>
                                                             </td>
                                                             <td>

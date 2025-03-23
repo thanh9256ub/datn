@@ -11,9 +11,9 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
 
     return (
         <div>
-            <button type="button" className="btn btn-gradient-primary btn-sm float-right">
+            {/* <button type="button" className="btn btn-gradient-primary btn-sm float-right">
                 Thêm biến thể
-            </button>
+            </button> */}
             <div className='table-responsive'>
                 <table className='table'>
                     <thead>

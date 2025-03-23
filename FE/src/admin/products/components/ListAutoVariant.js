@@ -76,7 +76,7 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                                     style={{
                                                         position: "relative",
                                                         minWidth: "300px",
-                                                        opacity: variant.imageUrls && variant.imageUrls.length > 0 ? 1 : 0.5 && colorImages[variant.colorId] && colorImages[variant.colorId].length > 0 ? 1 : 0.5,
+                                                        opacity: variant.imageUrls && variant.imageUrls.length > 0 ? 1 : 0.5,
                                                         cursor: "pointer",
                                                     }}
                                                     onClick={() => document.getElementById(`file-input-${originalIndex}`).click()}
@@ -96,22 +96,6 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                                                         marginRight: "5px",
                                                                     }}
                                                                 />
-                                                            ))}
-                                                        </div>
-                                                    ) : colorImages[variant.colorId] && colorImages[variant.colorId].length > 0 ? (
-                                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
-                                                            {colorImages[variant.colorId].map((url, idx) => (
-                                                                <img
-                                                                    key={idx}
-                                                                    src={url}
-                                                                    alt={`Ảnh ${idx}`}
-                                                                    style={{
-                                                                        width: "100px",
-                                                                        height: "100px",
-                                                                        objectFit: "cover",
-                                                                        borderRadius: "5px",
-                                                                        marginRight: "5px",
-                                                                    }} />
                                                             ))}
                                                         </div>
                                                     ) : (
@@ -166,13 +150,13 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                                 (<td></td>)
                                             ) : (
                                                 <td>
-                                                    <button className="btn btn-outline-secondary btn-sm btn-rounded btn-icon"
+                                                    <button className="btn btn-outline-dark btn-sm btn-rounded btn-icon"
                                                         onClick={(e) => {
                                                             e.preventDefault();
                                                             handleRemoveVariant(originalIndex);
                                                         }}
                                                     >
-                                                        <i className='mdi mdi-minus-circle-outline'></i>
+                                                        <i className='mdi mdi-delete'></i>
                                                     </button>
                                                 </td>
                                             )}

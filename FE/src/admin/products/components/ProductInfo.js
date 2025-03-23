@@ -15,6 +15,7 @@ const ProductInfo = ({ product }) => {
                     <div><strong>Thương hiệu:</strong> {product?.brand?.brandName ?? "Đang tải..."}</div>
                     <div><strong>Danh mục:</strong> {product?.category?.categoryName ?? "Đang tải..."}</div>
                     <div><strong>Chất liệu:</strong> {product?.material?.materialName ?? "Đang tải..."}</div>
+                    <div><strong>Ngày tạo:</strong> {product?.createdAt ?? "Đang tải..."}</div>
                     {/* <div className="col-md-12" style={{ maxWidth: "100%", overflow: "hidden" }}>
                                                 <strong>Mô tả:</strong> {product?.description ?? "Đang tải..."}
                                             </div> */}

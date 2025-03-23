@@ -9,7 +9,7 @@ import ListAutoVariant from '../components/ListAutoVariant';
 import { createProductDetail, updateQR } from '../service/ProductDetailService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import MainImage from '../components/MainImage';
-import { createProduct, uploadImageToCloudinary } from '../service/ProductService';
+import { createProduct, getProducts, uploadImageToCloudinary } from '../service/ProductService';
 import axios from 'axios';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -32,9 +32,8 @@ const CreateProduct = () => {
 
     const [commonQuantity, setCommonQuantity] = useState("");
     const [commonPrice, setCommonPrice] = useState("");
-    const [colorImages, setColorImages] = useState({});
     const [isSaving, setIsSaving] = useState(false);
-
+    const [errorMessage, setErrorMessage] = useState("");
 
     const [productData, setProductData] = useState({
         productName,
@@ -46,6 +45,34 @@ const CreateProduct = () => {
         status,
         mainImage: ''
     });
+
+    const [products, setProducts] = useState([]);
+
+    useEffect(() => {
+        getProducts()
+            .then((response) => {
+                setProducts(response.data.data);
+            })
+            .catch((error) => {
+                console.error("Lỗi khi tải danh sách sản phẩm:", error);
+            });
+    }, []);
+
+    useEffect(() => {
+        if (productName.trim() === "") {
+            setErrorMessage("");
+            return;
+        }
+
+        const exists = products.some(product => product.productName.toLowerCase() === productName.toLowerCase());
+
+        if (exists) {
+            setErrorMessage("Tên sản phẩm đã tồn tại!");
+        } else {
+            setErrorMessage("");
+        }
+    }, [productName, products]);
+
 
     const handleOpenModal = () => setShowModal(true);
     const handleCloseModal = () => {
@@ -99,68 +126,71 @@ const CreateProduct = () => {
         setVariantList(updatedVariants);
     };
 
+    //Cách 3:
     // const handleRemoveVariant = (index) => {
-    //     const updatedVariants = [...variantList];
-    //     updatedVariants.splice(index, 1);
-    //     setVariantList(updatedVariants);
+    //     setVariantList(prevVariants => {
+    //         const updatedVariants = [...prevVariants];
+    //         const removedVariant = updatedVariants[index];
+
+    //         updatedVariants.splice(index, 1);
+
+    //         const remainingVariantsWithColor = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
+    //         if (remainingVariantsWithColor.length === 0) {
+    //             setColorIds(prev => prev.filter(c => c.value !== removedVariant.colorId));
+    //             setColorImages(prev => {
+    //                 const newColorImages = { ...prev };
+    //                 delete newColorImages[removedVariant.colorId];
+    //                 return newColorImages;
+    //             });
+    //         } else {
+    //             if (index === 0 && colorImages[removedVariant.colorId]) {
+    //                 const nextVariant = remainingVariantsWithColor[0];
+    //                 setColorImages(prev => ({
+    //                     ...prev,
+    //                     [nextVariant.colorId]: prev[removedVariant.colorId]
+    //                 }));
+    //             }
+    //         }
+
+
+    //         const remainingVariantsWithSize = updatedVariants.some(v => v.sizeId === removedVariant.sizeId);
+    //         if (!remainingVariantsWithSize) {
+    //             setSizeIds(prev => prev.filter(s => s.value !== removedVariant.sizeId));
+    //         }
+
+    //         if (updatedVariants.length === 0) {
+    //             setColorImages({});
+    //         }
+
+    //         return updatedVariants;
+    //     });
     // };
 
-    // const handleRemoveVariant = (index) => {
-    //     Cách 1:
-    //     setVariantList(prevVariants => prevVariants.filter((_, i) => i !== index));
-
-    //     Cách 2:
-    //     const updatedVariants = [...variantList];
-    //     const removedVariant = updatedVariants[index];
-
-    //     updatedVariants.splice(index, 1);
-    //     setVariantList(updatedVariants);
-
-    //     const remainingVariantsWithColor = updatedVariants.some(v => v.colorId === removedVariant.colorId);
-    //     if (!remainingVariantsWithColor) {
-    //         setColorIds(prev => prev.filter(color => color.value !== removedVariant.colorId));
-    //     }
-    // }
-
-    //Cách 3:
     const handleRemoveVariant = (index) => {
         setVariantList(prevVariants => {
-            const updatedVariants = [...prevVariants];
+            let updatedVariants = [...prevVariants];
             const removedVariant = updatedVariants[index];
 
             updatedVariants.splice(index, 1);
 
-            const remainingVariantsWithColor = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
-            if (remainingVariantsWithColor.length === 0) {
-                setColorIds(prev => prev.filter(c => c.value !== removedVariant.colorId));
-                setColorImages(prev => {
-                    const newColorImages = { ...prev };
-                    delete newColorImages[removedVariant.colorId];
-                    return newColorImages;
-                });
-            } else {
-                if (index === 0 && colorImages[removedVariant.colorId]) {
-                    const nextVariant = remainingVariantsWithColor[0];
-                    setColorImages(prev => ({
-                        ...prev,
-                        [nextVariant.colorId]: prev[removedVariant.colorId]
-                    }));
-                }
-            }
+            const hasSameColor = updatedVariants.some(v => v.colorId === removedVariant.colorId);
 
+            if (!hasSameColor) {
+                updatedVariants = updatedVariants.map(v =>
+                    v.colorId === removedVariant.colorId ? { ...v, imageUrls: [] } : v
+                );
+            }
 
             const remainingVariantsWithSize = updatedVariants.some(v => v.sizeId === removedVariant.sizeId);
             if (!remainingVariantsWithSize) {
                 setSizeIds(prev => prev.filter(s => s.value !== removedVariant.sizeId));
             }
 
-            if (updatedVariants.length === 0) {
-                setColorImages({});
-            }
-
             return updatedVariants;
         });
     };
+
+
 
     const handleImageChange = (index, event) => {
         const files = Array.from(event.target.files);
@@ -172,19 +202,23 @@ const CreateProduct = () => {
 
         const imageUrls = files.map(file => URL.createObjectURL(file));
 
+        // setVariantList(prevVariants => {
+        //     const updatedVariants = prevVariants.map((variant, idx) =>
+        //         idx === index
+        //             ? { ...variant, images: files, imageUrls }
+        //             : variant
+        //     );
+        //     return updatedVariants;
+        // });
         setVariantList(prevVariants => {
-            const updatedVariants = prevVariants.map((variant, idx) =>
-                idx === index
-                    ? { ...variant, images: files, imageUrls }
+            const selectedColorId = prevVariants[index].colorId;
+
+            return prevVariants.map(variant =>
+                variant.colorId === selectedColorId
+                    ? { ...variant, imageUrls, images: files }
                     : variant
             );
-            return updatedVariants;
         });
-
-        setColorImages(prev => ({
-            ...prev,
-            [variantList[index].colorId]: imageUrls
-        }));
     };
 
     const handleFileChange = (file) => {
@@ -343,28 +377,12 @@ const CreateProduct = () => {
         }
     };
 
-    const urlToFile = async (url, filename) => {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        return new File([blob], filename, { type: blob.type });
-    };
-
     const handleImagesForProductColors = async (productColorMapping) => {
         try {
             for (const { productColorId, colorId } of productColorMapping) {
-                // const imagesForColor = variantList
-                //     .filter(variant => variant.colorId === colorId)
-                //     .flatMap(variant => variant.images || []);
-                let imagesForColor = [...(variantList.filter(v => v.colorId === colorId).flatMap(v => v.images || []))];
-
-                if (colorImages[colorId] && colorImages[colorId].length > 0) {
-                    const urlFiles = await Promise.all(
-                        colorImages[colorId].map((url, index) =>
-                            urlToFile(url, `color_${colorId}_${index}.jpg`)
-                        )
-                    );
-                    imagesForColor = [...imagesForColor, ...urlFiles];
-                }
+                const imagesForColor = variantList
+                    .filter(variant => variant.colorId === colorId)
+                    .flatMap(variant => variant.images || []);
 
                 if (imagesForColor.length === 0) continue;
 
@@ -407,6 +425,11 @@ const CreateProduct = () => {
 
         let newErrors = {};
 
+        if (errorMessage) {
+            toast.error(errorMessage);
+            return;
+        }
+
         if (!productName.trim()) newErrors.productName = "Tên sản phẩm không được để trống";
         if (!brandId) newErrors.brandId = "Vui lòng chọn thương hiệu";
         if (!categoryId) newErrors.categoryId = "Vui lòng chọn danh mục";
@@ -432,20 +455,20 @@ const CreateProduct = () => {
 
             if (!variant.quantity) {
                 newErrors[`quantity_${index}`] = `${variantInfo}: Chưa nhập số lượng`;
-            } else if (variant.quantity <= 0) {
+            } else if (variant.quantity < 0) {
                 newErrors[`quantity_${index}`] = `${variantInfo}: Số lượng phải lớn hơn 0`;
             }
         });
 
         colorIds.forEach(color => {
             const colorName = color.label;
-            const colorImageList = colorImages[color.value] || [];
 
-            if (colorImageList.length === 0) {
+            const hasImages = variantList.some(v => v.colorId === color.value && v.imageUrls?.length > 0);
+
+            if (!hasImages) {
                 newErrors[`images_${color.value}`] = `Màu ${colorName}: Cần tải lên ít nhất một ảnh!`;
             }
         });
-
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length > 0) {
@@ -490,6 +513,7 @@ const CreateProduct = () => {
                                                         placeholder='Nhập tên sản phẩm'
                                                         required
                                                     />
+                                                    {errorMessage && <small style={{ color: "red" }}>{errorMessage}</small>}
                                                 </div>
                                             </Form.Group>
                                         </div>
@@ -560,7 +584,6 @@ const CreateProduct = () => {
                                         handleRemoveVariant={handleRemoveVariant}
                                         onImagesSelected={handleImageChange}
                                         setVariantList={setVariantList}
-                                        colorImages={colorImages}
                                         errors={errors}
                                     />
                                     {errors.variantList && <small className="text-danger">{errors.variantList}</small>}

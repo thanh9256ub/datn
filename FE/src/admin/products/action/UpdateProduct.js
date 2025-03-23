@@ -244,7 +244,7 @@ const UpdateProduct = () => {
 
                 if (!variant.quantity) {
                     newErrors[`quantity_${index}`] = `${variantInfo}: Chưa nhập số lượng`;
-                } else if (variant.quantity <= 0) {
+                } else if (variant.quantity < 0) {
                     newErrors[`quantity_${index}`] = `${variantInfo}: Số lượng phải lớn hơn 0`;
                 }
 

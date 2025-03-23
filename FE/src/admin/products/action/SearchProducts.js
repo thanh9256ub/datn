@@ -9,8 +9,8 @@ const SearchProducts = ({ filters, setFilters, onSearch }) => {
 
     const statusOptions = [
         { value: '', label: 'Trạng thái' },
-        { value: '1', label: 'Hoạt động' },
-        { value: '0', label: 'Không hoạt động' }
+        { value: '1', label: 'Đang bán' },
+        { value: '0', label: 'Hết hàng' }
     ];
 
     const handleFilterChange = (e) => {
