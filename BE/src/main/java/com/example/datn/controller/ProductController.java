@@ -6,6 +6,10 @@ import com.example.datn.dto.response.ProductResponse;
 import com.example.datn.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,10 +39,10 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping
+    @GetMapping("list")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getAll() {
 
-        List<ProductResponse> list = service.getAll();
+        List<ProductResponse> list = service.getList();
 
         ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
@@ -49,33 +53,50 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/active")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getActiveProducts() {
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<ProductResponse>>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
 
-        List<ProductResponse> list = service.getActiveProducts();
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProductResponse> list = service.getAll(pageable);
 
-        ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
+        ApiResponse<Page<ProductResponse>> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
-                "Products active retrieved successfully",
+                "Products retrieved successfully",
                 list
         );
 
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/inactive")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getInactiveProducts() {
-
-        List<ProductResponse> list = service.getInactiveProducts();
-
-        ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Products inactive retrieved successfully",
-                list
-        );
-
-        return ResponseEntity.ok(response);
-    }
+//    @GetMapping("/active")
+//    public ResponseEntity<ApiResponse<List<ProductResponse>>> getActiveProducts() {
+//
+//        List<ProductResponse> list = service.getActiveProducts();
+//
+//        ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
+//                HttpStatus.OK.value(),
+//                "Products active retrieved successfully",
+//                list
+//        );
+//
+//        return ResponseEntity.ok(response);
+//    }
+//
+//    @GetMapping("/inactive")
+//    public ResponseEntity<ApiResponse<List<ProductResponse>>> getInactiveProducts() {
+//
+//        List<ProductResponse> list = service.getInactiveProducts();
+//
+//        ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
+//                HttpStatus.OK.value(),
+//                "Products inactive retrieved successfully",
+//                list
+//        );
+//
+//        return ResponseEntity.ok(response);
+//    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> getById(@PathVariable("id") Integer id){
@@ -140,16 +161,20 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProducts(
+    public ResponseEntity<ApiResponse<Page<ProductResponse>>> searchProducts(
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "brandId", required = false) Integer brandId,
             @RequestParam(value = "categoryId", required = false) Integer categoryId,
             @RequestParam(value = "materialId", required = false) Integer materialId,
-            @RequestParam(value = "status", required = false) Integer status) {
+            @RequestParam(value = "status", required = false) Integer status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
 
-        List<ProductResponse> list = service.searchProducts(name, brandId, categoryId, materialId, status);
+        Pageable pageable = PageRequest.of(page, size);
 
-        ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
+        Page<ProductResponse> list = service.searchProducts(name, brandId, categoryId, materialId, status, pageable);
+
+        ApiResponse<Page<ProductResponse>> response = new ApiResponse<>(
                 200,
                 "Products retrieved successfully",
                 list

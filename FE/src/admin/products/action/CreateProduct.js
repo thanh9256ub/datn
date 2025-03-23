@@ -9,7 +9,7 @@ import ListAutoVariant from '../components/ListAutoVariant';
 import { createProductDetail, updateQR } from '../service/ProductDetailService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import MainImage from '../components/MainImage';
-import { createProduct, getProducts, uploadImageToCloudinary } from '../service/ProductService';
+import { createProduct, getProductList, uploadImageToCloudinary } from '../service/ProductService';
 import axios from 'axios';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -49,12 +49,20 @@ const CreateProduct = () => {
     const [products, setProducts] = useState([]);
 
     useEffect(() => {
-        getProducts()
+        getProductList()
             .then((response) => {
-                setProducts(response.data.data);
+                console.log("API response:", response.data);
+                const productsData = response.data.data;
+
+                if (Array.isArray(productsData)) {
+                    setProducts(productsData);
+                } else {
+                    setProducts([]);
+                }
             })
             .catch((error) => {
                 console.error("Lỗi khi tải danh sách sản phẩm:", error);
+                setProducts([]);
             });
     }, []);
 

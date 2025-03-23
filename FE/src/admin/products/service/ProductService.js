@@ -4,8 +4,12 @@ const BASE_URL = 'http://localhost:8080/products';
 
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/your-cloud-name/image/upload';
 
-export const getProducts = () => {
-    return axios.get(BASE_URL);
+export const getProducts = (page, size) => {
+    return axios.get(`${BASE_URL}?page=${page}&size=${size}`);
+};
+
+export const getProductList = () => {
+    return axios.get(`${BASE_URL}/list`);
 }
 
 const PCOLOR_URL = 'http://localhost:8080/product-color';
@@ -66,7 +70,7 @@ export const getInactiveProducts = () => {
     return axios.get(`${BASE_URL}/inactive`)
 }
 
-export const searchProducts = (filters) => {
+export const searchProducts = (filters, page, size) => {
     const params = new URLSearchParams();
 
     if (filters.name) params.append("name", filters.name);
@@ -74,6 +78,9 @@ export const searchProducts = (filters) => {
     if (filters.categoryId) params.append("categoryId", filters.categoryId);
     if (filters.materialId) params.append("materialId", filters.materialId);
     if (filters.status !== '') params.append("status", filters.status);
+
+    params.append("page", page);
+    params.append("size", size);
 
     return axios.get(`${BASE_URL}/search?${params.toString()}`);
 };
