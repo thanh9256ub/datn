@@ -1,15 +1,14 @@
 package com.example.datn.dto.response;
 
 import com.example.datn.entity.Employee;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 @Data
 @AllArgsConstructor
@@ -24,7 +23,7 @@ public class EmployeeResponse {
 
     String fullName;
 
-    String gender;
+    Integer gender;
 
     String birthDate;
 
@@ -34,11 +33,8 @@ public class EmployeeResponse {
 
     String email;
 
-    String userName;
+    String username;
 
-    String passWord;
-
-    @JsonProperty("role_id")
     Integer roleId;
 
     String createdAt;
@@ -47,20 +43,25 @@ public class EmployeeResponse {
 
     Integer status;
 
+    String image;
+
     public EmployeeResponse(Employee employee) {
         this.id = employee.getId();
         this.employeeCode = employee.getEmployeeCode();
         this.fullName = employee.getFullName();
         this.gender = employee.getGender();
-        this.birthDate = employee.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        if (Objects.nonNull(employee.getBirthDate()))
+            this.birthDate = employee.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         this.phone = employee.getPhone();
         this.address = employee.getAddress();
         this.email = employee.getEmail();
-        this.userName = employee.getEmail();
-        this.passWord = employee.getPassWord();
-        this.roleId = employee.getRoLe().getId();
-        this.createdAt = employee.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        this.updatedAt = employee.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        this.username = employee.getUsername();
+        this.roleId = Objects.isNull(employee.getRole()) ? 0 : employee.getRole().getId();
+        this.createdAt = employee.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        this.updatedAt = Objects.isNull(employee.getUpdatedAt())
+                ? employee.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                : employee.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         this.status = employee.getStatus();
+        this.image = Objects.toString(employee.getImage());
     }
 }

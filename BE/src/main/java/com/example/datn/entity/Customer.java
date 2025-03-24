@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,8 +28,11 @@ public class Customer {
     @Column(name = "full_name")
     private String fullName;
 
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
+
     @Column(name = "gender")
-    private String gender;
+    private Integer gender;
 
     @Column(name = "phone")
     private String phone;
@@ -38,6 +43,9 @@ public class Customer {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "status")
+    private Integer status;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -45,7 +53,10 @@ public class Customer {
     private LocalDateTime updatedAt;
 
     @ManyToOne
-    @JoinColumn(name = "role_id",referencedColumnName = "id")
-    private Role roLe;
+    @JoinColumn(name = "role_id", referencedColumnName = "id")
+    private Role role;
+
+    @OneToMany(mappedBy = "customer")
+    private List<Address> addressList;
 
 }
