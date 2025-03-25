@@ -25,4 +25,5 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             log.error("Error, ", e);
         }
     }
+
 }
