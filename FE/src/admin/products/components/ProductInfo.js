@@ -6,8 +6,8 @@ const ProductInfo = ({ product }) => {
             <div style={{ marginBottom: '20px' }}>
                 <h4><strong>Thông tin sản phẩm:</strong></h4>
             </div>
+            <hr />
             <div className="row">
-
                 <div className='col-md-8'>
                     <div>
                         <strong>Mã sản phẩm:</strong> {product?.productCode ?? "Đang tải..."}
