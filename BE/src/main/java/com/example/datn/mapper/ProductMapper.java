@@ -23,7 +23,7 @@ public interface ProductMapper {
 
     ProductResponse toProductResponse(Product product);
 
-    List<ProductResponse> toListProductResponse(List<Product> list);
+    List<ProductResponse> toListProduct(List<Product> list);
 
     @Mapping(target = "productCode", ignore = true)
     void updateProduct(@MappingTarget Product product, ProductRequest request);

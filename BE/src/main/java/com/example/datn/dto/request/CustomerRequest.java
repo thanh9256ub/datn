@@ -6,7 +6,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
@@ -22,22 +21,19 @@ public class CustomerRequest {
 
     String fullName;
 
-    String birthDate;
-
-    Integer gender;
+    String gender;
 
     @NotBlank(message = "Customer phone is unique")
     String phone;
 
     String email;
-
-//    LocalDateTime createdAt;
+    LocalDateTime createdAt;
 
     String password;
 
-//    LocalDateTime updatedAt;
 
+    LocalDateTime updatedAt;
+
+    @JsonProperty("role_id")
     Integer roleId;
-
-    List<AddressRequest> address;
 }

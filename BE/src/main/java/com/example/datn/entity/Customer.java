@@ -27,7 +27,7 @@ public class Customer {
     private String fullName;
 
     @Column(name = "gender")
-    private Integer gender;
+    private String gender;
 
     @Column(name = "phone")
     private String phone;
@@ -37,9 +37,6 @@ public class Customer {
 
     @Column(name = "password")
     private String password;
-
-    @Column(name = "status")
-    private Integer status;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

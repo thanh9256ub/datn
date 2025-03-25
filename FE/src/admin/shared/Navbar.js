@@ -2,8 +2,9 @@ import React, { Component } from 'react';
 import { Dropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { Trans } from 'react-i18next';
-import logo from '../../assets/images/logo_h2tl.png';
-import logoMini from '../../assets/images/logo_mini_h2tl.png';
+import logo from '../../assets/images/logo.svg';
+import logoMini from '../../assets/images/logo-mini.svg';
+
 
 class Navbar extends Component {
   toggleOffcanvas() {
@@ -12,16 +13,6 @@ class Navbar extends Component {
   toggleRightSidebar() {
     document.querySelector('.right-sidebar').classList.toggle('open');
   }
-
-  handleLogout = (e) => {
-    e.preventDefault(); // prevent the default action
-    console.log('Logout....');
-    localStorage.removeItem('token');
-    localStorage.removeItem('fullName');
-    localStorage.removeItem('role');
-    window.location.href = '/LoginNhanVien';
-  }
-
   render() {
     return (
       <nav className="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
@@ -46,13 +37,13 @@ class Navbar extends Component {
           <ul className="navbar-nav navbar-nav-right">
             <li className="nav-item nav-profile">
               <Dropdown alignRight>
-                <Dropdown.Toggle className="nav-link"> 
+                <Dropdown.Toggle className="nav-link">
                   <div className="nav-profile-img">
                     <img src={require("../../assets/images/faces/face1.jpg")} alt="user" />
                     <span className="availability-status online"></span>
                   </div>
                   <div className="nav-profile-text">
-                    <p className="mb-1 text-black"><Trans>{localStorage.getItem('fullName')}</Trans></p>
+                    <p className="mb-1 text-black"><Trans>David Greymaax</Trans></p>
                   </div>
                 </Dropdown.Toggle>
 
@@ -61,7 +52,7 @@ class Navbar extends Component {
                     <i className="mdi mdi-cached mr-2 text-success"></i>
                     <Trans>Activity Log</Trans>
                   </Dropdown.Item>
-                  <Dropdown.Item href="!#" onClick={this.handleLogout}>
+                  <Dropdown.Item href="!#" onClick={evt => evt.preventDefault()}>
                     <i className="mdi mdi-logout mr-2 text-primary"></i>
                     <Trans>Signout</Trans>
                   </Dropdown.Item>

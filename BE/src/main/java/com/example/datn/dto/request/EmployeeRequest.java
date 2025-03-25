@@ -22,7 +22,7 @@ public class EmployeeRequest {
 
     String fullName;
 
-    Integer gender;
+    String gender;
 
     LocalDate birthDate;
 
@@ -44,6 +44,4 @@ public class EmployeeRequest {
     LocalDateTime updatedAt;
 
     Integer status;
-
-    String image;
 }
