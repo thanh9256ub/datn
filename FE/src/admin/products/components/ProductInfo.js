@@ -8,7 +8,10 @@ const ProductInfo = ({ product }) => {
             </div>
             <div className="row">
 
-                <div className='col-md-7'>
+                <div className='col-md-8'>
+                    <div>
+                        <strong>Mã sản phẩm:</strong> {product?.productCode ?? "Đang tải..."}
+                    </div>
                     <div>
                         <strong>Tên sản phẩm:</strong> {product?.productName ?? "Đang tải..."}
                     </div>
@@ -20,7 +23,7 @@ const ProductInfo = ({ product }) => {
                                                 <strong>Mô tả:</strong> {product?.description ?? "Đang tải..."}
                                             </div> */}
                 </div>
-                <div className='col-md-5' style={{ textAlign: 'center' }}>
+                <div className='col-md-4' style={{ textAlign: 'center' }}>
                     <img
                         src={product.mainImage}
                         style={{

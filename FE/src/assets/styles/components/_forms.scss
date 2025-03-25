@@ -35,7 +35,7 @@
   border: 1px solid #ccc; // Border giống react-select
   border-radius: 4px;
   padding: 8px 12px;
-  color: #333;
+  color: hsl(0, 0%, 20%);
   background-color: #fff;
   height: 38px; // Căn chỉnh chiều cao giống react-select
   transition: all 0.2s ease-in-out;
@@ -47,7 +47,7 @@
   }
 
   &::placeholder {
-    color: #aaa; // Placeholder giống react-select
+    color: hsl(0, 0%, 50%);
   }
 }
 

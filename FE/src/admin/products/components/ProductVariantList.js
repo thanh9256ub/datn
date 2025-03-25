@@ -14,7 +14,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
             {/* <button type="button" className="btn btn-gradient-primary btn-sm float-right">
                 Thêm biến thể
             </button> */}
-            <div className='table-responsive'>
+            <div className='table-responsive' style={{ maxHeight: '200px', overflowY: 'auto' }}>
                 <table className='table'>
                     <thead>
                         <tr>
@@ -34,13 +34,13 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
                                         onClick={() => handleVariantClick(productDetail)}
                                     >
                                         <td>
-                                            <strong>Màu:</strong> {productDetail.color.colorName}<br />
+                                            Màu: <i>{productDetail.color.colorName}</i><br />
                                             <small style={{ color: "#999" }}>Số lượng: {productDetail.quantity} </small>
 
                                         </td>
                                         <td>
-                                            <strong>Kích cỡ:</strong> {productDetail.size.sizeName}<br />
-
+                                            Kích cỡ: <b>{productDetail.size.sizeName}</b><br />
+                                            <small> </small>
                                         </td>
                                     </tr>
                                 )
