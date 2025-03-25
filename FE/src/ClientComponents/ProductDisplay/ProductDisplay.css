@@ -89,6 +89,17 @@
     background-color: #fff0f0;
 }
 
+.productdisplay-right-sizes button:hover {
+    border-color: #818181;
+    color: black;
+}
+
+.productdisplay-right-sizes button.selected {
+    border: 2px solid #ff4141;
+    color: #ff4141;
+    background-color: #fff0f0;
+}
+
 /* Size Selection Styles */
 .productdisplay-right-size h1 {
     color: #656565;

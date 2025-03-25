@@ -4,6 +4,7 @@ import com.example.datn.dto.request.ProductDetailRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.ProductDetailResponse;
 import com.example.datn.dto.response.ProductResponse;
+import com.example.datn.entity.Size;
 import com.example.datn.service.ProductDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -107,6 +108,20 @@ public class ProductDetailController {
                 HttpStatus.OK.value(),
                 "Updated successfully",
                 productDetailResponse
+        );
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/sizes-by-color/{productId}/{colorId}")
+    public ResponseEntity<ApiResponse<List<Size>>> getSizesByProductAndColor(
+            @PathVariable("productId") Integer productId,
+            @PathVariable("colorId") Integer colorId) {
+
+        List<Size> sizes = service.getSizesByProductIdAndColor(productId, colorId);
+
+        ApiResponse<List<Size>> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Sizes retrieved successfully",
+                sizes
         );
 
         return ResponseEntity.ok(response);
