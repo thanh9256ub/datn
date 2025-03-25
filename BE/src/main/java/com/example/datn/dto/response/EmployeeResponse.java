@@ -24,7 +24,7 @@ public class EmployeeResponse {
 
     String fullName;
 
-    Integer gender;
+    String gender;
 
     String birthDate;
 
@@ -47,8 +47,6 @@ public class EmployeeResponse {
 
     Integer status;
 
-    String image;
-
     public EmployeeResponse(Employee employee) {
         this.id = employee.getId();
         this.employeeCode = employee.getEmployeeCode();
@@ -64,6 +62,5 @@ public class EmployeeResponse {
         this.createdAt = employee.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         this.updatedAt = employee.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         this.status = employee.getStatus();
-        this.image = Objects.toString(employee.getImage());
     }
 }

@@ -11,9 +11,6 @@ import MaterialSelect from '../select/MaterialSelect';
 import ListAutoVariant from '../components/ListAutoVariant';
 import MainImage from '../components/MainImage';
 import axios from 'axios';
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import Swal from "sweetalert2";
 
 const UpdateProduct = () => {
     const { id } = useParams();
@@ -31,10 +28,6 @@ const UpdateProduct = () => {
     const [mainImage, setMainImage] = useState(null);
     const [hasError, setHasError] = useState(false);
     const [description, setDescription] = useState("");
-    const [isSaving, setIsSaving] = useState(false);
-    const [errors, setErrors] = useState({});
-
-    const [colorImages, setColorImages] = useState({});
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -97,23 +90,23 @@ const UpdateProduct = () => {
 
     const handleInputChange = (index, field, value) => {
         const updatedVariants = [...variantList];
-        updatedVariants[index] = { ...updatedVariants[index], [field]: value };
+        updatedVariants[index][field] = value;
         setVariantList(updatedVariants);
     };
 
     const saveProduct = async () => {
-        const result = await Swal.fire({
-            title: "Xác nhận",
-            text: "Bạn có chắc chắn muốn sửa sản phẩm này?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Đồng ý",
-            cancelButtonText: "Hủy",
-        });
+        if (!productName || !brandId || !categoryId || !materialId || !mainImage) {
+            alert("Vui lòng nhập đầy đủ thông tin sản phẩm!");
+            return;
+        }
 
-        if (!result.isConfirmed) return;
+        if (hasError) {
+            alert("Vui lòng sửa lỗi trước khi lưu!");
+            return;
+        }
+
+        const isConfirmed = window.confirm("Bạn có chắc chắn muốn sửa sản phẩm này?");
+        if (!isConfirmed) return;
 
         try {
             let imageUrl;
@@ -224,62 +217,6 @@ const UpdateProduct = () => {
         });
     };
 
-    const validateProduct = () => {
-        let newErrors = {};
-
-        if (!productName.trim()) newErrors.productName = "Tên sản phẩm không được để trống";
-        if (!brandId) newErrors.brandId = "Vui lòng chọn thương hiệu";
-        if (!categoryId) newErrors.categoryId = "Vui lòng chọn danh mục";
-        if (!materialId) newErrors.materialId = "Vui lòng chọn chất liệu";
-        if (!description.trim()) newErrors.description = "Mô tả không được để trống";
-        if (!mainImage) newErrors.mainImage = "Vui lòng chọn ảnh chính";
-
-        if (!variantList.length) {
-            newErrors.variantList = "Vui lòng thêm ít nhất một biến thể";
-        } else {
-            variantList.forEach((variant, index) => {
-                const variantInfo = `Biến thể (Màu: ${variant.color.colorName}, Size: ${variant.size.sizeName})`;
-
-
-                if (!variant.price) {
-                    newErrors[`price_${index}`] = `${variantInfo}: Chưa nhập giá`;
-                } else if (variant.price <= 0) {
-                    newErrors[`price_${index}`] = `${variantInfo}: Giá phải lớn hơn 0`;
-                }
-
-                if (!variant.quantity) {
-                    newErrors[`quantity_${index}`] = `${variantInfo}: Chưa nhập số lượng`;
-                } else if (variant.quantity < 0) {
-                    newErrors[`quantity_${index}`] = `${variantInfo}: Số lượng phải lớn hơn 0`;
-                }
-
-                if (!variant.imageUrls || variant.imageUrls.length === 0) {
-                    newErrors[`image_${index}`] = `${variantInfo}: Cần ít nhất một ảnh`;
-                }
-            });
-        }
-
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            Object.values(newErrors).forEach(error => toast.error(error));
-            return false;
-        }
-
-        return true;
-    };
-
-    const handleSaveClick = async () => {
-        if (isSaving) return;
-
-        if (!validateProduct()) return;
-
-        setIsSaving(true);
-
-        await saveProduct();
-
-        setIsSaving(false);
-    };
-
     return (
         <div>
             <div className="row">
@@ -344,27 +281,18 @@ const UpdateProduct = () => {
                                         setHasError={setHasError}
                                         onImagesSelected={handleImageChange}
                                         setVariantList={setVariantList}
-                                        colorImages={colorImages}
-                                        errors={errors}
                                     />
                                 </div>
                             </div>
                             <hr />
-                            <button
-                                type="button"
-                                className="btn btn-gradient-primary btn-icon-text"
-                                onClick={handleSaveClick}
-                                disabled={isSaving}
-                            >
+                            <button type="button" className="btn btn-gradient-primary btn-icon-text" onClick={saveProduct}>
                                 <i className="mdi mdi-file-check btn-icon-prepend"></i>
-                                {isSaving ? "Đang lưu..." : "Lưu"}
+                                Update
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <ToastContainer />
         </div>
     )
 }
