@@ -17,99 +17,92 @@ import java.util.List;
 @RequestMapping("/product-detail")
 public class ProductDetailController {
 
-    @Autowired
-    ProductDetailService service;
+        @Autowired
+        ProductDetailService service;
 
-    @PostMapping("/add-multiple/{productId}")
-    public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> addProductDetail(
-            @PathVariable("productId") Integer productId,
-            @RequestBody List<ProductDetailRequest> requests){
+        @PostMapping("/add-multiple/{productId}")
+        public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> addProductDetail(
+                        @PathVariable("productId") Integer productId,
+                        @RequestBody List<ProductDetailRequest> requests) {
 
-        List<ProductDetailResponse> listResponse = service.createProductDetails(productId, requests);
+                List<ProductDetailResponse> listResponse = service.createProductDetails(productId, requests);
 
-        ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
-                HttpStatus.CREATED.value(),
-                "Product detail created successfully",
-                listResponse
-        );
+                ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                                HttpStatus.CREATED.value(),
+                                "Product detail created successfully",
+                                listResponse);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getAll(){
+        @GetMapping
+        public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getAll() {
 
-        List<ProductDetailResponse> responseList = service.getAll();
+                List<ProductDetailResponse> responseList = service.getAll();
 
-        ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Retrieved successfully",
-                responseList
-        );
+                ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                                HttpStatus.OK.value(),
+                                "Retrieved successfully",
+                                responseList);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @GetMapping("/{productId}")
-    public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getProductDetailsByProductId(
-            @PathVariable("productId") Integer productId) {
+        @GetMapping("/{productId}")
+        public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getProductDetailsByProductId(
+                        @PathVariable("productId") Integer productId) {
 
-        List<ProductDetailResponse> productDetails = service.getProductDetailsByProductId(productId);
+                List<ProductDetailResponse> productDetails = service.getProductDetailsByProductId(productId);
 
-        ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
-                200,
-                "List product detail by id: " + productId,
-                productDetails
-        );
+                ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                                200,
+                                "List product detail by id: " + productId,
+                                productDetails);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @PatchMapping("/{pdId}")
-    public ResponseEntity<ApiResponse<ProductDetailResponse>> updateProductDetail(
-            @PathVariable("pdId") Integer pdId,
-            @RequestParam(value = "status", required = false) Integer status,
-            @RequestParam(value = "quantity", required = false) Integer quantity) {
+        @PutMapping("/{pdId}")
+        public ResponseEntity<ApiResponse<ProductDetailResponse>> updateProductDetail(
+                        @PathVariable("pdId") Integer pdId,
+                        @RequestBody ProductDetailRequest request) {
 
-        ProductDetailResponse productDetailResponse = service.updateProductDetail(pdId, status, quantity);
+                ProductDetailResponse productDetailResponse = service.updateProductDetail(pdId, request);
 
-        ApiResponse<ProductDetailResponse> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Updated successfully",
-                productDetailResponse
-        );
+                ApiResponse<ProductDetailResponse> response = new ApiResponse<>(
+                                HttpStatus.OK.value(),
+                                "Updated successfully",
+                                productDetailResponse);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @PutMapping("/{productId}")
-    public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> updateProductDetails(
-            @PathVariable Integer productId,
-            @RequestBody List<ProductDetailRequest> requests) {
+        @PutMapping("/{productId}/update-list")
+        public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> updateProductDetails(
+                        @PathVariable Integer productId,
+                        @RequestBody List<ProductDetailRequest> requests) {
 
-        List<ProductDetailResponse> list = service.updateProductDetails(productId, requests);
+                List<ProductDetailResponse> list = service.updateProductDetails(productId, requests);
 
-        ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Updated successfully",
-                list
-        );
+                ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                                HttpStatus.OK.value(),
+                                "Updated successfully",
+                                list);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @PatchMapping("/{pdId}/update-qr")
-    public ResponseEntity<ApiResponse<ProductDetailResponse>> updateQR(
-            @PathVariable("pdId") Integer pdId) {
+        @PatchMapping("/{pdId}/update-qr")
+        public ResponseEntity<ApiResponse<ProductDetailResponse>> updateQR(
+                        @PathVariable("pdId") Integer pdId) {
 
-        ProductDetailResponse productDetailResponse = service.updateQR(pdId);
+                ProductDetailResponse productDetailResponse = service.updateQR(pdId);
 
-        ApiResponse<ProductDetailResponse> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Updated successfully",
-                productDetailResponse
-        );
+                ApiResponse<ProductDetailResponse> response = new ApiResponse<>(
+                                HttpStatus.OK.value(),
+                                "Updated successfully",
+                                productDetailResponse);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 }

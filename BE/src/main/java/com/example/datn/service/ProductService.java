@@ -12,7 +12,11 @@ import com.example.datn.repository.ProductRepository;
 import com.example.datn.repository.BrandRepository;
 import com.example.datn.repository.CategoryRepository;
 import com.example.datn.repository.MaterialRepository;
+import com.example.datn.specification.ProductSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -44,15 +48,17 @@ public class ProductService {
         return "P" + timestamp;
     }
 
-    public ProductResponse createProduct(ProductRequest request){
+    public ProductResponse createProduct(ProductRequest request) {
         Brand brand = brandRepository.findById(request.getBrandId())
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found with ID: " + request.getBrandId()));
 
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with ID: " + request.getCategoryId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Category not found with ID: " + request.getCategoryId()));
 
         Material material = materialRepository.findById(request.getMaterialId())
-                .orElseThrow(() -> new ResourceNotFoundException("Material not found with ID: " + request.getMaterialId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Material not found with ID: " + request.getMaterialId()));
 
         Product product = mapper.toProduct(request);
 
@@ -64,11 +70,15 @@ public class ProductService {
         return mapper.toProductResponse(repository.save(product));
     }
 
-    public List<ProductResponse> getAll(){
-        return mapper.toListProduct(repository.findAll());
+    public Page<ProductResponse> getAll(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::toProductResponse);
     }
 
-    public ProductResponse getById(Integer id){
+    public List<ProductResponse> getList() {
+        return mapper.toListProductResponse(repository.findAll());
+    }
+
+    public ProductResponse getById(Integer id) {
 
         Product product = repository.findById(id).orElseThrow(
                 () -> new RuntimeException("Product not exist"));
@@ -76,20 +86,21 @@ public class ProductService {
         return mapper.toProductResponse(product);
     }
 
-    public ProductResponse updateProduct(Integer id, ProductRequest request){
+    public ProductResponse updateProduct(Integer id, ProductRequest request) {
 
         Product product = repository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Material not found with ID: " + id)
-        );
+                () -> new ResourceNotFoundException("Material not found with ID: " + id));
 
         Brand brand = brandRepository.findById(request.getBrandId())
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found with ID: " + request.getBrandId()));
 
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with ID: " + request.getCategoryId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Category not found with ID: " + request.getCategoryId()));
 
         Material material = materialRepository.findById(request.getMaterialId())
-                .orElseThrow(() -> new ResourceNotFoundException("Material not found with ID: " + request.getMaterialId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Material not found with ID: " + request.getMaterialId()));
 
         mapper.updateProduct(product, request);
 
@@ -104,10 +115,9 @@ public class ProductService {
         return mapper.toProductResponse(repository.save(product));
     }
 
-    public void deleteProduct(Integer id){
+    public void deleteProduct(Integer id) {
         repository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Product not found with ID: " + id)
-        );
+                () -> new ResourceNotFoundException("Product not found with ID: " + id));
 
         repository.deleteById(id);
     }
@@ -118,6 +128,32 @@ public class ProductService {
         product.setStatus(status);
 
         return mapper.toProductResponse(repository.save(product));
+    }
+
+    // public List<ProductResponse> getActiveProducts(){
+    //
+    // List<Product> productList = repository.findByStatus(1);
+    //
+    // return mapper.toListProduct(productList);
+    // }
+    //
+    // public List<ProductResponse> getInactiveProducts(){
+    //
+    // List<Product> productList = repository.findByStatus(0);
+    //
+    // return mapper.toListProduct(productList);
+    // }
+
+    public Page<ProductResponse> searchProducts(String name, Integer brandId, Integer categoryId, Integer materialId,
+            Integer status, Pageable pageable) {
+        Specification<Product> spec = Specification
+                .where(ProductSpecification.hasName(name))
+                .and(ProductSpecification.hasBrandId(brandId))
+                .and(ProductSpecification.hasCategoryId(categoryId))
+                .and(ProductSpecification.hasMaterialId(materialId))
+                .and(ProductSpecification.hasStatus(status));
+
+        return repository.findAll(spec, pageable).map(mapper::toProductResponse);
     }
 
 }
