@@ -12,12 +12,11 @@ import com.example.datn.repository.ProductRepository;
 import com.example.datn.repository.ColorRepository;
 import com.example.datn.repository.ProductDetailRepository;
 import com.example.datn.repository.SizeRepository;
-import com.example.datn.utils.QRCodeUtil;
+//import com.example.datn.utils.QRCodeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ProductDetailService {
@@ -89,21 +88,32 @@ public class ProductDetailService {
         return mapper.toListProductDetail(productDetailList);
     }
 
+    //    public ProductDetailResponse updateQR(Integer pdId) {
+//        ProductDetail productDetail = repository.findById(pdId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + pdId));
+//
+//        try {
+//            String qrCodeData = "" + pdId;
+//            String qrCodeBase64 = QRCodeUtil.generateQRCode(qrCodeData);
+//            productDetail.setQr(qrCodeBase64);
+//            repository.save(productDetail);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        return mapper.toProductDetailResponse(productDetail);
+//    }
     public ProductDetailResponse updateQR(Integer pdId) {
         ProductDetail productDetail = repository.findById(pdId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + pdId));
 
-        try {
-            String qrCodeData = "" + pdId;
-            String qrCodeBase64 = QRCodeUtil.generateQRCode(qrCodeData);
-            productDetail.setQr(qrCodeBase64);
-            repository.save(productDetail);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Chỉ lưu ID vào cột qr thay vì Base64
+        productDetail.setQr(String.valueOf(pdId));
 
+        repository.save(productDetail);
         return mapper.toProductDetailResponse(productDetail);
     }
+
 
     public void updateTotalQuantity(Integer productId) {
 
@@ -118,23 +128,32 @@ public class ProductDetailService {
         productRepository.save(product);
     }
 
-    public ProductDetailResponse updateProductDetail(Integer pdId, Integer status, Integer quantity) {
-        ProductDetail productDetail = repository.findById(pdId).orElseThrow(
-                () -> new ResourceNotFoundException("Product Detail not found ID: " + pdId));
+    public ProductDetailResponse updateProductDetail(Integer pdId, ProductDetailRequest request) {
+        ProductDetail productDetail = repository.findById(pdId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + pdId));
 
-        Integer originalQuantity = productDetail.getQuantity();
-
-        if (quantity != null && quantity >= 0) {
-            productDetail.setQuantity(quantity);
-        } else {
-            productDetail.setQuantity(originalQuantity);
+        if (request.getQuantity() != null && request.getQuantity() >= 0) {
+            productDetail.setQuantity(request.getQuantity());
         }
 
+        if (request.getPrice() != null && request.getPrice() >= 0) {
+            productDetail.setPrice(request.getPrice());
+        }
 
-        if (status != null) {
-            productDetail.setStatus(status);
-        }else{
-            productDetail.setStatus(productDetail.getStatus());
+        if (request.getStatus() != null) {
+            productDetail.setStatus(request.getStatus());
+        }
+
+        if (request.getColorId() != null) {
+            Color color = colorRepository.findById(request.getColorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Color not found with ID: " + request.getColorId()));
+            productDetail.setColor(color);
+        }
+
+        if (request.getSizeId() != null) {
+            Size size = sizeRepository.findById(request.getSizeId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Size not found with ID: " + request.getSizeId()));
+            productDetail.setSize(size);
         }
 
         repository.save(productDetail);
@@ -143,6 +162,7 @@ public class ProductDetailService {
 
         return mapper.toProductDetailResponse(productDetail);
     }
+
 
     public List<ProductDetailResponse> updateProductDetails(Integer productId, List<ProductDetailRequest> requests) {
 
@@ -167,27 +187,5 @@ public class ProductDetailService {
 
         return mapper.toListProductDetail(updatedDetails);
     }
-    public List<Size> getSizesByProductIdAndColor(Integer productId, Integer colorId) {
 
-        // Kiểm tra sự tồn tại của sản phẩm
-        productRepository.findById(productId).orElseThrow(
-                () -> new ResourceNotFoundException("Product not found with ID: " + productId)
-        );
-
-        // Kiểm tra sự tồn tại của màu sắc
-        Color color = colorRepository.findById(colorId).orElseThrow(
-                () -> new ResourceNotFoundException("Color not found with ID: " + colorId)
-        );
-
-        // Lấy tất cả các productDetail theo productId và colorId
-        List<ProductDetail> productDetails = repository.findByProductIdAndColorId(productId, colorId);
-
-        // Lấy danh sách các size của productDetail
-        List<Size> sizes = productDetails.stream()
-                .map(ProductDetail::getSize)
-                .distinct()  // Đảm bảo chỉ lấy các size duy nhất
-                .collect(Collectors.toList());
-
-        return sizes;
-    }
 }
