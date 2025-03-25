@@ -20,5 +20,4 @@ public class DatnBackendApplication {
 
         return pass;
     }
-
 }

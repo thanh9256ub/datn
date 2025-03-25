@@ -64,4 +64,5 @@ public class EmployeeResponse {
         this.status = employee.getStatus();
         this.image = Objects.toString(employee.getImage());
     }
+
 }

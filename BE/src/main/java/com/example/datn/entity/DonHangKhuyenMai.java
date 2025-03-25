@@ -37,4 +37,5 @@ public class DonHangKhuyenMai {
     Voucher khuyenMai;
 
     String trang_thai;
+
 }

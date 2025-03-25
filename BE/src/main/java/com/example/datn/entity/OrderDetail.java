@@ -52,5 +52,4 @@ public class OrderDetail {
     @Column(name = "product_status")
     Integer productStatus;
 
-
 }

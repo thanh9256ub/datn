@@ -20,4 +20,5 @@ public class BrandRequest {
     String brandName;
 
     String description;
+
 }

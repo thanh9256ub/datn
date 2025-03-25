@@ -38,7 +38,7 @@ public class VoucherRespone {
 
     String status;
 
-    LocalDateTime createdAt ;
+    LocalDateTime createdAt;
 
-    LocalDateTime updateAt ;
+    LocalDateTime updateAt;
 }

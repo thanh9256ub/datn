@@ -20,4 +20,5 @@ public interface PaymentTypeMapper {
 
     @Mapping(target = "id",ignore = true)
     void updatePaymentType(@MappingTarget PaymentType paymentType, PaymentTypeRequest request);
+
 }

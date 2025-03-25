@@ -47,4 +47,5 @@ public class CartDetails {
     LocalDateTime ngay_tao;
 
     LocalDateTime ngay_cap_nhat;
+
 }

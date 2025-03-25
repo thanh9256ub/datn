@@ -26,4 +26,5 @@ public interface ProductDetailMapper {
     List<ProductDetailResponse> toListProductDetail(List<ProductDetail> list);
 
     void updateProductDetail(@MappingTarget ProductDetail productDetail, ProductDetailRequest request);
+
 }

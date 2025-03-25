@@ -21,5 +21,4 @@ public interface EmployeeMapper {
     @Mapping(target = "id",ignore = true)
     void updateEmployee(@MappingTarget Employee employee, EmployeeRequest request);
 
-
 }

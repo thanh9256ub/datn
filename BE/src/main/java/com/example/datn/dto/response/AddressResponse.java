@@ -17,7 +17,6 @@ import java.util.Objects;
 
 public class AddressResponse {
 
-
     Integer id;
 
     String city;

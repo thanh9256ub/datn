@@ -24,4 +24,3 @@ public class Role {
     @Column(name = "status")
     private String status;
 }
-

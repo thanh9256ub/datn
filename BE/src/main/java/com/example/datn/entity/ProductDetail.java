@@ -49,4 +49,5 @@ public class ProductDetail {
 
     @Column(name = "qr")
     String qr;
+
 }
