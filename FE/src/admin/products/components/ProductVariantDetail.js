@@ -9,7 +9,6 @@ import Swal from 'sweetalert2';
 
 const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colors, sizes, colorImages, refreshProductDetail, handleVariantClick, productDetails }) => {
 
-    const [isSaving, setIsSaving] = useState(false);
     const qrRef = useRef(null);
 
     useEffect(() => {
@@ -88,7 +87,9 @@ const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colors, siz
     return (
         <div>
             <div style={{ marginBottom: '20px' }}>
-                <h4><strong>Danh sách ảnh giày theo màu:</strong></h4>
+                {selectedVariant && (
+                    <h4><strong>Danh sách ảnh giày màu {selectedVariant.color.colorName}:</strong></h4>
+                )}
             </div>
             <hr />
             {colorImages.length > 0 && (
@@ -118,10 +119,41 @@ const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colors, siz
             )}
             <hr />
             <h4 style={{ marginBottom: "20px" }}><strong>Thông tin chi tiết biến thể:</strong></h4>
+            <hr />
             {selectedVariant && (
                 <div className="row">
                     <div className="col-lg-8">
-                        <Form.Group>
+                        <div className='row d-flex align-items-center'>
+                            <label className="col-sm-4 col-form-label"><strong>Màu sắc:</strong></label>
+                            <div className='col-md-8'>
+                                {selectedVariant.color.colorName}
+                            </div>
+                        </div>
+                        <div className='row d-flex align-items-center'>
+                            <label className="col-sm-4 col-form-label"><strong>Kích cỡ:</strong></label>
+                            <div className='col-md-8'>
+                                {selectedVariant.size.sizeName}
+                            </div>
+                        </div>
+                        <div className='row d-flex align-items-center'>
+                            <label className="col-sm-4 col-form-label"><strong>Số lượng:</strong></label>
+                            <div className='col-md-8'>
+                                {selectedVariant.quantity}
+                            </div>
+                        </div>
+                        <div className='row d-flex align-items-center'>
+                            <label className="col-sm-4 col-form-label"><strong>Giá:</strong></label>
+                            <div className='col-md-8'>
+                                {selectedVariant.price.toLocaleString('vi-VN')} VND
+                            </div>
+                        </div>
+                        <div className='row d-flex align-items-center'>
+                            <label className="col-sm-4 col-form-label"><strong>Trạng thái:</strong></label>
+                            <div className='col-md-8'>
+                                {selectedVariant.status == 1 ? "Đang bán" : "Hết hàng"}
+                            </div>
+                        </div>
+                        {/* <Form.Group>
                             <Form.Label>
                                 <strong>Màu sắc:</strong>
                             </Form.Label>
@@ -196,8 +228,7 @@ const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colors, siz
                                     setSelectedVariant({ ...selectedVariant, price: e.target.value })
                                 }
                             />
-                        </Form.Group>
-                        <hr />
+                        </Form.Group> */}
                         {/* <button
                             type="button"
                             className="btn btn-gradient-primary btn-sm float-right"
@@ -209,6 +240,8 @@ const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colors, siz
                     </div>
                     <div className="col-lg-4" style={{ textAlign: "center" }}>
                         {/* <QRCodeCanvas value={selectedVariant?.qr ? selectedVariant.qr.toString() : "N/A"} size={100} /> */}
+                        <label>QR code:</label>
+
                         <div ref={qrRef}>
                             <QRCodeCanvas value={selectedVariant?.qr ? selectedVariant.qr.toString() : "N/A"} size={100} />
                         </div>

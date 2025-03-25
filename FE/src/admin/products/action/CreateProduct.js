@@ -574,6 +574,9 @@ const CreateProduct = () => {
                                                         onChange={(e) => setProductName(e.target.value)}
                                                         placeholder='Nhập tên sản phẩm'
                                                         required
+                                                        style={{
+                                                            fontSize: '16px',
+                                                        }}
                                                     />
                                                     {errorMessage && <small style={{ color: "red" }}>{errorMessage}</small>}
                                                 </div>
