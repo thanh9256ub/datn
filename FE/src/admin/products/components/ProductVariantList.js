@@ -14,7 +14,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
             {/* <button type="button" className="btn btn-gradient-primary btn-sm float-right">
                 Thêm biến thể
             </button> */}
-            <div className='table-responsive'>
+            <div className='table-responsive' style={{ maxHeight: '300px', overflowY: 'auto' }}>
                 <table className='table'>
                     <thead>
                         <tr>
