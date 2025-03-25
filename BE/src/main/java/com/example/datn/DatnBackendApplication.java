@@ -9,5 +9,4 @@ public class DatnBackendApplication {
     public static void main(String[] args) {
         SpringApplication.run(DatnBackendApplication.class, args);
     }
-
 }

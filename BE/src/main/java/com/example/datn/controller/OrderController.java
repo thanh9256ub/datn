@@ -15,8 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -82,15 +80,5 @@ public class OrderController {
 
         // Trả về phản hồi
         return ResponseEntity.ok(apiResponse);
-    }
-    @GetMapping("/filter")
-    public List<OrderResponse> filterOrders(
-            @RequestParam(required = false) String orderCode,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) LocalDateTime startDate,
-            @RequestParam(required = false) LocalDateTime endDate,
-            @RequestParam(required = false) Integer status) { // Thêm status
-        return service.filterOrders(orderCode, minPrice, maxPrice, startDate, endDate, status);
     }
 }

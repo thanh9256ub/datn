@@ -4,15 +4,14 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Data
+@Setter
+@Getter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RoleResponse {
+public class IntrospectResponse {
 
-     Integer id;
-
-     String roleName;
-
-     String status;
+    boolean valid;
 
 }

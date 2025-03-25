@@ -67,4 +67,5 @@ public class CustomerResponse {
                     this.address = addressDetail.getCity();
             }
     }
+
 }

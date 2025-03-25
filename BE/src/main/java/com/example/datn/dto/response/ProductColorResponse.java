@@ -21,4 +21,5 @@ public class ProductColorResponse {
     Color color;
 
     String description;
+
 }

@@ -18,4 +18,5 @@ public class ImageResponse {
     ProductColor productColor;
 
     String image;
+
 }

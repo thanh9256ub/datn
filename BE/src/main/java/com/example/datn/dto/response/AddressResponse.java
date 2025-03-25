@@ -18,7 +18,6 @@ import java.time.format.DateTimeFormatter;
 
 public class AddressResponse {
 
-
     Integer id;
 
     String city;

@@ -24,4 +24,5 @@ public class Brand {
 
     @Column(name = "description")
     String description;
+
 }

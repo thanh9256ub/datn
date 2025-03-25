@@ -17,4 +17,5 @@ public class AuthenticationResponse {
     String fullName;
 
     String role;
+
 }

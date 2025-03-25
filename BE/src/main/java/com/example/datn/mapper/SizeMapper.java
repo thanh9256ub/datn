@@ -20,5 +20,4 @@ public interface SizeMapper {
 
     @Mapping(target = "id", ignore = true)
     void updateSize(@MappingTarget Size size, SizeRequest request);
-
 }

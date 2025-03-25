@@ -1,18 +1,16 @@
-package com.example.datn.dto.response;
+package com.example.datn.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Data
+@Setter
+@Getter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RoleResponse {
+public class IntrospectRequest {
 
-     Integer id;
-
-     String roleName;
-
-     String status;
-
+    String token;
 }

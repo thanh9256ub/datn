@@ -2,7 +2,6 @@ package com.example.datn.service;
 
 import com.example.datn.dto.request.OrderDetailRequest;
 import com.example.datn.dto.response.OrderDetailResponse;
-import com.example.datn.entity.Order;
 import com.example.datn.entity.OrderDetail;
 import com.example.datn.entity.ProductDetail;
 import com.example.datn.mapper.OrderDetailMapper;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 
@@ -52,10 +50,6 @@ public class OrderDetailService {
 
     @Autowired
     private ProductDetailRepository productDetailRepository;
-    public List<OrderDetailResponse> getOrderDetailsByOrderId(Integer orderId) {
-        List<OrderDetail> orderDetails = repository.findByOrderId(orderId);
-        return mapper.toListResponses(orderDetails);
-    }
 @Autowired
 private ProductDetailService productDetailService;
 
@@ -119,5 +113,4 @@ private ProductDetailService productDetailService;
         repository.save(orderDetail);
         return mapper.toOrderDetailResponse(orderDetail);
     }
-
 }

@@ -21,7 +21,6 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderRequest {
 
-
     String orderCode;
 
     Integer  customer_id;
