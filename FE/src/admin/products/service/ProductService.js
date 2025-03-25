@@ -5,8 +5,6 @@ const BASE_URL = 'http://localhost:8080/products';
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/your-cloud-name/image/upload';
 
 export const getProducts = (page, size) => {
-    // let token = localStorage.getItem('token');
-    // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     return axios.get(`${BASE_URL}?page=${page}&size=${size}`);
 };
 
@@ -23,27 +21,15 @@ export const uploadImageToCloudinary = async (imageFile) => {
     formData.append("cloud_name", "dgj9htnpn");
 
     try {
-        // const response = await axios.post('https://api.cloudinary.com/v1_1/dgj9htnpn/image/upload', formData, {
-        //     headers: {
-        //         'Content-Type': 'multipart/form-data',
-        //     }
-        // });
-
-        // if (response.status === 200) {
-        //     console.log("Ảnh tải lên thành công:", response.data.secure_url);
-        //     return response.data.secure_url;
-        // }
-        const response = await fetch('https://api.cloudinary.com/v1_1/dgj9htnpn/image/upload', {
-            method: "POST",
-            body: formData,
+        const response = await axios.post('https://api.cloudinary.com/v1_1/dgj9htnpn/image/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            }
         });
 
-        const data = await response.json();
-        if (response.ok) {
-            console.log("Ảnh tải lên thành công:", data.secure_url);
-            return data.secure_url;
+        if (response.status === 200) {
+            return response.data.secure_url;
         }
-
     } catch (error) {
         console.error("Lỗi khi tải ảnh lên Cloudinary:", error);
         alert("Có lỗi xảy ra khi tải ảnh lên Cloudinary.");
@@ -51,11 +37,8 @@ export const uploadImageToCloudinary = async (imageFile) => {
     }
 };
 
-export const createProduct = async (product) => {
-    // let token = localStorage.getItem('token');
-    // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    const response = await axios.post(`${BASE_URL}/add`, product);
-    return response.data
+export const createProduct = (product) => {
+    return axios.post(`${BASE_URL}/add`, product);
 }
 
 

@@ -33,20 +33,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         try {
-            httpSecurity
-                    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                    .csrf(AbstractHttpConfigurer::disable)
-                    .authorizeHttpRequests(request -> request
-                            .requestMatchers("/auth/token",
-                                    "auth/introspect")
-                            .permitAll()
-                            .requestMatchers("/address/**", "/role/**")
-                            .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")
-                            .requestMatchers(
-                                    "/customer/**")
-                            .hasAnyRole("EMPLOYEE", "ADMIN")
-                            .anyRequest().hasRole("ADMIN")
-                    ).addFilterBefore(new RequestLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
+            httpSecurity.authorizeHttpRequests(request -> request
+                    .requestMatchers("/auth/token",
+                            "auth/introspect")
+                    .permitAll()
+                    .requestMatchers("/address/**", "/role/**")
+                    .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")
+                    .requestMatchers(
+                            "/customer/**")
+                    .hasAnyRole("EMPLOYEE", "ADMIN")
+                    .anyRequest().hasRole("ADMIN")
+            ).addFilterBefore(new RequestLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
 
             httpSecurity.oauth2ResourceServer(oauth2 ->
                     oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
@@ -95,11 +92,9 @@ public class SecurityConfig {
     @Bean
     UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://127.0.0.1:3000", "http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of("*", "http://127.0.0.1:3000"));
         configuration.setAllowedMethods(List.of("*"));
         configuration.addAllowedHeader("*");
-        configuration.setAllowCredentials(true);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
