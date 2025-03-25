@@ -4,12 +4,8 @@ const BASE_URL = 'http://localhost:8080/products';
 
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/your-cloud-name/image/upload';
 
-export const getProducts = (page, size) => {
-    return axios.get(`${BASE_URL}?page=${page}&size=${size}`);
-};
-
-export const getProductList = () => {
-    return axios.get(`${BASE_URL}/list`);
+export const getProducts = () => {
+    return axios.get(BASE_URL);
 }
 
 const PCOLOR_URL = 'http://localhost:8080/product-color';
@@ -28,7 +24,7 @@ export const uploadImageToCloudinary = async (imageFile) => {
         });
 
         if (response.status === 200) {
-            return response.data.secure_url;
+            return response.data.secure_url; // Trả về URL ảnh sau khi upload lên Cloudinary
         }
     } catch (error) {
         console.error("Lỗi khi tải ảnh lên Cloudinary:", error);
@@ -61,28 +57,5 @@ export const getProductColorsByProductId = (productId) => {
 export const getImagesByProductColor = (productColorId) => {
     return axios.get(`${PCOLOR_URL}/${productColorId}/images`)
 }
-
-export const getActiveProducts = () => {
-    return axios.get(`${BASE_URL}/active`)
-}
-
-export const getInactiveProducts = () => {
-    return axios.get(`${BASE_URL}/inactive`)
-}
-
-export const searchProducts = (filters, page, size) => {
-    const params = new URLSearchParams();
-
-    if (filters.name) params.append("name", filters.name);
-    if (filters.brandId) params.append("brandId", filters.brandId);
-    if (filters.categoryId) params.append("categoryId", filters.categoryId);
-    if (filters.materialId) params.append("materialId", filters.materialId);
-    if (filters.status !== '') params.append("status", filters.status);
-
-    params.append("page", page);
-    params.append("size", size);
-
-    return axios.get(`${BASE_URL}/search?${params.toString()}`);
-};
 
 

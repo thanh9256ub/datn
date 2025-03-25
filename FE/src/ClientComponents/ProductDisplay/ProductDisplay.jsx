@@ -1,37 +1,36 @@
 import React, { useContext, useState, useEffect } from 'react';
 import './ProductDisplay.css';
+import star_icon from "../Assets/star_icon.png";
+import star_dull_icon from "../Assets/star_dull_icon.png";
 import { ShopContext } from '../Context/ShopContext';
-import { fetchSizesByColor, fetchImagesByProductColor } from '../Service/productService'; // Dùng API đã được tạo
+import { fetchImagesByProductColor } from '../Service/productService';
 
 const ProductDisplay = (props) => {
     const { product, productColors } = props;
     const { addToCart } = useContext(ShopContext);
-    const [selectedColorId, setSelectedColorId] = useState(null); // Lưu colorId
-    const [selectedProductColorId, setSelectedProductColorId] = useState(null); // Lưu productColorId
+    const [selectedColor, setSelectedColor] = useState(null);
     const [images, setImages] = useState([]);
     const [loadingImages, setLoadingImages] = useState(false);
-    const [sizes, setSizes] = useState([]); // State để lưu trữ các size theo màu
-    const [selectedSize, setSelectedSize] = useState(null); // State để lưu trữ size đã chọn
 
     // Mặc định chọn màu đầu tiên khi component được render
     useEffect(() => {
-        if (productColors.length > 0 && !selectedColorId) {
+        if (productColors.length > 0 && !selectedColor) {
             const defaultColor = productColors[0]; // Chọn màu đầu tiên
-            setSelectedColorId(defaultColor.color.id); // Lưu colorId
-            setSelectedProductColorId(defaultColor.id); // Lưu productColorId
+            setSelectedColor(defaultColor);
         }
-    }, [productColors, selectedColorId]);
+    }, [productColors, selectedColor]);
 
-    // Fetch hình ảnh khi selectedProductColorId thay đổi
+    // Fetch hình ảnh khi selectedColor thay đổi
     useEffect(() => {
         const fetchImages = async () => {
-            if (selectedProductColorId) {
+            if (selectedColor) {
                 setLoadingImages(true);
                 setImages([]); // Xóa ảnh cũ trước khi tải mới
                 try {
-                    console.log("Fetching images for productColorId:", selectedProductColorId);
-                    const imageResponse = await fetchImagesByProductColor(selectedProductColorId); // Sử dụng productColorId
+                    console.log("Fetching images for color ID:", selectedColor.id);
+                    const imageResponse = await fetchImagesByProductColor(selectedColor.id);
                     console.log("Images fetched:", imageResponse);
+                    // Đảm bảo imageResponse là mảng và có trường image
                     if (Array.isArray(imageResponse) && imageResponse.every(img => img.image)) {
                         setImages([...imageResponse]); // Tạo bản sao mới để buộc re-render
                     } else {
@@ -40,38 +39,17 @@ const ProductDisplay = (props) => {
                     }
                 } catch (error) {
                     console.error('Error fetching images:', error);
-                    setImages([]); // Xử lý lỗi
+                    setImages([]);
                 } finally {
                     setLoadingImages(false);
                 }
             } else {
-                setImages([]); // Nếu không có màu, xóa ảnh
+                setImages([]);
             }
         };
-
 
         fetchImages();
-    }, [selectedProductColorId]);
-
-    // Fetch size khi selectedColorId thay đổi
-    useEffect(() => {
-        const fetchSizes = async () => {
-            if (selectedColorId) {
-                try {
-                    console.log("Fetching sizes for color ID:", selectedColorId);
-                    const sizeResponse = await fetchSizesByColor(product.id, selectedColorId); // Gọi API theo colorId
-                    console.log("Sizes fetched:", sizeResponse);
-                    setSizes(sizeResponse);
-                    setSelectedSize(sizeResponse.length > 0 ? sizeResponse[0].id : null); // Mặc định chọn size đầu tiên
-                } catch (error) {
-                    console.error('Error fetching sizes:', error);
-                    setSizes([]); // Nếu có lỗi, đặt sizes về mảng rỗng
-                }
-            }
-        };
-
-        fetchSizes();
-    }, [selectedColorId, product.id]);
+    }, [selectedColor]);
 
     if (!product) {
         return <div>Product not found</div>;
@@ -80,16 +58,10 @@ const ProductDisplay = (props) => {
     const colors = productColors.length > 0 ? [...new Set(productColors.map(color => color.color.colorName))] : [];
     const price = product.price !== undefined ? product.price : 0;
 
-    const handleColorSelect = (colorId, productColorId) => {
-        console.log("Selected color ID:", colorId);
-        setSelectedColorId(colorId); // Lưu colorId (ID màu)
-        setSelectedProductColorId(productColorId); // Lưu productColorId (ID màu sản phẩm)
-    };
-
-
-    const handleSizeSelect = (sizeId) => {
-        console.log("Selected size ID:", sizeId);  // Log để kiểm tra
-        setSelectedSize(sizeId); // Cập nhật selectedSize
+    const handleColorSelect = (colorName) => {
+        const selected = productColors.find(color => color.color.colorName === colorName);
+        console.log("Selected color:", selected);
+        setSelectedColor(selected); // Cập nhật selectedColor
     };
 
     return (
@@ -100,10 +72,15 @@ const ProductDisplay = (props) => {
                         <div>Loading images...</div>
                     ) : images.length > 0 ? (
                         images.slice(0, 4).map((image, index) => (
-                            <img key={index} src={image.image} alt={`Color ${selectedProductColorId}`} />
+                            <img key={index} src={image.image} alt={`Color ${selectedColor?.color.colorName}`} />
                         ))
                     ) : (
-                        <img src={product.image} alt={product.name} />
+                        <>
+                            <img src={product.image} alt="" />
+                            <img src={product.image} alt="" />
+                            <img src={product.image} alt="" />
+                            <img src={product.image} alt="" />
+                        </>
                     )}
                 </div>
                 <div className="productdisplay-img">
@@ -125,40 +102,34 @@ const ProductDisplay = (props) => {
                 <div className="productdisplay-right-color">
                     <h1>Select Color</h1>
                     <div className="productdisplay-right-colors">
-                        {productColors.length > 0 ? (
-                            productColors.map((productColor, index) => (
+                        {colors.length > 0 ? (
+                            colors.map((color, index) => (
                                 <button
                                     key={index}
-                                    onClick={() => handleColorSelect(productColor.color.id, productColor.id)} // Lưu cả colorId và productColorId
-                                    className={selectedColorId === productColor.color.id ? 'selected' : ''}
+                                    onClick={() => handleColorSelect(color)}
+                                    className={selectedColor?.color.colorName === color ? 'selected' : ''}
                                 >
-                                    {productColor.color.colorName} {/* Hiển thị tên màu */}
+                                    {color}
                                 </button>
                             ))
                         ) : (
-                            <button>Grey</button>
+                            <>
+                                <button>Grey</button>
+                                <button>White</button>
+                                <button>Black</button>
+                            </>
                         )}
                     </div>
                 </div>
                 <div className="productdisplay-right-size">
                     <h1>Select Size</h1>
                     <div className="productdisplay-right-sizes">
-                        {sizes.length > 0 ? (
-                            sizes.map((size, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => handleSizeSelect(size.id)}
-                                    className={selectedSize === size.id ? 'selected' : ''}
-                                >
-                                    {size.sizeName}
-                                </button>
-                            ))
-                        ) : (
-                            <p>No sizes available</p>
-                        )}
+                        <button>S</button>
+                        <button>M</button>
+                        <button>L</button>
                     </div>
                 </div>
-                <button className='add-to-card' onClick={() => { addToCart(product.id, selectedProductColorId, selectedSize) }}>
+                <button className='add-to-card' onClick={() => { addToCart(product.id) }}>
                     ADD TO CART
                 </button>
                 <p className='productdisplay-right-category'><span>Category:</span>{productColors[0]?.product.category.categoryName || "Unknown"}</p>

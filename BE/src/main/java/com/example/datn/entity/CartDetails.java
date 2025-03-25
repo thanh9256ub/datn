@@ -1,6 +1,12 @@
 package com.example.datn.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,36 +21,30 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "cart_detail")
+@Table(name = "chi_tiet_gio_hang")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
 public class CartDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "cart_id")
-    Cart cart;
+    @JoinColumn(name = "id_gio_hang")
+    Cart gioHang;
 
     @ManyToOne
-    @JoinColumn(name = "product_detail_id")
+    @JoinColumn(name = "id_chi_tiet_san_pham")
     ProductDetail productDetail;
 
-    @Column(name = "quantity")
-    Integer quantity;
+    Integer so_luong;
 
-    @Column(name = "price")
-    Double price;
+    Double gia;
 
-    @Column(name = "total_price")
-    Double total_price;
+    Double tong_tien;
 
-    @Column(name = "created_at")
-    LocalDateTime created_at;
+    LocalDateTime ngay_tao;
 
-    @Column(name = "updated_at")
-    LocalDateTime updated_at;
-
+    LocalDateTime ngay_cap_nhat;
 }
