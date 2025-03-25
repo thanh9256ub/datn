@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface ProductDetailRepository extends JpaRepository<ProductDetail,Integer> {
     List<ProductDetail> findByProductId(Integer productId);
-
+    public List<ProductDetail> findByProductIdAndColorId(Integer productId, Integer colorId);
     @Query("SELECT COALESCE(SUM(pd.quantity), 0) FROM ProductDetail pd WHERE pd.product.id = :productId")
     Integer sumQuantityByProductId(@Param("productId") Integer productId);
 }
