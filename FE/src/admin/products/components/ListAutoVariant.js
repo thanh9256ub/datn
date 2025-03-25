@@ -2,15 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Button, Form, Spinner } from 'react-bootstrap';
 import { QRCodeCanvas } from "qrcode.react";
 import { FaImage } from "react-icons/fa";
+import { useParams } from 'react-router-dom/cjs/react-router-dom.min';
+import { AlertCircle } from 'lucide-react';
 
-const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handleRemoveVariant, setHasError, onImagesSelected }) => {
+const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handleRemoveVariant, onImagesSelected, colorImages, errors }) => {
 
+    const { id } = useParams();
     const [loading, setLoading] = useState(true);
     const [isFirstLoad, setIsFirstLoad] = useState(true);
-    const [errors, setErrors] = useState({
-        quantity: [],
-        price: []
-    });
 
     useEffect(() => {
         if (isFirstLoad && variantList.length > 0) {
@@ -22,20 +21,6 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
             return () => clearTimeout(timeout);
         }
     }, [isFirstLoad, variantList]);
-
-    const validateInput = (value, type, index) => {
-        let newErrors = { ...errors };
-
-        if (type === "quantity") {
-            newErrors.quantity[index] = (value < 0 || isNaN(value) || value === "") ? "Số lượng không hợp lệ!" : "";
-        } else if (type === "price") {
-            newErrors.price[index] = (value < 0 || isNaN(value) || value === "") ? "Giá không hợp lệ!" : "";
-        }
-
-        setErrors(newErrors);
-        const hasError = newErrors.quantity.some((error) => error) || newErrors.price.some((error) => error);
-        setHasError(hasError);
-    };
 
     const colorGroups = variantList.reduce((acc, variant) => {
         const colorName = typeof variant.color === "object" ? variant.color.colorName : variant.color;
@@ -50,29 +35,6 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
 
         return acc;
     }, {});
-
-    console.log("Nhóm theo màu sắc:", colorGroups);
-
-    // const handleReplaceImage = (index) => {
-    //     const fileInput = document.createElement("input");
-    //     fileInput.type = "file";
-    //     fileInput.accept = "image/*";
-    //     fileInput.multiple = true; // Cho phép chọn nhiều ảnh
-
-    //     fileInput.onchange = (e) => {
-    //         const files = Array.from(e.target.files);
-    //         if (files.length > 0) {
-    //             const imageUrls = files.map((file) => URL.createObjectURL(file));
-
-    //             setVariantList((prevVariants) => {
-    //                 const newVariants = [...prevVariants];
-    //                 newVariants[index].imageUrls = imageUrls;
-    //                 return newVariants;
-    //             });
-    //         }
-    //     };
-    //     fileInput.click();
-    // };
 
     return (
         <div>
@@ -96,13 +58,16 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                 <th>Số lượng</th>
                                 <th>Giá</th>
                                 <th>QR Code</th>
-                                <th>Thao tác</th>
+                                {id ? (<th></th>) : (
+                                    <th>Thao tác</th>
+                                )}
                             </tr>
                         </thead>
                         <tbody>
                             {Object.entries(colorGroups).map(([colorName, variants]) =>
                                 variants.map((variant, index) => {
                                     const originalIndex = variantList.indexOf(variant);
+                                    // const originalIndex = variantList.findIndex(v => v.colorId === variant.colorId && v.sizeId === variant.sizeId);
 
                                     return (
                                         <tr key={`${colorName}-${index}`}>
@@ -149,8 +114,8 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                                     />
                                                 </td>
                                             )}
-                                            {index === 0 && <td rowSpan={variants.length}>{colorName}</td>}
-
+                                            {/* {index === 0 && <td rowSpan={variants.length}>{colorName}</td>} */}
+                                            <td>{colorName}</td>
                                             <td>{variant.size?.sizeName || variant.size}</td>
                                             <td>
                                                 <Form.Control
@@ -159,14 +124,9 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                                     min={0}
                                                     onChange={(e) => {
                                                         handleInputChange(originalIndex, 'quantity', e.target.value);
-                                                        validateInput(e.target.value, 'quantity', originalIndex);
                                                     }}
-                                                    isInvalid={errors.quantity[originalIndex]}
                                                     style={{ width: '150px' }}
                                                 />
-                                                <Form.Control.Feedback type="invalid">
-                                                    {errors.quantity[originalIndex]}
-                                                </Form.Control.Feedback>
                                             </td>
                                             <td>
                                                 <Form.Control
@@ -175,33 +135,31 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                                     min={0}
                                                     onChange={(e) => {
                                                         handleInputChange(originalIndex, 'price', e.target.value);
-                                                        validateInput(e.target.value, 'price', originalIndex);
                                                     }}
-                                                    isInvalid={errors.price[originalIndex]}
                                                     style={{ width: '150px' }}
-
                                                 />
-                                                <Form.Control.Feedback type="invalid">
-                                                    {errors.price[originalIndex]}
-                                                </Form.Control.Feedback>
                                             </td>
                                             <td>
                                                 {variant.qr ? (
-                                                    <QRCodeCanvas value={variant.qrCode} size={80} />
+                                                    <QRCodeCanvas value={variant.qr.toString()} size={50} />
                                                 ) : (
                                                     <span className="text-muted">Chưa có QR</span>
                                                 )}
                                             </td>
-                                            <td>
-                                                <button className="btn btn-outline-secondary btn-sm btn-rounded btn-icon"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        handleRemoveVariant(originalIndex);
-                                                    }}
-                                                >
-                                                    <i className='mdi mdi-minus-circle-outline'></i>
-                                                </button>
-                                            </td>
+                                            {id ? (
+                                                (<td></td>)
+                                            ) : (
+                                                <td>
+                                                    <button className="btn btn-outline-dark btn-sm btn-rounded btn-icon"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            handleRemoveVariant(originalIndex);
+                                                        }}
+                                                    >
+                                                        <i className='mdi mdi-delete'></i>
+                                                    </button>
+                                                </td>
+                                            )}
                                         </tr>
                                     );
                                 })

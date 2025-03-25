@@ -15,6 +15,7 @@ import all_banner from './Assets/shoes_banner4.png'
 import ShopAllProduct from './Pages/ShopAllProduct.jsx';
 
 const Client = () => {
+   
     return (
         <div>
             <Navbar />
@@ -28,6 +29,7 @@ const Client = () => {
                 <Route path="/cart" component={Cart} />
                 <Route path="/signup" component={Signup} />
                 <Route path="/login" component={Login} />
+                
             </Switch>
             <Footer />
         </div>
