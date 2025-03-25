@@ -39,7 +39,6 @@ public class AddressService {
     }
 
     public AddressResponse creaAddress(AddressRequest addressRequest) {
-
         Address address = addressMapper.toAddress(addressRequest);
         address.setCreatedAt(LocalDateTime.now());
         address.setUpdatedAt(LocalDateTime.now());
@@ -57,7 +56,6 @@ public class AddressService {
             address.setStatus(1);
             addressRepository.save(oldDefaultAddress);
         }
-
         Address created = addressRepository.save(address);
         return new AddressResponse(created);
 

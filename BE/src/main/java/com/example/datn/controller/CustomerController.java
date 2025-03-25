@@ -1,6 +1,7 @@
 package com.example.datn.controller;
 
 import com.example.datn.dto.request.CustomerRequest;
+import com.example.datn.dto.response.ApiPagingResponse;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.CustomerResponse;
 import com.example.datn.service.CustomerService;
@@ -37,15 +38,13 @@ public class CustomerController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CustomerResponse>>> getAll() {
+    public ResponseEntity<ApiPagingResponse<List<CustomerResponse>>> getAll(
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "page", defaultValue = "0") Integer page) {
 
-        List<CustomerResponse> list = customerService.getAll();
+        int pageSize = 3;
 
-        ApiResponse<List<CustomerResponse>> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Customer retrieved successfully",
-                list
-        );
+        ApiPagingResponse<List<CustomerResponse>> response = customerService.getAll(search, page, pageSize);
 
         return ResponseEntity.ok(response);
     }
