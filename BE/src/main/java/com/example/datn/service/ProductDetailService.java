@@ -12,7 +12,6 @@ import com.example.datn.repository.ProductRepository;
 import com.example.datn.repository.ColorRepository;
 import com.example.datn.repository.ProductDetailRepository;
 import com.example.datn.repository.SizeRepository;
-//import com.example.datn.utils.QRCodeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,8 +42,7 @@ public class ProductDetailService {
     public List<ProductDetailResponse> getProductDetailsByProductId(Integer productId) {
 
         productRepository.findById(productId).orElseThrow(
-                () -> new ResourceNotFoundException("Product not found with ID: ")
-        );
+                () -> new ResourceNotFoundException("Product not found with ID: "));
 
         List<ProductDetail> productDetails = repository.findByProductId(productId);
 
@@ -54,18 +52,15 @@ public class ProductDetailService {
     public List<ProductDetailResponse> createProductDetails(Integer productId, List<ProductDetailRequest> requests) {
 
         Product product = productRepository.findById(productId).orElseThrow(
-                () -> new ResourceNotFoundException("Product not found with ID: ")
-        );
+                () -> new ResourceNotFoundException("Product not found with ID: "));
 
         List<ProductDetail> productDetailList = requests.stream().map(request -> {
 
             Color color = colorRepository.findById(request.getColorId()).orElseThrow(
-                    () -> new ResourceNotFoundException("Color not found with ID: ")
-            );
+                    () -> new ResourceNotFoundException("Color not found with ID: "));
 
             Size size = sizeRepository.findById(request.getSizeId()).orElseThrow(
-                    () -> new ResourceNotFoundException("Size not found with ID: ")
-            );
+                    () -> new ResourceNotFoundException("Size not found with ID: "));
 
             ProductDetail productDetail = mapper.toProductDetail(request);
 
@@ -88,21 +83,22 @@ public class ProductDetailService {
         return mapper.toListProductDetail(productDetailList);
     }
 
-    //    public ProductDetailResponse updateQR(Integer pdId) {
-//        ProductDetail productDetail = repository.findById(pdId)
-//                .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + pdId));
-//
-//        try {
-//            String qrCodeData = "" + pdId;
-//            String qrCodeBase64 = QRCodeUtil.generateQRCode(qrCodeData);
-//            productDetail.setQr(qrCodeBase64);
-//            repository.save(productDetail);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        return mapper.toProductDetailResponse(productDetail);
-//    }
+    // public ProductDetailResponse updateQR(Integer pdId) {
+    // ProductDetail productDetail = repository.findById(pdId)
+    // .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found
+    // with ID: " + pdId));
+    //
+    // try {
+    // String qrCodeData = "" + pdId;
+    // String qrCodeBase64 = QRCodeUtil.generateQRCode(qrCodeData);
+    // productDetail.setQr(qrCodeBase64);
+    // repository.save(productDetail);
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // }
+    //
+    // return mapper.toProductDetailResponse(productDetail);
+    // }
     public ProductDetailResponse updateQR(Integer pdId) {
         ProductDetail productDetail = repository.findById(pdId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + pdId));
@@ -114,14 +110,12 @@ public class ProductDetailService {
         return mapper.toProductDetailResponse(productDetail);
     }
 
-
     public void updateTotalQuantity(Integer productId) {
 
         Integer updatedTotalQuantity = repository.sumQuantityByProductId(productId);
 
         Product product = productRepository.findById(productId).orElseThrow(
-                () -> new ResourceNotFoundException("Product not found with ID: " + productId)
-        );
+                () -> new ResourceNotFoundException("Product not found with ID: " + productId));
 
         product.setTotalQuantity(updatedTotalQuantity);
         product.setStatus(updatedTotalQuantity > 0 ? 1 : 0);
@@ -146,7 +140,8 @@ public class ProductDetailService {
 
         if (request.getColorId() != null) {
             Color color = colorRepository.findById(request.getColorId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Color not found with ID: " + request.getColorId()));
+                    .orElseThrow(
+                            () -> new ResourceNotFoundException("Color not found with ID: " + request.getColorId()));
             productDetail.setColor(color);
         }
 
@@ -163,17 +158,14 @@ public class ProductDetailService {
         return mapper.toProductDetailResponse(productDetail);
     }
 
-
     public List<ProductDetailResponse> updateProductDetails(Integer productId, List<ProductDetailRequest> requests) {
 
         Product product = productRepository.findById(productId).orElseThrow(
-                () -> new ResourceNotFoundException("Product not found with ID: " + productId)
-        );
+                () -> new ResourceNotFoundException("Product not found with ID: " + productId));
 
         List<ProductDetail> updatedDetails = requests.stream().map(request -> {
             ProductDetail productDetail = repository.findById(request.getId()).orElseThrow(
-                    () -> new ResourceNotFoundException("Product Detail not found with ID: " + request.getId())
-            );
+                    () -> new ResourceNotFoundException("Product Detail not found with ID: " + request.getId()));
 
             productDetail.setQuantity(request.getQuantity());
             productDetail.setStatus(request.getStatus());

@@ -1,39 +1,12 @@
-import React, { useEffect, useState } from 'react'
-import { createCategory, getCategories } from '../service/CategoryService';
+import React, { useState } from 'react'
+import { createCategory } from '../service/CategoryService';
 import { Button, Form, Modal } from 'react-bootstrap';
-import Select from 'react-select';
+import CategorySelect from '../select/CategorySelect';
 
-const CategorySelect = ({ categoryId, setCategoryId }) => {
-    const [categoryOptions, setCategoryOptions] = useState([]);
+const CategoryContainer = ({ categoryId, setCategoryId }) => {
     const [showModal, setShowModal] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState(null);
-
-    useEffect(() => {
-        fetchCategorys();
-    }, [categoryId]);
-
-    const handleCategoryChange = (selectedOption) => {
-        setSelectedCategory(selectedOption);
-        setCategoryId(selectedOption ? selectedOption.value : "");
-    };
-
-    const fetchCategorys = async () => {
-        try {
-            const response = await getCategories();
-            const formattedCategorys = response.data.data.map((category) => ({
-                value: category.id,
-                label: category.categoryName,
-            }));
-            setCategoryOptions(formattedCategorys);
-
-            if (categoryId) {
-                setSelectedCategory(formattedCategorys.find((b) => b.value === categoryId));
-            }
-        } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
-        }
-    };
+    const [refresh, setRefresh] = useState(false);
 
     const handleAddCategory = async () => {
         if (!newCategoryName.trim()) {
@@ -46,7 +19,7 @@ const CategorySelect = ({ categoryId, setCategoryId }) => {
             alert("Thêm danh mục thành công!");
             setShowModal(false);
             setNewCategoryName("");
-            fetchCategorys();
+            setRefresh(prev => !prev);
         } catch (error) {
             console.error("Lỗi khi thêm danh mục:", error);
             alert("Lỗi khi thêm danh mục!");
@@ -58,13 +31,7 @@ const CategorySelect = ({ categoryId, setCategoryId }) => {
             <Form.Group className="row d-flex align-items-center">
                 <label className="col-sm-3 col-form-label">Danh mục:</label>
                 <div className='col-md-7'>
-                    <Select
-                        options={categoryOptions}
-                        value={selectedCategory}
-                        onChange={handleCategoryChange}
-                        isClearable
-                        placeholder="Chọn danh mục..."
-                    />
+                    <CategorySelect categoryId={categoryId} setCategoryId={setCategoryId} refresh={refresh} />
                 </div>
                 <div className="col-sm-2">
                     <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon" onClick={() => setShowModal(true)}>
@@ -72,6 +39,7 @@ const CategorySelect = ({ categoryId, setCategoryId }) => {
                     </button>
                 </div>
             </Form.Group>
+
             <Modal show={showModal} onHide={() => setShowModal(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Thêm Danh Mục</Modal.Title>
@@ -99,4 +67,4 @@ const CategorySelect = ({ categoryId, setCategoryId }) => {
     )
 }
 
-export default CategorySelect
+export default CategoryContainer

@@ -41,17 +41,17 @@ public class AuthenticationService {
     @Value("${jwt.signerKey}")
     protected String SIGNER_KEY;
 
-    public AuthenticationResponse authentication(AuthenticationRequest authenticationRequest) throws AuthenticationException {
+    public AuthenticationResponse authentication(AuthenticationRequest authenticationRequest)
+            throws AuthenticationException {
 
         var employee = employeeRepository.findByUsername(authenticationRequest.getUsername()).orElseThrow(
-                () -> new AuthenticationException("Employee not existed.")
-        );
+                () -> new AuthenticationException("Employee not existed."));
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
 
         boolean authentiated = passwordEncoder.matches(authenticationRequest.getPassword(),
                 employee.getPassword());
-//                "$2a$10$m3Dp6sBrBrUr2ZfOcCFxBefZL0QA2C2h7Zm95DsnH3wkz81CulfjC");
+        // "$2a$10$m3Dp6sBrBrUr2ZfOcCFxBefZL0QA2C2h7Zm95DsnH3wkz81CulfjC");
 
         if (!authentiated) {
             throw new AuthenticationException("Unauthenticated");
@@ -76,15 +76,13 @@ public class AuthenticationService {
                 .issuer("hien.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(9, ChronoUnit.HOURS).toEpochMilli()
-                ))
+                        Instant.now().plus(9, ChronoUnit.HOURS).toEpochMilli()))
                 .claim("roles", List.of(roleName))
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
 
         JWSObject jwsObject = new JWSObject(header, payload);
-
 
         try {
             jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
@@ -112,8 +110,5 @@ public class AuthenticationService {
                 .valid(verified && expityTime.after(new Date()))
                 .build();
     }
-<<<<<<< HEAD
 
-=======
->>>>>>> parent of bc73950 (Revert "Merge branch 'main' into thanh")
 }

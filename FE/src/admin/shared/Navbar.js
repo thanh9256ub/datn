@@ -46,7 +46,7 @@ class Navbar extends Component {
           <ul className="navbar-nav navbar-nav-right">
             <li className="nav-item nav-profile">
               <Dropdown alignRight>
-                <Dropdown.Toggle className="nav-link"> 
+                <Dropdown.Toggle className="nav-link">
                   <div className="nav-profile-img">
                     <img src={require("../../assets/images/faces/face1.jpg")} alt="user" />
                     <span className="availability-status online"></span>

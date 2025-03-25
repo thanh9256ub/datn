@@ -1,40 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Form, Modal, Button } from 'react-bootstrap';
-import { createMaterial, getMaterials } from '../service/MaterialService';
-import Select from 'react-select';
+import { createMaterial } from '../service/MaterialService';
+import MaterialSelect from '../select/MaterialSelect';
 
-const MaterialSelect = ({ materialId, setMaterialId }) => {
-    const [materialOptions, setMaterialOptions] = useState([]);
+const MaterialContainer = ({ materialId, setMaterialId }) => {
     const [showModal, setShowModal] = useState(false);
     const [newMaterialName, setNewMaterialName] = useState("");
-    const [selectedMaterial, setSelectedMaterial] = useState(null);
-
-    useEffect(() => {
-        fetchMaterials();
-    }, [materialId]);
-
-    const handleMaterialChange = (selectedOption) => {
-        setSelectedMaterial(selectedOption);
-        setMaterialId(selectedOption ? selectedOption.value : "");
-    };
-
-    const fetchMaterials = async () => {
-        try {
-            const response = await getMaterials();
-            const formattedMaterials = response.data.data.map((material) => ({
-                value: material.id,
-                label: material.materialName,
-            }));
-            setMaterialOptions(formattedMaterials);
-
-            if (materialId) {
-                setSelectedMaterial(formattedMaterials.find((b) => b.value === materialId));
-            }
-        } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
-        }
-    };
-
+    const [refresh, setRefresh] = useState(false);
 
     const handleAddMaterial = async () => {
         if (!newMaterialName.trim()) {
@@ -47,7 +19,7 @@ const MaterialSelect = ({ materialId, setMaterialId }) => {
             alert("Thêm chất liệu thành công!");
             setShowModal(false);
             setNewMaterialName("");
-            fetchMaterials();
+            setRefresh(prev => !prev);
         } catch (error) {
             console.error("Lỗi khi thêm chất liệu:", error);
             alert("Lỗi khi thêm chất liệu!");
@@ -60,13 +32,7 @@ const MaterialSelect = ({ materialId, setMaterialId }) => {
             <Form.Group className="row d-flex align-items-center">
                 <label className="col-sm-3 col-form-label">Chất liệu:</label>
                 <div className="col-sm-7">
-                    <Select
-                        options={materialOptions}
-                        value={selectedMaterial}
-                        onChange={handleMaterialChange}
-                        isClearable
-                        placeholder="Chọn thương hiệu..."
-                    />
+                    <MaterialSelect materialId={materialId} setMaterialId={setMaterialId} refresh={refresh} />
                 </div>
                 <div className="col-sm-2">
                     <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon" onClick={() => setShowModal(true)}>
@@ -74,6 +40,7 @@ const MaterialSelect = ({ materialId, setMaterialId }) => {
                     </button>
                 </div>
             </Form.Group>
+
             <Modal show={showModal} onHide={() => setShowModal(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Thêm Chất Liệu</Modal.Title>
@@ -101,4 +68,4 @@ const MaterialSelect = ({ materialId, setMaterialId }) => {
     )
 }
 
-export default MaterialSelect
+export default MaterialContainer
