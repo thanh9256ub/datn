@@ -104,7 +104,6 @@ const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colors, siz
                                 src={image.image}
                                 alt={image.name}
                                 style={{
-                                    width: '100px',
                                     marginRight: '10px',
                                     width: '100px',
                                     height: '100px',
@@ -239,9 +238,7 @@ const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colors, siz
                         </button> */}
                     </div>
                     <div className="col-lg-4" style={{ textAlign: "center" }}>
-                        {/* <QRCodeCanvas value={selectedVariant?.qr ? selectedVariant.qr.toString() : "N/A"} size={100} /> */}
                         <label>QR code:</label>
-
                         <div ref={qrRef}>
                             <QRCodeCanvas value={selectedVariant?.qr ? selectedVariant.qr.toString() : "N/A"} size={100} />
                         </div>
