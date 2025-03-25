@@ -38,4 +38,5 @@ public class ProductDetailResponse {
     LocalDateTime updatedAt;
 
     String qr;
+
 }

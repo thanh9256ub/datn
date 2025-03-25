@@ -110,5 +110,4 @@ public class AuthenticationService {
                 .valid(verified && expityTime.after(new Date()))
                 .build();
     }
-
 }

@@ -1,4 +1,4 @@
-package com.example.datn.dto.request;
+package com.example.datn.dto.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -7,12 +7,15 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PaymentMethodRequest {
+public class LoginResponse {
 
-    String paymentMethodName;
+    String token;
 
-    String description;
+    String employeeCode;
+
+    String fullName;
+
 }

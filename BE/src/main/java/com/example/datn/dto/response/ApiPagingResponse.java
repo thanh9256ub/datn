@@ -16,4 +16,5 @@ public class ApiPagingResponse<T> extends ApiResponse<T> {
         super(status, message, data);
         this.totalPage = totalPage;
     }
+
 }

@@ -1,6 +1,5 @@
 package com.example.datn.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -24,12 +23,14 @@ public class AddressRequest {
 
     String detailedAddress;
 
-    @JsonProperty("customer_id")
     Integer customerId;
 
     Integer status;
 
+    Boolean defaultAddress;
+
     LocalDateTime createdAt;
 
     LocalDateTime updatedAt;
+
 }

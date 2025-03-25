@@ -130,5 +130,4 @@ public class ProductColorService {
 
         return mapper.toListImageResponse(newImages);
     }
-
 }

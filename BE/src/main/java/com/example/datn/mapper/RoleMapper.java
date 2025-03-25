@@ -21,4 +21,5 @@ public interface RoleMapper {
 
     @Mapping(target = "id",ignore = true)
     void updateRole(@MappingTarget Role role, RoleRequest roleRequest);
+
 }

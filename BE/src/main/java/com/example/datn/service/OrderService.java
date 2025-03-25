@@ -8,20 +8,20 @@ import com.example.datn.entity.Order;
 import com.example.datn.entity.PaymentType;
 import com.example.datn.mapper.OrderMapper;
 import com.example.datn.mapper.PaymentTypeMapper;
+import com.example.datn.repository.EmployeeRepository;
 import com.example.datn.repository.OrderRepository;
 import com.example.datn.repository.PaymentTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class OrderService {
     @Autowired
     OrderRepository repository;
-
+@Autowired
+    EmployeeRepository employeeRepository;
     @Autowired
     OrderMapper mapper;
 
@@ -29,12 +29,14 @@ public class OrderService {
         int i= getAll().size();
         Order order = mapper.toOrder(request);
         order.setOrderCode("HD"+(i+1)  );
+
+        order.setEmployee(employeeRepository.findById(1).get());
         Order created = repository.save(order);
         return mapper.toOrderResponse(created);
     }
 
     public List<OrderResponse> getAll() {
-        return mapper.toListOrders(repository.getAll());
+        return mapper.toListOrders(repository.findAllWithPaymentDetails());
     }
     public OrderResponse updateStatus(Integer id, int newStatus) {
         Order order = repository.findById(id)
@@ -54,16 +56,5 @@ public class OrderService {
     }
     public void detele(Integer id){
         repository.deleteById(id);
-    }
-    public List<OrderResponse> filterOrders(String orderCode,
-                                            Double minPrice,
-                                            Double maxPrice,
-                                            LocalDateTime startDate,
-                                            LocalDateTime endDate,
-                                            Integer status) { // Thêm status
-        List<Order> filteredOrders = repository.filterOrders(
-                orderCode, minPrice, maxPrice, startDate, endDate, status
-        );
-        return mapper.toListOrders(filteredOrders);
     }
 }

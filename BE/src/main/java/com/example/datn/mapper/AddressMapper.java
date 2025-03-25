@@ -20,4 +20,5 @@ public interface AddressMapper {
 
     @Mapping(target = "id", ignore = true)
     void updateAddress(@MappingTarget Address address, AddressRequest addressRequest);
+
 }

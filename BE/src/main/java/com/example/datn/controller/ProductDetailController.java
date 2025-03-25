@@ -105,4 +105,5 @@ public class ProductDetailController {
 
                 return ResponseEntity.ok(response);
         }
+
 }

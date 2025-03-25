@@ -27,4 +27,5 @@ public interface ProductMapper {
 
     @Mapping(target = "productCode", ignore = true)
     void updateProduct(@MappingTarget Product product, ProductRequest request);
+
 }

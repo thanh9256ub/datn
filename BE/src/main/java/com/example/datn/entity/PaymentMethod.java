@@ -32,4 +32,5 @@ public class PaymentMethod {
 
     @Column(name = "description")
     String description;
+
 }

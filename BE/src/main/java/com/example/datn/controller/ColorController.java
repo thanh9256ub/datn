@@ -78,6 +78,5 @@ public class ColorController {
         );
 
         return ResponseEntity.ok(response);
-
     }
 }
