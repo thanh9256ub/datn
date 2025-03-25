@@ -8,7 +8,7 @@ class LoginTest extends Component {
 
     render() {
         return (
-            <div style={{marginTop:"50px"}}>
+            <div style={{ marginTop: "50px" }}>
                 <LoginBanHang />
             </div>
         );

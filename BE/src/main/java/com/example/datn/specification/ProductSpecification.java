@@ -29,4 +29,5 @@ public class ProductSpecification {
         return (root, query, cb) ->
                 status == null ? cb.conjunction() : cb.equal(root.get("status"), status);
     }
+    
 }

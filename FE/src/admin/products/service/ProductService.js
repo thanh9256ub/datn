@@ -101,5 +101,3 @@ export const searchProducts = (filters, page, size) => {
 
     return axios.get(`${BASE_URL}/search?${params.toString()}`);
 };
-
-

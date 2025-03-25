@@ -39,7 +39,7 @@ public class ProductColorService {
     @Autowired
     ImageRepository imageRepository;
 
-    public List<ProductColorResponse> createProductColor(ProductColorRequest request){
+    public List<ProductColorResponse> createProductColor(ProductColorRequest request) {
 
         Product product = productRepository.findById(request.getProductId()).orElseThrow(
                 () -> new ResourceNotFoundException("Product not exist"));
@@ -64,7 +64,7 @@ public class ProductColorService {
         return mapper.toListResponse(productColors);
     }
 
-    public List<ProductColorResponse> getAll(){
+    public List<ProductColorResponse> getAll() {
         return mapper.toListResponse(repository.findAll());
     }
 
@@ -86,11 +86,11 @@ public class ProductColorService {
         return mapper.toListImageResponse(images);
     }
 
-    public List<ImageResponse> getImages(){
+    public List<ImageResponse> getImages() {
         return mapper.toListImageResponse(imageRepository.findAll());
     }
 
-    public List<ProductColorResponse> getProductColorsByProduct(Integer productId){
+    public List<ProductColorResponse> getProductColorsByProduct(Integer productId) {
 
         Product product = productRepository.findById(productId).orElseThrow(
                 () -> new ResourceNotFoundException("Product not exist"));
@@ -100,7 +100,7 @@ public class ProductColorService {
         return mapper.toListResponse(productColors);
     }
 
-    public List<ImageResponse> getImagesByProductColor(Integer productColorId){
+    public List<ImageResponse> getImagesByProductColor(Integer productColorId) {
         ProductColor productColor = repository.findById(productColorId).orElseThrow(
                 () -> new ResourceNotFoundException("ProductColor not exist"));
 
@@ -110,7 +110,8 @@ public class ProductColorService {
     }
 
     @Transactional
-    public List<ImageResponse> updateImagesForProductColor(Integer productColorId, List<ImageRequest> newImageRequests) {
+    public List<ImageResponse> updateImagesForProductColor(Integer productColorId,
+            List<ImageRequest> newImageRequests) {
         ProductColor productColor = repository.findById(productColorId).orElseThrow(
                 () -> new ResourceNotFoundException("ProductColor not exist"));
 
