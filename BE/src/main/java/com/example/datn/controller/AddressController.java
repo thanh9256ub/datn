@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("address")
 public class AddressController {
@@ -22,7 +23,7 @@ public class AddressController {
     @PostMapping("add")
     public ResponseEntity<ApiResponse<AddressResponse>> addAddress(@Valid @RequestBody AddressRequest addressRequest) {
 
-        AddressResponse addressResponse = addressService.creAddress(addressRequest);
+        AddressResponse addressResponse = addressService.creaAddress(addressRequest);
 
         ApiResponse<AddressResponse> response = new ApiResponse<>(
                 HttpStatus.CREATED.value(),
@@ -82,4 +83,5 @@ public class AddressController {
 
         return ResponseEntity.ok(apiResponse);
     }
+
 }
