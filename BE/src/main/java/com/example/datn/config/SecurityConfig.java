@@ -27,105 +27,81 @@ import java.util.List;
 @Slf4j
 public class SecurityConfig {
 
-    @Value("${jwt.signerKey}")
-    private String signerKey;
+        @Value("${jwt.signerKey}")
+        private String signerKey;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        try {
-<<<<<<< HEAD
-            httpSecurity
-                    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                    .csrf(AbstractHttpConfigurer::disable)
-                    .authorizeHttpRequests(request -> request
-                            .requestMatchers("/auth/token",
-                                    "auth/introspect")
-                            .permitAll()
-                            .requestMatchers("/address/**", "/role/**")
-                            .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")
-                            .requestMatchers(
-                                    "/customer/**")
-                            .hasAnyRole("EMPLOYEE", "ADMIN")
-                            .anyRequest().hasRole("ADMIN")
-                    ).addFilterBefore(new RequestLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
-=======
-            httpSecurity.authorizeHttpRequests(request -> request
-                    .requestMatchers("/auth/token",
-                            "auth/introspect")
-                    .permitAll()
-                    .requestMatchers("/address/**", "/role/**")
-                    .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")
-                    .requestMatchers(
-                            "/customer/**")
-                    .hasAnyRole("EMPLOYEE", "ADMIN")
-                    .anyRequest().hasRole("ADMIN")
-            ).addFilterBefore(new RequestLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
->>>>>>> parent of bc73950 (Revert "Merge branch 'main' into thanh")
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+                try {
+                        httpSecurity
+                                        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                        .csrf(AbstractHttpConfigurer::disable)
+                                        .authorizeHttpRequests(request -> request
+                                                        .requestMatchers("/auth/token",
+                                                                        "auth/introspect")
+                                                        .permitAll()
+                                                        .requestMatchers("/address/**", "/role/**")
+                                                        .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")
+                                                        .requestMatchers(
+                                                                        "/customer/**")
+                                                        .hasAnyRole("EMPLOYEE", "ADMIN")
+                                                        .anyRequest().hasRole("ADMIN"))
+                                        .addFilterBefore(new RequestLoggingFilter(),
+                                                        UsernamePasswordAuthenticationFilter.class);
 
-            httpSecurity.oauth2ResourceServer(oauth2 ->
-                    oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
-                            .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-            );
-            httpSecurity.cors(corsConfig -> corsConfig.configurationSource(corsConfigurationSource()));
-            httpSecurity.csrf(AbstractHttpConfigurer::disable);
-            log.info("Config success");
-            return httpSecurity.build();
-        } catch (Exception e) {
-            log.error("Exception: ", e);
-            return httpSecurity.build();
+                        httpSecurity.oauth2ResourceServer(
+                                        oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
+                                                        .jwtAuthenticationConverter(jwtAuthenticationConverter())));
+                        httpSecurity.cors(corsConfig -> corsConfig.configurationSource(corsConfigurationSource()));
+                        httpSecurity.csrf(AbstractHttpConfigurer::disable);
+                        log.info("Config success");
+                        return httpSecurity.build();
+                } catch (Exception e) {
+                        log.error("Exception: ", e);
+                        return httpSecurity.build();
+                }
         }
-    }
 
-    @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        @Bean
+        public JwtAuthenticationConverter jwtAuthenticationConverter() {
+                JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
 
-        // Tạo JwtGrantedAuthoritiesConverter để lấy quyền từ claim "roles"
-        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        authoritiesConverter.setAuthoritiesClaimName("roles");
-        authoritiesConverter.setAuthorityPrefix("ROLE_");
+                // Tạo JwtGrantedAuthoritiesConverter để lấy quyền từ claim "roles"
+                JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
+                authoritiesConverter.setAuthoritiesClaimName("roles");
+                authoritiesConverter.setAuthorityPrefix("ROLE_");
 
-        converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+                converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
 
-        // Log các quyền sau khi ánh xạ
-        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            Collection<GrantedAuthority> authorities = authoritiesConverter.convert(jwt);
-            log.info("Granted Authority: {}", authorities);
-            return authorities;
-        });
+                // Log các quyền sau khi ánh xạ
+                converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+                        Collection<GrantedAuthority> authorities = authoritiesConverter.convert(jwt);
+                        log.info("Granted Authority: {}", authorities);
+                        return authorities;
+                });
 
-        return converter;
-    }
+                return converter;
+        }
 
-    @Bean
-    JwtDecoder jwtDecoder() {
-        SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HS512");
-        return NimbusJwtDecoder
-                .withSecretKey(secretKeySpec)
-                .macAlgorithm(MacAlgorithm.HS512)
-                .build();
-    }
+        @Bean
+        JwtDecoder jwtDecoder() {
+                SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HS512");
+                return NimbusJwtDecoder
+                                .withSecretKey(secretKeySpec)
+                                .macAlgorithm(MacAlgorithm.HS512)
+                                .build();
+        }
 
-    @Bean
-    UrlBasedCorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-<<<<<<< HEAD
-        configuration.setAllowedOrigins(List.of("http://127.0.0.1:3000", "http://localhost:3000"));
-        configuration.setAllowedMethods(List.of("*"));
-        configuration.addAllowedHeader("*");
-        configuration.setAllowCredentials(true);
+        @Bean
+        UrlBasedCorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration configuration = new CorsConfiguration();
+                configuration.setAllowedOrigins(List.of("http://127.0.0.1:3000", "http://localhost:3000"));
+                configuration.setAllowedMethods(List.of("*"));
+                configuration.addAllowedHeader("*");
+                configuration.setAllowCredentials(true);
 
-=======
-        configuration.setAllowedOrigins(List.of("*", "http://127.0.0.1:3000"));
-        configuration.setAllowedMethods(List.of("*"));
-        configuration.addAllowedHeader("*");
->>>>>>> parent of bc73950 (Revert "Merge branch 'main' into thanh")
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
-<<<<<<< HEAD
-
-=======
->>>>>>> parent of bc73950 (Revert "Merge branch 'main' into thanh")
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
+                return source;
+        }
 }
