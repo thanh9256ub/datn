@@ -1,6 +1,12 @@
 package com.example.datn.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,26 +21,22 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "cart_temp")
+@Table(name = "gio_hang")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
 public class Cart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "customer_id")
+    @JoinColumn(name = "id_khach_hang")
     Customer customer;
 
-    @Column(name = "total_price")
-    Double total_price;
+    Double tong_tien;
 
-    @Column(name = "created_at")
-    LocalDateTime created_at;
+    LocalDateTime ngay_tao;
 
-    @Column(name = "status")
-    Integer status;
+    Integer trang_thai;
 }

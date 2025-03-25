@@ -72,13 +72,3 @@ export const fetchImagesByProductColor = async (productColorId) => {
         return [];
     }
 };
-export const fetchSizesByColor = async (productId, colorId) => {
-    try {
-        const response = await api.get(`/product-detail/sizes-by-color/${productId}/${colorId}`); // Gọi API với colorId
-        console.log("API res (sizes by color):", response.data);
-        return Array.isArray(response.data.data) ? response.data.data : [];
-    } catch (error) {
-        console.error('Error fetching sizes by color:', error);
-        return []; // Trả về mảng rỗng nếu có lỗi
-    }
-};
