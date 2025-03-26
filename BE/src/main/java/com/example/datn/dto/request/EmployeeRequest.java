@@ -32,9 +32,9 @@ public class EmployeeRequest {
 
     String email;
 
-    String userName;
+    String username;
 
-    String passWord;
+    String password;
 
     @JsonProperty("role_id")
     Integer roleId;

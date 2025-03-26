@@ -1,6 +1,7 @@
 package com.example.datn.controller;
 
 import com.example.datn.dto.request.CustomerRequest;
+import com.example.datn.dto.response.ApiPagingResponse;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.CustomerResponse;
 import com.example.datn.service.CustomerService;
@@ -22,10 +23,10 @@ public class CustomerController {
     @Autowired
     CustomerService customerService;
 
-    @PostMapping("addT")
-    public ResponseEntity<ApiResponse<CustomerResponse>> addCustomerT(@Valid @RequestBody CustomerRequest customerRequest) {
+    @PostMapping("addFast")
+    public ResponseEntity<ApiResponse<CustomerResponse>> addCustomerFast(@Valid @RequestBody CustomerRequest customerRequest) {
 
-        CustomerResponse customerResponse = customerService.creatCustomerT(customerRequest);
+        CustomerResponse customerResponse = customerService.creatCustomerFast(customerRequest);
 
         ApiResponse<CustomerResponse> response = new ApiResponse<>(
                 HttpStatus.CREATED.value(),
@@ -35,11 +36,21 @@ public class CustomerController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
     @GetMapping
+    public ResponseEntity<ApiPagingResponse<List<CustomerResponse>>> getAll(
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "page", defaultValue = "0") Integer page) {
+
+        int pageSize = 3;
+
+        ApiPagingResponse<List<CustomerResponse>> response = customerService.getAll(search, page, pageSize);
+
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/list")
     public ResponseEntity<ApiResponse<List<CustomerResponse>>> getAll() {
 
-        List<CustomerResponse> list = customerService.getAll();
+        List<CustomerResponse> list = customerService.getList();
 
         ApiResponse<List<CustomerResponse>> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
