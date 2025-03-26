@@ -10,6 +10,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 @Data
 @AllArgsConstructor
@@ -59,8 +60,8 @@ public class EmployeeResponse {
         this.address = employee.getAddress();
         this.email = employee.getEmail();
         this.userName = employee.getEmail();
-        this.passWord = employee.getPassWord();
-        this.roleId = employee.getRoLe().getId();
+        this.passWord = employee.getPassword();
+        this.roleId = employee.getRole().getId();
         this.createdAt = employee.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         this.updatedAt = employee.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         this.status = employee.getStatus();

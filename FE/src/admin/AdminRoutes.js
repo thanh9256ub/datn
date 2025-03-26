@@ -86,7 +86,7 @@ class AdminRoutes extends Component {
           <Route exact path="/admin/error-pages/error-404" component={Error404} />
           <Route exact path="/admin/error-pages/error-500" component={Error500} />
 
-          <Route exact path="/admin/counter" component={BanHang} />
+          <ProtectedRoute exact path="/admin/counter" component={BanHang} />
 
           <ProtectedRoute exact path="/admin/products" component={Products} />
           <ProtectedRoute exact path="/admin/products/:id/detail" component={ProductDetail} />
@@ -97,7 +97,7 @@ class AdminRoutes extends Component {
           <ProtectedRoute exact path="/admin/categories" component={Categories} />
           <ProtectedRoute exact path="/admin/materials" component={Materials} />
 
-          {/* <ProtectedRoute exact path="/admin/employees" component={Employees} />
+           <ProtectedRoute exact path="/admin/employees" component={Employees} />
           <ProtectedRoute exact path="/admin/employees/add" component={CreateEmployee} />
           <ProtectedRoute exact path="/admin/employees/update/:id" component={UpdateEmployee} />
           <ProtectedRoute exact path="/admin/customers" component={Customers} />
