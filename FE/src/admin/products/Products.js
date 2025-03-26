@@ -355,15 +355,6 @@ const Products = () => {
                 </Modal.Body>
             </Modal>
 
-            {/* <ModalProductDetail
-                showModal={showModal}
-                setShowModal={setShowModal}
-                selectedProductName={selectedProductName}
-                selectedProductDetails={selectedProductDetails}
-                setSelectedProductDetails={setSelectedProductDetails}
-                refreshProducts={fetchProducts}
-            /> */}
-
             <ToastContainer />
         </div >
     )

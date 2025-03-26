@@ -15,7 +15,9 @@ import com.example.datn.repository.MaterialRepository;
 import com.example.datn.specification.ProductSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -70,8 +72,13 @@ public class ProductService {
         return mapper.toProductResponse(repository.save(product));
     }
 
+//    public Page<ProductResponse> getAll(Pageable pageable) {
+//        return repository.findAll(pageable).map(mapper::toProductResponse);
+//    }
+
     public Page<ProductResponse> getAll(Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toProductResponse);
+        Pageable sortedByIdDesc = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
+        return repository.findAll(sortedByIdDesc).map(mapper::toProductResponse);
     }
 
     public List<ProductResponse> getList() {

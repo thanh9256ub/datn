@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,7 +57,7 @@ public class ProductController {
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "5") int size) {
 
-                Pageable pageable = PageRequest.of(page, size);
+                Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
                 Page<ProductResponse> list = service.getAll(pageable);
 
                 ApiResponse<Page<ProductResponse>> response = new ApiResponse<>(
