@@ -37,6 +37,7 @@ public class AuthenticationService {
     @Autowired
     EmployeeRepository employeeRepository;
 
+
     @NonFinal
     @Value("${jwt.signerKey}")
     protected String SIGNER_KEY;

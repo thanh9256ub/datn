@@ -5,7 +5,7 @@ import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom';
 
 import Admin from './admin/Admin.js';
 import Client from './ClientComponents/Client.js';
-import LoginTest from './loginBanHang/LoginTest.js';
+import LoginNhanVien from './loginBanHang/LoginNhanVien.js';
 
 function App() {
 
@@ -16,7 +16,7 @@ function App() {
 
           <Route path="/admin" component={Admin} />
 
-          <Route path="/LoginNhanVien" component={LoginTest} />
+          <Route path="/login-nhan-vien" component={LoginNhanVien} />
 
           <Route path="/" component={Client} />
 

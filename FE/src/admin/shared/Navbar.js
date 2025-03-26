@@ -19,7 +19,7 @@ class Navbar extends Component {
     localStorage.removeItem('token');
     localStorage.removeItem('fullName');
     localStorage.removeItem('role');
-    window.location.href = '/LoginNhanVien';
+    window.location.href = '/login-nhan-vien';
   }
 
   render() {

@@ -50,13 +50,13 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
   const { token } = useAuth();
 
   return (
-    <Route
-      {...rest}
-      render={(props) =>
-        console.log("token: " + !!token) ||
-          !!token ? <Component {...props} /> : <Redirect to="/LoginNhanVien" />
-      }
-    />
+      <Route
+          {...rest}
+          render={(props) =>
+              console.log("token: " + !!token) ||
+              !!token ? <Component {...props} /> : <Redirect to="/login-nhan-vien" />
+          }
+      />
   );
 };
 
