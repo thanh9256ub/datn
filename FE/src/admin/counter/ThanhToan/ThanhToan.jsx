@@ -295,6 +295,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       <Row className="mb-3">
         <Col sm={7}>
           {!delivery && (
+<<<<<<< HEAD
             <Button
               variant={paymen === 1 ? "primary" : "light"} // Purple when "Tiền mặt" is selected
               className="w-100"
@@ -305,10 +306,17 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
                 toast.info("Đã chọn phương thức thanh toán Tiền mặt 🥰", toastOptions);
               }}
             >
+=======
+            <Button variant="light" className="w-100" onClick={() => {
+              setPaymen('TM');
+              setIsCashPayment(true);
+            }}>
+>>>>>>> 0492006d8ee71b70faff6d78d4ac8138e3b83024
               Tiền mặt
             </Button>
           )}
           {delivery && (
+<<<<<<< HEAD
             <Button
               variant={paymen === 3 ? "primary" : "light"} // Purple when "Trả sau" is selected
               className="w-100"
@@ -319,6 +327,12 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
                 toast.info("Đã chọn phương thức thanh toán Trả sau 🥰", toastOptions);
               }}
             >
+=======
+            <Button variant="light" className="w-100" onClick={() => {
+              setPaymen('TS');
+              setIsCashPayment(false);
+            }}>
+>>>>>>> 0492006d8ee71b70faff6d78d4ac8138e3b83024
               Trả sau
             </Button>
           )}
