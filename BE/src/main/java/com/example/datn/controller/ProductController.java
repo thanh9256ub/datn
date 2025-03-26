@@ -1,19 +1,28 @@
 package com.example.datn.controller;
 
+import com.example.datn.dto.request.ExportExcelRequest;
 import com.example.datn.dto.request.ProductRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.ProductResponse;
+import com.example.datn.entity.Product;
+import com.example.datn.excel.ExcelExporter;
+import com.example.datn.mapper.ProductMapper;
+import com.example.datn.repository.ProductDetailRepository;
 import com.example.datn.service.ProductService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:3000")
@@ -21,8 +30,18 @@ import java.util.List;
 @RequestMapping("products")
 public class ProductController {
 
+        private final ProductService service;
+
         @Autowired
-        ProductService service;
+        public ProductController(ProductService service) {
+                this.service = service;
+        }
+
+        @Autowired
+        ProductMapper productMapper;
+
+        @Autowired
+        private ProductDetailRepository productDetailRepository;
 
         @PostMapping("add")
         public ResponseEntity<ApiResponse<ProductResponse>> addProduct(
@@ -56,7 +75,7 @@ public class ProductController {
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "5") int size) {
 
-                Pageable pageable = PageRequest.of(page, size);
+                Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
                 Page<ProductResponse> list = service.getAll(pageable);
 
                 ApiResponse<Page<ProductResponse>> response = new ApiResponse<>(
@@ -175,6 +194,47 @@ public class ProductController {
                                 list);
 
                 return ResponseEntity.ok(response);
+        }
+
+//        @GetMapping("/export-excel")
+//        public void exportToExcel(HttpServletResponse response) throws IOException {
+//                List<ProductResponse> productList = service.getList();
+//                List<Product> products = productMapper.toListProduct(productList);
+//                ExcelExporter excelExporter = new ExcelExporter(products, productDetailRepository);
+//                excelExporter.export(response);
+//        }
+
+        @PostMapping("/export-excel")
+        public void exportToExcel(@RequestBody ExportExcelRequest request, HttpServletResponse response) throws IOException {
+                // Lấy danh sách sản phẩm theo ID từ request
+                List<Product> selectedProducts = service.getProductsByIds(request.getProductIds());
+
+                if (selectedProducts.isEmpty()) {
+                        throw new RuntimeException("Không tìm thấy sản phẩm nào để xuất Excel!");
+                }
+
+                // Đặt header cho file Excel
+                response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                response.setHeader("Content-Disposition", "attachment; filename=danh_sach_san_pham_xuat_excel.xlsx");
+
+                // Xuất file Excel
+                ExcelExporter excelExporter = new ExcelExporter(selectedProducts, productDetailRepository);
+                excelExporter.export(response);
+        }
+
+        @PostMapping("/import-excel")
+        public ResponseEntity<String> importProducts(@RequestParam("file") MultipartFile file) {
+                try {
+                        if (file.isEmpty()) {
+                                return ResponseEntity.badRequest().body("File không được để trống!");
+                        }
+                        service.importProductsFromExcel(file);
+                        return ResponseEntity.ok("Import thành công!");
+                } catch (IOException e) {
+                        return ResponseEntity.status(500).body("Lỗi khi đọc file: " + e.getMessage());
+                } catch (Exception e) {
+                        return ResponseEntity.status(500).body("Có lỗi xảy ra: " + e.getMessage());
+                }
         }
 
 }

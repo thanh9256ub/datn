@@ -117,7 +117,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
             >
                 <i className='mdi mdi-plus'></i>Thêm biến thể
             </button>
-            <div className='table-responsive' style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            <div className='table-responsive' style={{ maxHeight: '200px', overflowY: 'auto' }}>
                 <table className='table'>
                     <thead>
                         <tr>

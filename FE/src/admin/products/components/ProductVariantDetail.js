@@ -65,8 +65,8 @@ const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colorImages
                 </div>
             )}
             <hr />
-            <h4 style={{ marginBottom: "20px" }}><strong>Thông tin chi tiết biến thể:</strong></h4>
-            <hr />
+            <h4><strong>Thông tin chi tiết biến thể:</strong></h4>
+            <hr style={{ marginBottom: "50px" }} />
             {selectedVariant && (
                 <div className="row">
                     <div className="col-lg-8">
