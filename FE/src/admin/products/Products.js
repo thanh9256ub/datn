@@ -6,6 +6,7 @@ import Switch from 'react-switch';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import SearchProducts from './action/SearchProducts';
+import Swal from 'sweetalert2';
 
 const Products = () => {
     const [products, setProducts] = useState([]);
@@ -89,20 +90,35 @@ const Products = () => {
         history.push('/admin/products/add');
     }
 
-    const handleUpdateProduct = (id, productName) => {
-        history.push(`/admin/products/edit/${id}`)
-    }
-
     const handleProductDetail = (id, productName) => {
-        history.push({
-            pathname: `/admin/products/${id}/detail`,
-            state: { productName: productName }
-        });
+        history.push(
+            `/admin/products/${id}/detail`
+        );
     }
 
-    const handleToggleStatus = async (productId, currentStatus) => {
+    const handleToggleStatus = async (productId, currentStatus, totalQuantity) => {
         try {
-            const newStatus = currentStatus === 1 ? 0 : 1;
+            const result = await Swal.fire({
+                title: "Xác nhận",
+                text: "Bạn có chắc chắn muốn ngừng bán sản phẩm này?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Đồng ý",
+                cancelButtonText: "Hủy",
+                footer: "<p style='color: red;'>Lưu ý: Nếu đồng ý sản phẩm sẽ không thể bán trên quầy hàng và website!</p>",
+            });
+
+            if (!result.isConfirmed) return;
+
+            let newStatus;
+
+            if (currentStatus === 2) {
+                newStatus = totalQuantity > 0 ? 1 : 0;
+            } else {
+                newStatus = 2;
+            }
 
             await updateStatus(productId, newStatus);
 
@@ -152,17 +168,18 @@ const Products = () => {
                     Danh sách sản phẩm
                 </h3>
             </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px" }}>
+                <button type="button" className="btn btn-gradient-primary float-right" onClick={handleAddProduct}>
+                    <i className='mdi mdi-plus'></i> Thêm mới
+                </button>
+            </div>
             <div className="row">
                 <div className="col-lg-12 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
                             <div className='row'>
-                                <div className='col-md-10'>
-                                    <SearchProducts filters={filters} setFilters={setFilters} onSearch={handleSearch} />                                </div>
-                                <div className='col-md-2'>
-                                    <button type="button" className="btn btn-gradient-primary float-right" onClick={handleAddProduct}>
-                                        <i className='mdi mdi-plus'></i> Thêm mới
-                                    </button>
+                                <div className='col-md-12'>
+                                    <SearchProducts filters={filters} setFilters={setFilters} onSearch={handleSearch} />
                                 </div>
                             </div>
                             <div style={{ marginBottom: '20px' }}></div>
@@ -182,9 +199,11 @@ const Products = () => {
                                 <>
                                     <div className="table-responsive">
                                         <table className="table table-hover">
-                                            <thead>
+                                            <thead
+                                            // style={{ backgroundColor: "#CE91FF", color: "#fff" }}
+                                            >
                                                 <tr>
-                                                    <th></th>
+                                                    {/* <th></th> */}
                                                     <th>Ảnh chính</th>
                                                     <th>Mã sản phẩm</th>
                                                     <th>Tên sản phẩm</th>
@@ -201,16 +220,20 @@ const Products = () => {
                                                 {products.length > 0 ? (
                                                     products
                                                         .map((product, index) => (
-                                                            <tr key={product.id}>
-                                                                <td>
+                                                            <tr
+                                                                key={product.id}
+                                                                onClick={() => handleProductDetail(product.id)}
+                                                                style={{ cursor: "pointer" }}
+                                                            >
+                                                                {/* <td>
                                                                     <div className="form-check">
                                                                         <label className="form-check-label">
                                                                             <input type="checkbox" className="form-check-input" />
                                                                             <i className="input-helper"></i>
                                                                         </label>
                                                                     </div>
-                                                                </td>
-                                                                <td>
+                                                                </td> */}
+                                                                <td onClick={(event) => event.stopPropagation()}>
                                                                     {product.mainImage != "image.png" ? (
                                                                         <img
                                                                             src={product.mainImage}
@@ -231,39 +254,41 @@ const Products = () => {
                                                                 <td>{product.totalQuantity}</td>
                                                                 <td>
                                                                     <span className={`badge ${product.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
-                                                                        {product.status === 1 ? 'Đang bán' : 'Hết hàng'}
+                                                                        {product.status === 1 ? 'Đang bán' : product.status === 2 ? 'Ngừng bán' : 'Hết hàng'}
                                                                     </span>
                                                                 </td>
                                                                 <td>
-                                                                    <div style={{
-                                                                        display: 'flex',
-                                                                        justifyContent: 'center',
-                                                                        alignItems: 'center',
-                                                                        gap: '10px',
-                                                                        textAlign: 'center',
-                                                                        height: '100%',
-                                                                        padding: '10px'
-                                                                    }} >
-                                                                        <button className="btn btn-outline-warning btn-sm btn-rounded btn-icon"
+                                                                    <div
+                                                                        onClick={(event) => event.stopPropagation()}
+                                                                        style={{
+                                                                            display: 'flex',
+                                                                            justifyContent: 'center',
+                                                                            alignItems: 'center',
+                                                                            gap: '10px',
+                                                                            textAlign: 'center',
+                                                                            height: '100%',
+                                                                            padding: '10px'
+                                                                        }} >
+                                                                        {/* <button className="btn btn-outline-warning btn-sm btn-rounded btn-icon"
                                                                             onClick={() => handleProductDetail(product.id, product.productName)}
                                                                         >
                                                                             <i className='mdi mdi-eye'></i>
-                                                                        </button>
+                                                                        </button> */}
                                                                         <Switch
-                                                                            checked={product.status === 1}
-                                                                            onChange={() => handleToggleStatus(product.id, product.status)}
+                                                                            checked={product.status !== 2}
+                                                                            onChange={() => handleToggleStatus(product.id, product.status, product.totalQuantity)}
                                                                             offColor="#888"
-                                                                            onColor="#0d6efd"
+                                                                            onColor="#ca51f0"
                                                                             uncheckedIcon={false}
                                                                             checkedIcon={false}
                                                                             height={20}
                                                                             width={40}
                                                                         />
-                                                                        <button className="btn btn-outline-danger btn-sm btn-rounded btn-icon"
+                                                                        {/* <button className="btn btn-outline-danger btn-sm btn-rounded btn-icon"
                                                                             onClick={() => handleUpdateProduct(product.id)}
                                                                         >
                                                                             <i className='mdi mdi mdi-wrench'></i>
-                                                                        </button>
+                                                                        </button> */}
                                                                     </div>
                                                                 </td>
                                                             </tr>

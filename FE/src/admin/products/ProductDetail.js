@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom/cjs/react-router-dom.min';
+import { useHistory, useParams } from 'react-router-dom/cjs/react-router-dom.min';
 import { getProductDetailByProductId } from './service/ProductDetailService';
 import { getImagesByProductColor, getProductById, getProductColorsByProductId } from './service/ProductService';
 import { getColors } from './service/ColorService';
@@ -11,6 +11,8 @@ import { ToastContainer } from 'react-toastify';
 
 const ProductDetail = () => {
     const { id } = useParams();
+    const history = useHistory();
+
     const [product, setProduct] = useState({})
     const [productDetails, setProductDetails] = useState([]);
     const [selectedVariant, setSelectedVariant] = useState(null);
@@ -87,9 +89,22 @@ const ProductDetail = () => {
         }
     };
 
+    const handleUpdateProduct = (id) => {
+        history.push(`/admin/products/edit/${id}`)
+    }
+
     return (
         <div>
+
             <div className="row">
+                <div className="col-md-12" style={{ marginBottom: "20px" }}>
+                    <button type='button'
+                        className='btn btn-gradient-primary btn-fw  float-right'
+                        onClick={() => handleUpdateProduct(product.id)}
+                    >
+                        <i className='mdi mdi-pencil'></i>Chỉnh sửa
+                    </button>
+                </div>
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className='row'>
                         <div className="col-lg-12 grid-margin stretch-card">
@@ -106,10 +121,10 @@ const ProductDetail = () => {
                                         productDetails={productDetails}
                                         selectedVariant={selectedVariant}
                                         setSelectedVariant={setSelectedVariant}
-                                        setColorImages={setColorImages}
-                                        productColorList={productColorList}
-                                        id={id}
                                         handleVariantClick={handleVariantClick}
+                                        colors={colors}
+                                        sizes={sizes}
+                                        refreshProductDetail={fetchProductDetails}
                                     />
                                 </div>
                             </div>
@@ -121,12 +136,8 @@ const ProductDetail = () => {
                         <div className="card-body">
                             <ProductVariantDetail
                                 selectedVariant={selectedVariant}
-                                colors={colors}
-                                sizes={sizes}
                                 setSelectedVariant={setSelectedVariant}
                                 colorImages={colorImages}
-                                refreshProductDetail={fetchProductDetails}
-                                handleVariantClick={handleVariantClick}
                                 productDetails={productDetails}
                             />
                         </div>
