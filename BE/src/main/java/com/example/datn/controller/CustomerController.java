@@ -22,10 +22,10 @@ public class CustomerController {
     @Autowired
     CustomerService customerService;
 
-    @PostMapping("add")
-    public ResponseEntity<ApiResponse<CustomerResponse>> addCustomer(@Valid @RequestBody CustomerRequest customerRequest) {
+    @PostMapping("addT")
+    public ResponseEntity<ApiResponse<CustomerResponse>> addCustomerT(@Valid @RequestBody CustomerRequest customerRequest) {
 
-        CustomerResponse customerResponse = customerService.creatCustomer(customerRequest);
+        CustomerResponse customerResponse = customerService.creatCustomerT(customerRequest);
 
         ApiResponse<CustomerResponse> response = new ApiResponse<>(
                 HttpStatus.CREATED.value(),

@@ -39,6 +39,7 @@ const UpdateProduct = lazy(() => import('./products/action/UpdateProduct'));
 const Brands = lazy(() => import('./products/Brands'));
 const Materials = lazy(() => import('./products/Material'));
 const Categories = lazy(() => import('./products/Categories'));
+
 const CreateCustomer = lazy(() => import('./customers/action/CreateCustomer'));
 const UpdateCustomer = lazy(() => import('./customers/action/UpdateCustomer'));
 const CreateEmployee = lazy(() => import('./employees/action/CreateEmployee'));
@@ -58,6 +59,7 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
     />
   );
 };
+
 class AdminRoutes extends Component {
   render() {
     return (
@@ -96,11 +98,12 @@ class AdminRoutes extends Component {
           <ProtectedRoute exact path="/admin/categories" component={Categories} />
           <ProtectedRoute exact path="/admin/materials" component={Materials} />
 
-          <ProtectedRoute exact path="/admin/employees" component={Employees} />
+          {/* <ProtectedRoute exact path="/admin/employees" component={Employees} />
           <ProtectedRoute exact path="/admin/employees/add" component={CreateEmployee} />
           <ProtectedRoute exact path="/admin/employees/update/:id" component={UpdateEmployee} />
           <ProtectedRoute exact path="/admin/customers" component={Customers} />
           <ProtectedRoute exact path="/admin/customers/update/:id" component={UpdateCustomer} />
+
           <ProtectedRoute exact path="/admin/customers/add" component={CreateCustomer} />
 
           <Route exact path="/admin/orders" component={Orders} />

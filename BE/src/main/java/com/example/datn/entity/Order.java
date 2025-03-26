@@ -70,6 +70,9 @@ public class Order {
     @JoinColumn(name = "payment_method_id")
     PaymentMethod paymentMethod;
 
+    @Column(name = "order_type")
+    Integer orderType;
+
     @Column(name = "status")
     Integer status;
 

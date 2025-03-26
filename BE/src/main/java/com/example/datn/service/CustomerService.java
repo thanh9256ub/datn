@@ -76,6 +76,15 @@ public class CustomerService {
 //        return customerMapper.toListResponse(customerRepository.findAll());
     }
 
+<<<<<<< HEAD
+    public CustomerResponse creatCustomerT(CustomerRequest customerRequest) {
+        int i = getAll().size();
+        Customer customer = customerMapper.toCustomer(customerRequest);
+        customer.setCreatedAt(LocalDateTime.now().withNano(0));
+        customer.setUpdatedAt(LocalDateTime.now().withNano(0));
+        customer.setRoLe(roleRepository.findById(1).get());
+        customer.setCustomerCode("KH" + (i + 1));
+=======
     public CustomerResponse creatCustomer(CustomerRequest customerRequest) {
         boolean addressIsEmpty = Objects.isNull(customerRequest.getAddress())
                 || customerRequest.getAddress().isEmpty();
@@ -100,6 +109,7 @@ public class CustomerService {
         customer.setPassword(passwordEncoder.encode(password));
 
 
+>>>>>>> 0492006d8ee71b70faff6d78d4ac8138e3b83024
         Customer created = customerRepository.save(customer);
         created.setCustomerCode(generateCustomerCode(created.getId()));
         customerRepository.save(created);

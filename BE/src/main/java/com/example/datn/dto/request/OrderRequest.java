@@ -23,9 +23,9 @@ public class OrderRequest {
 
     String orderCode;
 
-    Integer  customer_id;
+    Integer  customerId;
 
-    Integer employee_id;
+    Integer employeeId;
 
     String customerName;
 
@@ -43,9 +43,11 @@ public class OrderRequest {
 
     Double totalPayment;
 
-    PaymentType paymentType;
+    Integer paymentTypeId;
 
-    PaymentMethod paymentMethod;
+    Integer paymentMethodId;
+
+    Integer orderType;
 
     Integer status;
 

@@ -1,25 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, InputGroup, Form, Button, Modal, Table } from 'react-bootstrap';
-import axios from 'axios';
+import { toast } from "react-toastify";
+import { fetchPromoCodes } from '../api'; // Correct the relative path
+import { toastOptions } from '../constants'; // Import constants
 
-const PromoCode = ({ promoCode, setPromo, totalAmount }) => {
+const PromoCode = ({ promoCode, setPromo, totalAmount, idOrder }) => {
   const [isPromoModalVisible, setIsPromoModalVisible] = useState(false);
   const [promoCodes, setPromoCodes] = useState([]);
   
   useEffect(() => {
-    axios.get('http://localhost:8080/voucher/list')
+    fetchPromoCodes()
       .then(response => {
-        setPromoCodes(response.data.data);
+        const sortedPromoCodes = response.data.data.sort((a, b) => b.maxDiscountValue - a.maxDiscountValue);
+        setPromoCodes(sortedPromoCodes); // Sort by "Giảm tối đa" in descending order
       })
       .catch(error => console.error('Error fetching promo codes:', error));
   }, []);
 
-  const handleShowPromoModal = () => setIsPromoModalVisible(true);
+  const handleShowPromoModal = () => {
+    if (!idOrder||totalAmount===0) {
+      toast.warn("Vui lòng chọn hóa đơn trước khi chọn mã giảm giá 🥰", toastOptions);
+      return;
+    }
+    setIsPromoModalVisible(true);
+  };
+
   const handleClosePromoModal = () => setIsPromoModalVisible(false);
 
   const handleSelectPromoCode = (promo) => {
     setPromo(promo);
     setIsPromoModalVisible(false);
+    toast.success("Chọn mã giảm giá thành công 🥰", toastOptions);
   };
 
   return (
@@ -29,7 +40,7 @@ const PromoCode = ({ promoCode, setPromo, totalAmount }) => {
         <Col sm={12}>
           <InputGroup>
             <Form.Control placeholder="Mã giảm giá" value={promoCode} readOnly />
-            <Button variant="success" style={{ flex: "0 0 auto", padding: "6px 12px" }} onClick={handleShowPromoModal}>
+            <Button variant="primary" style={{ flex: "0 0 auto", padding: "6px 12px" }} onClick={handleShowPromoModal}>
               Chọn
             </Button>
           </InputGroup>
