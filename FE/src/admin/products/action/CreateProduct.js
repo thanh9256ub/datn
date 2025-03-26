@@ -3,14 +3,17 @@ import { Button, Form, Modal } from 'react-bootstrap';
 import BrandContainer from '../components/BrandContainer';
 import CategoryContainer from '../components/CategoryContainer';
 import MaterialContainer from '../components/MaterialContainer';
-import ColorSelect from '../select/ColorSelect';
-import SizeSelect from '../select/SizeSelect';
+import ColorSelect from '../components/ColorContainer';
+import SizeSelect from '../components/SizeContainer';
 import ListAutoVariant from '../components/ListAutoVariant';
 import { createProductDetail, updateQR } from '../service/ProductDetailService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import MainImage from '../components/MainImage';
-import { createProduct, uploadImageToCloudinary } from '../service/ProductService';
+import { createProduct, getProductList, uploadImageToCloudinary } from '../service/ProductService';
 import axios from 'axios';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Swal from "sweetalert2";
 
 const CreateProduct = () => {
     const [productName, setProductName] = useState("");
@@ -23,12 +26,14 @@ const CreateProduct = () => {
     const [colorIds, setColorIds] = useState([]);
     const [sizeIds, setSizeIds] = useState([]);
     const [variantList, setVariantList] = useState([]);
-    const [hasError, setHasError] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const [showModal, setShowModal] = useState(false);
 
     const [commonQuantity, setCommonQuantity] = useState("");
     const [commonPrice, setCommonPrice] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     const [productData, setProductData] = useState({
         productName,
@@ -40,6 +45,42 @@ const CreateProduct = () => {
         status,
         mainImage: ''
     });
+
+    const [products, setProducts] = useState([]);
+
+    useEffect(() => {
+        getProductList()
+            .then((response) => {
+                console.log("API response:", response.data);
+                const productsData = response.data.data;
+
+                if (Array.isArray(productsData)) {
+                    setProducts(productsData);
+                } else {
+                    setProducts([]);
+                }
+            })
+            .catch((error) => {
+                console.error("Lỗi khi tải danh sách sản phẩm:", error);
+                setProducts([]);
+            });
+    }, []);
+
+    useEffect(() => {
+        if (productName.trim() === "") {
+            setErrorMessage("");
+            return;
+        }
+
+        const exists = products.some(product => product.productName.toLowerCase() === productName.toLowerCase());
+
+        if (exists) {
+            setErrorMessage("Tên sản phẩm đã tồn tại!");
+        } else {
+            setErrorMessage("");
+        }
+    }, [productName, products]);
+
 
     const handleOpenModal = () => setShowModal(true);
     const handleCloseModal = () => {
@@ -93,10 +134,156 @@ const CreateProduct = () => {
         setVariantList(updatedVariants);
     };
 
+    //Cách 3:
+    // const handleRemoveVariant = (index) => {
+    //     setVariantList(prevVariants => {
+    //         const updatedVariants = [...prevVariants];
+    //         const removedVariant = updatedVariants[index];
+
+    //         updatedVariants.splice(index, 1);
+
+    //         const remainingVariantsWithColor = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
+    //         if (remainingVariantsWithColor.length === 0) {
+    //             setColorIds(prev => prev.filter(c => c.value !== removedVariant.colorId));
+    //             setColorImages(prev => {
+    //                 const newColorImages = { ...prev };
+    //                 delete newColorImages[removedVariant.colorId];
+    //                 return newColorImages;
+    //             });
+    //         } else {
+    //             if (index === 0 && colorImages[removedVariant.colorId]) {
+    //                 const nextVariant = remainingVariantsWithColor[0];
+    //                 setColorImages(prev => ({
+    //                     ...prev,
+    //                     [nextVariant.colorId]: prev[removedVariant.colorId]
+    //                 }));
+    //             }
+    //         }
+
+
+    //         const remainingVariantsWithSize = updatedVariants.some(v => v.sizeId === removedVariant.sizeId);
+    //         if (!remainingVariantsWithSize) {
+    //             setSizeIds(prev => prev.filter(s => s.value !== removedVariant.sizeId));
+    //         }
+
+    //         if (updatedVariants.length === 0) {
+    //             setColorImages({});
+    //         }
+
+    //         return updatedVariants;
+    //     });
+    // };
+
+    // const handleRemoveVariant = (index) => {
+    //     setVariantList(prevVariants => {
+    //         let updatedVariants = [...prevVariants];
+    //         const removedVariant = updatedVariants[index];
+
+    //         updatedVariants.splice(index, 1);
+
+    //         const hasSameColor = updatedVariants.some(v => v.colorId === removedVariant.colorId);
+
+    //         if (!hasSameColor) {
+    //             updatedVariants = updatedVariants.map(v =>
+    //                 v.colorId === removedVariant.colorId ? { ...v, imageUrls: [] } : v
+    //             );
+    //         }
+
+    //         const remainingVariantsWithSize = updatedVariants.some(v => v.sizeId === removedVariant.sizeId);
+    //         if (!remainingVariantsWithSize) {
+    //             setSizeIds(prev => prev.filter(s => s.value !== removedVariant.sizeId));
+    //         }
+
+    //         return updatedVariants;
+    //     });
+    // };
+
     const handleRemoveVariant = (index) => {
-        const updatedVariants = [...variantList];
-        updatedVariants.splice(index, 1);
-        setVariantList(updatedVariants);
+        setVariantList(prevVariants => {
+            let updatedVariants = [...prevVariants];
+            const removedVariant = updatedVariants[index];
+
+            // Tìm tất cả biến thể cùng màu
+            const sameColorVariants = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
+
+            // Nếu xóa biến thể đầu tiên của nhóm màu, chuyển ảnh cho biến thể tiếp theo
+            if (sameColorVariants.length > 1 && sameColorVariants[0] === removedVariant) {
+                sameColorVariants[1].imageUrls = removedVariant.imageUrls;
+                sameColorVariants[1].images = removedVariant.images;
+            }
+
+            // Xóa biến thể khỏi danh sách
+            updatedVariants.splice(index, 1);
+
+            // Nếu không còn biến thể nào có cùng màu, xóa ảnh
+            if (!updatedVariants.some(v => v.colorId === removedVariant.colorId)) {
+                updatedVariants = updatedVariants.map(v =>
+                    v.colorId === removedVariant.colorId ? { ...v, imageUrls: [] } : v
+                );
+            }
+
+
+            const remainingVariantsWithColor = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
+            if (remainingVariantsWithColor.length === 0) {
+                setColorIds(prev => prev.filter(c => c.value !== removedVariant.colorId));
+            }
+
+            const remainingVariantsWithSize = updatedVariants.some(v => v.sizeId === removedVariant.sizeId);
+            if (!remainingVariantsWithSize) {
+                setSizeIds(prev => prev.filter(s => s.value !== removedVariant.sizeId));
+            }
+
+            return updatedVariants;
+        });
+    };
+
+    const handleImageChange = (index, event) => {
+        const files = Array.from(event.target.files);
+
+        if (files.length > 6) {
+            alert("Bạn chỉ có thể chọn tối đa 6 ảnh.");
+            return;
+        }
+
+        const imageUrls = files.map(file => URL.createObjectURL(file));
+
+        // setVariantList(prevVariants => {
+        //     const updatedVariants = prevVariants.map((variant, idx) =>
+        //         idx === index
+        //             ? { ...variant, images: files, imageUrls }
+        //             : variant
+        //     );
+        //     return updatedVariants;
+        // });
+        // setVariantList(prevVariants => {
+        //     const selectedColorId = prevVariants[index].colorId;
+
+        //     return prevVariants.map(variant =>
+        //         variant.colorId === selectedColorId
+        //             ? { ...variant, imageUrls, images: files }
+        //             : variant
+        //     );
+        // });
+        setVariantList(prevVariants => {
+            const selectedColorId = prevVariants[index].colorId;
+            let updatedVariants = [...prevVariants];
+
+            // Chỉ cập nhật ảnh cho biến thể đầu tiên có màu đó
+            const firstIndex = updatedVariants.findIndex(v => v.colorId === selectedColorId);
+            if (firstIndex !== -1) {
+                updatedVariants[firstIndex] = {
+                    ...updatedVariants[firstIndex],
+                    imageUrls,
+                    images: files
+                };
+            }
+
+            return updatedVariants;
+        });
+    };
+
+    const handleFileChange = (file) => {
+        setProductData({ ...productData, mainImage: file });
     };
 
     useEffect(() => {
@@ -151,18 +338,19 @@ const CreateProduct = () => {
     };
 
     const saveProduct = async () => {
-        if (!productName || !brandId || !categoryId || !materialId || !productData.mainImage) {
-            alert("Vui lòng nhập đầy đủ thông tin sản phẩm và ảnh chính!");
-            return;
-        }
 
-        if (hasError) {
-            alert("Vui lòng sửa lỗi trước khi lưu!");
-            return;
-        }
+        const result = await Swal.fire({
+            title: "Xác nhận",
+            text: "Bạn có chắc chắn muốn thêm sản phẩm này?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Đồng ý",
+            cancelButtonText: "Hủy",
+        });
 
-        const isConfirmed = window.confirm("Bạn có chắc chắn muốn thêm sản phẩm này?");
-        if (!isConfirmed) return;
+        if (!result.isConfirmed) return;
 
         try {
             const uploadedImageUrl = await uploadImageToCloudinary(productData.mainImage);
@@ -184,7 +372,8 @@ const CreateProduct = () => {
             };
 
             const productResponse = await createProduct(productRequest);
-            const productId = productResponse.data.data.id;
+            console.log("productResponse:", productResponse);
+            const productId = productResponse.data.id;
             console.log("Sản phẩm được tạo:", productResponse.data.data);
 
             const colorIdsFromVariants = [...new Set(variantList.map(v => v.colorId))];
@@ -250,7 +439,6 @@ const CreateProduct = () => {
         }
     };
 
-
     const handleImagesForProductColors = async (productColorMapping) => {
         try {
             for (const { productColorId, colorId } of productColorMapping) {
@@ -293,10 +481,64 @@ const CreateProduct = () => {
         handleCloseModal();
     };
 
-    const [isSaving, setIsSaving] = useState(false);
 
     const handleSaveClick = async () => {
         if (isSaving) return;
+
+        let newErrors = {};
+
+        if (errorMessage) {
+            toast.error(errorMessage);
+            return;
+        }
+
+        if (!productName.trim()) newErrors.productName = "Tên sản phẩm không được để trống";
+        if (!brandId) newErrors.brandId = "Vui lòng chọn thương hiệu";
+        if (!categoryId) newErrors.categoryId = "Vui lòng chọn danh mục";
+        if (!materialId) newErrors.materialId = "Vui lòng chọn chất liệu";
+        if (!description.trim()) newErrors.description = "Mô tả không được để trống";
+        if (!productData.mainImage) newErrors.mainImage = "Vui lòng chọn ảnh chính";
+        if (!variantList.length) newErrors.variantList = "Vui lòng thêm ít nhất một biến thể";
+
+        if (!colorIds.length) newErrors.colorIds = "Vui lòng chọn ít nhất một màu!";
+        if (!sizeIds.length) newErrors.sizeIds = "Vui lòng chọn ít nhất một kích cỡ!";
+
+        variantList.forEach((variant, index) => {
+            const variantInfo = `Biến thể (Màu: ${variant.color}, Size: ${variant.size})`;
+
+            if (!variant.colorId) newErrors[`colorId_${index}`] = `${variantInfo}: Chưa chọn màu sắc`;
+            if (!variant.sizeId) newErrors[`sizeId_${index}`] = `${variantInfo}: Chưa chọn kích cỡ`;
+
+            if (!variant.price) {
+                newErrors[`price_${index}`] = `${variantInfo}: Chưa nhập giá`;
+            } else if (variant.price <= 0) {
+                newErrors[`price_${index}`] = `${variantInfo}: Giá phải lớn hơn 0`;
+            }
+
+            if (!variant.quantity) {
+                newErrors[`quantity_${index}`] = `${variantInfo}: Chưa nhập số lượng`;
+            } else if (variant.quantity < 0) {
+                newErrors[`quantity_${index}`] = `${variantInfo}: Số lượng phải lớn hơn 0`;
+            }
+        });
+
+        colorIds.forEach(color => {
+            const colorName = color.label;
+
+            const hasImages = variantList.some(v => v.colorId === color.value && v.imageUrls?.length > 0);
+
+            if (!hasImages) {
+                newErrors[`images_${color.value}`] = `Màu ${colorName}: Cần tải lên ít nhất một ảnh!`;
+            }
+        });
+        setErrors(newErrors);
+
+        if (Object.keys(newErrors).length > 0) {
+            Object.values(newErrors).forEach((error) => {
+                toast.error(error);
+            });
+            return;
+        }
 
         setIsSaving(true);
 
@@ -309,29 +551,6 @@ const CreateProduct = () => {
         }
     };
 
-    const handleImageChange = (index, event) => {
-        const files = Array.from(event.target.files);
-
-        if (files.length > 6) {
-            alert("Bạn chỉ có thể chọn tối đa 6 ảnh.");
-            return;
-        }
-
-        const imageUrls = files.map(file => URL.createObjectURL(file)); // Tạo URL tạm thời
-
-        setVariantList(prevVariants => {
-            const updatedVariants = prevVariants.map((variant, idx) =>
-                idx === index
-                    ? { ...variant, images: files, imageUrls }
-                    : variant
-            );
-            return updatedVariants;
-        });
-    };
-
-    const handleFileChange = (file) => {
-        setProductData({ ...productData, mainImage: file });
-    };
 
     return (
         <div>
@@ -349,7 +568,17 @@ const CreateProduct = () => {
                                             <Form.Group className="row d-flex align-items-center">
                                                 <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
                                                 <div className="col-sm-9">
-                                                    <Form.Control type="text" value={productName || ""} onChange={(e) => setProductName(e.target.value)} placeholder='Nhập tên sản phẩm' required />
+                                                    <Form.Control
+                                                        type="text"
+                                                        value={productName || ""}
+                                                        onChange={(e) => setProductName(e.target.value)}
+                                                        placeholder='Nhập tên sản phẩm'
+                                                        required
+                                                        style={{
+                                                            fontSize: '16px',
+                                                        }}
+                                                    />
+                                                    {errorMessage && <small style={{ color: "red" }}>{errorMessage}</small>}
                                                 </div>
                                             </Form.Group>
                                         </div>
@@ -404,9 +633,11 @@ const CreateProduct = () => {
                             <div className='row'>
                                 <div className='col-md-9'></div>
                                 <div className='col-md-3'>
-                                    <button type="button" className="btn btn-primary float-right" onClick={handleOpenModal}>
-                                        + Thêm thuộc tính chung
-                                    </button>
+                                    {variantList.length > 0 && (
+                                        <button type="button" className="btn btn-primary float-right" onClick={handleOpenModal}>
+                                            + Thêm thuộc tính chung
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                             <hr />
@@ -416,10 +647,11 @@ const CreateProduct = () => {
                                         variantList={variantList}
                                         handleInputChange={handleInputChange}
                                         handleRemoveVariant={handleRemoveVariant}
-                                        setHasError={setHasError}
                                         onImagesSelected={handleImageChange}
                                         setVariantList={setVariantList}
+                                        errors={errors}
                                     />
+                                    {errors.variantList && <small className="text-danger">{errors.variantList}</small>}
                                 </div>
                             </div>
                             <hr />
@@ -436,7 +668,7 @@ const CreateProduct = () => {
                                     type="button"
                                     className="btn btn-gradient-primary btn-icon-text"
                                     onClick={handleSaveClick}
-                                    disabled={hasError || isSaving}
+                                    disabled={isSaving}
                                 >
                                     <i className="mdi mdi-file-check btn-icon-prepend"></i>
                                     {isSaving ? 'Đang lưu...' : 'Lưu'}
@@ -477,6 +709,8 @@ const CreateProduct = () => {
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+            <ToastContainer />
         </div>
     );
 }

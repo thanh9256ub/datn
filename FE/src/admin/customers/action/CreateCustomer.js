@@ -62,9 +62,9 @@ const CreateCustomer = () => {
             .catch(error => {
                 console.error("Lỗi thêm khách hàng:", error);
                 alert("Lỗi thêm khách hàng");
-            }) . finally(() =>{
+            }).finally(() => {
                 setLoading(false);
-            } )// Gọi hàm addCustomer từ CustomersService          
+            })// Gọi hàm addCustomer từ CustomersService          
 
     };
 
@@ -141,7 +141,7 @@ const CreateCustomer = () => {
     };
     return (
         <div>
-             {loading && (
+            {loading && (
                 <div className="loading-overlay">
                     <Spinner animation="border" role="status" />
                     <span>Đang xử lý...</span>

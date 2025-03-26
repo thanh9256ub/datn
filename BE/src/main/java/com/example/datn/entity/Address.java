@@ -56,6 +56,5 @@ public class Address {
         this.updatedAt = LocalDateTime.now();
         this.status = addressRequest.getDefaultAddress() ? 1 : 0;
     }
-
 }
 

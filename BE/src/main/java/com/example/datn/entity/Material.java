@@ -29,4 +29,5 @@ public class Material {
 
     @Column(name = "description")
     String description;
+
 }

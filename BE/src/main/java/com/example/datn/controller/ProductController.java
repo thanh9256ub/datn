@@ -6,6 +6,10 @@ import com.example.datn.dto.response.ProductResponse;
 import com.example.datn.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,144 +21,160 @@ import java.util.List;
 @RequestMapping("products")
 public class ProductController {
 
-    @Autowired
-    ProductService service;
+        @Autowired
+        ProductService service;
 
-    @PostMapping("add")
-    public ResponseEntity<ApiResponse<ProductResponse>> addProduct(
-            @Valid @RequestBody ProductRequest request) {
+        @PostMapping("add")
+        public ResponseEntity<ApiResponse<ProductResponse>> addProduct(
+                        @Valid @RequestBody ProductRequest request) {
 
-        ProductResponse productResponse = service.createProduct(request);
+                ProductResponse productResponse = service.createProduct(request);
 
-        ApiResponse<ProductResponse> response = new ApiResponse<>(
-                HttpStatus.CREATED.value(),
-                "Created successfully",
-                productResponse
-        );
+                ApiResponse<ProductResponse> response = new ApiResponse<>(
+                                HttpStatus.CREATED.value(),
+                                "Created successfully",
+                                productResponse);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAll() {
+        @GetMapping("list")
+        public ResponseEntity<ApiResponse<List<ProductResponse>>> getAll() {
 
-        List<ProductResponse> list = service.getAll();
+                List<ProductResponse> list = service.getList();
 
-        ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Products retrieved successfully",
-                list
-        );
+                ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
+                                HttpStatus.OK.value(),
+                                "Products retrieved successfully",
+                                list);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @GetMapping("/active")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getActiveProducts() {
+        @GetMapping
+        public ResponseEntity<ApiResponse<Page<ProductResponse>>> getAll(
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "5") int size) {
 
-        List<ProductResponse> list = service.getActiveProducts();
+                Pageable pageable = PageRequest.of(page, size);
+                Page<ProductResponse> list = service.getAll(pageable);
 
-        ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Products active retrieved successfully",
-                list
-        );
+                ApiResponse<Page<ProductResponse>> response = new ApiResponse<>(
+                                HttpStatus.OK.value(),
+                                "Products retrieved successfully",
+                                list);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @GetMapping("/inactive")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getInactiveProducts() {
+        // @GetMapping("/active")
+        // public ResponseEntity<ApiResponse<List<ProductResponse>>> getActiveProducts()
+        // {
+        //
+        // List<ProductResponse> list = service.getActiveProducts();
+        //
+        // ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
+        // HttpStatus.OK.value(),
+        // "Products active retrieved successfully",
+        // list
+        // );
+        //
+        // return ResponseEntity.ok(response);
+        // }
+        //
+        // @GetMapping("/inactive")
+        // public ResponseEntity<ApiResponse<List<ProductResponse>>>
+        // getInactiveProducts() {
+        //
+        // List<ProductResponse> list = service.getInactiveProducts();
+        //
+        // ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
+        // HttpStatus.OK.value(),
+        // "Products inactive retrieved successfully",
+        // list
+        // );
+        //
+        // return ResponseEntity.ok(response);
+        // }
 
-        List<ProductResponse> list = service.getInactiveProducts();
+        @GetMapping("/{id}")
+        public ResponseEntity<ApiResponse<ProductResponse>> getById(@PathVariable("id") Integer id) {
 
-        ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Products inactive retrieved successfully",
-                list
-        );
+                ProductResponse productResponse = service.getById(id);
 
-        return ResponseEntity.ok(response);
-    }
+                ApiResponse<ProductResponse> response = new ApiResponse<>(
+                                HttpStatus.OK.value(),
+                                "Successfully",
+                                productResponse);
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ProductResponse>> getById(@PathVariable("id") Integer id){
+                return ResponseEntity.ok(response);
 
-        ProductResponse productResponse = service.getById(id);
+        }
 
-        ApiResponse<ProductResponse> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Successfully",
-                productResponse
-        );
+        @PutMapping("/{id}")
+        public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
+                        @Valid @RequestBody ProductRequest request,
+                        @PathVariable("id") Integer id) {
 
-        return ResponseEntity.ok(response);
+                ProductResponse productResponse = service.updateProduct(id, request);
 
-    }
+                ApiResponse<ProductResponse> response = new ApiResponse<>(
+                                HttpStatus.OK.value(),
+                                "Product updated successfully",
+                                productResponse);
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
-            @Valid @RequestBody ProductRequest request,
-            @PathVariable("id") Integer id) {
+                return ResponseEntity.ok(response);
+        }
 
-        ProductResponse productResponse = service.updateProduct(id, request);
+        @DeleteMapping("/{id}")
+        public ResponseEntity<ApiResponse<ProductResponse>> deleteProduct(@PathVariable("id") Integer id) {
 
-        ApiResponse<ProductResponse> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Product updated successfully",
-                productResponse
-        );
+                service.deleteProduct(id);
 
-        return ResponseEntity.ok(response);
-    }
+                ApiResponse<ProductResponse> response = new ApiResponse<>(
+                                HttpStatus.OK.value(),
+                                "Product deleted successfully",
+                                null);
 
+                return ResponseEntity.ok(response);
+        }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<ProductResponse>> deleteProduct(@PathVariable("id") Integer id) {
+        @PatchMapping("/{productId}")
+        public ResponseEntity<ApiResponse<ProductResponse>> updateProductStatus(
+                        @PathVariable("productId") Integer productId,
+                        @RequestParam("status") Integer status) {
 
-        service.deleteProduct(id);
+                ProductResponse productResponse = service.updateStatus(productId, status);
 
-        ApiResponse<ProductResponse> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Product deleted successfully",
-                null
-        );
+                ApiResponse<ProductResponse> response = new ApiResponse<>(
+                                HttpStatus.OK.value(),
+                                "Update status successfully",
+                                productResponse);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @PatchMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductResponse>> updateProductStatus(
-            @PathVariable("productId") Integer productId,
-            @RequestParam("status") Integer status) {
+        @GetMapping("/search")
+        public ResponseEntity<ApiResponse<Page<ProductResponse>>> searchProducts(
+                        @RequestParam(value = "name", required = false) String name,
+                        @RequestParam(value = "brandId", required = false) Integer brandId,
+                        @RequestParam(value = "categoryId", required = false) Integer categoryId,
+                        @RequestParam(value = "materialId", required = false) Integer materialId,
+                        @RequestParam(value = "status", required = false) Integer status,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "5") int size) {
 
-        ProductResponse productResponse = service.updateStatus(productId, status);
+                Pageable pageable = PageRequest.of(page, size);
 
-        ApiResponse<ProductResponse> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Update status successfully",
-                productResponse
-        );
+                Page<ProductResponse> list = service.searchProducts(name, brandId, categoryId, materialId, status,
+                                pageable);
 
-        return ResponseEntity.ok(response);
-    }
+                ApiResponse<Page<ProductResponse>> response = new ApiResponse<>(
+                                200,
+                                "Products retrieved successfully",
+                                list);
 
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProducts(
-            @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "brandId", required = false) Integer brandId,
-            @RequestParam(value = "categoryId", required = false) Integer categoryId,
-            @RequestParam(value = "materialId", required = false) Integer materialId,
-            @RequestParam(value = "status", required = false) Integer status) {
+                return ResponseEntity.ok(response);
+        }
 
-        List<ProductResponse> list = service.searchProducts(name, brandId, categoryId, materialId, status);
-
-        ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
-                200,
-                "Products retrieved successfully",
-                list
-        );
-
-        return ResponseEntity.ok(response);
-    }
 }

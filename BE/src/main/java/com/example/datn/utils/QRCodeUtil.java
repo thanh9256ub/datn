@@ -16,8 +16,8 @@ import java.util.Hashtable;
 
 public class QRCodeUtil {
     public static String generateQRCode(String text) throws WriterException, IOException {
-        int width = 100;
-        int height = 100;
+        int width = 200;
+        int height = 200;
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         Hashtable<EncodeHintType, Object> hints = new Hashtable<>();
         hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");

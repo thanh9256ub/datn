@@ -66,5 +66,4 @@ public class Employee {
 
     @Column(name = "image")
     private String image;
-
 }

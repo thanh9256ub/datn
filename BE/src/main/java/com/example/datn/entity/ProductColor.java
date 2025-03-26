@@ -27,4 +27,5 @@ public class ProductColor {
 
     @Column(name = "description")
     String description;
+
 }

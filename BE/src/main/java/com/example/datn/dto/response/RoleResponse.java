@@ -14,4 +14,5 @@ public class RoleResponse {
      String roleName;
 
      String status;
+
 }

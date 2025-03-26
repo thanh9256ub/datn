@@ -9,8 +9,9 @@ const SearchProducts = ({ filters, setFilters, onSearch }) => {
 
     const statusOptions = [
         { value: '', label: 'Trạng thái' },
-        { value: '1', label: 'Hoạt động' },
-        { value: '0', label: 'Không hoạt động' }
+        { value: '1', label: 'Đang bán' },
+        { value: '0', label: 'Hết hàng' },
+        { value: '2', label: 'Ngừng bán' }
     ];
 
     const handleFilterChange = (e) => {
@@ -25,7 +26,7 @@ const SearchProducts = ({ filters, setFilters, onSearch }) => {
         <div className="row"
             style={{
                 margin: '0px 5px',
-                border: '1px solid #ccc',
+                // border: '1px solid #ccc',
                 padding: '10px',
                 borderRadius: '5px',
                 fontSize: '13px'

@@ -13,4 +13,3 @@ public interface AddressRepository extends JpaRepository<Address, Integer> {
 
     List<Address> findAddressByCustomerIdInAndStatus(List<Integer> customerIds, Integer status);
 }
-

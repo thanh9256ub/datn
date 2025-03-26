@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { Dropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { Trans } from 'react-i18next';
-import logo from '../../assets/images/logo.svg';
-import logoMini from '../../assets/images/logo-mini.svg';
+import logo from '../../assets/images/logo_h2tl.png';
+import logoMini from '../../assets/images/logo_mini_h2tl.png';
 
 class Navbar extends Component {
   toggleOffcanvas() {
@@ -46,7 +46,7 @@ class Navbar extends Component {
           <ul className="navbar-nav navbar-nav-right">
             <li className="nav-item nav-profile">
               <Dropdown alignRight>
-                <Dropdown.Toggle className="nav-link"> 
+                <Dropdown.Toggle className="nav-link">
                   <div className="nav-profile-img">
                     <img src={require("../../assets/images/faces/face1.jpg")} alt="user" />
                     <span className="availability-status online"></span>
@@ -68,7 +68,7 @@ class Navbar extends Component {
                 </Dropdown.Menu>
               </Dropdown>
             </li>
-            <li className="nav-item">
+            {/* <li className="nav-item">
               <Dropdown alignRight>
                 <Dropdown.Toggle className="nav-link count-indicator">
                   <i className="mdi mdi-email-outline"></i>
@@ -117,8 +117,8 @@ class Navbar extends Component {
                   <h6 className="p-3 mb-0 text-center cursor-pointer">4 <Trans>new messages</Trans></h6>
                 </Dropdown.Menu>
               </Dropdown>
-            </li>
-            <li className="nav-item">
+            </li> */}
+            {/* <li className="nav-item">
               <Dropdown alignRight>
                 <Dropdown.Toggle className="nav-link count-indicator">
                   <i className="mdi mdi-bell-outline"></i>
@@ -172,7 +172,7 @@ class Navbar extends Component {
                   <h6 className="p-3 mb-0 text-center cursor-pointer"><Trans>See all notifications</Trans></h6>
                 </Dropdown.Menu>
               </Dropdown>
-            </li>
+            </li> */}
             <li className="nav-item nav-logout d-none d-lg-block">
               <a className="nav-link" href="!#" onClick={event => event.preventDefault()}>
                 <i className="mdi mdi-power"></i>

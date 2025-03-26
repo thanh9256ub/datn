@@ -78,6 +78,5 @@ public class MaterialController {
         );
 
         return ResponseEntity.ok(response);
-
     }
 }

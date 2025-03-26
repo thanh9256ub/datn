@@ -63,4 +63,5 @@ public class Voucher {
 
     @Column(name = "updated_at")
     LocalDateTime updateAt = LocalDateTime.now().withNano(0);
+
 }

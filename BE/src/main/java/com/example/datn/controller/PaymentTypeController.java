@@ -22,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/payment-type")
 public class PaymentTypeController {
+
     @Autowired
     PaymentTypeService service;
 

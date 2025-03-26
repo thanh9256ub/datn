@@ -35,7 +35,7 @@ public class AddressService {
             responseList.add(new AddressResponse(address));
         });
         return responseList;
-//        return addressMapper.toListResponses(addressRepository.findAll());
+        // return addressMapper.toListResponses(addressRepository.findAll());
     }
 
     public AddressResponse creaAddress(AddressRequest addressRequest) {
