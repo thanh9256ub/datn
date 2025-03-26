@@ -68,7 +68,7 @@ class Navbar extends Component {
                 </Dropdown.Menu>
               </Dropdown>
             </li>
-            <li className="nav-item">
+            {/* <li className="nav-item">
               <Dropdown alignRight>
                 <Dropdown.Toggle className="nav-link count-indicator">
                   <i className="mdi mdi-email-outline"></i>
@@ -117,8 +117,8 @@ class Navbar extends Component {
                   <h6 className="p-3 mb-0 text-center cursor-pointer">4 <Trans>new messages</Trans></h6>
                 </Dropdown.Menu>
               </Dropdown>
-            </li>
-            <li className="nav-item">
+            </li> */}
+            {/* <li className="nav-item">
               <Dropdown alignRight>
                 <Dropdown.Toggle className="nav-link count-indicator">
                   <i className="mdi mdi-bell-outline"></i>
@@ -172,7 +172,7 @@ class Navbar extends Component {
                   <h6 className="p-3 mb-0 text-center cursor-pointer"><Trans>See all notifications</Trans></h6>
                 </Dropdown.Menu>
               </Dropdown>
-            </li>
+            </li> */}
             <li className="nav-item nav-logout d-none d-lg-block">
               <a className="nav-link" href="!#" onClick={event => event.preventDefault()}>
                 <i className="mdi mdi-power"></i>
