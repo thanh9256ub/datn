@@ -64,6 +64,11 @@ public class OrderService {
 
     public OrderResponse update(Integer id, OrderRequest orderRequest) {
         Order order = repository.findById(id).get();
+
+        if (orderRequest.getStatus()!=null&&orderRequest.getStatus()==1){
+            order.setStatus(orderRequest.getStatus());
+            return mapper.toOrderResponse(repository.save(order));
+        }
         if (orderRequest.getCustomerId() != null) {
             order.setCustomer(customerRepository.findById(orderRequest.getCustomerId()).get());
         }
@@ -86,6 +91,7 @@ public class OrderService {
 
         return mapper.toOrderResponse(repository.save(order));
     }
+
 
     public void detele(Integer id) {
         repository.deleteById(id);

@@ -1,63 +1,66 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Form, Modal, Button } from 'react-bootstrap';
-import axios from 'axios';
-
-const DeliveryInfo = ({ delivery, setDelivery, onSave, customer,customerInfo,setCustomerInfo }) => {
+import { toast } from "react-toastify";
+import axios from 'axios'; // Add this import
+import { fetchProvinces, fetchDistricts, fetchWards, fetchCustomerAddresses, addCustomerAddress } from '../api'; // Updated import
+import { toastOptions } from '../constants'; // Import constants
+import Select from 'react-select';
+const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, setCustomerInfo, idOrder, totalAmount,setSelectedProvince,selectedProvince,setSelectedDistrict,selectedDistrict,setSelectedWard,selectedWard }) => {
   const [tempDelivery, setTempDelivery] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
-  const [selectedProvince, setSelectedProvince] = useState('');
-  const [selectedDistrict, setSelectedDistrict] = useState('');
-  const [selectedWard, setSelectedWard] = useState('');
-  
+
 
   useEffect(() => {
-    // Fetch provinces from Viettel Post API
-    axios.get("https://partner.viettelpost.vn/v2/categories/listProvinceById?provinceId=-1")
+    fetchProvinces()
       .then(response => setProvinces(response.data.data))
       .catch(error => console.error("Lỗi lấy tỉnh/thành phố:", error));
   }, []);
 
   const handleProvinceChange = (e) => {
-    // console.log(e.target.value);
-    const provinceId = e.target.value;
+    const provinceId = e.target.value; // Get the ID of the province
+    const provinceName = e.target.options[e.target.selectedIndex].text; // Get the name of the province
     setSelectedProvince(provinceId);
     setSelectedDistrict('');
     setSelectedWard('');
     setDistricts([]);
     setWards([]);
-    setCustomerInfo({ ...customerInfo, province: e.target.options[e.target.selectedIndex].text });
+    setCustomerInfo({ ...customerInfo, province: provinceName }); // Store province name
 
-    // Fetch districts based on selected province
-    axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${provinceId}`)
+    fetchDistricts(provinceId)
       .then(response => setDistricts(response.data.data))
       .catch(error => console.error("Lỗi lấy quận/huyện:", error));
   };
 
   const handleDistrictChange = (e) => {
-   // console.log(e.target.value);
-    const districtId = e.target.value;
+    const districtId = e.target.value; // Get the ID of the district
+    const districtName = e.target.options[e.target.selectedIndex].text; // Get the name of the district
     setSelectedDistrict(districtId);
     setSelectedWard('');
     setWards([]);
-    setCustomerInfo({ ...customerInfo, district: e.target.options[e.target.selectedIndex].text });
+    setCustomerInfo({ ...customerInfo, district: districtName }); // Store district name
 
-    // Fetch wards based on selected district
-    axios.get(`https://partner.viettelpost.vn/v2/categories/listWards?districtId=${districtId}`)
+    fetchWards(districtId)
       .then(response => setWards(response.data.data))
       .catch(error => console.error("Lỗi lấy phường/xã:", error));
   };
 
   const handleWardChange = (e) => {
-    //console.log(e.target.value);
-    setSelectedWard(e.target.value);
-    setCustomerInfo({ ...customerInfo, ward: e.target.options[e.target.selectedIndex].text });
+    const wardId = e.target.value; // Get the ID of the ward
+    const wardName = e.target.options[e.target.selectedIndex].text; // Get the name of the ward
+    setSelectedWard(wardId);
+    setCustomerInfo({ ...customerInfo, ward: wardName }); // Store ward name
   };
 
   const handleDeliveryChange = () => {
     if (!delivery) {
+      if (!idOrder || totalAmount === 0) {
+        toast.warn("Vui lòng chọn hóa đơn trước khi bật giao hàng 🥰", toastOptions);
+        return;
+      }
+
       if (customer) {
         axios.get(`http://localhost:8080/address`)
           .then(response => {
@@ -69,26 +72,41 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer,customerInfo,set
                 province: address.city,
                 district: address.district,
                 ward: address.ward,
-                address: address.detailedAddress
+                address: address.detailedAddress,
               });
 
-              // Set province and fetch districts
-              setSelectedProvince(address.city);
-              axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${address.city}`)
+              // Fetch province ID
+              fetchProvinces()
                 .then(response => {
-                  setDistricts(response.data.data);
-                  setSelectedDistrict(address.district);
+                  const province = response.data.data.find(item => item.PROVINCE_NAME === address.city);
+                  if (province) {
+                    setSelectedProvince(province.PROVINCE_ID);
 
-                  // Fetch wards for the selected district
-                  axios.get(`https://partner.viettelpost.vn/v2/categories/listWards?districtId=${address.district}`)
-                    .then(response => {
-                      setWards(response.data.data);
-                      setSelectedWard(address.ward);
-                    })
-                    .catch(error => console.error("Lỗi lấy phường/xã:", error));
+                    // Fetch districts for the selected province
+                    fetchDistricts(province.PROVINCE_ID)
+                      .then(response => {
+                        setDistricts(response.data.data);
+                        const district = response.data.data.find(item => item.DISTRICT_NAME === address.district);
+                        if (district) {
+                          setSelectedDistrict(district.DISTRICT_ID);
+
+                          // Fetch wards for the selected district
+                          fetchWards(district.DISTRICT_ID)
+                            .then(response => {
+                              setWards(response.data.data);
+                              const ward = response.data.data.find(item => item.WARDS_NAME === address.ward);
+                              if (ward) {
+                                setSelectedWard(ward.WARDS_ID);
+                              }
+                            })
+                            .catch(error => console.error("Lỗi lấy phường/xã:", error));
+                        }
+                      })
+                      .catch(error => console.error("Lỗi lấy quận/huyện:", error));
+                  }
                 })
-                .catch(error => console.error("Lỗi lấy quận/huyện:", error));
-            }else{
+                .catch(error => console.error("Lỗi lấy tỉnh/thành phố:", error));
+            } else {
               setCustomerInfo({
                 name: customer.fullName,
                 phone: customer.phone,
@@ -96,18 +114,18 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer,customerInfo,set
                 district: "",
                 ward: "",
                 address: "",
-                note: ""
+                note: "",
               });
               setSelectedProvince('');
               setSelectedDistrict('');
               setSelectedWard('');
             }
-            setTempDelivery(true);
+          //  setTempDelivery(false);
             setShowModal(true);
           })
           .catch(error => {
             console.error('Lỗi lấy địa chỉ:', error);
-            setTempDelivery(true);
+           // setTempDelivery(false);
             setShowModal(true);
           });
       } else {
@@ -118,35 +136,91 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer,customerInfo,set
           district: "",
           ward: "",
           address: "",
-          note: ""
+          note: "",
         });
         setSelectedProvince('');
         setSelectedDistrict('');
         setSelectedWard('');
-        setTempDelivery(true);
+        //setTempDelivery(false);
         setShowModal(true);
       }
     } else {
       setDelivery(false);
+      toast.info("Chuyển sang không giao hàng 🥰", toastOptions);
     }
   };
 
   const handleCloseModal = () => {
+    setTempDelivery(false);
     setShowModal(false);
     setDelivery(false);
   };
 
   const handleSaveModal = () => {
+
+    // Validation
+    if (!customerInfo.name.trim()) {
+      toast.error("Họ tên không được để trống 🥰", toastOptions);
+      return;
+    }
+
+    if (!customerInfo.phone.trim() || !/^\d+$/.test(customerInfo.phone)) {
+      toast.error("Số điện thoại không hợp lệ 🥰", toastOptions);
+      return;
+    }
+
+    if (!selectedProvince) {
+      toast.error("Vui lòng chọn tỉnh/thành phố 🥰", toastOptions);
+      return;
+    }
+
+    if (!selectedDistrict) {
+      toast.error("Vui lòng chọn quận/huyện 🥰", toastOptions);
+      return;
+    }
+
+    if (!selectedWard) {
+      toast.error("Vui lòng chọn phường/xã 🥰", toastOptions);
+      return;
+    }
+    if (!customerInfo.address.trim()) {
+      toast.error("Địa chỉ cụ thể không được để trống 🥰", toastOptions);
+      return;
+    }
+
     const updatedCustomerInfo = {
+
       ...customerInfo,
       province: selectedProvince,
       district: selectedDistrict,
-      ward: selectedWard
+      ward: selectedWard,
     };
 
+    if (tempDelivery) {
+      const addressPayload = {
+        city: customerInfo.province,
+        district: customerInfo.district,
+        ward: customerInfo.ward,
+        detailedAddress: customerInfo.address,
+        customerId: customer.id,
+        status: 1,
+      };
+  
+      addCustomerAddress(addressPayload)
+        .then(() => {
+          toast.success("Địa chỉ đã được lưu thành công 🥰", toastOptions);
+        })
+        .catch((error) => {
+          console.error("Lỗi khi lưu địa chỉ:", error);
+          toast.error("Lỗi khi lưu địa chỉ 🥰", toastOptions);
+        });
+    }
+
+    toast.success("Chuyển sang giao hàng thành công 🥰", toastOptions);
     setDelivery(true);
     setShowModal(false);
     onSave(updatedCustomerInfo);
+
   };
 
   return (
@@ -211,6 +285,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer,customerInfo,set
                     <option key={province.PROVINCE_ID} value={province.PROVINCE_ID}>{province.PROVINCE_NAME}</option>
                   ))}
                 </Form.Control>
+                
               </Col>
             </Row>
 
@@ -261,12 +336,12 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer,customerInfo,set
                 <Form.Label>Ghi chú</Form.Label>
               </Col>
               <Col sm={8}>
-                <Form.Control as="textarea" rows={3} placeholder="Nhập ghi chú" 
-                 value={customerInfo.note }
-                 onChange={(e) => setCustomerInfo({ ...customerInfo, note : e.target.value })}
+                <Form.Control as="textarea" rows={3} placeholder="Nhập ghi chú"
+                  value={customerInfo.note}
+                  onChange={(e) => setCustomerInfo({ ...customerInfo, note: e.target.value })}
                 />
-                <Form.Check 
-                  type="checkbox" 
+                <Form.Check
+                  type="checkbox"
                   label="Lưu địa chỉ của khách hàng"
                   onChange={(e) => setTempDelivery(e.target.checked)}
                   checked={tempDelivery}

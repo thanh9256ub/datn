@@ -1,2 +1,23 @@
-package com.example.datn.dto.response;public class OrderVoucher {
+package com.example.datn.dto.response;
+
+import com.example.datn.entity.Order;
+import com.example.datn.entity.Voucher;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class OrderVoucherReponse {
+    Integer id;
+
+    Order order;
+
+    Voucher voucher;
+
+    String status ;
 }

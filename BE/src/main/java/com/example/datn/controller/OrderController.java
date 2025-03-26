@@ -53,6 +53,7 @@ public class OrderController {
                 HttpStatus.OK.value(), "PaymentMethod updated successfully",orderResponse);
         return  ResponseEntity.ok(apiResponse);
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> delete(@PathVariable("id") Integer id){
         service.detele(id);
