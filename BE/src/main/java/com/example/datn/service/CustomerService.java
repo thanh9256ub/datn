@@ -20,6 +20,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -100,8 +102,11 @@ public class CustomerService {
         customer.setUpdatedAt(LocalDateTime.now());
         Role role = roleRepository.findById(1).get();
         customer.setRole(role);
+        customer.setStatus(1);
 
         String password = generatePassword();
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        customer.setPassword(passwordEncoder.encode(password));
 
 
 >>>>>>> 0492006d8ee71b70faff6d78d4ac8138e3b83024

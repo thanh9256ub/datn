@@ -20,4 +20,5 @@ public interface CustomerMapper {
 
     @Mapping(target = "id",ignore = true)
     void updateCustomer(@MappingTarget Customer customer, CustomerRequest customerRequest);
+
 }

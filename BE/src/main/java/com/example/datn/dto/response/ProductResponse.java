@@ -41,4 +41,5 @@ public class ProductResponse {
     LocalDateTime createdAt;
 
     LocalDateTime updatedAt;
+
 }

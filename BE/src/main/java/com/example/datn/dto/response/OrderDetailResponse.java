@@ -37,4 +37,5 @@ public class OrderDetailResponse {
 
 
     Integer productStatus;
+
 }

@@ -24,6 +24,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   const [promoCode, setPromoCode] = useState("");
   const [finalAmount, setFinalAmount] = useState(totalAmount);
   const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
+
   const [shippingFee, setShippingFee] = useState(0);
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
@@ -34,6 +35,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     address: '',
     note: '',
   });
+
 
   useEffect(() => {
   
@@ -62,6 +64,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     const isEligibleForPayment = (paymen === 1 || paymen === 3|| paymen === 2) && totalAmount >= 0 && (paymen === 1 ? change >= 0 : true);
     setIsPaymentEnabled(isEligibleForPayment);
   }, [paymen, totalAmount, change]);
+
 
   const fetchShippingFeeWrapper = async (customerInfo) => {
     if (!customerInfo.province || !orderDetail) {
@@ -101,6 +104,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   }, [delivery, customerInfo, orderDetail]); 
 
   const handleShowQR = () => {
+
     setIsCashPayment(false);
 
     // Generate QR code URL dynamically
@@ -114,6 +118,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     const selectedOrderDetail = orderDetail.filter(item => String(item.order.id) === String(idOrder));
 
     const invoiceContent = `
+
       <html>
       <head>
       <style>
@@ -201,6 +206,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       </div>
       </body>
       </html>
+
     `;
 
     const printWindow = window.open('', '_blank');
@@ -208,6 +214,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     printWindow.document.close();
     printWindow.print();
   };
+
 
   const handlePaymentConfirmation = async () => {
     if (!isPaymentEnabled) {
@@ -261,6 +268,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     setShippingFee(fee);
   };
 
+
   return (
     <div className="container my-4">
       <h3>Thông tin thanh toán</h3>
@@ -279,23 +287,25 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         setPhoneNumber={setPhoneNumber}
       />
 
+
   
       <DeliveryInfo delivery={delivery} setDelivery={setDelivery} onSave={handleSaveDeliveryInfo} customer={customer} customerInfo={customerInfo} setCustomerInfo={setCustomerInfo} idOrder={idOrder} totalAmount={totalAmount} 
       setSelectedProvince={setSelectedProvince} selectedProvince={selectedProvince} setSelectedDistrict={setSelectedDistrict} selectedDistrict={selectedDistrict} setSelectedWard={setSelectedWard} selectedWard={selectedWard}
       />
       <PromoCode promoCode={promoCode} setPromo={setPromo} totalAmount={totalAmount} idOrder={idOrder}  />
 
+
       {/* Hiển thị tổng tiền */}
       <h5>Tổng tiền: {totalAmount.toLocaleString()} VND</h5>
       <h5>Giảm giá: {(totalAmount - finalAmount).toLocaleString()} VND</h5>
-      <h5>Phí vận chuyển: {shippingFee ? shippingFee.toLocaleString() : 0} VND</h5>
-      <h5>Thanh toán: {(finalAmount + shippingFee).toLocaleString()} VND</h5>
+      <h5>Phí vận chuyển: 0 VND</h5>
+      <h5>Thanh toán: {finalAmount.toLocaleString()} VND</h5>
 
       {/* Chọn phương thức thanh toán */}
       <Row className="mb-3">
         <Col sm={7}>
           {!delivery && (
-<<<<<<< HEAD
+
             <Button
               variant={paymen === 1 ? "primary" : "light"} // Purple when "Tiền mặt" is selected
               className="w-100"
@@ -306,17 +316,14 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
                 toast.info("Đã chọn phương thức thanh toán Tiền mặt 🥰", toastOptions);
               }}
             >
-=======
-            <Button variant="light" className="w-100" onClick={() => {
-              setPaymen('TM');
-              setIsCashPayment(true);
-            }}>
->>>>>>> 0492006d8ee71b70faff6d78d4ac8138e3b83024
+
+           
+
               Tiền mặt
             </Button>
           )}
           {delivery && (
-<<<<<<< HEAD
+
             <Button
               variant={paymen === 3 ? "primary" : "light"} // Purple when "Trả sau" is selected
               className="w-100"
@@ -327,12 +334,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
                 toast.info("Đã chọn phương thức thanh toán Trả sau 🥰", toastOptions);
               }}
             >
-=======
-            <Button variant="light" className="w-100" onClick={() => {
-              setPaymen('TS');
-              setIsCashPayment(false);
-            }}>
->>>>>>> 0492006d8ee71b70faff6d78d4ac8138e3b83024
+
               Trả sau
             </Button>
           )}
@@ -369,7 +371,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
                     setCashPaid(e.target.value);
 
                     setChange(e.target.value - finalAmount);
-                  }}
+                  } }
                   placeholder="Nhập số tiền khách trả"
                 />
               </Form.Group>

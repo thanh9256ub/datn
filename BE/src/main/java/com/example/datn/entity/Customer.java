@@ -32,7 +32,7 @@ public class Customer {
     private LocalDate birthDate;
 
     @Column(name = "gender")
-    private String gender;
+    private Integer gender;
 
     @Column(name = "phone")
     private String phone;
@@ -42,6 +42,9 @@ public class Customer {
 
     @Column(name = "password")
     private String password;
+
+    @Column(name = "status")
+    private Integer status;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -55,5 +58,4 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer")
     private List<Address> addressList;
-
 }

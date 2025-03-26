@@ -6,14 +6,11 @@ import reportWebVitals from './reportWebVitals';
 import ShopContextProvider from './ClientComponents/Context/ShopContext';
 import "./i18n";
 import * as serviceWorker from './serviceWorker';
-import { AuthProvider } from './context/AuthContext.js';
 
 ReactDOM.render(
-  <AuthProvider>
-    <ShopContextProvider>
-      <App />
-    </ShopContextProvider>
-  </AuthProvider>,
+  <ShopContextProvider>
+    <App />
+  </ShopContextProvider>,
   document.getElementById('root')
 );
 

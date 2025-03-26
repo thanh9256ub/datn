@@ -39,4 +39,5 @@ public class Cart {
     LocalDateTime ngay_tao;
 
     Integer trang_thai;
+
 }

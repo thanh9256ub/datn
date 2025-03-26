@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Form, Modal, Button } from 'react-bootstrap';
+
 import { toast } from "react-toastify";
 import axios from 'axios'; // Add this import
 import { fetchProvinces, fetchDistricts, fetchWards, fetchCustomerAddresses, addCustomerAddress } from '../api'; // Updated import
 import { toastOptions } from '../constants'; // Import constants
 import Select from 'react-select';
 const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, setCustomerInfo, idOrder, totalAmount,setSelectedProvince,selectedProvince,setSelectedDistrict,selectedDistrict,setSelectedWard,selectedWard }) => {
+
   const [tempDelivery, setTempDelivery] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [provinces, setProvinces] = useState([]);
@@ -13,28 +15,35 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
   const [wards, setWards] = useState([]);
 
 
+
   useEffect(() => {
     fetchProvinces()
       .then(response => setProvinces(response.data.data))
+
       .catch(error => console.error("Lỗi lấy tỉnh/thành phố:", error));
   }, []);
 
   const handleProvinceChange = (e) => {
+
     const provinceId = e.target.value; // Get the ID of the province
     const provinceName = e.target.options[e.target.selectedIndex].text; // Get the name of the province
     setSelectedProvince(provinceId);
+
     setSelectedDistrict('');
     setSelectedWard('');
     setDistricts([]);
     setWards([]);
+
     setCustomerInfo({ ...customerInfo, province: provinceName }); // Store province name
 
     fetchDistricts(provinceId)
       .then(response => setDistricts(response.data.data))
+
       .catch(error => console.error("Lỗi lấy quận/huyện:", error));
   };
 
   const handleDistrictChange = (e) => {
+
     const districtId = e.target.value; // Get the ID of the district
     const districtName = e.target.options[e.target.selectedIndex].text; // Get the name of the district
     setSelectedDistrict(districtId);
@@ -44,10 +53,12 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
 
     fetchWards(districtId)
       .then(response => setWards(response.data.data))
+
       .catch(error => console.error("Lỗi lấy phường/xã:", error));
   };
 
   const handleWardChange = (e) => {
+
     const wardId = e.target.value; // Get the ID of the ward
     const wardName = e.target.options[e.target.selectedIndex].text; // Get the name of the ward
     setSelectedWard(wardId);
@@ -148,6 +159,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
       setDelivery(false);
       toast.info("Chuyển sang không giao hàng 🥰", toastOptions);
     }
+
   };
 
   const handleCloseModal = () => {
@@ -157,6 +169,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
   };
 
   const handleSaveModal = () => {
+
 
     // Validation
     if (!customerInfo.name.trim()) {
@@ -221,6 +234,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
     setShowModal(false);
     onSave(updatedCustomerInfo);
 
+
   };
 
   return (
@@ -253,11 +267,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
                 <Form.Label>Họ tên</Form.Label>
               </Col>
               <Col sm={8}>
-                <Form.Control
-                  type="text"
-                  value={customerInfo.name}
-                  onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
-                />
+                <Form.Control type="text" placeholder="Nguyễn Khách Huyền" />
               </Col>
             </Row>
 
@@ -266,11 +276,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
                 <Form.Label>Số điện thoại</Form.Label>
               </Col>
               <Col sm={8}>
-                <Form.Control
-                  type="text"
-                  value={customerInfo.phone}
-                  onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
-                />
+                <Form.Control type="text" placeholder="0375161589" />
               </Col>
             </Row>
 
@@ -282,7 +288,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
                 <Form.Control as="select" value={selectedProvince} onChange={handleProvinceChange}>
                   <option value="">Chọn tỉnh/thành phố</option>
                   {provinces.map(province => (
-                    <option key={province.PROVINCE_ID} value={province.PROVINCE_ID}>{province.PROVINCE_NAME}</option>
+                    <option key={province.code} value={province.code}>{province.name}</option>
                   ))}
                 </Form.Control>
                 
@@ -297,7 +303,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
                 <Form.Control as="select" value={selectedDistrict} onChange={handleDistrictChange} disabled={!selectedProvince}>
                   <option value="">Chọn quận/huyện</option>
                   {districts.map(district => (
-                    <option key={district.DISTRICT_ID} value={district.DISTRICT_ID}>{district.DISTRICT_NAME}</option>
+                    <option key={district.code} value={district.code}>{district.name}</option>
                   ))}
                 </Form.Control>
               </Col>
@@ -311,7 +317,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
                 <Form.Control as="select" value={selectedWard} onChange={handleWardChange} disabled={!selectedDistrict}>
                   <option value="">Chọn phường/xã</option>
                   {wards.map(ward => (
-                    <option key={ward.WARDS_ID} value={ward.WARDS_ID}>{ward.WARDS_NAME}</option>
+                    <option key={ward.code} value={ward.name}>{ward.name}</option>
                   ))}
                 </Form.Control>
               </Col>
@@ -322,12 +328,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
                 <Form.Label>Địa chỉ cụ thể</Form.Label>
               </Col>
               <Col sm={8}>
-                <Form.Control
-                  type="text"
-                  placeholder="Nhập địa chỉ cụ thể"
-                  value={customerInfo.address}
-                  onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
-                />
+                <Form.Control type="text" placeholder="Nhập địa chỉ cụ thể" />
               </Col>
             </Row>
 

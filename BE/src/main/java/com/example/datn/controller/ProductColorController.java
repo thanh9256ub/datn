@@ -18,112 +18,105 @@ import java.util.List;
 @RequestMapping("product-color")
 public class ProductColorController {
 
-    @Autowired
-    ProductColorService service;
+        @Autowired
+        ProductColorService service;
 
-    @PostMapping("add")
-    public ResponseEntity<ApiResponse<List<ProductColorResponse>>> createProductColor(
-            @RequestBody ProductColorRequest request){
+        @PostMapping("add")
+        public ResponseEntity<ApiResponse<List<ProductColorResponse>>> createProductColor(
+                        @RequestBody ProductColorRequest request) {
 
-        List<ProductColorResponse> productColorResponse = service.createProductColor(request);
+                List<ProductColorResponse> productColorResponse = service.createProductColor(request);
 
-        ApiResponse<List<ProductColorResponse>> response = new ApiResponse<>(
-                HttpStatus.CREATED.value(),
-                "Created Successfully",
-                productColorResponse
-        );
+                ApiResponse<List<ProductColorResponse>> response = new ApiResponse<>(
+                                HttpStatus.CREATED.value(),
+                                "Created Successfully",
+                                productColorResponse);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductColorResponse>>> getAll(){
+        @GetMapping
+        public ResponseEntity<ApiResponse<List<ProductColorResponse>>> getAll() {
 
-        List<ProductColorResponse> listResponses = service.getAll();
+                List<ProductColorResponse> listResponses = service.getAll();
 
-        ApiResponse<List<ProductColorResponse>> response = new ApiResponse<>(
-                HttpStatus.CREATED.value(),
-                "Successfully",
-                listResponses
-        );
+                ApiResponse<List<ProductColorResponse>> response = new ApiResponse<>(
+                                HttpStatus.CREATED.value(),
+                                "Successfully",
+                                listResponses);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @PostMapping("/add-images/{productColorId}")
-    public ResponseEntity<ApiResponse<List<ImageResponse>>> addImagesToProductColor(
-            @PathVariable Integer productColorId,
-            @RequestBody List<ImageRequest> imageRequests) {
+        @PostMapping("/add-images/{productColorId}")
+        public ResponseEntity<ApiResponse<List<ImageResponse>>> addImagesToProductColor(
+                        @PathVariable Integer productColorId,
+                        @RequestBody List<ImageRequest> imageRequests) {
 
-        List<ImageResponse> imageResponses = service.addImagesToProductColor(productColorId, imageRequests);
+                List<ImageResponse> imageResponses = service.addImagesToProductColor(productColorId, imageRequests);
 
-        ApiResponse<List<ImageResponse>> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Images added successfully",
-                imageResponses
-        );
+                ApiResponse<List<ImageResponse>> response = new ApiResponse<>(
+                                HttpStatus.OK.value(),
+                                "Images added successfully",
+                                imageResponses);
 
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
+                return ResponseEntity.status(HttpStatus.OK).body(response);
+        }
 
-    @GetMapping("images")
-    public ResponseEntity<ApiResponse<List<ImageResponse>>> getImages(){
+        @GetMapping("images")
+        public ResponseEntity<ApiResponse<List<ImageResponse>>> getImages() {
 
-        List<ImageResponse> listResponses = service.getImages();
+                List<ImageResponse> listResponses = service.getImages();
 
-        ApiResponse<List<ImageResponse>> response = new ApiResponse<>(
-                HttpStatus.CREATED.value(),
-                "Successfully",
-                listResponses
-        );
+                ApiResponse<List<ImageResponse>> response = new ApiResponse<>(
+                                HttpStatus.CREATED.value(),
+                                "Successfully",
+                                listResponses);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @GetMapping("{productId}")
-    public ResponseEntity<ApiResponse<List<ProductColorResponse>>> getProductColorsByProduct(
-            @PathVariable("productId") Integer productId
-    ){
+        @GetMapping("{productId}")
+        public ResponseEntity<ApiResponse<List<ProductColorResponse>>> getProductColorsByProduct(
+                        @PathVariable("productId") Integer productId) {
 
-        List<ProductColorResponse> listResponses = service.getProductColorsByProduct(productId);
+                List<ProductColorResponse> listResponses = service.getProductColorsByProduct(productId);
 
-        ApiResponse<List<ProductColorResponse>> response = new ApiResponse<>(
-                HttpStatus.CREATED.value(),
-                "Successfully",
-                listResponses
-        );
+                ApiResponse<List<ProductColorResponse>> response = new ApiResponse<>(
+                                HttpStatus.CREATED.value(),
+                                "Successfully",
+                                listResponses);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @GetMapping("{productColorId}/images")
-    public ResponseEntity<ApiResponse<List<ImageResponse>>> getImagesByProductColor(
-            @PathVariable("productColorId") Integer productColorId
-    ){
+        @GetMapping("{productColorId}/images")
+        public ResponseEntity<ApiResponse<List<ImageResponse>>> getImagesByProductColor(
+                        @PathVariable("productColorId") Integer productColorId) {
 
-        List<ImageResponse> listResponses = service.getImagesByProductColor(productColorId);
+                List<ImageResponse> listResponses = service.getImagesByProductColor(productColorId);
 
-        ApiResponse<List<ImageResponse>> response = new ApiResponse<>(
-                HttpStatus.CREATED.value(),
-                "Successfully",
-                listResponses
-        );
+                ApiResponse<List<ImageResponse>> response = new ApiResponse<>(
+                                HttpStatus.CREATED.value(),
+                                "Successfully",
+                                listResponses);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @PutMapping("/update-images/{productColorId}")
-    public ResponseEntity<ApiResponse<List<ImageResponse>>> updateImagesForProductColor(
-            @PathVariable("productColorId") Integer productColorId,
-            @RequestBody List<ImageRequest> newImageRequests) {
-        List<ImageResponse> updatedImages = service.updateImagesForProductColor(productColorId, newImageRequests);
+        @PutMapping("/update-images/{productColorId}")
+        public ResponseEntity<ApiResponse<List<ImageResponse>>> updateImagesForProductColor(
+                        @PathVariable("productColorId") Integer productColorId,
+                        @RequestBody List<ImageRequest> newImageRequests) {
+                List<ImageResponse> updatedImages = service.updateImagesForProductColor(productColorId,
+                                newImageRequests);
 
-        ApiResponse<List<ImageResponse>> response = new ApiResponse<>(
-                HttpStatus.CREATED.value(),
-                "Successfully",
-                updatedImages
-        );
+                ApiResponse<List<ImageResponse>> response = new ApiResponse<>(
+                                HttpStatus.CREATED.value(),
+                                "Successfully",
+                                updatedImages);
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
+
 }

@@ -35,7 +35,7 @@ public class AddressService {
             responseList.add(new AddressResponse(address));
         });
         return responseList;
-//        return addressMapper.toListResponses(addressRepository.findAll());
+        // return addressMapper.toListResponses(addressRepository.findAll());
     }
 
     public AddressResponse creaAddress(AddressRequest addressRequest) {
@@ -45,7 +45,8 @@ public class AddressService {
         address.setUpdatedAt(LocalDateTime.now());
 
         Optional<Customer> customer = customerRepository.findById(addressRequest.getCustomerId());
-        if (customer.isEmpty()) throw new ResourceNotFoundException("Customer is not found");
+        if (customer.isEmpty())
+            throw new ResourceNotFoundException("Customer is not found");
         address.setCustomer(customer.get());
 
         Address oldDefaultAddress = addressRepository.findAddressByCustomerIdAndStatus(customer.get().getId(), 1);

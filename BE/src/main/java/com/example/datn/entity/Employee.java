@@ -31,7 +31,7 @@ public class Employee {
     private String fullName;
 
     @Column(name = "gender")
-    private String gender;
+    private Integer gender;
 
     @Column(name = "birth_date")
     private LocalDate birthDate;
@@ -46,14 +46,14 @@ public class Employee {
     private String email;
 
     @Column(name = "username")
-    private String username;
+    private String userName;
 
     @Column(name = "password")
-    private String password;
+    private String passWord;
 
     @ManyToOne
     @JoinColumn(name = "role_id",referencedColumnName = "id")
-    private Role role;
+    private Role roLe;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -64,4 +64,6 @@ public class Employee {
     @Column(name = "status")
     private Integer status;
 
+    @Column(name = "image")
+    private String image;
 }

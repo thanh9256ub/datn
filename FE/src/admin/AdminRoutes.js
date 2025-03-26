@@ -27,6 +27,7 @@ const Lockscreen = lazy(() => import('./user-pages/Lockscreen'));
 
 const BanHang = lazy(() => import('./counter/BanHang'));
 const Products = lazy(() => import('./products/Products'));
+const ProductDetail = lazy(() => import('./products/ProductDetail'));
 const InactiveProducts = lazy(() => import('./products/InactiveProducts'));
 const Employees = lazy(() => import('./employees/Employees'));
 const Customers = lazy(() => import('./customers/Customers'));
@@ -38,24 +39,27 @@ const UpdateProduct = lazy(() => import('./products/action/UpdateProduct'));
 const Brands = lazy(() => import('./products/Brands'));
 const Materials = lazy(() => import('./products/Material'));
 const Categories = lazy(() => import('./products/Categories'));
-const CreateEmployee = lazy(() => import('./employees/action/CreateEmployee'));
-const UpdateEmployee = lazy(() => import('./employees/action/UpdateEmployee'));
+
 const CreateCustomer = lazy(() => import('./customers/action/CreateCustomer'));
 const UpdateCustomer = lazy(() => import('./customers/action/UpdateCustomer'));
-// Component bảo vệ route (AuthGuard)
-// const ProtectedRoute = ({ component: Component, ...rest }) => {
-//   const { token } = useAuth();
+const CreateEmployee = lazy(() => import('./employees/action/CreateEmployee'));
+const UpdateEmployee = lazy(() => import('./employees/action/UpdateEmployee'));
 
-//   return (
-//       <Route
-//           {...rest}
-//           render={(props) =>
-//               console.log("token: " + !!token) ||
-//               !!token ? <Component {...props} /> : <Redirect to="/admin/user-pages/login-1" />
-//           }
-//       />
-//   );
-// };
+// Component bảo vệ route (AuthGuard)
+const ProtectedRoute = ({ component: Component, ...rest }) => {
+  const { token } = useAuth();
+
+  return (
+    <Route
+      {...rest}
+      render={(props) =>
+        console.log("token: " + !!token) ||
+          !!token ? <Component {...props} /> : <Redirect to="/LoginNhanVien" />
+      }
+    />
+  );
+};
+
 class AdminRoutes extends Component {
   render() {
     return (
@@ -85,20 +89,23 @@ class AdminRoutes extends Component {
 
           <Route exact path="/admin/counter" component={BanHang} />
 
-          <Route exact path="/admin/products" component={Products} />
-          <Route exact path="/admin/products/add" component={CreateProduct} />
-          <Route exact path="/admin/products/edit/:id" component={UpdateProduct} />
-          <Route exact path="/admin/products/inactive" component={InactiveProducts} />
-          <Route exact path="/admin/brands" component={Brands} />
-          <Route exact path="/admin/categories" component={Categories} />
-          <Route exact path="/admin/materials" component={Materials} />
+          <ProtectedRoute exact path="/admin/products" component={Products} />
+          <Route exact path="/admin/products/:id/detail" component={ProductDetail} />
+          <ProtectedRoute exact path="/admin/products/add" component={CreateProduct} />
+          <ProtectedRoute exact path="/admin/products/edit/:id" component={UpdateProduct} />
+          <ProtectedRoute exact path="/admin/products/inactive" component={InactiveProducts} />
+          <ProtectedRoute exact path="/admin/brands" component={Brands} />
+          <ProtectedRoute exact path="/admin/categories" component={Categories} />
+          <ProtectedRoute exact path="/admin/materials" component={Materials} />
 
           {/* <ProtectedRoute exact path="/admin/employees" component={Employees} />
           <ProtectedRoute exact path="/admin/employees/add" component={CreateEmployee} />
           <ProtectedRoute exact path="/admin/employees/update/:id" component={UpdateEmployee} />
           <ProtectedRoute exact path="/admin/customers" component={Customers} />
           <ProtectedRoute exact path="/admin/customers/update/:id" component={UpdateCustomer} />
-          <ProtectedRoute exact path="/admin/customers/add" component={CreateCustomer} /> */}
+
+          <ProtectedRoute exact path="/admin/customers/add" component={CreateCustomer} />
+
           <Route exact path="/admin/orders" component={Orders} />
           <Route exact path="/admin/orders/:id" component={OrderDetail} />
           <Route exact path="/admin/vouchers" component={Vouchers} />

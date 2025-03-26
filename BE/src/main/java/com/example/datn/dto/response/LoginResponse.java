@@ -17,4 +17,5 @@ public class LoginResponse {
     String employeeCode;
 
     String fullName;
+
 }

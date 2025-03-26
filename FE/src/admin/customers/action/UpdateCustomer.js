@@ -4,6 +4,7 @@ import { Form, Button } from 'react-bootstrap';
 import Select from 'react-select'; // Import react-select
 import { addCustomer, getCusomer, listCustomer, updateCustomer } from '../service/CustomersService';
 import { useHistory, useParams } from 'react-router-dom/cjs/react-router-dom.min';
+import { Spinner } from 'react-bootstrap';
 
 const UpdateCustomer = () => {
 
@@ -22,6 +23,7 @@ const UpdateCustomer = () => {
     const [update, setUpdate] = useState({});
     const [totalPage, setTotalPage] = useState(999);
     const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(false);
 
     const handleSaveCustomer = () => {
         // Cập nhật các địa chỉ với thuộc tính defaultAddress
@@ -41,8 +43,8 @@ const UpdateCustomer = () => {
         const updatedCustomer = { ...customer, address: updatedAddresses };
         addCustomer(updatedCustomer)
             .then(response => {
-                console.log("Thêm khách hàng thành công:", response);
-                alert("Thêm khách hàng thành công");
+                console.log("Cập nhật khách hàng thành công:", response);
+                localStorage.setItem("successMessage", "Cập nhật khách hàng thành công!");
                 history.push('/admin/customers');
             })
             .catch(error => {
@@ -67,8 +69,8 @@ const UpdateCustomer = () => {
 
     useEffect(() => {
         // Fetch provinces from API
-        axios.get("https://provinces.open-api.vn/api/?depth=1")
-            .then(response => setProvinces(response.data))
+        axios.get("https://partner.viettelpost.vn/v2/categories/listProvinceById?provinceId=-1")
+            .then(response => setProvinces(response.data.data || []))
             .catch(error => console.error("Lỗi lấy tỉnh/thành phố:", error));
     }, []);
 
@@ -81,8 +83,8 @@ const UpdateCustomer = () => {
         handleInputChange(index, 'city', selectedOption);
         // Fetch districts based on selected province
         if (selectedOption) {
-            axios.get(`https://provinces.open-api.vn/api/p/${selectedOption.value}?depth=2`)
-                .then(response => setDistricts(response.data.districts))
+            axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${selectedOption.value}`)
+                .then(response => setDistricts(response.data.data|| []))
                 .catch(error => console.error("Lỗi lấy quận/huyện:", error));
         }
     };
@@ -94,8 +96,8 @@ const UpdateCustomer = () => {
         handleInputChange(index, 'district', selectedOption);
         // Fetch wards based on selected district
         if (selectedOption) {
-            axios.get(`https://provinces.open-api.vn/api/d/${selectedOption.value}?depth=2`)
-                .then(response => setWards(response.data.wards))
+            axios.get(`https://partner.viettelpost.vn/v2/categories/listWards?districtId=${selectedOption.value}`)
+                .then(response => setWards(response.data.data|| []))
                 .catch(error => console.error("Lỗi lấy phường/xã:", error));
         }
     };
@@ -121,6 +123,7 @@ const UpdateCustomer = () => {
 
     useEffect(() => {
         const fetchCustomer = async () => {
+            setLoading(true);
             try {
                 const response = await getCusomer(id);
                 console.log(response.data);
@@ -128,6 +131,8 @@ const UpdateCustomer = () => {
                 setDefaultAddressIndex(response.data.addressList?.findIndex((address) => address.defaultAddress));
             } catch (error) {
                 console.error("Lỗi khi lấy dữ liệu:", error);
+            } finally {
+                setLoading(false);
             }
         };
         fetchCustomer();
@@ -141,6 +146,7 @@ const UpdateCustomer = () => {
                 address: null
             };
             updateCustomer(id, updateCustomerInfo).then(data => {
+                localStorage.setItem("successMessage", "Cập nhật khách hàng thành công!");   
                 history.push('/admin/customers');
             });
         }
@@ -157,6 +163,12 @@ const UpdateCustomer = () => {
 
     return (
         <div>
+            {loading && (
+                <div className="loading-overlay">
+                    <Spinner animation="border" role="status" />
+                    <span>Đang xử lý...</span>
+                </div>
+            )}
             <div className="row">
                 <div className="col-12 grid-margin">
                     <div className="card">
@@ -194,9 +206,9 @@ const UpdateCustomer = () => {
                                                         type="radio"
                                                         label="Nam"
                                                         name="gender"
-                                                        value="Nam"
-                                                        checked={update.gender === 'Nam'}
-                                                        onChange={(e) => setUpdate({ ...update, gender: e.target.value })}
+                                                        value="1"
+                                                        checked={update.gender === 1}
+                                                        onChange={(e) => setUpdate({ ...update, gender: e.target.value ? 1 : 0 })}
                                                         id="genderNam"
                                                         custom
                                                     />
@@ -208,9 +220,9 @@ const UpdateCustomer = () => {
                                                         type="radio"
                                                         label="Nữ"
                                                         name="gender"
-                                                        value="Nữ"
-                                                        checked={update.gender === 'Nữ'}
-                                                        onChange={(e) => setUpdate({ ...update, gender: e.target.value })}
+                                                        value="0"
+                                                        checked={update.gender === 0}
+                                                        onChange={(e) => setUpdate({ ...update, gender: e.target.value ? 0 : 1 })}
                                                         id="genderNu"
                                                         custom
                                                     />
@@ -272,8 +284,8 @@ const UpdateCustomer = () => {
                                                         <label className="form-label">Tỉnh/thành phố</label>
                                                         <Select
                                                             options={provinces.map((province) => ({
-                                                                value: province.code,
-                                                                label: province.name,
+                                                                value: province.PROVINCE_ID,
+                                                                label: province.PROVINCE_NAME,
                                                             }))}
                                                             value={{ label: address.city }}
                                                             onChange={(selectedOption) => handleProvinceChange(index, selectedOption)}
@@ -288,8 +300,8 @@ const UpdateCustomer = () => {
                                                         <label className="form-label">Quận/huyện</label>
                                                         <Select
                                                             options={districts.map((district) => ({
-                                                                value: district.code,
-                                                                label: district.name,
+                                                                value: district.DISTRICT_ID,
+                                                                label: district.DISTRICT_NAME,
                                                             }))}
                                                             value={{ label: address.district }}
                                                             onChange={(selectedOption) => handleDistrictChange(index, selectedOption)}
@@ -305,8 +317,8 @@ const UpdateCustomer = () => {
                                                         <label className="form-label">Phường/xã</label>
                                                         <Select
                                                             options={wards.map((ward) => ({
-                                                                value: ward.code,
-                                                                label: ward.name,
+                                                                value: ward.WARDS_ID,
+                                                                label: ward.WARDS_NAME,
                                                             }))}
                                                             value={{ label: address.ward }}
                                                             onChange={(selectedOption) => handleWardChange(index, selectedOption)}

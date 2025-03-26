@@ -10,13 +10,4 @@ import java.util.List;
 
 @Repository
 public interface BrandRepository extends JpaRepository<Brand,Integer> {
-//    @Query("""
-//        SELECT new com.example.datn.dto.response.BrandResponse(
-//            b.id,
-//            b.brandCode,
-//            b.brandName,
-//            b.description
-//        ) FROM Brand b
-//    """)
-//    List<BrandResponse> getAllResponse();
 }

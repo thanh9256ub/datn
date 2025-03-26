@@ -5,21 +5,37 @@ import { Form, Button } from 'react-bootstrap';
 import Select from 'react-select'; // Import react-select
 import { addCustomer } from '../service/CustomersService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
-
+import { Spinner } from 'react-bootstrap';
+import "./ActionCustomer.css";
 const CreateCustomer = () => {
+
     const history = useHistory();
+
     const [provinces, setProvinces] = useState([]);
+
     const [districts, setDistricts] = useState([]);
+
     const [wards, setWards] = useState([]);
+
     const [selectedProvince, setSelectedProvince] = useState(null);
+
     const [selectedDistrict, setSelectedDistrict] = useState(null);
+
     const [selectedWard, setSelectedWard] = useState(null);
+
     const [addresses, setAddresses] = useState([{}]);
+
     const [defaultAddressIndex, setDefaultAddressIndex] = useState(0);
+
     const [customer, setCustomer] = useState({});
+
+    const [loading, setLoading] = useState(false);
 
 
     const handleSaveCustomer = () => {
+        if (!window.confirm('Bạn có chắc chắn muốn thêm khách hàng?')) return;
+
+        setLoading(true);
         // Cập nhật các địa chỉ với thuộc tính defaultAddress
         const updatedAddresses = addresses.map((address, index) => ({
             ...address,
@@ -38,13 +54,15 @@ const CreateCustomer = () => {
         addCustomer(updatedCustomer)
             .then(response => {
                 console.log("Thêm khách hàng thành công:", response);
-                alert("Thêm khách hàng thành công");
+                localStorage.setItem("successMessage", "Thêm khách hàng thành công!");
                 history.push('/admin/customers');
             })
             .catch(error => {
                 console.error("Lỗi thêm khách hàng:", error);
                 alert("Lỗi thêm khách hàng");
-            }); // Gọi hàm addCustomer từ CustomersService          
+            }) . finally(() =>{
+                setLoading(false);
+            } )// Gọi hàm addCustomer từ CustomersService          
 
     };
 
@@ -63,8 +81,13 @@ const CreateCustomer = () => {
 
     useEffect(() => {
         // Fetch provinces from API
-        axios.get("https://provinces.open-api.vn/api/?depth=1")
-            .then(response => setProvinces(response.data))
+        delete axios.defaults.headers.common["Authorization"];
+        axios.get("https://partner.viettelpost.vn/v2/categories/listProvinceById?provinceId=-1")
+            .then(response => {
+                setProvinces(response.data.data || []);
+                console.log("Tỉnh/thành phố:", response.data.data)
+            })
+
             .catch(error => console.error("Lỗi lấy tỉnh/thành phố:", error));
     }, []);
 
@@ -77,8 +100,9 @@ const CreateCustomer = () => {
         handleInputChange(index, 'province', selectedOption);
         // Fetch districts based on selected province
         if (selectedOption) {
-            axios.get(`https://provinces.open-api.vn/api/p/${selectedOption.value}?depth=2`)
-                .then(response => setDistricts(response.data.districts))
+            delete axios.defaults.headers.common["Authorization"];
+            axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${selectedOption.value}`)
+                .then(response => setDistricts(response.data.data || []))
                 .catch(error => console.error("Lỗi lấy quận/huyện:", error));
         }
     };
@@ -90,8 +114,8 @@ const CreateCustomer = () => {
         handleInputChange(index, 'district', selectedOption);
         // Fetch wards based on selected district
         if (selectedOption) {
-            axios.get(`https://provinces.open-api.vn/api/d/${selectedOption.value}?depth=2`)
-                .then(response => setWards(response.data.wards))
+            axios.get(`https://partner.viettelpost.vn/v2/categories/listWards?districtId=${selectedOption.value}`)
+                .then(response => setWards(response.data.data || []))
                 .catch(error => console.error("Lỗi lấy phường/xã:", error));
         }
     };
@@ -115,6 +139,12 @@ const CreateCustomer = () => {
     };
     return (
         <div>
+             {loading && (
+                <div className="loading-overlay">
+                    <Spinner animation="border" role="status" />
+                    <span>Đang xử lý...</span>
+                </div>
+            )}
             <div className="row">
                 <div className="col-12 grid-margin">
                     <div className="card">
@@ -143,9 +173,9 @@ const CreateCustomer = () => {
                                                         type="radio"
                                                         label="Nam"
                                                         name="gender"
-                                                        value="Nam"
-                                                        checked={customer.gender === 'Nam'}
-                                                        onChange={(e) => setCustomer({ ...customer, gender: e.target.value })}
+                                                        value="1"
+                                                        checked={customer.gender === 1}
+                                                        onChange={(e) => setCustomer({ ...customer, gender: e.target.value ? 1 : 0 })} // Nếu chọn Nam thì gán 1, Nữ thì gán 0
                                                         id="genderNam"
                                                         custom
                                                     />
@@ -157,9 +187,9 @@ const CreateCustomer = () => {
                                                         type="radio"
                                                         label="Nữ"
                                                         name="gender"
-                                                        value="Nữ"
-                                                        checked={customer.gender === 'Nữ'}
-                                                        onChange={(e) => setCustomer({ ...customer, gender: e.target.value })}
+                                                        value="0"
+                                                        checked={customer.gender === 0}
+                                                        onChange={(e) => setCustomer({ ...customer, gender: e.target.value ? 0 : 1 })} // Nếu chọn Nam thì gán 1, Nữ thì gán 0
                                                         id="genderNu"
                                                         custom
                                                     />
@@ -223,8 +253,8 @@ const CreateCustomer = () => {
                                                         <label className="form-label">Tỉnh/thành phố</label>
                                                         <Select
                                                             options={provinces.map((province) => ({
-                                                                value: province.code,
-                                                                label: province.name,
+                                                                value: province.PROVINCE_ID,
+                                                                label: province.PROVINCE_NAME,
                                                             }))}
                                                             value={address.province}
                                                             onChange={(selectedOption) => handleProvinceChange(index, selectedOption)}
@@ -239,8 +269,8 @@ const CreateCustomer = () => {
                                                         <label className="form-label">Quận/huyện</label>
                                                         <Select
                                                             options={districts.map((district) => ({
-                                                                value: district.code,
-                                                                label: district.name,
+                                                                value: district.DISTRICT_ID,
+                                                                label: district.DISTRICT_NAME,
                                                             }))}
                                                             value={address.district}
                                                             onChange={(selectedOption) => handleDistrictChange(index, selectedOption)}
@@ -256,8 +286,8 @@ const CreateCustomer = () => {
                                                         <label className="form-label">Phường/xã</label>
                                                         <Select
                                                             options={wards.map((ward) => ({
-                                                                value: ward.code,
-                                                                label: ward.name,
+                                                                value: ward.WARDS_ID,
+                                                                label: ward.WARDS_NAME,
                                                             }))}
                                                             value={address.ward}
                                                             onChange={(selectedOption) => handleWardChange(index, selectedOption)}

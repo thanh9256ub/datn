@@ -91,6 +91,7 @@ public class CounterController {
                 HttpStatus.OK.value(), "Order  successfully", orderResponse);
         return ResponseEntity.ok(apiResponse);
     }
+
     @PostMapping("/get-price")
     public ResponseEntity<?> getShippingFee(@RequestBody Map<String, Object> payload) {
         try {
@@ -115,3 +116,4 @@ public class CounterController {
         }
     }
 }
+
