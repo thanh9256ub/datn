@@ -3,7 +3,7 @@ import { getColors, createColor } from '../service/ColorService';
 import Select from 'react-select';
 import { Button, Form, Modal } from 'react-bootstrap';
 
-const ColorSelect = ({ colorIds, setColorIds }) => {
+const ColorContainer = ({ colorIds, setColorIds }) => {
     const [colorOptions, setColorOptions] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [newColorName, setNewColorName] = useState("");
@@ -91,4 +91,4 @@ const ColorSelect = ({ colorIds, setColorIds }) => {
     )
 }
 
-export default ColorSelect
+export default ColorContainer
