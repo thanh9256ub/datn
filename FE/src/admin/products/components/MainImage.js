@@ -21,7 +21,7 @@ const MainImage = ({ setMainImage, initialImage }) => {
     };
 
     const renderImagePreview = () => {
-        if (initialImage && typeof initialImage === 'string') {
+        if (initialImage != "image.png" && initialImage && typeof initialImage === 'string') {
             // Nếu initialImage là URL, hiển thị ảnh từ URL
             return <img src={initialImage} alt="Preview" style={previewImageStyle} />;
         } else if (initialImage && initialImage instanceof File) {

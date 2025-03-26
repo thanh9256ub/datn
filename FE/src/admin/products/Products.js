@@ -29,6 +29,7 @@ const Products = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [pageSize, setPageSize] = useState(5);
+    const [selectedProducts, setSelectedProducts] = useState([]);
 
     const fetchProducts = async (page = currentPage, size = pageSize) => {
         setLoading(true);
@@ -161,6 +162,104 @@ const Products = () => {
         fetchFilteredProducts();
     };
 
+    // const handleExportExcel = async () => {
+    //     try {
+    //         const response = await fetch("http://localhost:8080/products/export-excel", {
+    //             method: "GET",
+    //             headers: {
+    //                 "Authorization": `Bearer ${localStorage.getItem("token")}`
+    //             }
+    //         });
+
+    //         if (!response.ok) {
+    //             throw new Error("Lỗi khi xuất file Excel");
+    //         }
+
+    //         const blob = await response.blob();
+    //         const url = window.URL.createObjectURL(blob);
+    //         const a = document.createElement("a");
+    //         a.href = url;
+    //         a.download = "danh_sach_san_pham.xlsx";
+    //         document.body.appendChild(a);
+    //         a.click();
+    //         document.body.removeChild(a);
+    //         window.URL.revokeObjectURL(url);
+    //         toast.success("Xuất file Excel thành công!");
+    //     } catch (error) {
+    //         console.error(error);
+    //         toast.error("Lỗi khi xuất file Excel!");
+    //     }
+    // };
+
+    const handleExportExcel = async () => {
+        if (selectedProducts.length === 0) {
+            toast.error("Vui lòng chọn ít nhất một sản phẩm để xuất Excel!");
+            return;
+        }
+
+        try {
+            const response = await fetch("http://localhost:8080/products/export-excel", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                },
+                body: JSON.stringify({ productIds: selectedProducts }) // Gửi danh sách ID sản phẩm đã chọn
+            });
+
+            if (!response.ok) {
+                throw new Error("Lỗi khi xuất file Excel");
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "danh_sach_san_pham_xuat_excel.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            toast.success("Xuất file Excel thành công!");
+        } catch (error) {
+            console.error(error);
+            toast.error("Lỗi khi xuất file Excel!");
+        }
+    };
+
+
+    const handleImportExcel = async (event) => {
+        const file = event.target.files[0];
+        if (!file) {
+            toast.error("Vui lòng chọn một tệp Excel!");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const response = await fetch("http://localhost:8080/products/import-excel", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error("Lỗi khi nhập file Excel");
+            }
+
+            toast.success("Nhập file Excel thành công!");
+            fetchProducts(); // Load lại danh sách sản phẩm sau khi nhập
+        } catch (error) {
+            console.error(error);
+            toast.error("Lỗi khi nhập file Excel!");
+        }
+    };
+
     return (
         <div>
             <div className="page-header">
@@ -169,6 +268,28 @@ const Products = () => {
                 </h3>
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px" }}>
+                <div style={{ position: "relative", display: "inline-block" }}>
+                    <button type="button" className='btn btn-success' style={{ cursor: "pointer" }}>
+                        <i className='mdi mdi-file-import'></i>Nhập Excel
+                    </button>
+                    <input
+                        type="file"
+                        accept=".xlsx, .xls"
+                        onChange={handleImportExcel}
+                        style={{
+                            position: "absolute",
+                            left: 0,
+                            top: 0,
+                            width: "100%",
+                            height: "100%",
+                            opacity: 0,
+                            cursor: "pointer"
+                        }}
+                    />
+                </div>
+                <button type="button" className='btn btn-success' onClick={handleExportExcel}>
+                    <i className='mdi mdi-file-export'></i>Xuất Excel
+                </button>
                 <button type="button" className="btn btn-gradient-primary float-right" onClick={handleAddProduct}>
                     <i className='mdi mdi-plus'></i> Thêm mới
                 </button>
@@ -203,7 +324,19 @@ const Products = () => {
                                             // style={{ backgroundColor: "#CE91FF", color: "#fff" }}
                                             >
                                                 <tr>
-                                                    {/* <th></th> */}
+                                                    <th>
+                                                        <input
+                                                            type="checkbox"
+                                                            onChange={(e) => {
+                                                                if (e.target.checked) {
+                                                                    setSelectedProducts(products.map(p => p.id));
+                                                                } else {
+                                                                    setSelectedProducts([]);
+                                                                }
+                                                            }}
+                                                            checked={selectedProducts.length === products.length && products.length > 0}
+                                                        />
+                                                    </th>
                                                     <th>Ảnh chính</th>
                                                     <th>Mã sản phẩm</th>
                                                     <th>Tên sản phẩm</th>
@@ -225,14 +358,19 @@ const Products = () => {
                                                                 onClick={() => handleProductDetail(product.id)}
                                                                 style={{ cursor: "pointer" }}
                                                             >
-                                                                {/* <td>
-                                                                    <div className="form-check">
-                                                                        <label className="form-check-label">
-                                                                            <input type="checkbox" className="form-check-input" />
-                                                                            <i className="input-helper"></i>
-                                                                        </label>
-                                                                    </div>
-                                                                </td> */}
+                                                                <td onClick={(event) => event.stopPropagation()}>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        onChange={(e) => {
+                                                                            if (e.target.checked) {
+                                                                                setSelectedProducts([...selectedProducts, product.id]);
+                                                                            } else {
+                                                                                setSelectedProducts(selectedProducts.filter(id => id !== product.id));
+                                                                            }
+                                                                        }}
+                                                                        checked={selectedProducts.includes(product.id)}
+                                                                    />
+                                                                </td>
                                                                 <td onClick={(event) => event.stopPropagation()}>
                                                                     {product.mainImage != "image.png" ? (
                                                                         <img
