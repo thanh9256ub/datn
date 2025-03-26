@@ -588,6 +588,7 @@ const ListItem = (props) => {
 
   const [loading, setLoading] = useState(true);
 
+  
   // Thông báo
   const message = localStorage.getItem("successMessage");
   if (message) {
@@ -603,32 +604,30 @@ const ListItem = (props) => {
   }
 
   return (
-    <li className={(props.isCompleted ? 'completed' : null)}>
-      {successMessage && (
-        <Alert variant="success" onClose={() => setSuccessMessage("")} dismissible>
-          {successMessage}
-        </Alert>
-      )}
-      {loading ? (
-        <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
-          <Spinner animation="border" variant="primary" />
-          <span className="ml-2">Đang tải dữ liệu...</span>
-        </div>
-      ) : error ? (
-        <div className="text-danger">{error}</div>
-      ) : (
-        <div className="form-check">
-          <label htmlFor="" className="form-check-label">
-            <input className="checkbox" type="checkbox"
-              checked={props.isCompleted}
-              onChange={props.changed}
-            /> {props.children} <i className="input-helper"></i>
-          </label>
-        </div>
-      )}
-      <i className="remove mdi mdi-close-circle-outline" onClick={props.remove}></i>
+    <div>
+      <li className={(props.isCompleted ? 'completed' : null)}>
+        {successMessage && (
+          <Alert variant="success" onClose={() => setSuccessMessage("")} dismissible>
+            {successMessage}
+          </Alert>
+        )}
+        {error ? (
+          <div className="text-danger">{error}</div>
+        ) : (
+          <div className="form-check">
+            <label htmlFor="" className="form-check-label">
+              <input className="checkbox" type="checkbox"
+                checked={props.isCompleted}
+                onChange={props.changed}
+              /> {props.children} <i className="input-helper"></i>
+            </label>
+          </div>
+        )}
+        <i className="remove mdi mdi-close-circle-outline" onClick={props.remove}></i>
+
+      </li>
       <ToastContainer />
-    </li>
+    </div>
   )
 };
 export default Dashboard;

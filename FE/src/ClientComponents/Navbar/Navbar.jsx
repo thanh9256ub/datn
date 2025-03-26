@@ -5,6 +5,8 @@ import cart_icon from '../Assets/cart_icon.png'
 import { Link } from 'react-router-dom'
 import { ShopContext } from '../Context/ShopContext'
 import nav_dropdown from '../Assets/icons8-menu-50.png'
+
+import { Dropdown, DropdownButton } from 'react-bootstrap'
 const Navbar = () => {
     const [menu, setMenu] = useState("shop");
     const { getTotalCartItems } = useContext(ShopContext);
@@ -13,6 +15,15 @@ const Navbar = () => {
         menuRef.current.classList.toggle('nav-menu-visible');
         e.target.classList.toggle('open');
     }
+
+    const handleLogout = () => {
+        // Remove token from localStorage and reload the page to reflect the changes
+        localStorage.removeItem('token');
+        localStorage.removeItem('email');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+    };
+
     return (
         <div className='navbar-client'>
             <div className='nav-logo'>
@@ -29,11 +40,32 @@ const Navbar = () => {
 
                 </ul>
             </div>
-            <div className="nav-login-cart">
-                <Link to='/login' ><button className='button-login'>Login</button></Link>
-                <Link to='/cart'><img src={cart_icon} alt="" /></Link>
-                <div className="nav-cart-count">{getTotalCartItems()}</div>
-            </div>
+            {
+                localStorage.getItem('token')
+                    ? (
+                        <>
+
+                            
+
+                            <Link to='/logout'>
+                                <button className='button-login' onClick={handleLogout}>Logout</button>
+                            </Link>
+
+                        </>
+                    )
+                    : (
+                        <>
+                            <Link to='/login'>
+                                <button className='button-login'>Login</button>
+                            </Link>
+                            <Link to='/signup'>
+                                <button className='button-login'>Đăng kí</button>
+                            </Link>
+                        </>
+                    )
+            }
+            <Link to='/cart'><img src={cart_icon} alt="" /></Link>
+            <div className="nav-cart-count">{getTotalCartItems()}</div>
         </div>
     )
 }

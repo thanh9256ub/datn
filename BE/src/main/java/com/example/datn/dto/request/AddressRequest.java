@@ -13,8 +13,6 @@ import java.time.LocalDateTime;
 
 public class AddressRequest {
 
-    Integer id;
-
     String city;
 
     String district;
@@ -28,8 +26,4 @@ public class AddressRequest {
     Integer status;
 
     Boolean defaultAddress;
-
-    LocalDateTime createdAt;
-
-    LocalDateTime updatedAt;
 }

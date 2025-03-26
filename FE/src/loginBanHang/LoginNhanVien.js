@@ -3,7 +3,7 @@ import { withRouter } from 'react-router-dom';
 import { withTranslation } from "react-i18next";
 import LoginBanHang from './LoginBanHang';
 
-class LoginTest extends Component {
+class LoginNhanVien extends Component {
     state = {};
 
     render() {
@@ -16,4 +16,4 @@ class LoginTest extends Component {
 
 }
 
-export default withTranslation()(withRouter(LoginTest));
+export default withTranslation()(withRouter(LoginNhanVien));

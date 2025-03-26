@@ -63,7 +63,7 @@ public class EmployeeService {
     public EmployeeResponse createEmployee(EmployeeRequest employeeRequest) {
         Employee employee = employeeMapper.toEmployee(employeeRequest);
         employee.setEmployeeCode("NV.....");
-        employee.setCreatedAt(LocalDateTime.now());
+        employee.setCreatedAt(LocalDateTime.now());   
         employee.setUpdatedAt(LocalDateTime.now());
         employee.setStatus(1);
         Role role = roleRepository.findById(employeeRequest.getRoleId()).get();

@@ -35,7 +35,7 @@ public class SecurityConfig {
         try {
             httpSecurity.authorizeHttpRequests(request -> request
                     .requestMatchers("/auth/token",
-                            "auth/introspect")
+                            "auth/introspect","authCustomer/token", "authCustomer/register")
                     .permitAll()
                     .requestMatchers("/address/**", "/role/**")
                     .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")

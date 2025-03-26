@@ -2,73 +2,60 @@ import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import Select from 'react-select'; // Import react-select
-import { addCustomer, getCusomer, listCustomer, updateCustomer } from '../service/CustomersService';
+import { addAddressCustomer, addCustomer, deleteAddressCustomer, getCusomer, listCustomer, updateAddressCustomer, updateCustomer } from '../service/CustomersService';
 import { useHistory, useParams } from 'react-router-dom/cjs/react-router-dom.min';
 import { Spinner } from 'react-bootstrap';
 
 const UpdateCustomer = () => {
 
     const { id } = useParams();
+
     const [customers, setCustomers] = useState([]);
+
     const history = useHistory();
+
     const [provinces, setProvinces] = useState([]);
+
     const [districts, setDistricts] = useState([]);
+
     const [wards, setWards] = useState([]);
+
     const [selectedProvince, setSelectedProvince] = useState(null);
+
     const [selectedDistrict, setSelectedDistrict] = useState(null);
+
     const [selectedWard, setSelectedWard] = useState(null);
+
     const [addresses, setAddresses] = useState([{}]);
+
     const [defaultAddressIndex, setDefaultAddressIndex] = useState(0);
+
     const [customer, setCustomer] = useState({});
+
     const [update, setUpdate] = useState({});
+
     const [totalPage, setTotalPage] = useState(999);
+
     const [page, setPage] = useState(1);
+
     const [loading, setLoading] = useState(false);
 
-    const handleSaveCustomer = () => {
-        // Cập nhật các địa chỉ với thuộc tính defaultAddress
-        const updatedAddresses = addresses.map((address, index) => ({
-            ...address,
-            city: address.province?.label,
-            district: address.district?.label,
-            ward: address.ward?.label,
-            detailedAddress: address.detail,
-            province: null,
-            detail: null,
-            defaultAddress: index === defaultAddressIndex,  // Gán defaultAddress là true cho địa chỉ mặc định
-        }));
-
-        // Gửi dữ liệu lên API
-        console.log("Địa chỉ sau khi cập nhật:", updatedAddresses);
-        const updatedCustomer = { ...customer, address: updatedAddresses };
-        addCustomer(updatedCustomer)
-            .then(response => {
-                console.log("Cập nhật khách hàng thành công:", response);
-                localStorage.setItem("successMessage", "Cập nhật khách hàng thành công!");
-                history.push('/admin/customers');
-            })
-            .catch(error => {
-                console.error("Lỗi thêm khách hàng:", error);
-                alert("Lỗi thêm khách hàng");
-            }); // Gọi hàm addCustomer từ CustomersService          
-
-    };
-
     const handleAddAddress = () => {
-        setAddresses([...addresses, {}]); // Thêm địa chỉ mới vào danh sách
+        setAddresses([...addresses, {}]) // Thêm địa chỉ mới vào danh sách
     };
 
     const handleInputChange = (index, field, value) => {
-        const newAddresses = [...update.addressList];
+        const newAddresses = [...addresses];
         newAddresses[index] = {
             ...newAddresses[index],
-            [field]: value?.label,
+            [field]: value
         };
-        setUpdate({ ...update, addressList: newAddresses });
+        setAddresses(newAddresses);
     };
 
     useEffect(() => {
         // Fetch provinces from API
+        delete axios.defaults.headers.common["Authorization"];
         axios.get("https://partner.viettelpost.vn/v2/categories/listProvinceById?provinceId=-1")
             .then(response => setProvinces(response.data.data || []))
             .catch(error => console.error("Lỗi lấy tỉnh/thành phố:", error));
@@ -80,11 +67,12 @@ const UpdateCustomer = () => {
         setSelectedWard(null);
         setDistricts([]);
         setWards([]);
-        handleInputChange(index, 'city', selectedOption);
+        handleInputChange(index, 'city', selectedOption?.label);
         // Fetch districts based on selected province
         if (selectedOption) {
+            delete axios.defaults.headers.common["Authorization"];
             axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${selectedOption.value}`)
-                .then(response => setDistricts(response.data.data|| []))
+                .then(response => setDistricts(response.data.data || []))
                 .catch(error => console.error("Lỗi lấy quận/huyện:", error));
         }
     };
@@ -93,33 +81,66 @@ const UpdateCustomer = () => {
         setSelectedDistrict(selectedOption);
         setSelectedWard(null);
         setWards([]);
-        handleInputChange(index, 'district', selectedOption);
+        handleInputChange(index, 'district', selectedOption?.label);
         // Fetch wards based on selected district
         if (selectedOption) {
             axios.get(`https://partner.viettelpost.vn/v2/categories/listWards?districtId=${selectedOption.value}`)
-                .then(response => setWards(response.data.data|| []))
+                .then(response => setWards(response.data.data || []))
                 .catch(error => console.error("Lỗi lấy phường/xã:", error));
         }
     };
 
     const handleWardChange = (index, selectedOption) => {
         setSelectedWard(selectedOption);
-        handleInputChange(index, 'ward', selectedOption);
+        handleInputChange(index, 'ward', selectedOption?.label);
     };
     const handleSetDefaultAddress = (index) => {
         // Cập nhật địa chỉ mặc định
         setDefaultAddressIndex(index);
     };
-    const handleRemoveAddress = (index) => {
+    const handleRemoveAddress = (id, index) => {
+        if (!!id) {
+            deleteAddressCustomer(id).then(response => {
+                alert('Bạn đã xóa 1 địa chỉ')
+            })
+        }
+
         // Nếu địa chỉ đang xóa là địa chỉ mặc định, cần cập nhật lại
         if (defaultAddressIndex === index) {
-            setDefaultAddressIndex(0); // Xóa địa chỉ mặc định
+            setDefaultAddressIndex(-1); // Xóa địa chỉ mặc định
         }
 
         const newAddresses = addresses.filter((_, i) => i !== index); // Loại bỏ địa chỉ tại index
         setAddresses(newAddresses);
     };
 
+
+    const handleAddOrUpdateAddress = (idAddress, index) => {
+        const newAddresses = [...addresses];
+        const defaultAddress = defaultAddressIndex === index;
+        const address = {
+            ...newAddresses[index],
+            defaultAddress: defaultAddress,
+            customerId: id,
+            status: defaultAddress ? 1 : 0,
+            updatedAt: null,
+            createdAt: null
+        };
+        if (!!idAddress) {
+            updateAddressCustomer(idAddress, address).then(response => {
+                alert('Bạn đã cập nhật 1 địa chỉ')
+            });
+        } else {
+            addAddressCustomer(address).then(response => {
+                newAddresses[index] = {
+                    ...newAddresses[index],
+                    id: response.data.id
+                }
+                if(!!response.data.defaultAddress) setDefaultAddressIndex(index);
+                setAddresses(newAddresses);
+            })
+        }
+    };
 
     useEffect(() => {
         const fetchCustomer = async () => {
@@ -129,6 +150,7 @@ const UpdateCustomer = () => {
                 console.log(response.data);
                 setUpdate(response.data);
                 setDefaultAddressIndex(response.data.addressList?.findIndex((address) => address.defaultAddress));
+                setAddresses(response.data.addressList)
             } catch (error) {
                 console.error("Lỗi khi lấy dữ liệu:", error);
             } finally {
@@ -141,25 +163,18 @@ const UpdateCustomer = () => {
     const handleUpdateCustomer = () => {
         if (window.confirm('Bạn có chắc chắn muốn cập nhật thông tin?')) {
             const updateCustomerInfo = {
-                ...update,
-                addressList: null,
-                address: null
+                fullName: update.fullName,
+                birthDate: update.birthDate,
+                gender: update.gender,
+                phone: update.phone,
+                email: update.email
             };
             updateCustomer(id, updateCustomerInfo).then(data => {
-                localStorage.setItem("successMessage", "Cập nhật khách hàng thành công!");   
+                localStorage.setItem("successMessage", "Cập nhật khách hàng thành công!");
                 history.push('/admin/customers');
             });
         }
     };
-
-    function getAllCusomer() {
-        listCustomer(page).then((response) => {
-            setCustomers(response.data.data);
-            setTotalPage(response.data.totalPage);
-        }).catch(error => {
-            console.error(error);
-        })
-    }
 
     return (
         <div>
@@ -274,7 +289,7 @@ const UpdateCustomer = () => {
                                 <div>
                                     {/* Button to add new address */}
                                     {/* Render multiple address forms */}
-                                    {update?.addressList?.map((address, index) => (
+                                    {addresses?.map((address, index) => (
                                         <div key={index} className="address-form">
                                             <h4>Địa chỉ {index + 1}</h4>
                                             <div className="row g-4">
@@ -335,7 +350,7 @@ const UpdateCustomer = () => {
                                                         <Form.Control
                                                             type="text"
                                                             value={address.detailedAddress}
-                                                            onChange={(e) => handleInputChange(index, 'detail', e.target.value)}
+                                                            onChange={(e) => handleInputChange(index, 'detailedAddress', e.target.value)}
                                                         />
                                                     </Form.Group>
                                                 </div>
@@ -356,10 +371,16 @@ const UpdateCustomer = () => {
                                             <div className="mt-3">
                                                 <Button
                                                     variant="danger"
-                                                    onClick={() => handleRemoveAddress(index)}
+                                                    onClick={() => handleRemoveAddress(address.id, index)}
                                                     disabled={addresses.length === 1} // Không cho xóa nếu chỉ còn 1 địa chỉ
                                                 >
                                                     Xóa địa chỉ
+                                                </Button>
+                                                <Button
+                                                    variant={!!address.id ? "warning" : "info"}
+                                                    onClick={() => handleAddOrUpdateAddress(address.id, index)}
+                                                >
+                                                    {!!address.id ? "Cập nhật địa chỉ" : "Thêm địa chỉ"}
                                                 </Button>
                                             </div>
                                             <hr />

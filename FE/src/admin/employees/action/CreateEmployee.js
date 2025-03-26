@@ -9,7 +9,6 @@ import "./CreateEmployee.css";
 
 const CreateEmployee = () => {
 
-
     const [employees, setEmployees] = useState([]);
 
     const [newEmployee, setNewEmployee] = useState({ birthDate: '' });
@@ -28,6 +27,17 @@ const CreateEmployee = () => {
 
     const [loading, setLoading] = useState(false);
 
+    const [fullNameError, setFullNameError] = useState('');
+
+    const [addressError, setAddressError] = useState('');
+
+    const [usernameError, setUsernameError] = useState('');
+
+    const [emailError, setEmailError] = useState('');
+
+    const [phoneError, setPhoneError] = useState('');
+
+    const [roleIdError, setRoleIdError] = useState('');
 
     useEffect(async () => {
         // getAllROle()
@@ -57,6 +67,80 @@ const CreateEmployee = () => {
     const handleAddEmployee = async () => {
         if (!window.confirm('Bạn có chắc chắn muốn thêm nhân viên?')) return;
 
+        setFullNameError('');
+
+        setAddressError('');
+
+        setUsernameError('');
+
+        setEmailError('');
+
+        setPhoneError('');
+
+        setRoleIdError('');
+
+        setBirthDateError('');
+
+        let isValid = true;
+
+        if (!newEmployee.fullName) {
+            setFullNameError('Vui lòng nhập tên nhân viên.');
+            isValid = false;
+        }
+
+        if (!newEmployee.address) {
+            setAddressError('Vui lòng nhập địa chỉ.');
+            isValid = false;
+        }
+
+        if (!newEmployee.username) {
+            setUsernameError('Vui lòng nhập username.');
+            isValid = false;
+        }
+
+        if (!newEmployee.email) {
+            setEmailError('Vui lòng nhập email.');
+            isValid = false;
+        } else if (!/\S+@\S+\.\S+/.test(newEmployee.email)) {
+            setEmailError('Email không hợp lệ.');
+            isValid = false;
+        }
+
+        if (!newEmployee.phone) {
+            setPhoneError('Vui lòng nhập số điện thoại.');
+            isValid = false;
+        } else if (!/^\d{10}$/.test(newEmployee.phone)) {
+            setPhoneError('Số điện thoại không hợp lệ (10 chữ số).');
+            isValid = false;
+        }
+
+        if (!newEmployee.roleId) {
+            setRoleIdError('Vui lòng chọn vai trò.');
+            isValid = false;
+        }
+
+        if (!newEmployee.birthDate) {
+            setBirthDateError('Vui lòng chọn ngày sinh.');
+            isValid = false;
+        } else {
+            const selectedDate = new Date(newEmployee.birthDate);
+            const currentYear = new Date().getFullYear(); // Sử dụng năm hiện tại
+            const minBirthYear = currentYear - 18;
+
+            const selectedYear = selectedDate.getFullYear();
+
+            if (selectedYear > minBirthYear) {
+                setBirthDateError("Tuổi phải từ 18 trở lên.");
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
+            return;
+        }
+
+
+
         setLoading(true);
 
         try {
@@ -77,7 +161,7 @@ const CreateEmployee = () => {
             console.error('Lỗi khi thêm nhân viên:', error);
             alert('Có lỗi xảy ra khi thêm nhân viên. Vui lòng thử lại!');
         } finally {
-            setLoading(false);
+                setLoading(false);
         }
     };
 
@@ -145,6 +229,7 @@ const CreateEmployee = () => {
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, fullName: e.target.value });
                                                 }} />
+                                            {fullNameError && <div style={{ color: "red" }}>{fullNameError}</div>}
                                         </Form.Group>
 
                                         <Form.Group className="mb-3">
@@ -155,6 +240,7 @@ const CreateEmployee = () => {
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, address: e.target.value });
                                                 }} />
+                                            {addressError && <div style={{ color: "red" }}>{addressError}</div>}
                                         </Form.Group>
                                     </div>
 
@@ -169,6 +255,7 @@ const CreateEmployee = () => {
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, username: e.target.value }); // Change to update username
                                                 }} />
+                                            {usernameError && <div style={{ color: "red" }}>{usernameError}</div>}
                                         </Form.Group>
 
                                         <Form.Group className="mb-3">
@@ -212,6 +299,7 @@ const CreateEmployee = () => {
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, email: e.target.value });
                                                 }} />
+                                            {emailError && <div style={{ color: "red" }}>{emailError}</div>}
                                         </Form.Group>
 
 
@@ -240,7 +328,7 @@ const CreateEmployee = () => {
                                                     }
                                                 }} />
                                             {birthDateError && (
-                                                <div style={{ color: "red", marginTop: "5px" }}>{birthDateError}</div>
+                                                <div style={{ color: "red" }}>{birthDateError}</div>
                                             )}
                                         </Form.Group>
 
@@ -251,6 +339,7 @@ const CreateEmployee = () => {
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, phone: e.target.value });
                                                 }} />
+                                            {phoneError && <div style={{ color: "red" }}>{phoneError}</div>}
                                         </Form.Group>
 
                                         <Form.Group className="mb-3" style={{ marginTop: "20px" }}>
@@ -260,6 +349,7 @@ const CreateEmployee = () => {
                                                 value={roles.find(role => role.id === newEmployee.roleId) ? { value: newEmployee.roleId, label: roles.find(role => role.id === newEmployee.roleId).roleName } : null}
                                                 onChange={(selectedOption) => setNewEmployee({ ...newEmployee, roleId: selectedOption.value })}
                                             />
+                                            {roleIdError && <div style={{ color: "red" }}>{roleIdError}</div>}
                                         </Form.Group>
                                     </div>
                                 </div>
