@@ -174,19 +174,58 @@ const CreateProduct = () => {
     //     });
     // };
 
+    // const handleRemoveVariant = (index) => {
+    //     setVariantList(prevVariants => {
+    //         let updatedVariants = [...prevVariants];
+    //         const removedVariant = updatedVariants[index];
+
+    //         updatedVariants.splice(index, 1);
+
+    //         const hasSameColor = updatedVariants.some(v => v.colorId === removedVariant.colorId);
+
+    //         if (!hasSameColor) {
+    //             updatedVariants = updatedVariants.map(v =>
+    //                 v.colorId === removedVariant.colorId ? { ...v, imageUrls: [] } : v
+    //             );
+    //         }
+
+    //         const remainingVariantsWithSize = updatedVariants.some(v => v.sizeId === removedVariant.sizeId);
+    //         if (!remainingVariantsWithSize) {
+    //             setSizeIds(prev => prev.filter(s => s.value !== removedVariant.sizeId));
+    //         }
+
+    //         return updatedVariants;
+    //     });
+    // };
+
     const handleRemoveVariant = (index) => {
         setVariantList(prevVariants => {
             let updatedVariants = [...prevVariants];
             const removedVariant = updatedVariants[index];
 
+            // Tìm tất cả biến thể cùng màu
+            const sameColorVariants = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
+
+            // Nếu xóa biến thể đầu tiên của nhóm màu, chuyển ảnh cho biến thể tiếp theo
+            if (sameColorVariants.length > 1 && sameColorVariants[0] === removedVariant) {
+                sameColorVariants[1].imageUrls = removedVariant.imageUrls;
+                sameColorVariants[1].images = removedVariant.images;
+            }
+
+            // Xóa biến thể khỏi danh sách
             updatedVariants.splice(index, 1);
 
-            const hasSameColor = updatedVariants.some(v => v.colorId === removedVariant.colorId);
-
-            if (!hasSameColor) {
+            // Nếu không còn biến thể nào có cùng màu, xóa ảnh
+            if (!updatedVariants.some(v => v.colorId === removedVariant.colorId)) {
                 updatedVariants = updatedVariants.map(v =>
                     v.colorId === removedVariant.colorId ? { ...v, imageUrls: [] } : v
                 );
+            }
+
+
+            const remainingVariantsWithColor = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
+            if (remainingVariantsWithColor.length === 0) {
+                setColorIds(prev => prev.filter(c => c.value !== removedVariant.colorId));
             }
 
             const remainingVariantsWithSize = updatedVariants.some(v => v.sizeId === removedVariant.sizeId);
@@ -197,8 +236,6 @@ const CreateProduct = () => {
             return updatedVariants;
         });
     };
-
-
 
     const handleImageChange = (index, event) => {
         const files = Array.from(event.target.files);
@@ -218,14 +255,30 @@ const CreateProduct = () => {
         //     );
         //     return updatedVariants;
         // });
+        // setVariantList(prevVariants => {
+        //     const selectedColorId = prevVariants[index].colorId;
+
+        //     return prevVariants.map(variant =>
+        //         variant.colorId === selectedColorId
+        //             ? { ...variant, imageUrls, images: files }
+        //             : variant
+        //     );
+        // });
         setVariantList(prevVariants => {
             const selectedColorId = prevVariants[index].colorId;
+            let updatedVariants = [...prevVariants];
 
-            return prevVariants.map(variant =>
-                variant.colorId === selectedColorId
-                    ? { ...variant, imageUrls, images: files }
-                    : variant
-            );
+            // Chỉ cập nhật ảnh cho biến thể đầu tiên có màu đó
+            const firstIndex = updatedVariants.findIndex(v => v.colorId === selectedColorId);
+            if (firstIndex !== -1) {
+                updatedVariants[firstIndex] = {
+                    ...updatedVariants[firstIndex],
+                    imageUrls,
+                    images: files
+                };
+            }
+
+            return updatedVariants;
         });
     };
 
@@ -319,7 +372,8 @@ const CreateProduct = () => {
             };
 
             const productResponse = await createProduct(productRequest);
-            const productId = productResponse.data.data.id;
+            console.log("productResponse:", productResponse);
+            const productId = productResponse.data.id;
             console.log("Sản phẩm được tạo:", productResponse.data.data);
 
             const colorIdsFromVariants = [...new Set(variantList.map(v => v.colorId))];
