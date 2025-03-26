@@ -84,7 +84,7 @@ const UpdateCustomer = () => {
         // Fetch districts based on selected province
         if (selectedOption) {
             axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${selectedOption.value}`)
-                .then(response => setDistricts(response.data.data|| []))
+                .then(response => setDistricts(response.data.data || []))
                 .catch(error => console.error("Lỗi lấy quận/huyện:", error));
         }
     };
@@ -97,7 +97,7 @@ const UpdateCustomer = () => {
         // Fetch wards based on selected district
         if (selectedOption) {
             axios.get(`https://partner.viettelpost.vn/v2/categories/listWards?districtId=${selectedOption.value}`)
-                .then(response => setWards(response.data.data|| []))
+                .then(response => setWards(response.data.data || []))
                 .catch(error => console.error("Lỗi lấy phường/xã:", error));
         }
     };
@@ -146,7 +146,7 @@ const UpdateCustomer = () => {
                 address: null
             };
             updateCustomer(id, updateCustomerInfo).then(data => {
-                localStorage.setItem("successMessage", "Cập nhật khách hàng thành công!");   
+                localStorage.setItem("successMessage", "Cập nhật khách hàng thành công!");
                 history.push('/admin/customers');
             });
         }

@@ -3,7 +3,7 @@ import { getSizes, createSize } from '../service/SizeService';
 import Select from 'react-select';
 import { Button, Form, Modal } from 'react-bootstrap';
 
-const SizeSelect = ({ sizeIds, setSizeIds }) => {
+const SizeContainer = ({ sizeIds, setSizeIds }) => {
     const [sizeOptions, setSizeOptions] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [newSizeName, setNewSizeName] = useState("");
@@ -87,4 +87,4 @@ const SizeSelect = ({ sizeIds, setSizeIds }) => {
     );
 };
 
-export default SizeSelect;
+export default SizeContainer;
