@@ -5,11 +5,11 @@ export const API_BASE_URL = 'http://localhost:8080';
 export const VIETTEL_POST_API = 'https://partner.viettelpost.vn/v2/categories';
 
 // API Calls
-export const fetchCustomers = () => axios.get(`${API_BASE_URL}/customer/list`);
+export const fetchCustomers = () => axios.get(`${API_BASE_URL}/customer`);
 export const fetchCustomerAddresses = () => axios.get(`${API_BASE_URL}/address`);
-export const fetchProvinces = () => axios.get(`${API_BASE_URL}/counter/provinces`);
-export const fetchDistricts = (provinceId) => axios.get(`${API_BASE_URL}/counter/districts?provinceId=${provinceId}`);
-export const fetchWards = (districtId) => axios.get(`${API_BASE_URL}/counter/wards?districtId=${districtId}`);
+export const fetchProvinces = () => axios.get(`${VIETTEL_POST_API}/listProvinceById?provinceId=-1`);
+export const fetchDistricts = (provinceId) => axios.get(`${VIETTEL_POST_API}/listDistrict?provinceId=${provinceId}`);
+export const fetchWards = (districtId) => axios.get(`${VIETTEL_POST_API}/listWards?districtId=${districtId}`);
 export const fetchPromoCodes = () => axios.get(`${API_BASE_URL}/voucher/list`);
 export const fetchOrderDetails = () => axios.get(`${API_BASE_URL}/order-detail`);
 export const fetchOrders = () => axios.get(`${API_BASE_URL}/order`);
@@ -18,7 +18,7 @@ export const fetchShippingFee = (body) =>
   axios.post(`${API_BASE_URL}/counter/get-price`, body, {
     headers: { 'Content-Type': 'application/json' },
   });
-export const addCustomer = (customer) => axios.post(`${API_BASE_URL}/customer/addFast`, customer);
+export const addCustomer = (customer) => axios.post(`${API_BASE_URL}/customer/addT`, customer);
 export const addInvoice = (invoice) => axios.post(`${API_BASE_URL}/order/add`, invoice);
 export const updateOrderStatus = (orderId, status) =>
   axios.put(`${API_BASE_URL}/order/edit/${orderId}`, { status });

@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
+import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -113,6 +114,45 @@ public class CounterController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error calling Viettel Post API");
+        }
+    }
+
+    @GetMapping("/provinces")
+    public ResponseEntity<?> getProvinces() {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "https://partner.viettelpost.vn/v2/categories/listProvinceById?provinceId=-1";
+            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+            return ResponseEntity.ok(response.getBody());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching provinces");
+        }
+    }
+
+    @GetMapping("/districts")
+    public ResponseEntity<?> getDistricts(@RequestParam String provinceId) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=" + provinceId;
+            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+            return ResponseEntity.ok(response.getBody());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching districts");
+        }
+    }
+
+    @GetMapping("/wards")
+    public ResponseEntity<?> getWards(@RequestParam String districtId) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "https://partner.viettelpost.vn/v2/categories/listWards?districtId=" + districtId;
+            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+            return ResponseEntity.ok(response.getBody());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching wards");
         }
     }
 }
