@@ -23,10 +23,10 @@ public class CustomerController {
     @Autowired
     CustomerService customerService;
 
-    @PostMapping("add")
-    public ResponseEntity<ApiResponse<CustomerResponse>> addCustomer(@Valid @RequestBody CustomerRequest customerRequest) {
+    @PostMapping("addFast")
+    public ResponseEntity<ApiResponse<CustomerResponse>> addCustomerFast(@Valid @RequestBody CustomerRequest customerRequest) {
 
-        CustomerResponse customerResponse = customerService.creatCustomer(customerRequest);
+        CustomerResponse customerResponse = customerService.creatCustomerFast(customerRequest);
 
         ApiResponse<CustomerResponse> response = new ApiResponse<>(
                 HttpStatus.CREATED.value(),
@@ -36,7 +36,6 @@ public class CustomerController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
     @GetMapping
     public ResponseEntity<ApiPagingResponse<List<CustomerResponse>>> getAll(
             @RequestParam(value = "search", required = false) String search,
@@ -45,6 +44,19 @@ public class CustomerController {
         int pageSize = 3;
 
         ApiPagingResponse<List<CustomerResponse>> response = customerService.getAll(search, page, pageSize);
+
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/list")
+    public ResponseEntity<ApiResponse<List<CustomerResponse>>> getAll() {
+
+        List<CustomerResponse> list = customerService.getList();
+
+        ApiResponse<List<CustomerResponse>> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Customer retrieved successfully",
+                list
+        );
 
         return ResponseEntity.ok(response);
     }

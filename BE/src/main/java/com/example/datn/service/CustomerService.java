@@ -3,6 +3,7 @@ package com.example.datn.service;
 import com.example.datn.dto.request.AddressRequest;
 import com.example.datn.dto.request.CustomerRequest;
 import com.example.datn.dto.response.ApiPagingResponse;
+import com.example.datn.dto.response.ColorResponse;
 import com.example.datn.dto.response.CustomerResponse;
 import com.example.datn.entity.Address;
 import com.example.datn.entity.Customer;
@@ -76,6 +77,20 @@ public class CustomerService {
 //        return customerMapper.toListResponse(customerRepository.findAll());
     }
 
+    public List<CustomerResponse> getList(){
+        return customerMapper.toListResponse(customerRepository.findAll());
+    }
+    public CustomerResponse creatCustomerFast(CustomerRequest customerRequest) {
+        int i = getList().size();
+        Customer customer = customerMapper.toCustomer(customerRequest);
+        customer.setCreatedAt(LocalDateTime.now().withNano(0));
+        customer.setUpdatedAt(LocalDateTime.now().withNano(0));
+        customer.setRole(roleRepository.findById(1).get());
+        customer.setCustomerCode("KH" + (i + 1));
+        Customer created = customerRepository.save(customer);
+
+        return new CustomerResponse(created);
+    }
     public CustomerResponse creatCustomer(CustomerRequest customerRequest) {
         boolean addressIsEmpty = Objects.isNull(customerRequest.getAddress())
                 || customerRequest.getAddress().isEmpty();
@@ -98,6 +113,7 @@ public class CustomerService {
         String password = generatePassword();
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         customer.setPassword(passwordEncoder.encode(password));
+
 
 
         Customer created = customerRepository.save(customer);

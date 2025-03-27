@@ -62,3 +62,17 @@ export const getCusomer = (id) => {
     const response = axios.get("http://localhost:8080/customer" + '/' + id)
     return response
 }
+
+export const deleteAddressCustomer = async (id) => {
+    let token = localStorage.getItem('token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    const response = await axios.delete(`http://localhost:8080/address/${id}`)
+    return response.data
+}
+
+export const updateAddressCustomer = async (id, address) => {
+    let token = localStorage.getItem('token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    const response = await axios.put(`http://localhost:8080/address/update/${id}`, address)
+    return response.data
+}

@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("voucher")
 public class VoucherController {
@@ -39,7 +40,7 @@ public class VoucherController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("list")
+    @GetMapping()
     public ResponseEntity<ApiResponse<List<VoucherRespone>>> getAll(){
 
         List<VoucherRespone> list = voucherService.getAll();
@@ -77,17 +78,15 @@ public class VoucherController {
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<ApiResponse<VoucherRespone>> deleteVoucher(@PathVariable("id") Integer id){
-
-        voucherService.deleteVoucher(id);
+    public ResponseEntity<ApiResponse<VoucherRespone>> deleteVoucher(@PathVariable("id") Integer id) {
+        voucherService.deleteVoucher(id); // Xóa mềm (Cập nhật status = "Đã xóa")
 
         ApiResponse<VoucherRespone> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
-                "Voucher deleted successfully",
+                "Voucher has been marked as deleted", // Thông báo rõ là xóa mềm
                 null
         );
 
         return ResponseEntity.ok(response);
-
     }
 }

@@ -36,9 +36,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth phải được sử dụng trong AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 };

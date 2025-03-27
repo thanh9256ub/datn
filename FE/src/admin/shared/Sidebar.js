@@ -208,7 +208,7 @@ class Sidebar extends Component {
               </ul>
             </Collapse>
           </li>
-          <li className={this.isPathActive('/admin/charts') ? 'nav-item active' : 'nav-item'}>
+          {/* <li className={this.isPathActive('/admin/charts') ? 'nav-item active' : 'nav-item'}>
             <div className={this.state.chartsMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('chartsMenuOpen')} data-toggle="collapse">
               <span className="menu-title"><Trans>Charts</Trans></span>
               <i className="menu-arrow"></i>
@@ -246,7 +246,7 @@ class Sidebar extends Component {
                 <li className="nav-item"> <Link className={this.isPathActive('/admin/error-pages/error-500') ? 'nav-link active' : 'nav-link'} to="/admin/error-pages/error-500">500</Link></li>
               </ul>
             </Collapse>
-          </li>
+          </li> */}
         </ul>
       </nav>
     );

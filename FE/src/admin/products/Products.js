@@ -6,10 +6,11 @@ import Switch from 'react-switch';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import SearchProducts from './action/SearchProducts';
+import Swal from 'sweetalert2';
 
 const Products = () => {
     const [products, setProducts] = useState([]);
-        const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState("");
 
@@ -28,6 +29,7 @@ const Products = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [pageSize, setPageSize] = useState(5);
+    const [selectedProducts, setSelectedProducts] = useState([]);
 
     const fetchProducts = async (page = currentPage, size = pageSize) => {
         setLoading(true);
@@ -89,20 +91,35 @@ const Products = () => {
         history.push('/admin/products/add');
     }
 
-    const handleUpdateProduct = (id, productName) => {
-        history.push(`/admin/products/edit/${id}`)
-    }
-
     const handleProductDetail = (id, productName) => {
-        history.push({
-            pathname: `/admin/products/${id}/detail`,
-            state: { productName: productName }
-        });
+        history.push(
+            `/admin/products/${id}/detail`
+        );
     }
 
-    const handleToggleStatus = async (productId, currentStatus) => {
+    const handleToggleStatus = async (productId, currentStatus, totalQuantity) => {
         try {
-            const newStatus = currentStatus === 1 ? 0 : 1;
+            const result = await Swal.fire({
+                title: "Xác nhận",
+                text: "Bạn có chắc chắn muốn ngừng bán sản phẩm này?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Đồng ý",
+                cancelButtonText: "Hủy",
+                footer: "<p style='color: red;'>Lưu ý: Nếu đồng ý sản phẩm sẽ không thể bán trên quầy hàng và website!</p>",
+            });
+
+            if (!result.isConfirmed) return;
+
+            let newStatus;
+
+            if (currentStatus === 2) {
+                newStatus = totalQuantity > 0 ? 1 : 0;
+            } else {
+                newStatus = 2;
+            }
 
             await updateStatus(productId, newStatus);
 
@@ -145,6 +162,111 @@ const Products = () => {
         fetchFilteredProducts();
     };
 
+    const handleExportExcel = async () => {
+        if (selectedProducts.length === 0) {
+            toast.error("Vui lòng chọn ít nhất một sản phẩm để xuất Excel!");
+            return;
+        }
+
+        try {
+            const response = await fetch("http://localhost:8080/products/export-excel", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                },
+                body: JSON.stringify({ productIds: selectedProducts }) // Gửi danh sách ID sản phẩm đã chọn
+            });
+
+            if (!response.ok) {
+                throw new Error("Lỗi khi xuất file Excel");
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "danh_sach_san_pham_excel.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            toast.success("Xuất file Excel thành công!");
+        } catch (error) {
+            console.error(error);
+            toast.error("Lỗi khi xuất file Excel!");
+        }
+    };
+
+
+    const handleImportExcel = async (event) => {
+        const file = event.target.files[0];
+        if (!file) {
+            toast.error("Vui lòng chọn một tệp Excel!");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const response = await fetch("http://localhost:8080/products/import-excel", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                },
+                body: formData
+            });
+
+            let result;
+            try {
+                result = await response.json();
+            } catch (jsonError) {
+                result = { error: "Lỗi không xác định từ server." };
+            }
+
+            if (result.error) {
+                toast.error(result.error); // Hiển thị lỗi từ API
+                return;
+            }
+
+            console.log("Response Data:", result);
+
+            if (result && Array.isArray(result.errors) && result.errors.length > 0) {
+                result.errors.forEach(error => toast.error(error));
+
+                Swal.fire({
+                    title: "Có lỗi trong file Excel!",
+                    text: "Các sản phẩm không lỗi đã được nhập. Bạn có muốn tải file chứa các sản phẩm bị lỗi không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Tải ngay",
+                    cancelButtonText: "Không"
+                }).then((willDownload) => {
+                    if (willDownload.isConfirmed) {
+                        const link = document.createElement("a");
+                        link.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + result.file;
+                        link.download = "DanhSachLoi.xlsx";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        // Hiển thị toast thông báo tải file thành công
+                        toast.success("Tải file lỗi thành công!");
+                    }
+                });
+            } else {
+                toast.success("Nhập file Excel thành công!");
+                fetchProducts();
+            }
+
+        } catch (error) {
+            console.error(error);
+            toast.error("Lỗi khi nhập file Excel!");
+        }
+    };
+
     return (
         <div>
             <div className="page-header">
@@ -152,17 +274,40 @@ const Products = () => {
                     Danh sách sản phẩm
                 </h3>
             </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px" }}>
+                <div style={{ position: "relative", display: "inline-block" }}>
+                    <button type="button" className='btn btn-success' style={{ cursor: "pointer" }}>
+                        <i className='mdi mdi-file-import'></i>Nhập Excel
+                    </button>
+                    <input
+                        type="file"
+                        accept=".xlsx, .xls"
+                        onChange={handleImportExcel}
+                        style={{
+                            position: "absolute",
+                            left: 0,
+                            top: 0,
+                            width: "100%",
+                            height: "100%",
+                            opacity: 0,
+                            cursor: "pointer"
+                        }}
+                    />
+                </div>
+                <button type="button" className='btn btn-success' onClick={handleExportExcel}>
+                    <i className='mdi mdi-file-export'></i>Xuất Excel
+                </button>
+                <button type="button" className="btn btn-gradient-primary float-right" onClick={handleAddProduct}>
+                    <i className='mdi mdi-plus'></i> Thêm mới
+                </button>
+            </div>
             <div className="row">
                 <div className="col-lg-12 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
                             <div className='row'>
-                                <div className='col-md-10'>
-                                    <SearchProducts filters={filters} setFilters={setFilters} onSearch={handleSearch} />                                </div>
-                                <div className='col-md-2'>
-                                    <button type="button" className="btn btn-gradient-primary float-right" onClick={handleAddProduct}>
-                                        <i className='mdi mdi-plus'></i> Thêm mới
-                                    </button>
+                                <div className='col-md-12'>
+                                    <SearchProducts filters={filters} setFilters={setFilters} onSearch={handleSearch} />
                                 </div>
                             </div>
                             <div style={{ marginBottom: '20px' }}></div>
@@ -182,9 +327,23 @@ const Products = () => {
                                 <>
                                     <div className="table-responsive">
                                         <table className="table table-hover">
-                                            <thead>
+                                            <thead
+                                            // style={{ backgroundColor: "#CE91FF", color: "#fff" }}
+                                            >
                                                 <tr>
-                                                    <th></th>
+                                                    <th>
+                                                        <input
+                                                            type="checkbox"
+                                                            onChange={(e) => {
+                                                                if (e.target.checked) {
+                                                                    setSelectedProducts(products.map(p => p.id));
+                                                                } else {
+                                                                    setSelectedProducts([]);
+                                                                }
+                                                            }}
+                                                            checked={selectedProducts.length === products.length && products.length > 0}
+                                                        />
+                                                    </th>
                                                     <th>Ảnh chính</th>
                                                     <th>Mã sản phẩm</th>
                                                     <th>Tên sản phẩm</th>
@@ -201,16 +360,25 @@ const Products = () => {
                                                 {products.length > 0 ? (
                                                     products
                                                         .map((product, index) => (
-                                                            <tr key={product.id}>
-                                                                <td>
-                                                                    <div className="form-check">
-                                                                        <label className="form-check-label">
-                                                                            <input type="checkbox" className="form-check-input" />
-                                                                            <i className="input-helper"></i>
-                                                                        </label>
-                                                                    </div>
+                                                            <tr
+                                                                key={product.id}
+                                                                onClick={() => handleProductDetail(product.id)}
+                                                                style={{ cursor: "pointer" }}
+                                                            >
+                                                                <td onClick={(event) => event.stopPropagation()}>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        onChange={(e) => {
+                                                                            if (e.target.checked) {
+                                                                                setSelectedProducts([...selectedProducts, product.id]);
+                                                                            } else {
+                                                                                setSelectedProducts(selectedProducts.filter(id => id !== product.id));
+                                                                            }
+                                                                        }}
+                                                                        checked={selectedProducts.includes(product.id)}
+                                                                    />
                                                                 </td>
-                                                                <td>
+                                                                <td onClick={(event) => event.stopPropagation()}>
                                                                     {product.mainImage != "image.png" ? (
                                                                         <img
                                                                             src={product.mainImage}
@@ -231,39 +399,41 @@ const Products = () => {
                                                                 <td>{product.totalQuantity}</td>
                                                                 <td>
                                                                     <span className={`badge ${product.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
-                                                                        {product.status === 1 ? 'Đang bán' : 'Hết hàng'}
+                                                                        {product.status === 1 ? 'Đang bán' : product.status === 2 ? 'Ngừng bán' : 'Hết hàng'}
                                                                     </span>
                                                                 </td>
                                                                 <td>
-                                                                    <div style={{
-                                                                        display: 'flex',
-                                                                        justifyContent: 'center',
-                                                                        alignItems: 'center',
-                                                                        gap: '10px',
-                                                                        textAlign: 'center',
-                                                                        height: '100%',
-                                                                        padding: '10px'
-                                                                    }} >
-                                                                        <button className="btn btn-outline-warning btn-sm btn-rounded btn-icon"
+                                                                    <div
+                                                                        onClick={(event) => event.stopPropagation()}
+                                                                        style={{
+                                                                            display: 'flex',
+                                                                            justifyContent: 'center',
+                                                                            alignItems: 'center',
+                                                                            gap: '10px',
+                                                                            textAlign: 'center',
+                                                                            height: '100%',
+                                                                            padding: '10px'
+                                                                        }} >
+                                                                        {/* <button className="btn btn-outline-warning btn-sm btn-rounded btn-icon"
                                                                             onClick={() => handleProductDetail(product.id, product.productName)}
                                                                         >
                                                                             <i className='mdi mdi-eye'></i>
-                                                                        </button>
+                                                                        </button> */}
                                                                         <Switch
-                                                                            checked={product.status === 1}
-                                                                            onChange={() => handleToggleStatus(product.id, product.status)}
+                                                                            checked={product.status !== 2}
+                                                                            onChange={() => handleToggleStatus(product.id, product.status, product.totalQuantity)}
                                                                             offColor="#888"
-                                                                            onColor="#0d6efd"
+                                                                            onColor="#ca51f0"
                                                                             uncheckedIcon={false}
                                                                             checkedIcon={false}
                                                                             height={20}
                                                                             width={40}
                                                                         />
-                                                                        <button className="btn btn-outline-danger btn-sm btn-rounded btn-icon"
+                                                                        {/* <button className="btn btn-outline-danger btn-sm btn-rounded btn-icon"
                                                                             onClick={() => handleUpdateProduct(product.id)}
                                                                         >
                                                                             <i className='mdi mdi mdi-wrench'></i>
-                                                                        </button>
+                                                                        </button> */}
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -329,15 +499,6 @@ const Products = () => {
                     />
                 </Modal.Body>
             </Modal>
-
-            {/* <ModalProductDetail
-                showModal={showModal}
-                setShowModal={setShowModal}
-                selectedProductName={selectedProductName}
-                selectedProductDetails={selectedProductDetails}
-                setSelectedProductDetails={setSelectedProductDetails}
-                refreshProducts={fetchProducts}
-            /> */}
 
             <ToastContainer />
         </div >

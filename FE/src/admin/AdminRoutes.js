@@ -39,6 +39,7 @@ const UpdateProduct = lazy(() => import('./products/action/UpdateProduct'));
 const Brands = lazy(() => import('./products/Brands'));
 const Materials = lazy(() => import('./products/Material'));
 const Categories = lazy(() => import('./products/Categories'));
+
 const CreateCustomer = lazy(() => import('./customers/action/CreateCustomer'));
 const UpdateCustomer = lazy(() => import('./customers/action/UpdateCustomer'));
 const CreateEmployee = lazy(() => import('./employees/action/CreateEmployee'));
@@ -49,15 +50,16 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
   const { token } = useAuth();
 
   return (
-    <Route
-      {...rest}
-      render={(props) =>
-        console.log("token: " + !!token) ||
-          !!token ? <Component {...props} /> : <Redirect to="/LoginNhanVien" />
-      }
-    />
+      <Route
+          {...rest}
+          render={(props) =>
+              console.log("token: " + !!token) ||
+              !!token ? <Component {...props} /> : <Redirect to="/login-nhan-vien" />
+          }
+      />
   );
 };
+
 class AdminRoutes extends Component {
   render() {
     return (
@@ -84,7 +86,7 @@ class AdminRoutes extends Component {
           <Route exact path="/admin/error-pages/error-404" component={Error404} />
           <Route exact path="/admin/error-pages/error-500" component={Error500} />
 
-          <Route exact path="/admin/counter" component={BanHang} />
+          <ProtectedRoute exact path="/admin/counter" component={BanHang} />
 
           <ProtectedRoute exact path="/admin/products" component={Products} />
           <ProtectedRoute exact path="/admin/products/:id/detail" component={ProductDetail} />
@@ -100,6 +102,7 @@ class AdminRoutes extends Component {
           <ProtectedRoute exact path="/admin/employees/update/:id" component={UpdateEmployee} />
           <ProtectedRoute exact path="/admin/customers" component={Customers} />
           <ProtectedRoute exact path="/admin/customers/update/:id" component={UpdateCustomer} />
+
           <ProtectedRoute exact path="/admin/customers/add" component={CreateCustomer} />
 
           <Route exact path="/admin/orders" component={Orders} />

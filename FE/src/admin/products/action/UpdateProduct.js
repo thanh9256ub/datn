@@ -3,9 +3,9 @@ import { Form } from 'react-bootstrap';
 import { useParams, useHistory } from 'react-router-dom';
 import { getImagesByProductColor, getProductById, getProductColorsByProductId, updateProduct, uploadImageToCloudinary } from '../service/ProductService';
 import { getProductDetailByProductId, updateProductDetails } from '../service/ProductDetailService';
-import BrandSelect from '../select/BrandSelect';
-import CategorySelect from '../select/CategorySelect';
-import MaterialSelect from '../select/MaterialSelect';
+import BrandContainer from '../components/BrandContainer';
+import CategoryContainer from '../components/CategoryContainer';
+import MaterialContainer from '../components/MaterialContainer';
 // import ColorSelect from '../select/ColorSelect';
 // import SizeSelect from '../select/SizeSelect';
 import ListAutoVariant from '../components/ListAutoVariant';
@@ -25,8 +25,6 @@ const UpdateProduct = () => {
     const [materialId, setMaterialId] = useState(null);
     const [totalQuantity, setTotalQuantity] = useState(0);
     const [status, setStatus] = useState(0);
-    // const [colorIds, setColorIds] = useState([]);
-    // const [sizeIds, setSizeIds] = useState([]);
     const [variantList, setVariantList] = useState([]);
     const [mainImage, setMainImage] = useState(null);
     const [hasError, setHasError] = useState(false);
@@ -142,14 +140,15 @@ const UpdateProduct = () => {
                 colorId: variant.color?.id || variant.color,
                 sizeId: variant.size?.id || variant.size,
                 quantity: Number(variant.quantity),
-                price: Number(variant.price)
+                price: Number(variant.price),
+                status: variant.status === 0 ? 0 : 1
             }));
 
             console.log("Dữ liệu gửi lên API updateProductDetails:", formattedVariants);
 
             await updateProductDetails(id, formattedVariants);
 
-            await handleImagesForProductColors(id)
+            await handleImagesForProductColors(id);
 
             localStorage.setItem("successMessage", "Sản phẩm đã được cập nhật thành công!");
             history.push('/admin/products');
@@ -161,7 +160,6 @@ const UpdateProduct = () => {
 
     const handleImagesForProductColors = async (productId) => {
         try {
-            // Lấy danh sách productColorId từ API
             const productColorsResponse = await getProductColorsByProductId(productId);
             const productColors = productColorsResponse.data.data;
 
@@ -170,11 +168,10 @@ const UpdateProduct = () => {
                     const productColorId = productColor.id;
                     console.log("ProductColors: ", productColors);
                     console.log("VariantList: ", variantList);
-                    // Kiểm tra xem có ảnh mới cho productColor không
+
                     const variantWithColor = variantList.find(variant => variant.color.id === productColor.color.id);
                     console.log("Variant with color: ", variantWithColor)
                     if (variantWithColor && variantWithColor.images && variantWithColor.images.length > 0) {
-                        // Tải ảnh lên Cloudinary và lấy URL
                         const uploadedImageUrls = [];
                         for (const imageFile of variantWithColor.images) {
                             const imageUrl = await uploadImageToCloudinary(imageFile);
@@ -185,7 +182,6 @@ const UpdateProduct = () => {
                             }
                         }
 
-                        // Lưu ảnh vào cơ sở dữ liệu cho productColorId
                         if (uploadedImageUrls.length > 0) {
                             const imageRequests = uploadedImageUrls.map(url => ({ image: url }));
                             console.log(`Updating images for ProductColor ID: ${productColorId} with images:`, imageRequests);
@@ -194,7 +190,6 @@ const UpdateProduct = () => {
                     }
                 });
 
-                // Đợi tất cả các ảnh được tải lên và lưu vào cơ sở dữ liệu
                 await Promise.all(imagePromises);
             }
 
@@ -288,42 +283,45 @@ const UpdateProduct = () => {
                         <div className="card-body">
                             <h3 className="card-title">Chỉnh sửa sản phẩm</h3>
                             <hr />
+                            <div style={{ marginBottom: '50px' }}></div>
                             <form className="form-sample">
                                 <div className="row">
-                                    <div className="col-md-6">
-                                        {/* <MainImage setMainImage={setMainImage} /> */}
-                                        <MainImage setMainImage={setMainImage} initialImage={mainImage} />
-
+                                    <div className='col-md-8'>
+                                        <div className="col-md-12">
+                                            <Form.Group className="row">
+                                                <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
+                                                <div className="col-sm-9">
+                                                    <Form.Control type="text" value={productName} onChange={(e) => setProductName(e.target.value)} required />
+                                                </div>
+                                            </Form.Group>
+                                        </div>
+                                        <div className="col-md-12">
+                                            <BrandContainer brandId={brandId} setBrandId={setBrandId} />
+                                        </div>
+                                        <div className="col-md-12">
+                                            <CategoryContainer categoryId={categoryId} setCategoryId={setCategoryId} />
+                                        </div>
+                                        <div className="col-md-12">
+                                            <MaterialContainer materialId={materialId} setMaterialId={setMaterialId} />
+                                        </div>
                                     </div>
-                                </div>
-                                <div style={{ marginBottom: '20px' }}></div>
-                                <div className="row">
-                                    <div className="col-md-6">
-                                        <Form.Group className="row">
-                                            <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
-                                            <div className="col-sm-9">
-                                                <Form.Control type="text" value={productName} onChange={(e) => setProductName(e.target.value)} />
+                                    <div className="col-md-4" style={{ display: 'grid', placeItems: 'center' }}>
+                                        <center>
+                                            <div className="col-md-12">
+                                                <MainImage setMainImage={setMainImage} initialImage={mainImage} />
                                             </div>
-                                        </Form.Group>
-                                    </div>
-                                    <div className="col-md-6">
-                                        <BrandSelect brandId={brandId} setBrandId={setBrandId} />
-                                    </div>
-                                    <div className="col-md-6">
-                                        <CategorySelect categoryId={categoryId} setCategoryId={setCategoryId} />
-                                    </div>
-                                    <div className="col-md-6">
-                                        <MaterialSelect materialId={materialId} setMaterialId={setMaterialId} />
+                                        </center>
                                     </div>
                                     <div className='col-md-12'>
-                                        <Form.Group>
-                                            <label htmlFor="exampleTextarea1">Mô tả:</label>
-                                            <textarea className="form-control" id="exampleTextarea1" rows="4" value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
-                                        </Form.Group>
+                                        <div className='col-md-12'>
+                                            <Form.Group>
+                                                <label htmlFor="exampleTextarea1">Mô tả:</label>
+                                                <div style={{ marginBottom: '10px' }}></div>
+                                                <textarea className="form-control" id="exampleTextarea1" rows="4" value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
+                                            </Form.Group>
+                                        </div>
                                     </div>
                                 </div>
-                                <div style={{ marginBottom: '20px' }}></div>
-
                             </form>
                         </div>
                     </div>
@@ -335,6 +333,7 @@ const UpdateProduct = () => {
                         <div className="card-body">
                             <h6><span>Danh sách sản phẩm biến thể:</span></h6>
                             <hr />
+                            <div style={{ marginBottom: '50px' }}></div>
                             <div className="row">
                                 <div className='col-md-12'>
                                     <ListAutoVariant
