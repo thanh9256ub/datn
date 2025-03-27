@@ -162,35 +162,6 @@ const Products = () => {
         fetchFilteredProducts();
     };
 
-    // const handleExportExcel = async () => {
-    //     try {
-    //         const response = await fetch("http://localhost:8080/products/export-excel", {
-    //             method: "GET",
-    //             headers: {
-    //                 "Authorization": `Bearer ${localStorage.getItem("token")}`
-    //             }
-    //         });
-
-    //         if (!response.ok) {
-    //             throw new Error("Lỗi khi xuất file Excel");
-    //         }
-
-    //         const blob = await response.blob();
-    //         const url = window.URL.createObjectURL(blob);
-    //         const a = document.createElement("a");
-    //         a.href = url;
-    //         a.download = "danh_sach_san_pham.xlsx";
-    //         document.body.appendChild(a);
-    //         a.click();
-    //         document.body.removeChild(a);
-    //         window.URL.revokeObjectURL(url);
-    //         toast.success("Xuất file Excel thành công!");
-    //     } catch (error) {
-    //         console.error(error);
-    //         toast.error("Lỗi khi xuất file Excel!");
-    //     }
-    // };
-
     const handleExportExcel = async () => {
         if (selectedProducts.length === 0) {
             toast.error("Vui lòng chọn ít nhất một sản phẩm để xuất Excel!");
@@ -215,7 +186,7 @@ const Products = () => {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = "danh_sach_san_pham_xuat_excel.xlsx";
+            a.download = "danh_sach_san_pham_excel.xlsx";
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -248,12 +219,48 @@ const Products = () => {
                 body: formData
             });
 
-            if (!response.ok) {
-                throw new Error("Lỗi khi nhập file Excel");
+            let result;
+            try {
+                result = await response.json();
+            } catch (jsonError) {
+                result = { error: "Lỗi không xác định từ server." };
             }
 
-            toast.success("Nhập file Excel thành công!");
-            fetchProducts(); // Load lại danh sách sản phẩm sau khi nhập
+            if (result.error) {
+                toast.error(result.error); // Hiển thị lỗi từ API
+                return;
+            }
+
+            console.log("Response Data:", result);
+
+            if (result && Array.isArray(result.errors) && result.errors.length > 0) {
+                result.errors.forEach(error => toast.error(error));
+
+                Swal.fire({
+                    title: "Có lỗi trong file Excel!",
+                    text: "Các sản phẩm không lỗi đã được nhập. Bạn có muốn tải file chứa các sản phẩm bị lỗi không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Tải ngay",
+                    cancelButtonText: "Không"
+                }).then((willDownload) => {
+                    if (willDownload.isConfirmed) {
+                        const link = document.createElement("a");
+                        link.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + result.file;
+                        link.download = "DanhSachLoi.xlsx";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        // Hiển thị toast thông báo tải file thành công
+                        toast.success("Tải file lỗi thành công!");
+                    }
+                });
+            } else {
+                toast.success("Nhập file Excel thành công!");
+                fetchProducts();
+            }
+
         } catch (error) {
             console.error(error);
             toast.error("Lỗi khi nhập file Excel!");

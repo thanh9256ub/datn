@@ -17,16 +17,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class ProductService {
@@ -254,11 +253,19 @@ public class ProductService {
     }
 
     @Transactional
-    public void importProductsFromExcel(MultipartFile file) throws IOException {
+    public ResponseEntity<?> importProductsFromExcel(MultipartFile file) throws IOException {
         Workbook workbook = new XSSFWorkbook(file.getInputStream());
         Sheet sheet = workbook.getSheetAt(0);
+
+        if (sheet.getPhysicalNumberOfRows() == 0 || sheet.getLastRowNum() == 0) {
+            workbook.close();
+            return ResponseEntity.ok(Map.of("error", "Không có dữ liệu trong file Excel."));
+        }
+
         List<ProductDetail> productDetails = new ArrayList<>();
         Map<Product, Integer> productTotalQuantities = new HashMap<>();
+        List<String> errors = new ArrayList<>();
+        List<Row> errorRows = new ArrayList<>();
 
         for (int i = 1; i <= sheet.getLastRowNum(); i++) { // Bỏ qua dòng tiêu đề
             Row row = sheet.getRow(i);
@@ -275,6 +282,12 @@ public class ProductService {
             int quantity = getCellValueAsInt(row.getCell(7));
             double price = getCellValueAsDouble(row.getCell(8));
 
+            if (productName.isEmpty() || brandName.isEmpty() || categoryName.isEmpty() ||
+                    materialName.isEmpty() || colorName.isEmpty() || sizeName.isEmpty() || quantity < 0 || price <= 0) {
+                errors.add("Lỗi dòng " + (i + 1) + ": Dữ liệu không hợp lệ.");
+                errorRows.add(row);
+                continue;
+            }
 
             // ✅ Tìm hoặc tạo mới Brand, Category, Material
             Brand brand = brandRepository.findByBrandName(brandName)
@@ -381,16 +394,50 @@ public class ProductService {
         productDetailRepository.saveAll(productDetails);
 
         // ✅ Cập nhật totalQuantity & status cho Product
-        for (Map.Entry<Product, Integer> entry : productTotalQuantities.entrySet()) {
-            Product product = entry.getKey();
-            int updatedTotalQuantity = entry.getValue();
-            product.setTotalQuantity(updatedTotalQuantity);
-            product.setStatus(updatedTotalQuantity > 0 ? 1 : 0); // Nếu tổng số lượng > 0 thì trạng thái = 1
+        for (Product product : productTotalQuantities.keySet()) {
+            int totalQuantityInDB = productDetailRepository.sumQuantityByProduct(product.getId()).orElse(0);
+            product.setTotalQuantity(totalQuantityInDB);
+            product.setStatus(totalQuantityInDB > 0 ? 1 : 0);
             repository.save(product);
         }
 
         workbook.close();
-    }
 
+        if (!errorRows.isEmpty()) {
+            Workbook errorWorkbook = new XSSFWorkbook();
+            Sheet errorSheet = errorWorkbook.createSheet("Dòng lỗi");
+
+            // Ghi tiêu đề
+            Row header = errorSheet.createRow(0);
+            for (int j = 0; j < sheet.getRow(0).getLastCellNum(); j++) {
+                header.createCell(j).setCellValue(sheet.getRow(0).getCell(j).getStringCellValue());
+            }
+
+            // Ghi các dòng bị lỗi
+            int rowNum = 1;
+            for (Row errorRow : errorRows) {
+                Row newRow = errorSheet.createRow(rowNum++);
+                for (int j = 0; j < errorRow.getLastCellNum(); j++) {
+                    Cell cell = newRow.createCell(j);
+                    if (errorRow.getCell(j) != null) {
+                        cell.setCellValue(errorRow.getCell(j).toString());
+                    }
+                }
+            }
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            errorWorkbook.write(outputStream);
+            errorWorkbook.close();
+
+            // ✅ Trả về danh sách lỗi và file lỗi dưới dạng Base64
+            Map<String, Object> response = new HashMap<>();
+            response.put("errors", errors);
+            response.put("file", Base64.getEncoder().encodeToString(outputStream.toByteArray()));
+
+            return ResponseEntity.status(400).body(response);
+        }
+
+        return ResponseEntity.ok(Map.of());
+    }
 
 }
