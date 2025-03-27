@@ -1,6 +1,7 @@
 package com.example.datn.entity;
 
 import com.example.datn.dto.request.AddressRequest;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -32,7 +33,7 @@ public class Address {
 
     @Column(name = "detailed_address")
     private String detailedAddress;
-
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "customer_id", referencedColumnName = "id")
     private Customer customer;

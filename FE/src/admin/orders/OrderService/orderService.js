@@ -49,11 +49,12 @@ export const filterOrders = async ({ orderCode, minPrice, maxPrice, startDate, e
 export const updateOrderStatus = async (id, newStatus) => {
     try {
         const response = await api.put(`/order/${id}/status`, null, {
-            params: { newStatus }, // Truyền tham số newStatus qua query params
+            params: { newStatus } // Gửi newStatus qua query params
         });
-        return response.data; // Trả về dữ liệu từ backend
+        console.log('Update Order Status Response:', response.data);
+        return response.data;
     } catch (error) {
-        console.error('Error updating order status:', error);
+        console.error('Error updating order status:', error.response?.data || error.message);
         throw error;
     }
 };
@@ -68,5 +69,14 @@ export const fetchOrderDetailsByOrderId = async (orderId) => {
         throw error;
     }
 };
-
+export const updateOrder = async (id, orderData) => {
+    try {
+        const response = await api.put(`/edit/${id}`, orderData);
+        console.log('Update Order Response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating order:', error.response?.data || error.message);
+        throw error;
+    }
+};
 export default api;

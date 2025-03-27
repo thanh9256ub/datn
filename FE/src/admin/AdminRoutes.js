@@ -50,13 +50,13 @@ const ProtectedRoute = ({ component: Component, ...rest }) => {
   const { token } = useAuth();
 
   return (
-      <Route
-          {...rest}
-          render={(props) =>
-              console.log("token: " + !!token) ||
-              !!token ? <Component {...props} /> : <Redirect to="/login-nhan-vien" />
-          }
-      />
+    <Route
+      {...rest}
+      render={(props) =>
+        console.log("token: " + !!token) ||
+          !!token ? <Component {...props} /> : <Redirect to="/login-nhan-vien" />
+      }
+    />
   );
 };
 
@@ -105,8 +105,8 @@ class AdminRoutes extends Component {
 
           <ProtectedRoute exact path="/admin/customers/add" component={CreateCustomer} />
 
-          <Route exact path="/admin/orders" component={Orders} />
-          <Route exact path="/admin/orders/:id" component={OrderDetail} />
+          <ProtectedRoute exact path="/admin/orders" component={Orders} />
+          <Route exact path="/admin/order-detail/orders/:orderId" component={OrderDetail} />
           <Route exact path="/admin/vouchers" component={Vouchers} />
 
           <Redirect to="/admin/dashboard" />

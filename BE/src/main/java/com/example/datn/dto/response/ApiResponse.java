@@ -9,7 +9,7 @@ import lombok.Setter;
 
 import lombok.experimental.FieldDefaults;
 
-@Builder
+
 @Getter
 @Setter
 @Builder
