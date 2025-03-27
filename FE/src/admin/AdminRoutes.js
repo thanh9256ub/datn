@@ -63,7 +63,6 @@ class AdminRoutes extends Component {
     return (
       <Suspense fallback={<Spinner />}>
         <Switch>
-
           <Route exact path="/admin/dashboard" component={Dashboard} />
 
           <Route exact path="/admin/basic-ui/buttons" component={Buttons} />
@@ -88,7 +87,7 @@ class AdminRoutes extends Component {
           <Route exact path="/admin/counter" component={BanHang} />
 
           <ProtectedRoute exact path="/admin/products" component={Products} />
-          <Route exact path="/admin/products/:id/detail" component={ProductDetail} />
+          <ProtectedRoute exact path="/admin/products/:id/detail" component={ProductDetail} />
           <ProtectedRoute exact path="/admin/products/add" component={CreateProduct} />
           <ProtectedRoute exact path="/admin/products/edit/:id" component={UpdateProduct} />
           <ProtectedRoute exact path="/admin/products/inactive" component={InactiveProducts} />

@@ -19,7 +19,8 @@ const Orders = () => {
         minPrice: '',
         maxPrice: '',
         startDate: '',
-        endDate: ''
+        endDate: '',
+        status: '' // Add this
     });
     const history = useHistory();
 
@@ -39,6 +40,11 @@ const Orders = () => {
     const fetchData = async () => {
         try {
             const response = await filterOrders(filters);
+            console.log('Raw response:', response);
+            console.log('Is response an array?', Array.isArray(response));
+            console.log('Response type:', typeof response);
+            console.log('Response constructor:', response?.constructor?.name);
+
             if (Array.isArray(response)) {
                 setData(response);
             } else {
@@ -68,14 +74,14 @@ const Orders = () => {
         setCurrentPage(1);
         fetchData();
     };
-
     const handleResetFilters = () => {
         setFilters({
             orderCode: '',
             minPrice: '',
             maxPrice: '',
             startDate: '',
-            endDate: ''
+            endDate: '',
+            status: ''
         });
         setCurrentPage(1);
         fetchData();

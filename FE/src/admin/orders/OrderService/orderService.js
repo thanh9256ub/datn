@@ -31,10 +31,18 @@ export const filterOrders = async ({ orderCode, minPrice, maxPrice, startDate, e
                 status: status || undefined
             }
         });
-        return response.data;
+        console.log('API raw response:', response);
+        console.log('API response.data:', response.data);
+        console.log('Is response.data an array?', Array.isArray(response.data));
+
+        const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+        console.log('Parsed data:', data);
+        console.log('Is parsed data an array?', Array.isArray(data));
+
+        return data;
     } catch (error) {
         console.error('Error filtering orders:', error);
-        throw error;
+        return [];
     }
 };
 // Hàm cập nhật trạng thái đơn hàng

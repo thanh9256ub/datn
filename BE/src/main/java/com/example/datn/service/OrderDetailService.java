@@ -47,7 +47,10 @@ public class OrderDetailService {
     public void detele(Integer id) {
         repository.deleteById(id);
     }
-
+    public List<OrderDetailResponse> getOrderDetailsByOrderId(Integer orderId) {
+        List<OrderDetail> orderDetails = repository.findByOrderId(orderId);
+        return mapper.toListResponses(orderDetails);
+    }
     @Autowired
     private ProductDetailRepository productDetailRepository;
 @Autowired
