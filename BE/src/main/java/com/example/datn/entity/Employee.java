@@ -31,7 +31,7 @@ public class Employee {
     private String fullName;
 
     @Column(name = "gender")
-    private String gender;
+    private Integer gender;
 
     @Column(name = "birth_date")
     private LocalDate birthDate;
@@ -64,4 +64,6 @@ public class Employee {
     @Column(name = "status")
     private Integer status;
 
+    @Column(name = "image")
+    private String image;
 }

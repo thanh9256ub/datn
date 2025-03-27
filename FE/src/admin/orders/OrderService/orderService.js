@@ -18,6 +18,24 @@ export const fetchOrders = async () => {
         console.error('Error fetching orders:', error);
         throw error;
     }
+};// Hàm lọc đơn hàng
+export const filterOrders = async ({ orderCode, minPrice, maxPrice, startDate, endDate, status }) => {
+    try {
+        const response = await api.get('/order/filter', {
+            params: {
+                orderCode: orderCode || undefined,
+                minPrice: minPrice || undefined,
+                maxPrice: maxPrice || undefined,
+                startDate: startDate || undefined,
+                endDate: endDate || undefined,
+                status: status || undefined
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error filtering orders:', error);
+        throw error;
+    }
 };
 // Hàm cập nhật trạng thái đơn hàng
 export const updateOrderStatus = async (id, newStatus) => {
@@ -31,3 +49,16 @@ export const updateOrderStatus = async (id, newStatus) => {
         throw error;
     }
 };
+// Hàm lấy danh sách OrderDetail theo orderID
+export const fetchOrderDetailsByOrderId = async (orderId) => {
+    try {
+        const response = await api.get(`/order-detail/order/${orderId}`);
+        console.log('Raw API Response:', response.data); // Thêm log để kiểm tra
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching order details by order ID:', error);
+        throw error;
+    }
+};
+
+export default api;

@@ -17,4 +17,5 @@ public class ColorResponse {
     String colorName;
 
     String description;
+
 }

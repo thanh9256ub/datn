@@ -1,10 +1,13 @@
-import React, { Component } from 'react';
-import { ProgressBar } from 'react-bootstrap';
+import React, { Component, useState } from 'react';
+import { Alert, ProgressBar, Spinner } from 'react-bootstrap';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import DatePicker from "react-datepicker";
 import circle from '../../assets/images/dashboard/circle.svg';
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 // import "react-datepicker/dist/react-datepicker.css";
+
 
 
 
@@ -255,6 +258,7 @@ export class Dashboard extends Component {
     };
     this.setState({ visitSaleData: newVisitSaleData, trafficData: newTrafficData })
   }
+
 
 
   render() {
@@ -578,18 +582,52 @@ export class Dashboard extends Component {
 }
 const ListItem = (props) => {
 
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const [error, setError] = useState(null);
+
+  const [loading, setLoading] = useState(true);
+
+  
+  // Thông báo
+  const message = localStorage.getItem("successMessage");
+  if (message) {
+    toast.success(message, {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true
+    });
+    localStorage.removeItem("successMessage");
+  }
+
   return (
-    <li className={(props.isCompleted ? 'completed' : null)}>
-      <div className="form-check">
-        <label htmlFor="" className="form-check-label">
-          <input className="checkbox" type="checkbox"
-            checked={props.isCompleted}
-            onChange={props.changed}
-          /> {props.children} <i className="input-helper"></i>
-        </label>
-      </div>
-      <i className="remove mdi mdi-close-circle-outline" onClick={props.remove}></i>
-    </li>
+    <div>
+      <li className={(props.isCompleted ? 'completed' : null)}>
+        {successMessage && (
+          <Alert variant="success" onClose={() => setSuccessMessage("")} dismissible>
+            {successMessage}
+          </Alert>
+        )}
+        {error ? (
+          <div className="text-danger">{error}</div>
+        ) : (
+          <div className="form-check">
+            <label htmlFor="" className="form-check-label">
+              <input className="checkbox" type="checkbox"
+                checked={props.isCompleted}
+                onChange={props.changed}
+              /> {props.children} <i className="input-helper"></i>
+            </label>
+          </div>
+        )}
+        <i className="remove mdi mdi-close-circle-outline" onClick={props.remove}></i>
+
+      </li>
+      <ToastContainer />
+    </div>
   )
 };
 export default Dashboard;

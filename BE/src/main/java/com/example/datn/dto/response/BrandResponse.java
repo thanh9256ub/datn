@@ -17,4 +17,5 @@ public class BrandResponse {
     String brandName;
 
     String description;
+
 }

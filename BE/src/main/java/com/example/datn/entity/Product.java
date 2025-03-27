@@ -18,12 +18,12 @@ import java.util.UUID;
 @Table(name = "product")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
     @Column(name = "product_code")
-    @NotBlank(message = "Product code is required")
     String productCode;
 
     @Column(name = "product_name")
@@ -50,7 +50,7 @@ public class Product {
     String description;
 
     @Column(name = "main_image")
-    @NotBlank(message = "Main image is required")
+//    @NotBlank(message = "Main image is required")
     String mainImage;
 
     @Column(name = "total_quantity")

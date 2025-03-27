@@ -35,18 +35,14 @@ public class AddressService {
             responseList.add(new AddressResponse(address));
         });
         return responseList;
-//        return addressMapper.toListResponses(addressRepository.findAll());
+        // return addressMapper.toListResponses(addressRepository.findAll());
     }
 
     public AddressResponse creaAddress(AddressRequest addressRequest) {
 
-        Address address = addressMapper.toAddress(addressRequest);
-        address.setCreatedAt(LocalDateTime.now());
-        address.setUpdatedAt(LocalDateTime.now());
-
         Optional<Customer> customer = customerRepository.findById(addressRequest.getCustomerId());
         if (customer.isEmpty()) throw new ResourceNotFoundException("Customer is not found");
-        address.setCustomer(customer.get());
+        Address address = new Address(addressRequest, customer.get());
 
         Address oldDefaultAddress = addressRepository.findAddressByCustomerIdAndStatus(customer.get().getId(), 1);
         if (Objects.isNull(oldDefaultAddress))
@@ -74,10 +70,20 @@ public class AddressService {
 
         Address address = addressRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Address id is not exists with given id: " + id));
-        address.setCreatedAt(LocalDateTime.now());
         address.setUpdatedAt(LocalDateTime.now());
-
-        addressMapper.updateAddress(address, addressRequest);
+        address.setDetailedAddress(addressRequest.getDetailedAddress());
+        address.setCity(addressRequest.getCity());
+        address.setWard(addressRequest.getWard());
+        address.setDistrict(addressRequest.getDistrict());
+        address.setStatus(addressRequest.getStatus());
+        Address oldDefaultAddress = addressRepository.findAddressByCustomerIdAndStatus(address.getId(), 1);
+        if (Objects.isNull(oldDefaultAddress))
+            address.setStatus(1);
+        else if (address.getStatus() == 1) {
+            oldDefaultAddress.setStatus(0);
+            address.setStatus(1);
+            addressRepository.save(oldDefaultAddress);
+        }
 
         return new AddressResponse(addressRepository.save(address));
     }

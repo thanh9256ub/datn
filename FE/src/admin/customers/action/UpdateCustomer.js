@@ -2,73 +2,62 @@ import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import Select from 'react-select'; // Import react-select
-import { addCustomer, getCusomer, listCustomer, updateCustomer } from '../service/CustomersService';
+import { addAddressCustomer, addCustomer, deleteAddressCustomer, getCusomer, listCustomer, updateAddressCustomer, updateCustomer } from '../service/CustomersService';
 import { useHistory, useParams } from 'react-router-dom/cjs/react-router-dom.min';
+import { Spinner } from 'react-bootstrap';
 
 const UpdateCustomer = () => {
 
     const { id } = useParams();
+
     const [customers, setCustomers] = useState([]);
+
     const history = useHistory();
+
     const [provinces, setProvinces] = useState([]);
+
     const [districts, setDistricts] = useState([]);
+
     const [wards, setWards] = useState([]);
+
     const [selectedProvince, setSelectedProvince] = useState(null);
+
     const [selectedDistrict, setSelectedDistrict] = useState(null);
+
     const [selectedWard, setSelectedWard] = useState(null);
+
     const [addresses, setAddresses] = useState([{}]);
+
     const [defaultAddressIndex, setDefaultAddressIndex] = useState(0);
+
     const [customer, setCustomer] = useState({});
+
     const [update, setUpdate] = useState({});
+
     const [totalPage, setTotalPage] = useState(999);
+
     const [page, setPage] = useState(1);
 
-    const handleSaveCustomer = () => {
-        // Cập nhật các địa chỉ với thuộc tính defaultAddress
-        const updatedAddresses = addresses.map((address, index) => ({
-            ...address,
-            city: address.province?.label,
-            district: address.district?.label,
-            ward: address.ward?.label,
-            detailedAddress: address.detail,
-            province: null,
-            detail: null,
-            defaultAddress: index === defaultAddressIndex,  // Gán defaultAddress là true cho địa chỉ mặc định
-        }));
-
-        // Gửi dữ liệu lên API
-        console.log("Địa chỉ sau khi cập nhật:", updatedAddresses);
-        const updatedCustomer = { ...customer, address: updatedAddresses };
-        addCustomer(updatedCustomer)
-            .then(response => {
-                console.log("Thêm khách hàng thành công:", response);
-                alert("Thêm khách hàng thành công");
-                history.push('/admin/customers');
-            })
-            .catch(error => {
-                console.error("Lỗi thêm khách hàng:", error);
-                alert("Lỗi thêm khách hàng");
-            }); // Gọi hàm addCustomer từ CustomersService          
-
-    };
+    const [loading, setLoading] = useState(false);
 
     const handleAddAddress = () => {
-        setAddresses([...addresses, {}]); // Thêm địa chỉ mới vào danh sách
+        setAddresses([...addresses, {}]) // Thêm địa chỉ mới vào danh sách
     };
 
     const handleInputChange = (index, field, value) => {
-        const newAddresses = [...update.addressList];
+        const newAddresses = [...addresses];
         newAddresses[index] = {
             ...newAddresses[index],
-            [field]: value?.label,
+            [field]: value
         };
-        setUpdate({ ...update, addressList: newAddresses });
+        setAddresses(newAddresses);
     };
 
     useEffect(() => {
         // Fetch provinces from API
-        axios.get("https://provinces.open-api.vn/api/?depth=1")
-            .then(response => setProvinces(response.data))
+        delete axios.defaults.headers.common["Authorization"];
+        axios.get("https://partner.viettelpost.vn/v2/categories/listProvinceById?provinceId=-1")
+            .then(response => setProvinces(response.data.data || []))
             .catch(error => console.error("Lỗi lấy tỉnh/thành phố:", error));
     }, []);
 
@@ -78,11 +67,12 @@ const UpdateCustomer = () => {
         setSelectedWard(null);
         setDistricts([]);
         setWards([]);
-        handleInputChange(index, 'city', selectedOption);
+        handleInputChange(index, 'city', selectedOption?.label);
         // Fetch districts based on selected province
         if (selectedOption) {
-            axios.get(`https://provinces.open-api.vn/api/p/${selectedOption.value}?depth=2`)
-                .then(response => setDistricts(response.data.districts))
+            delete axios.defaults.headers.common["Authorization"];
+            axios.get(`https://partner.viettelpost.vn/v2/categories/listDistrict?provinceId=${selectedOption.value}`)
+                .then(response => setDistricts(response.data.data || []))
                 .catch(error => console.error("Lỗi lấy quận/huyện:", error));
         }
     };
@@ -91,27 +81,33 @@ const UpdateCustomer = () => {
         setSelectedDistrict(selectedOption);
         setSelectedWard(null);
         setWards([]);
-        handleInputChange(index, 'district', selectedOption);
+        handleInputChange(index, 'district', selectedOption?.label);
         // Fetch wards based on selected district
         if (selectedOption) {
-            axios.get(`https://provinces.open-api.vn/api/d/${selectedOption.value}?depth=2`)
-                .then(response => setWards(response.data.wards))
+            axios.get(`https://partner.viettelpost.vn/v2/categories/listWards?districtId=${selectedOption.value}`)
+                .then(response => setWards(response.data.data || []))
                 .catch(error => console.error("Lỗi lấy phường/xã:", error));
         }
     };
 
     const handleWardChange = (index, selectedOption) => {
         setSelectedWard(selectedOption);
-        handleInputChange(index, 'ward', selectedOption);
+        handleInputChange(index, 'ward', selectedOption?.label);
     };
     const handleSetDefaultAddress = (index) => {
         // Cập nhật địa chỉ mặc định
         setDefaultAddressIndex(index);
     };
-    const handleRemoveAddress = (index) => {
+    const handleRemoveAddress = (id, index) => {
+        if (!!id) {
+            deleteAddressCustomer(id).then(response => {
+                alert('Bạn đã xóa 1 địa chỉ')
+            })
+        }
+
         // Nếu địa chỉ đang xóa là địa chỉ mặc định, cần cập nhật lại
         if (defaultAddressIndex === index) {
-            setDefaultAddressIndex(0); // Xóa địa chỉ mặc định
+            setDefaultAddressIndex(-1); // Xóa địa chỉ mặc định
         }
 
         const newAddresses = addresses.filter((_, i) => i !== index); // Loại bỏ địa chỉ tại index
@@ -119,15 +115,46 @@ const UpdateCustomer = () => {
     };
 
 
+    const handleAddOrUpdateAddress = (idAddress, index) => {
+        const newAddresses = [...addresses];
+        const defaultAddress = defaultAddressIndex === index;
+        const address = {
+            ...newAddresses[index],
+            defaultAddress: defaultAddress,
+            customerId: id,
+            status: defaultAddress ? 1 : 0,
+            updatedAt: null,
+            createdAt: null
+        };
+        if (!!idAddress) {
+            updateAddressCustomer(idAddress, address).then(response => {
+                alert('Bạn đã cập nhật 1 địa chỉ')
+            });
+        } else {
+            addAddressCustomer(address).then(response => {
+                newAddresses[index] = {
+                    ...newAddresses[index],
+                    id: response.data.id
+                }
+                if(!!response.data.defaultAddress) setDefaultAddressIndex(index);
+                setAddresses(newAddresses);
+            })
+        }
+    };
+
     useEffect(() => {
         const fetchCustomer = async () => {
+            setLoading(true);
             try {
                 const response = await getCusomer(id);
                 console.log(response.data);
                 setUpdate(response.data);
                 setDefaultAddressIndex(response.data.addressList?.findIndex((address) => address.defaultAddress));
+                setAddresses(response.data.addressList)
             } catch (error) {
                 console.error("Lỗi khi lấy dữ liệu:", error);
+            } finally {
+                setLoading(false);
             }
         };
         fetchCustomer();
@@ -136,27 +163,27 @@ const UpdateCustomer = () => {
     const handleUpdateCustomer = () => {
         if (window.confirm('Bạn có chắc chắn muốn cập nhật thông tin?')) {
             const updateCustomerInfo = {
-                ...update,
-                addressList: null,
-                address: null
+                fullName: update.fullName,
+                birthDate: update.birthDate,
+                gender: update.gender,
+                phone: update.phone,
+                email: update.email
             };
             updateCustomer(id, updateCustomerInfo).then(data => {
+                localStorage.setItem("successMessage", "Cập nhật khách hàng thành công!");
                 history.push('/admin/customers');
             });
         }
     };
 
-    function getAllCusomer() {
-        listCustomer(page).then((response) => {
-            setCustomers(response.data.data);
-            setTotalPage(response.data.totalPage);
-        }).catch(error => {
-            console.error(error);
-        })
-    }
-
     return (
         <div>
+            {loading && (
+                <div className="loading-overlay">
+                    <Spinner animation="border" role="status" />
+                    <span>Đang xử lý...</span>
+                </div>
+            )}
             <div className="row">
                 <div className="col-12 grid-margin">
                     <div className="card">
@@ -194,9 +221,9 @@ const UpdateCustomer = () => {
                                                         type="radio"
                                                         label="Nam"
                                                         name="gender"
-                                                        value="Nam"
-                                                        checked={update.gender === 'Nam'}
-                                                        onChange={(e) => setUpdate({ ...update, gender: e.target.value })}
+                                                        value="1"
+                                                        checked={update.gender === 1}
+                                                        onChange={(e) => setUpdate({ ...update, gender: e.target.value ? 1 : 0 })}
                                                         id="genderNam"
                                                         custom
                                                     />
@@ -208,9 +235,9 @@ const UpdateCustomer = () => {
                                                         type="radio"
                                                         label="Nữ"
                                                         name="gender"
-                                                        value="Nữ"
-                                                        checked={update.gender === 'Nữ'}
-                                                        onChange={(e) => setUpdate({ ...update, gender: e.target.value })}
+                                                        value="0"
+                                                        checked={update.gender === 0}
+                                                        onChange={(e) => setUpdate({ ...update, gender: e.target.value ? 0 : 1 })}
                                                         id="genderNu"
                                                         custom
                                                     />
@@ -262,7 +289,7 @@ const UpdateCustomer = () => {
                                 <div>
                                     {/* Button to add new address */}
                                     {/* Render multiple address forms */}
-                                    {update?.addressList?.map((address, index) => (
+                                    {addresses?.map((address, index) => (
                                         <div key={index} className="address-form">
                                             <h4>Địa chỉ {index + 1}</h4>
                                             <div className="row g-4">
@@ -272,8 +299,8 @@ const UpdateCustomer = () => {
                                                         <label className="form-label">Tỉnh/thành phố</label>
                                                         <Select
                                                             options={provinces.map((province) => ({
-                                                                value: province.code,
-                                                                label: province.name,
+                                                                value: province.PROVINCE_ID,
+                                                                label: province.PROVINCE_NAME,
                                                             }))}
                                                             value={{ label: address.city }}
                                                             onChange={(selectedOption) => handleProvinceChange(index, selectedOption)}
@@ -288,8 +315,8 @@ const UpdateCustomer = () => {
                                                         <label className="form-label">Quận/huyện</label>
                                                         <Select
                                                             options={districts.map((district) => ({
-                                                                value: district.code,
-                                                                label: district.name,
+                                                                value: district.DISTRICT_ID,
+                                                                label: district.DISTRICT_NAME,
                                                             }))}
                                                             value={{ label: address.district }}
                                                             onChange={(selectedOption) => handleDistrictChange(index, selectedOption)}
@@ -305,8 +332,8 @@ const UpdateCustomer = () => {
                                                         <label className="form-label">Phường/xã</label>
                                                         <Select
                                                             options={wards.map((ward) => ({
-                                                                value: ward.code,
-                                                                label: ward.name,
+                                                                value: ward.WARDS_ID,
+                                                                label: ward.WARDS_NAME,
                                                             }))}
                                                             value={{ label: address.ward }}
                                                             onChange={(selectedOption) => handleWardChange(index, selectedOption)}
@@ -323,7 +350,7 @@ const UpdateCustomer = () => {
                                                         <Form.Control
                                                             type="text"
                                                             value={address.detailedAddress}
-                                                            onChange={(e) => handleInputChange(index, 'detail', e.target.value)}
+                                                            onChange={(e) => handleInputChange(index, 'detailedAddress', e.target.value)}
                                                         />
                                                     </Form.Group>
                                                 </div>
@@ -344,10 +371,16 @@ const UpdateCustomer = () => {
                                             <div className="mt-3">
                                                 <Button
                                                     variant="danger"
-                                                    onClick={() => handleRemoveAddress(index)}
+                                                    onClick={() => handleRemoveAddress(address.id, index)}
                                                     disabled={addresses.length === 1} // Không cho xóa nếu chỉ còn 1 địa chỉ
                                                 >
                                                     Xóa địa chỉ
+                                                </Button>
+                                                <Button
+                                                    variant={!!address.id ? "warning" : "info"}
+                                                    onClick={() => handleAddOrUpdateAddress(address.id, index)}
+                                                >
+                                                    {!!address.id ? "Cập nhật địa chỉ" : "Thêm địa chỉ"}
                                                 </Button>
                                             </div>
                                             <hr />

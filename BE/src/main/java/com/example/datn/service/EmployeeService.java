@@ -63,7 +63,7 @@ public class EmployeeService {
     public EmployeeResponse createEmployee(EmployeeRequest employeeRequest) {
         Employee employee = employeeMapper.toEmployee(employeeRequest);
         employee.setEmployeeCode("NV.....");
-        employee.setCreatedAt(LocalDateTime.now());
+        employee.setCreatedAt(LocalDateTime.now());   
         employee.setUpdatedAt(LocalDateTime.now());
         employee.setStatus(1);
         Role role = roleRepository.findById(employeeRequest.getRoleId()).get();
@@ -76,13 +76,13 @@ public class EmployeeService {
         Employee created = employeeRepository.save(employee);
         created.setEmployeeCode(generateEmployeeCode(created.getId()));
         employeeRepository.save(created);
-        emailService.sendSimpleMessage(employee.getEmail(), "Password login", "Chào, " + employee.getFullName() + "\n" +
+        emailService.sendSimpleMessage(employee.getEmail(), "Chào mừng bạn đến với H2TL - Thông tin đăng nhập của bạn", "Chào, " + employee.getFullName() + "\n" +
                 "Chúc mừng bạn đã gia nhập đội ngũ tại H2TL! Chúng tôi rất vui khi bạn trở thành một phần của gia đình chúng tôi và hy vọng bạn sẽ có một hành trình làm việc đầy thú vị và thành công tại đây.\n" +
                 "\n" +
                 "Để bạn có thể bắt đầu công việc, dưới đây là thông tin tài khoản đăng nhập hệ thống của bạn:\n" +
-                "\n" +
                 "Tên đăng nhập: " + employee.getUsername() + "\n" +
                 "Mật khẩu: " + password + "\n" +
+                "\n" +
                 "Hãy sử dụng thông tin này để đăng nhập vào hệ thống. Nếu có bất kỳ vấn đề nào trong quá trình đăng nhập hoặc bạn cần sự trợ giúp, đừng ngần ngại liên hệ với bộ phận quản lý của cửa hàng.\n" +
                 "\n" +
                 "Chúc bạn một ngày làm việc hiệu quả và hy vọng bạn sẽ nhanh chóng làm quen với công việc!");

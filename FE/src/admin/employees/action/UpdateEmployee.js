@@ -4,7 +4,8 @@ import { Button, Modal, Col, InputGroup, Container, Form } from "react-bootstrap
 import { addEmployee, getEmployee, listEmployee, listRole, updateEmployee } from '../service/EmployeeService';
 import { useParams, useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import Select from 'react-select';
-
+import { Spinner } from 'react-bootstrap';
+import "./CreateEmployee.css";
 
 
 const UpdateEmployee = () => {
@@ -27,6 +28,10 @@ const UpdateEmployee = () => {
 
     const [detail, setDetail] = useState({});
 
+
+    const [loading, setLoading] = useState(false);
+
+
     useEffect(() => {
         const fetchEmployee = async () => {
             try {
@@ -40,12 +45,19 @@ const UpdateEmployee = () => {
         fetchEmployee();
     }, [id]);
 
-    const handleUpdate = (id, employee) => {
+    const handleUpdate = async (id, employee) => {
         if (window.confirm('Bạn có chắc chắn muốn cập nhật thông tin nhân viên này?')) {
-            updateEmployee(id, employee).then(data => {
+            setLoading(true);
+            try {
+                await updateEmployee(id, employee); // Ensure you wait for the update to finish
                 getAllEmployee();
+                localStorage.setItem("successMessage", "Cập nhật nhân viên thành công!");
                 history.push('/admin/employees');
-            });
+            } catch (error) {
+                console.error('Error updating employee:', error);
+            } finally {
+                setLoading(false); // Set loading to false after the update completes
+            }
         }
     };
 
@@ -56,7 +68,7 @@ const UpdateEmployee = () => {
                 setTotalPage(response.data.totalPage);
             }
             else if (response.status === 401) {
-                history.push('/admin/user-pages/login-1');
+                history.push('/loginNhanVien');
             }
         }).catch(error => {
             console.error(error);
@@ -77,8 +89,15 @@ const UpdateEmployee = () => {
         setShowPassword(!showPassword); // Hàm để thay đổi trạng thái hiển thị mật khẩu
     };
 
+
     return (
         <div>
+            {loading && (
+                <div className="loading-overlay">
+                    <Spinner animation="border" role="status" />
+                    <span>Đang xử lý...</span>
+                </div>
+            )}
             <div className="row">
                 <div className="col-12 grid-margin">
                     <div className="card">
@@ -166,9 +185,9 @@ const UpdateEmployee = () => {
                                                         type="radio"
                                                         label="Nam"
                                                         name="gender"
-                                                        value="Nam"
-                                                        checked={detail.gender === 'Nam'}
-                                                        onChange={(e) => setDetail({ ...detail, gender: e.target.value })}
+                                                        value="1"
+                                                        checked={detail.gender === 1}
+                                                        onChange={(e) => setDetail({ ...detail, gender: e.target.value ? 1 : 0 })}
                                                         id="genderNam"
                                                         custom
                                                     />
@@ -180,9 +199,9 @@ const UpdateEmployee = () => {
                                                         type="radio"
                                                         label="Nữ"
                                                         name="gender"
-                                                        value="Nữ"
-                                                        checked={detail.gender === 'Nữ'}
-                                                        onChange={(e) => setDetail({ ...detail, gender: e.target.value })}
+                                                        value="0"
+                                                        checked={detail.gender === 0}
+                                                        onChange={(e) => setDetail({ ...detail, gender: e.target.value ? 0 : 1 })}
                                                         id="genderNu"
                                                         custom
                                                     />
@@ -196,7 +215,14 @@ const UpdateEmployee = () => {
                                                     setDetail({ ...detail, address: e.target.value });
                                                 }} />
                                         </Form.Group>
-
+                                        <Form.Group>
+                                            <label className="form-label">Trạng thái</label>
+                                            <Select
+                                                options={[{ value: 1, label: "Đang hoạt động" }, { value: 0, label: "Không hoạt động" }]}
+                                                value={{ value: detail.status, label: detail.status === 1 ? "Đang hoạt động" : "Không hoạt động" }}
+                                                onChange={(selected) => setDetail({ ...detail, status: selected.value })}
+                                            />
+                                        </Form.Group>
 
                                     </div>
 
@@ -237,10 +263,9 @@ const UpdateEmployee = () => {
                                     </div>
                                 </div>
                                 <hr></hr>
-                                {/* Nút Thêm nhân viên */}
-                                <div className="text-end mt-4">
+                                <div className="d-flex justify-content-end mt-4">
                                     <button type="button" className="btn btn-primary" onClick={() => handleUpdate(detail.id, detail)}>
-                                        Lưu
+                                        Lưu thông tin
                                     </button>
                                 </div>
                             </form>

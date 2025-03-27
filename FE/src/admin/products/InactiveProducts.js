@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getProducts, updateStatus } from './service/ProductService';
+import { getInactiveProducts, updateStatus } from './service/ProductService';
 import { Spinner } from 'react-bootstrap';
 import Switch from 'react-switch';
 import { ToastContainer, toast } from "react-toastify";
@@ -13,7 +13,7 @@ const InactiveProducts = () => {
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            const response = await getProducts();
+            const response = await getInactiveProducts();
             setProducts(response.data.data);
             setLoading(false);
         } catch (err) {
@@ -37,6 +37,8 @@ const InactiveProducts = () => {
                 )
             );
             toast.success("Cập nhật trạng thái thành công!");
+
+            fetchProducts();
         } catch (error) {
             console.error("Lỗi khi cập nhật trạng thái sản phẩm:", error);
             toast.error("Cập nhật trạng thái thất bại!");
@@ -74,8 +76,8 @@ const InactiveProducts = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {products.filter(product => product.status === 0).length > 0 ? (
-                                            products.filter(product => product.status === 0).map((product, index) => (
+                                        {products.length > 0 ? (
+                                            products.map((product, index) => (
                                                 <tr key={product.id}>
                                                     <td>{index + 1}</td>
                                                     <td>

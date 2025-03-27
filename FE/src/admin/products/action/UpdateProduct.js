@@ -3,14 +3,17 @@ import { Form } from 'react-bootstrap';
 import { useParams, useHistory } from 'react-router-dom';
 import { getImagesByProductColor, getProductById, getProductColorsByProductId, updateProduct, uploadImageToCloudinary } from '../service/ProductService';
 import { getProductDetailByProductId, updateProductDetails } from '../service/ProductDetailService';
-import BrandSelect from '../select/BrandSelect';
-import CategorySelect from '../select/CategorySelect';
-import MaterialSelect from '../select/MaterialSelect';
+import BrandContainer from '../components/BrandContainer';
+import CategoryContainer from '../components/CategoryContainer';
+import MaterialContainer from '../components/MaterialContainer';
 // import ColorSelect from '../select/ColorSelect';
 // import SizeSelect from '../select/SizeSelect';
 import ListAutoVariant from '../components/ListAutoVariant';
 import MainImage from '../components/MainImage';
 import axios from 'axios';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Swal from "sweetalert2";
 
 const UpdateProduct = () => {
     const { id } = useParams();
@@ -22,12 +25,14 @@ const UpdateProduct = () => {
     const [materialId, setMaterialId] = useState(null);
     const [totalQuantity, setTotalQuantity] = useState(0);
     const [status, setStatus] = useState(0);
-    // const [colorIds, setColorIds] = useState([]);
-    // const [sizeIds, setSizeIds] = useState([]);
     const [variantList, setVariantList] = useState([]);
     const [mainImage, setMainImage] = useState(null);
     const [hasError, setHasError] = useState(false);
     const [description, setDescription] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
+    const [errors, setErrors] = useState({});
+
+    const [colorImages, setColorImages] = useState({});
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -90,23 +95,23 @@ const UpdateProduct = () => {
 
     const handleInputChange = (index, field, value) => {
         const updatedVariants = [...variantList];
-        updatedVariants[index][field] = value;
+        updatedVariants[index] = { ...updatedVariants[index], [field]: value };
         setVariantList(updatedVariants);
     };
 
     const saveProduct = async () => {
-        if (!productName || !brandId || !categoryId || !materialId || !mainImage) {
-            alert("Vui lòng nhập đầy đủ thông tin sản phẩm!");
-            return;
-        }
+        const result = await Swal.fire({
+            title: "Xác nhận",
+            text: "Bạn có chắc chắn muốn sửa sản phẩm này?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Đồng ý",
+            cancelButtonText: "Hủy",
+        });
 
-        if (hasError) {
-            alert("Vui lòng sửa lỗi trước khi lưu!");
-            return;
-        }
-
-        const isConfirmed = window.confirm("Bạn có chắc chắn muốn sửa sản phẩm này?");
-        if (!isConfirmed) return;
+        if (!result.isConfirmed) return;
 
         try {
             let imageUrl;
@@ -135,14 +140,15 @@ const UpdateProduct = () => {
                 colorId: variant.color?.id || variant.color,
                 sizeId: variant.size?.id || variant.size,
                 quantity: Number(variant.quantity),
-                price: Number(variant.price)
+                price: Number(variant.price),
+                status: variant.status === 0 ? 0 : 1
             }));
 
             console.log("Dữ liệu gửi lên API updateProductDetails:", formattedVariants);
 
             await updateProductDetails(id, formattedVariants);
 
-            await handleImagesForProductColors(id)
+            await handleImagesForProductColors(id);
 
             localStorage.setItem("successMessage", "Sản phẩm đã được cập nhật thành công!");
             history.push('/admin/products');
@@ -154,7 +160,6 @@ const UpdateProduct = () => {
 
     const handleImagesForProductColors = async (productId) => {
         try {
-            // Lấy danh sách productColorId từ API
             const productColorsResponse = await getProductColorsByProductId(productId);
             const productColors = productColorsResponse.data.data;
 
@@ -163,11 +168,10 @@ const UpdateProduct = () => {
                     const productColorId = productColor.id;
                     console.log("ProductColors: ", productColors);
                     console.log("VariantList: ", variantList);
-                    // Kiểm tra xem có ảnh mới cho productColor không
+
                     const variantWithColor = variantList.find(variant => variant.color.id === productColor.color.id);
                     console.log("Variant with color: ", variantWithColor)
                     if (variantWithColor && variantWithColor.images && variantWithColor.images.length > 0) {
-                        // Tải ảnh lên Cloudinary và lấy URL
                         const uploadedImageUrls = [];
                         for (const imageFile of variantWithColor.images) {
                             const imageUrl = await uploadImageToCloudinary(imageFile);
@@ -178,7 +182,6 @@ const UpdateProduct = () => {
                             }
                         }
 
-                        // Lưu ảnh vào cơ sở dữ liệu cho productColorId
                         if (uploadedImageUrls.length > 0) {
                             const imageRequests = uploadedImageUrls.map(url => ({ image: url }));
                             console.log(`Updating images for ProductColor ID: ${productColorId} with images:`, imageRequests);
@@ -187,7 +190,6 @@ const UpdateProduct = () => {
                     }
                 });
 
-                // Đợi tất cả các ảnh được tải lên và lưu vào cơ sở dữ liệu
                 await Promise.all(imagePromises);
             }
 
@@ -217,6 +219,62 @@ const UpdateProduct = () => {
         });
     };
 
+    const validateProduct = () => {
+        let newErrors = {};
+
+        if (!productName.trim()) newErrors.productName = "Tên sản phẩm không được để trống";
+        if (!brandId) newErrors.brandId = "Vui lòng chọn thương hiệu";
+        if (!categoryId) newErrors.categoryId = "Vui lòng chọn danh mục";
+        if (!materialId) newErrors.materialId = "Vui lòng chọn chất liệu";
+        if (!description.trim()) newErrors.description = "Mô tả không được để trống";
+        if (!mainImage) newErrors.mainImage = "Vui lòng chọn ảnh chính";
+
+        if (!variantList.length) {
+            newErrors.variantList = "Vui lòng thêm ít nhất một biến thể";
+        } else {
+            variantList.forEach((variant, index) => {
+                const variantInfo = `Biến thể (Màu: ${variant.color.colorName}, Size: ${variant.size.sizeName})`;
+
+
+                if (!variant.price) {
+                    newErrors[`price_${index}`] = `${variantInfo}: Chưa nhập giá`;
+                } else if (variant.price <= 0) {
+                    newErrors[`price_${index}`] = `${variantInfo}: Giá phải lớn hơn 0`;
+                }
+
+                if (!variant.quantity) {
+                    newErrors[`quantity_${index}`] = `${variantInfo}: Chưa nhập số lượng`;
+                } else if (variant.quantity < 0) {
+                    newErrors[`quantity_${index}`] = `${variantInfo}: Số lượng phải lớn hơn 0`;
+                }
+
+                if (!variant.imageUrls || variant.imageUrls.length === 0) {
+                    newErrors[`image_${index}`] = `${variantInfo}: Cần ít nhất một ảnh`;
+                }
+            });
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            Object.values(newErrors).forEach(error => toast.error(error));
+            return false;
+        }
+
+        return true;
+    };
+
+    const handleSaveClick = async () => {
+        if (isSaving) return;
+
+        if (!validateProduct()) return;
+
+        setIsSaving(true);
+
+        await saveProduct();
+
+        setIsSaving(false);
+    };
+
     return (
         <div>
             <div className="row">
@@ -225,42 +283,45 @@ const UpdateProduct = () => {
                         <div className="card-body">
                             <h3 className="card-title">Chỉnh sửa sản phẩm</h3>
                             <hr />
+                            <div style={{ marginBottom: '50px' }}></div>
                             <form className="form-sample">
                                 <div className="row">
-                                    <div className="col-md-6">
-                                        {/* <MainImage setMainImage={setMainImage} /> */}
-                                        <MainImage setMainImage={setMainImage} initialImage={mainImage} />
-
+                                    <div className='col-md-8'>
+                                        <div className="col-md-12">
+                                            <Form.Group className="row">
+                                                <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
+                                                <div className="col-sm-9">
+                                                    <Form.Control type="text" value={productName} onChange={(e) => setProductName(e.target.value)} required />
+                                                </div>
+                                            </Form.Group>
+                                        </div>
+                                        <div className="col-md-12">
+                                            <BrandContainer brandId={brandId} setBrandId={setBrandId} />
+                                        </div>
+                                        <div className="col-md-12">
+                                            <CategoryContainer categoryId={categoryId} setCategoryId={setCategoryId} />
+                                        </div>
+                                        <div className="col-md-12">
+                                            <MaterialContainer materialId={materialId} setMaterialId={setMaterialId} />
+                                        </div>
                                     </div>
-                                </div>
-                                <div style={{ marginBottom: '20px' }}></div>
-                                <div className="row">
-                                    <div className="col-md-6">
-                                        <Form.Group className="row">
-                                            <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
-                                            <div className="col-sm-9">
-                                                <Form.Control type="text" value={productName} onChange={(e) => setProductName(e.target.value)} />
+                                    <div className="col-md-4" style={{ display: 'grid', placeItems: 'center' }}>
+                                        <center>
+                                            <div className="col-md-12">
+                                                <MainImage setMainImage={setMainImage} initialImage={mainImage} />
                                             </div>
-                                        </Form.Group>
-                                    </div>
-                                    <div className="col-md-6">
-                                        <BrandSelect brandId={brandId} setBrandId={setBrandId} />
-                                    </div>
-                                    <div className="col-md-6">
-                                        <CategorySelect categoryId={categoryId} setCategoryId={setCategoryId} />
-                                    </div>
-                                    <div className="col-md-6">
-                                        <MaterialSelect materialId={materialId} setMaterialId={setMaterialId} />
+                                        </center>
                                     </div>
                                     <div className='col-md-12'>
-                                        <Form.Group>
-                                            <label htmlFor="exampleTextarea1">Mô tả:</label>
-                                            <textarea className="form-control" id="exampleTextarea1" rows="4" value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
-                                        </Form.Group>
+                                        <div className='col-md-12'>
+                                            <Form.Group>
+                                                <label htmlFor="exampleTextarea1">Mô tả:</label>
+                                                <div style={{ marginBottom: '10px' }}></div>
+                                                <textarea className="form-control" id="exampleTextarea1" rows="4" value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
+                                            </Form.Group>
+                                        </div>
                                     </div>
                                 </div>
-                                <div style={{ marginBottom: '20px' }}></div>
-
                             </form>
                         </div>
                     </div>
@@ -272,6 +333,7 @@ const UpdateProduct = () => {
                         <div className="card-body">
                             <h6><span>Danh sách sản phẩm biến thể:</span></h6>
                             <hr />
+                            <div style={{ marginBottom: '50px' }}></div>
                             <div className="row">
                                 <div className='col-md-12'>
                                     <ListAutoVariant
@@ -281,18 +343,27 @@ const UpdateProduct = () => {
                                         setHasError={setHasError}
                                         onImagesSelected={handleImageChange}
                                         setVariantList={setVariantList}
+                                        colorImages={colorImages}
+                                        errors={errors}
                                     />
                                 </div>
                             </div>
                             <hr />
-                            <button type="button" className="btn btn-gradient-primary btn-icon-text" onClick={saveProduct}>
+                            <button
+                                type="button"
+                                className="btn btn-gradient-primary btn-icon-text"
+                                onClick={handleSaveClick}
+                                disabled={isSaving}
+                            >
                                 <i className="mdi mdi-file-check btn-icon-prepend"></i>
-                                Update
+                                {isSaving ? "Đang lưu..." : "Lưu"}
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <ToastContainer />
         </div>
     )
 }

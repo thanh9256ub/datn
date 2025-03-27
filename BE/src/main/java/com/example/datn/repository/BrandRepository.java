@@ -7,16 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BrandRepository extends JpaRepository<Brand,Integer> {
-//    @Query("""
-//        SELECT new com.example.datn.dto.response.BrandResponse(
-//            b.id,
-//            b.brandCode,
-//            b.brandName,
-//            b.description
-//        ) FROM Brand b
-//    """)
-//    List<BrandResponse> getAllResponse();
+    Optional<Brand> findByBrandName(String brandName);
 }

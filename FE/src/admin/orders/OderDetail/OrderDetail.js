@@ -1,228 +1,424 @@
-// import React from 'react';
-// import { useLocation, useParams } from 'react-router-dom';
-// import { Container, Row, Col, Table, Badge, Card, Button } from 'react-bootstrap';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
+import { Card, Table, Button, Row, Col, Toast } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft, faClock, faBoxOpen, faTruck, faHome, faCheckCircle, faTimesCircle, faPrint, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { fetchOrderDetailsByOrderId, updateOrderStatus } from '../OrderService/orderService';
+import { Image } from 'react-bootstrap';
 
-// export const OrderDetail = () => {
-//     const { orderId } = useParams();
-//     const { state } = useLocation();
-//     const order = state?.order;
+const OrderDetail = () => {
+    const location = useLocation();
+    const { orderId } = useParams();
+    console.log('Order ID from useParams:', orderId);
+    const [orderDetails, setOrderDetails] = useState([]);
+    const [order, setOrder] = useState(location.state?.order);
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
 
-//     if (!order) {
-//         return (
-//             <Container className="mt-5 text-center">
-//                 <h4 className="text-muted fw-light">Không có dữ liệu đơn hàng.</h4>
-//             </Container>
-//         );
-//     }
+    useEffect(() => {
+        const getOrderDetails = async () => {
+            try {
+                const response = await fetchOrderDetailsByOrderId(orderId);
+                console.log('Fetched Order Details:', response); // Log dữ liệu sau khi gọi API
+                // Đảm bảo response là mảng
+                const details = Array.isArray(response) ? response : [response];
+                setOrderDetails(details);
+            } catch (error) {
+                console.error('Error fetching order details:', error);
+            }
+        };
+        getOrderDetails();
+    }, [orderId]);
 
-//     const customerInfo = {
-//         email: "example@email.com",
-//         phone: "0123 456 789",
-//         address: "123 Đường ABC, Quận 1, TP.HCM",
-//     };
+    if (!order) {
+        return (
+            <div className="container mt-5 text-center bg-white">
+                <h3 className="text-muted">Không tìm thấy thông tin đơn hàng</h3>
+            </div>
+        );
+    }
 
-//     const items = [
-//         { product: "Sản phẩm 1", quantity: 2, price: "60,000 VNĐ", total: "120,000 VNĐ" },
-//         { product: "Sản phẩm 2", quantity: 1, price: "50,000 VNĐ", total: "50,000 VNĐ" },
-//     ];
+    const showNotification = (message) => {
+        setToastMessage(message);
+        setShowToast(true);
+    };
 
-//     const shippingFee = 30000;
-//     const subtotal = items.reduce((acc, item) => acc + parseInt(item.total.replace(/[^0-9]/g, '')), 0);
-//     const total = subtotal + shippingFee;
+    const getNextStatus = (currentStatus) => {
+        const statusFlow = [
+            { id: 1, name: "Chờ tiếp nhận" },
+            { id: 2, name: "Chờ lấy hàng" },
+            { id: 3, name: "Chờ vận chuyển" },
+            { id: 4, name: "Đang vận chuyển" },
+            { id: 5, name: "Đã giao" },
+            { id: 6, name: "Hoàn tất" },
+            { id: 7, name: "Đã hủy" },
+        ];
+        const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
+        return currentIndex < statusFlow.length - 1 ? statusFlow[currentIndex + 1].id : currentStatus;
+    };
 
-//     const handlePrint = () => {
-//         const printContent = document.getElementById('invoice');
-//         const newWindow = window.open('', '', 'height=800,width=600');
-//         newWindow.document.write(`
-//             <html>
-//                 <head>
-//                     <title>Hóa Đơn #${order?.id}</title>
-//                     <style>
-//                         body { font-family: 'Segoe UI', sans-serif; padding: 30px; color: #333; }
-//                         h1 { font-size: 28px; color: #2b6cb0; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; }
-//                         h2 { font-size: 22px; color: #2d3748; margin-top: 20px; }
-//                         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-//                         th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: center; }
-//                         th { background-color: #f7fafc; color: #4a5568; font-weight: 600; }
-//                         td { color: #718096; }
-//                         .total { font-weight: bold; font-size: 18px; color: #2b6cb0; }
-//                     </style>
-//                 </head>
-//                 <body>
-//                     ${printContent.innerHTML}
-//                 </body>
-//             </html>
-//         `);
-//         newWindow.document.close();
-//         newWindow.print();
-//     };
+    const handleConfirm = async () => {
+        const nextStatus = getNextStatus(order.status);
+        if (nextStatus === order.status) {
+            showNotification("Đơn hàng đã ở trạng thái cuối cùng.");
+            return;
+        }
 
-//     return (
-//         <Container className="my-5" style={{ maxWidth: '1000px', fontFamily: "'Segoe UI', sans-serif" }}>
-//             <h2 className="mb-5 text-center text-primary fw-bold" style={{ color: '#2b6cb0' }}>
-//                 Chi tiết đơn hàng #{order?.orderCode}
-//             </h2>
+        try {
+            await updateOrderStatus(order.id, nextStatus);
+            setOrder(prev => ({ ...prev, status: nextStatus }));
+            showNotification("Cập nhật trạng thái thành công!");
+        } catch (error) {
+            console.error('Error updating order status:', error);
+            showNotification("Có lỗi xảy ra khi cập nhật trạng thái.");
+        }
+    };
 
-//             <Row className="g-4">
-//                 {/* Thông tin đơn hàng */}
-//                 <Col xs={12}>
-//                     <Card className="border-0 shadow-sm" style={{ borderRadius: '15px', overflow: 'hidden' }}>
-//                         <Card.Body className="p-4" style={{ background: 'linear-gradient(135deg, #f7fafc, #edf2f7)' }}>
-//                             <Card.Title className="fw-semibold mb-4" style={{ color: '#2d3748', fontSize: '1.5rem' }}>
-//                                 Thông tin đơn hàng
-//                             </Card.Title>
-//                             <p className="mb-2" style={{ color: '#4a5568' }}><strong>Khách hàng:</strong> {order?.customer}</p>
-//                             <p className="mb-2" style={{ color: '#4a5568' }}><strong>Ngày đặt:</strong> {order?.orderDate}</p>
-//                             <p className="mb-0">
-//                                 <strong style={{ color: '#4a5568' }}>Trạng thái:</strong>{' '}
-//                                 <Badge
-//                                     bg={
-//                                         order?.status === "Đang vận chuyển"
-//                                             ? "warning"
-//                                             : order?.status === "Hoàn thành"
-//                                                 ? "success"
-//                                                 : "danger"
-//                                     }
-//                                     className="px-2 py-1 text black"
-//                                     style={{ fontSize: '0.9rem', fontWeight: '500' }}
-//                                 >
-//                                     {order?.status}
-//                                 </Badge>
-//                             </p>
-//                         </Card.Body>
-//                     </Card>
-//                 </Col>
+    const handleUpdateCustomerInfo = () => {
+        showNotification("Đã gửi yêu cầu cập nhật thông tin khách hàng!");
+    };
 
-//                 {/* Thông tin khách hàng */}
-//                 <Col xs={12}>
-//                     <Card className="border-0 shadow-sm" style={{ borderRadius: '15px', overflow: 'hidden' }}>
-//                         <Card.Body className="p-4" style={{ background: 'linear-gradient(135deg, #f7fafc, #edf2f7)' }}>
-//                             <Card.Title className="fw-semibold mb-4" style={{ color: '#2d3748', fontSize: '1.5rem' }}>
-//                                 Thông tin khách hàng
-//                             </Card.Title>
-//                             <p className="mb-2" style={{ color: '#4a5568' }}><strong>Email:</strong> {customerInfo.email}</p>
-//                             <p className="mb-2" style={{ color: '#4a5568' }}><strong>SĐT:</strong> {customerInfo.phone}</p>
-//                             <p className="mb-0" style={{ color: '#4a5568' }}><strong>Địa chỉ:</strong> {customerInfo.address}</p>
-//                         </Card.Body>
-//                     </Card>
-//                 </Col>
+    const handleUpdateProductList = () => {
+        showNotification("Đã gửi yêu cầu cập nhật danh sách sản phẩm!");
+    };
 
-//                 {/* Sản phẩm đã đặt */}
-//                 <Col xs={12}>
-//                     <Card className="border-0 shadow-sm" style={{ borderRadius: '15px', overflow: 'hidden' }}>
-//                         <Card.Body className="p-4">
-//                             <Card.Title className="fw-semibold mb-4" style={{ color: '#2d3748', fontSize: '1.5rem' }}>
-//                                 Sản phẩm đã đặt
-//                             </Card.Title>
-//                             <Table bordered hover responsive className="mb-0" style={{ borderRadius: '10px', overflow: 'hidden' }}>
-//                                 <thead style={{ backgroundColor: '#f7fafc', color: '#4a5568' }}>
-//                                     <tr>
-//                                         <th className="text-center py-3">Sản phẩm</th>
-//                                         <th className="text-center py-3">Số lượng</th>
-//                                         <th className="text-center py-3">Đơn giá</th>
-//                                         <th className="text-center py-3">Thành tiền</th>
-//                                     </tr>
-//                                 </thead>
-//                                 <tbody style={{ color: '#718096' }}>
-//                                     {items.map((item, index) => (
-//                                         <tr key={index} className="transition-all hover:bg-gray-50">
-//                                             <td className="py-3">{item.product}</td>
-//                                             <td className="text-center py-3">{item.quantity}</td>
-//                                             <td className="text-end py-3">{item.price}</td>
-//                                             <td className="text-end py-3">{item.total}</td>
-//                                         </tr>
-//                                     ))}
-//                                 </tbody>
-//                             </Table>
-//                         </Card.Body>
-//                     </Card>
-//                 </Col>
+    const handlePrintInvoice = () => {
+        const invoiceContent = `
+            <html>
+                <head>
+                    <style>
+                        body { font-family: Arial, sans-serif; font-size: 14px; margin: 20px; }
+                        .invoice-header { text-align: center; font-size: 18px; margin-bottom: 20px; }
+                        .invoice-details { margin-bottom: 20px; }
+                        .invoice-details th, .invoice-details td { padding: 8px; text-align: left; }
+                        .invoice-footer { margin-top: 20px; text-align: center; }
+                    </style>
+                </head>
+                <body>
+                    <div class="invoice-header">
+                        <h2>Hóa đơn đơn hàng: ${order.orderCode}</h2>
+                        <p>Ngày đặt hàng: ${new Date(order.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div class="invoice-details">
+                        <table border="1" width="100%">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Số lượng</th>
+                                    <th>Giá</th>
+                                    <th>Tổng</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${orderDetails.length > 0 ? orderDetails.map(item => `
+                                    <tr>
+                                        <td>${item.productDetail.product.productName}</td>
+                                        <td>${item.quantity}</td>
+                                        <td>${item.price.toLocaleString()} VNĐ</td>
+                                        <td>${item.totalPrice.toLocaleString()} VNĐ</td>
+                                    </tr>
+                                `).join('') : 'Không có sản phẩm'}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="invoice-footer">
+                        <p>Tổng tiền: ${calculateTotalPayment().toLocaleString()} VNĐ</p>
+                    </div>
+                </body>
+            </html>
+        `;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(invoiceContent);
+        printWindow.document.close();
+        printWindow.print();
+    };
 
-//                 {/* Tổng kết đơn hàng */}
-//                 <Col xs={12}>
-//                     <Card className="border-0 shadow-sm" style={{ borderRadius: '15px', overflow: 'hidden' }}>
-//                         <Card.Body className="p-4" style={{ background: 'linear-gradient(135deg, #f7fafc, #edf2f7)' }}>
-//                             <Card.Title className="fw-semibold mb-4" style={{ color: '#2d3748', fontSize: '1.5rem' }}>
-//                                 Tổng kết
-//                             </Card.Title>
-//                             <div className="d-flex justify-content-between mb-3" style={{ color: '#4a5568' }}>
-//                                 <span>Tạm tính:</span>
-//                                 <span>{subtotal.toLocaleString('vi-VN')} VNĐ</span>
-//                             </div>
-//                             <div className="d-flex justify-content-between mb-3" style={{ color: '#4a5568' }}>
-//                                 <span>Phí vận chuyển:</span>
-//                                 <span>{shippingFee.toLocaleString('vi-VN')} VNĐ</span>
-//                             </div>
-//                             <hr style={{ borderColor: '#e2e8f0' }} />
-//                             <div className="d-flex justify-content-between fw-bold" style={{ color: '#2b6cb0', fontSize: '1.25rem' }}>
-//                                 <span>Tổng cộng:</span>
-//                                 <span>{total.toLocaleString('vi-VN')} VNĐ</span>
-//                             </div>
-//                         </Card.Body>
-//                     </Card>
-//                 </Col>
-//             </Row>
+    const StatusTimeline = ({ status }) => {
+        const statusFlow = [
+            { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
+            { id: 2, name: "Chờ lấy hàng", icon: faBoxOpen, color: "#ffd700" },
+            { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
+            { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
+            { id: 5, name: "Đã giao", icon: faHome, color: "#4caf50" },
+            { id: 6, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+            { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+        ];
+        const currentIndex = statusFlow.findIndex(s => s.id === status);
+        const visibleStatuses = statusFlow.slice(0, currentIndex + 1);
 
-//             {/* Nút in hóa đơn */}
-//             <Row className="mt-5">
-//                 <Col className="text-center">
-//                     {/* <Button
-//                         variant="primary"
-//                         size="lg"
-                        
-//                         className="px-5 py-2 shadow-sm transition-all hover:shadow-md"
-//                         style={{
-//                             background: 'linear-gradient(90deg, #2b6cb0, #4299e1)',
-//                             border: 'none',
-//                             borderRadius: '25px',
-//                             fontWeight: '500',
-//                         }}
-//                     >
-                       
-//                     </Button> */}
-//                     <button type="button" className="btn btn-gradient-info btn-icon-text" onClick={handlePrint}>
-//                         Print
-//                         <i className="mdi mdi-printer btn-icon-append"> </i>
-//                     </button>
-//                 </Col>
-//             </Row>
+        return (
+            <div className="d-flex align-items-center" style={{ gap: "10px" }}>
+                {visibleStatuses.map((s, index) => (
+                    <React.Fragment key={s.id}>
+                        <div className="d-flex flex-column align-items-center" style={{ gap: "5px" }}>
+                            <FontAwesomeIcon icon={s.icon} style={{ color: s.color, fontSize: "24px" }} />
+                            <span style={{ fontSize: "12px", color: s.color, textAlign: "center" }}>{s.name}</span>
+                        </div>
+                        {index < visibleStatuses.length - 1 && (
+                            <div style={{ width: "20px", height: "2px", backgroundColor: s.color }} />
+                        )}
+                    </React.Fragment>
+                ))}
+            </div>
+        );
+    };
 
-//             {/* Phần in hóa đơn */}
-//             <div id="invoice" style={{ display: 'none' }}>
-//                 <h1>Hóa đơn #{order?.id}</h1>
-//                 <p><strong>Khách hàng:</strong> {order?.customer}</p>
-//                 <p><strong>Ngày đặt:</strong> {order?.orderDate}</p>
-//                 <p><strong>Trạng thái:</strong> {order?.status}</p>
+    const getStatusName = (statusId) => {
+        const statusFlow = [
+            { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+            { id: 2, name: "Chờ lấy hàng", color: "#ffd700" },
+            { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
+            { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
+            { id: 5, name: "Đã giao", color: "#4caf50" },
+            { id: 6, name: "Hoàn tất", color: "#4caf50" },
+            { id: 7, name: "Đã hủy", color: "#ef476f" },
+        ];
+        const status = statusFlow.find(s => s.id === statusId);
+        return status ? { name: status.name, color: status.color } : { name: "Không xác định", color: "#6c757d" };
+    };
 
-//                 <h2>Sản phẩm đã đặt</h2>
-//                 <Table bordered>
-//                     <thead>
-//                         <tr>
-//                             <th>Sản phẩm</th>
-//                             <th>Số lượng</th>
-//                             <th>Đơn giá</th>
-//                             <th>Thành tiền</th>
-//                         </tr>
-//                     </thead>
-//                     <tbody>
-//                         {items.map((item, index) => (
-//                             <tr key={index}>
-//                                 <td>{item.product}</td>
-//                                 <td>{item.quantity}</td>
-//                                 <td>{item.price}</td>
-//                                 <td>{item.total}</td>
-//                             </tr>
-//                         ))}
-//                     </tbody>
-//                 </Table>
+    const getPaymentStatusName = (paymentStatus) => {
+        return paymentStatus === 1 ? { name: "Đã thanh toán", color: "#4caf50" } : { name: "Chưa thanh toán", color: "#ef476f" };
+    };
 
-//                 <h3>Tổng kết</h3>
-//                 <p><strong>Tạm tính:</strong> {subtotal.toLocaleString('vi-VN')} VNĐ</p>
-//                 <p><strong>Phí vận chuyển:</strong> {shippingFee.toLocaleString('vi-VN')} VNĐ</p>
-//                 <p className="total"><strong>Tổng cộng:</strong> {total.toLocaleString('vi-VN')} VNĐ</p>
-//             </div>
-//         </Container>
-//     );
-// };
+    // Tính tổng giá trị sản phẩm từ orderDetails
+    const calculateProductsTotal = () => {
+        return orderDetails.reduce((total, item) => total + item.totalPrice, 0);
+    };
 
-// export default OrderDetail;
+    // Tính tổng thanh toán
+    const calculateTotalPayment = () => {
+        const productsTotal = calculateProductsTotal();
+        return productsTotal + order.shippingFee - order.discountValue;
+    };
+
+    const statusInfo = getStatusName(order.status);
+    const paymentStatusInfo = getPaymentStatusName(order.paymentStatus);
+
+    return (
+        <div className="container-fluid py-4 bg-white min-vh-100">
+            <Row className="mb-4">
+                <Col>
+                    <Button variant="outline-primary" onClick={() => window.history.back()} className="mb-3">
+                        <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+                        Quay lại
+                    </Button>
+                    <h2 className="fw-bold text-primary">Chi tiết đơn hàng #{order.orderCode}</h2>
+                </Col>
+            </Row>
+
+            <Row className="mb-4">
+                <Col>
+                    <Card className="shadow-sm bg-white border border-light">
+                        <Card.Header className="bg-white border-bottom">
+                            <h5 className="mb-0">Trạng thái đơn hàng</h5>
+                        </Card.Header>
+                        <Card.Body>
+                            <StatusTimeline status={order.status} />
+                            <div className="d-flex gap-2 mt-3">
+                                {order.status !== 6 && (
+                                    <Button variant="primary" onClick={handleConfirm}>
+                                        Xác nhận
+                                    </Button>
+                                )}
+                                <Button
+                                    variant="success"
+                                    onClick={handlePrintInvoice}
+                                    className="custom-hover-button"
+                                >
+                                    <FontAwesomeIcon icon={faPrint} className="me-2" />
+                                    In hóa đơn
+                                </Button>
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+
+            <Row className="g-4">
+                {/* Thông tin khách hàng */}
+                <Col md={6}>
+                    <Card className="shadow-sm h-100 bg-white border border-light">
+                        <Card.Header className="bg-white border-bottom d-flex justify-content-between align-items-center">
+                            <h5 className="mb-0">Thông tin khách hàng</h5>
+                            <Button
+                                variant="light"
+                                size="sm"
+                                onClick={handleUpdateCustomerInfo}
+                                className="custom-hover-button"
+                            >
+                                <FontAwesomeIcon icon={faEdit} className="me-2" />
+                                Cập nhật
+                            </Button>
+                        </Card.Header>
+                        <Card.Body>
+                            <p><strong>Tên:</strong> {order.customerName}</p>
+                            <p><strong>Số điện thoại:</strong> {order.phone}</p>
+                            <p><strong>Địa chỉ:</strong> {order.address}</p>
+                            <p><strong>Email:</strong> {order.customer?.email || 'N/A'}</p>
+                        </Card.Body>
+                    </Card>
+                </Col>
+
+                {/* Thông tin đơn hàng */}
+                <Col md={6}>
+                    <Card className="shadow-sm h-100 bg-white border border-light">
+                        <Card.Header className="bg-white border-bottom">
+                            <h5 className="mb-0">Thông tin đơn hàng</h5>
+                        </Card.Header>
+                        <Card.Body>
+                            <p><strong>Mã đơn:</strong> {order.orderCode}</p>
+                            <p><strong>Ngày đặt:</strong> {new Date(order.createdAt).toLocaleString()}</p>
+                            <p><strong>Trạng thái:</strong> <span className="badge" style={{ backgroundColor: statusInfo.color, color: '#fff' }}>{statusInfo.name}</span></p>
+                            <p>
+                                <strong>Trạng thái thanh toán:</strong>{" "}
+                                <span
+                                    className="badge"
+                                    style={{
+                                        backgroundColor: paymentStatusInfo.color,
+                                        color: "#fff",
+                                    }}
+                                >
+                                    {paymentStatusInfo.name}
+                                </span>
+                            </p>
+                            <p><strong>Loại thanh toán:</strong> <span className="badge bg-info text-white">{order.paymentType.paymentTypeName}</span></p>
+                            <p><strong>Phương thức thanh toán:</strong> <span className="badge bg-info text-white">{order.paymentMethod.paymentMethodName}</span></p>
+                            <p><strong>Ghi chú:</strong> {order.note || 'Không có'}</p>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+
+            <Row className="mt-4">
+                <Col>
+                    <Card className="shadow-sm bg-white border border-light">
+                        <Card.Header className="bg-white border-bottom d-flex justify-content-between align-items-center">
+                            <h5 className="mb-0">Danh sách sản phẩm</h5>
+                            <Button
+                                variant="light"
+                                size="sm"
+                                onClick={handleUpdateProductList}
+                                className="custom-hover-button"
+                            >
+                                <FontAwesomeIcon icon={faEdit} className="me-2" />
+                                Cập nhật
+                            </Button>
+                        </Card.Header>
+                        <Card.Body>
+                            {orderDetails.length > 0 ? (
+                                <Table responsive bordered hover className="mb-0">
+                                    <thead className="table-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Ảnh</th>
+                                            <th>Tên sản phẩm</th>
+                                            <th>Màu</th>
+                                            <th>Kích thước</th>
+                                            <th>Số lượng</th>
+                                            <th>Đơn giá</th>
+                                            <th>Tổng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {orderDetails.map((item, index) => (
+                                            <tr key={item.id}>
+                                                <td>{index + 1}</td>
+                                                <td>
+                                                    <Image
+                                                        src={item.productDetail.product.mainImage}
+                                                        alt={item.productName}
+                                                        thumbnail
+                                                        style={{ width: "80px", height: "80px", objectFit: "cover" }}
+                                                    />
+                                                </td>
+                                                <td>{item.productDetail.product.productName}</td>
+                                                <td>{item.productDetail.color.colorName}</td>
+                                                <td>{item.productDetail.size.sizeName}</td>
+                                                <td>{item.quantity}</td>
+                                                <td>{item.price.toLocaleString()} VNĐ</td>
+                                                <td>{item.totalPrice.toLocaleString()} VNĐ</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            ) : (
+                                <p className="text-muted">Không có sản phẩm trong đơn hàng này.</p>
+                            )}
+                        </Card.Body>
+                    </Card>
+                </Col>
+                <Col md={4}>
+                    <Card className="shadow-sm bg-white border border-light">
+                        <Card.Header className="bg-white border-bottom">
+                            <h5 className="mb-0">Tổng thanh toán</h5>
+                        </Card.Header>
+                        <Card.Body>
+                            <p><strong>Tổng tiền hàng:</strong> {calculateProductsTotal().toLocaleString()} VNĐ</p>
+                            <p><strong>Phí vận chuyển:</strong> {order.shippingFee.toLocaleString()} VNĐ</p>
+                            <p><strong>Giảm giá:</strong> {order.discountValue.toLocaleString()} VNĐ</p>
+                            <h5 className="fw-bold text-danger"><strong>Tổng thanh toán:</strong> {calculateTotalPayment().toLocaleString()} VNĐ</h5>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+
+            <Toast
+                onClose={() => setShowToast(false)}
+                show={showToast}
+                delay={3000}
+                autohide
+                className="custom-toast"
+                style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 9999, minWidth: '300px' }}
+            >
+                <Toast.Body className="d-flex align-items-center p-3 position-relative" style={{ gap: '15px' }}>
+                    <FontAwesomeIcon icon={faCheckCircle} style={{ color: '#4caf50', fontSize: '20px' }} />
+                    <span>{toastMessage}</span>
+                    <div className="progress-bar" />
+                </Toast.Body>
+            </Toast>
+
+            <style jsx>{`
+                .custom-hover-button:hover {
+                    background-color: #6610f2 !important;
+                    border-color: #6610f2 !important;
+                    color: white !important;
+                }
+
+                .custom-toast {
+                    background-color: #f8f9fa;
+                    border: 1px solid #e9ecef;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                }
+
+                .custom-toast .toast-body {
+                    position: relative;
+                    font-size: 16px;
+                    color: #333;
+                }
+
+                .progress-bar {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 4px;
+                    background-color: #4caf50;
+                    animation: progress 3s linear forwards;
+                }
+
+                @keyframes progress {
+                    from {
+                        width: 100%;
+                    }
+                    to {
+                        width: 0%;
+                    }
+                }
+            `}</style>
+        </div>
+    );
+};
+
+export default OrderDetail;

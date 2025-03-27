@@ -24,7 +24,7 @@ public class CustomerRequest {
 
     String birthDate;
 
-    String gender;
+    Integer gender;
 
     @NotBlank(message = "Customer phone is unique")
     String phone;

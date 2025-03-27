@@ -27,7 +27,7 @@ public class CustomerResponse {
 
     String birthDate;
 
-    String gender;
+    Integer gender;
 
     String phone;
 
@@ -67,4 +67,5 @@ public class CustomerResponse {
                     this.address = addressDetail.getCity();
             }
     }
+
 }

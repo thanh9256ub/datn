@@ -3,11 +3,11 @@ import { Button, Modal, Col, InputGroup, Container, Form, Row } from "react-boot
 import { addEmployee, listEmployee, listRole } from '../service/EmployeeService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import Select from 'react-select';
-
+import { Spinner } from 'react-bootstrap';
+import "./CreateEmployee.css";
 
 
 const CreateEmployee = () => {
-
 
     const [employees, setEmployees] = useState([]);
 
@@ -25,7 +25,19 @@ const CreateEmployee = () => {
 
     const history = useHistory();
 
+    const [loading, setLoading] = useState(false);
 
+    const [fullNameError, setFullNameError] = useState('');
+
+    const [addressError, setAddressError] = useState('');
+
+    const [usernameError, setUsernameError] = useState('');
+
+    const [emailError, setEmailError] = useState('');
+
+    const [phoneError, setPhoneError] = useState('');
+
+    const [roleIdError, setRoleIdError] = useState('');
 
     useEffect(async () => {
         // getAllROle()
@@ -55,6 +67,82 @@ const CreateEmployee = () => {
     const handleAddEmployee = async () => {
         if (!window.confirm('Bạn có chắc chắn muốn thêm nhân viên?')) return;
 
+        setFullNameError('');
+
+        setAddressError('');
+
+        setUsernameError('');
+
+        setEmailError('');
+
+        setPhoneError('');
+
+        setRoleIdError('');
+
+        setBirthDateError('');
+
+        let isValid = true;
+
+        if (!newEmployee.fullName) {
+            setFullNameError('Vui lòng nhập tên nhân viên.');
+            isValid = false;
+        }
+
+        if (!newEmployee.address) {
+            setAddressError('Vui lòng nhập địa chỉ.');
+            isValid = false;
+        }
+
+        if (!newEmployee.username) {
+            setUsernameError('Vui lòng nhập username.');
+            isValid = false;
+        }
+
+        if (!newEmployee.email) {
+            setEmailError('Vui lòng nhập email.');
+            isValid = false;
+        } else if (!/\S+@\S+\.\S+/.test(newEmployee.email)) {
+            setEmailError('Email không hợp lệ.');
+            isValid = false;
+        }
+
+        if (!newEmployee.phone) {
+            setPhoneError('Vui lòng nhập số điện thoại.');
+            isValid = false;
+        } else if (!/^\d{10}$/.test(newEmployee.phone)) {
+            setPhoneError('Số điện thoại không hợp lệ (10 chữ số).');
+            isValid = false;
+        }
+
+        if (!newEmployee.roleId) {
+            setRoleIdError('Vui lòng chọn vai trò.');
+            isValid = false;
+        }
+
+        if (!newEmployee.birthDate) {
+            setBirthDateError('Vui lòng chọn ngày sinh.');
+            isValid = false;
+        } else {
+            const selectedDate = new Date(newEmployee.birthDate);
+            const currentYear = new Date().getFullYear(); // Sử dụng năm hiện tại
+            const minBirthYear = currentYear - 18;
+
+            const selectedYear = selectedDate.getFullYear();
+
+            if (selectedYear > minBirthYear) {
+                setBirthDateError("Tuổi phải từ 18 trở lên.");
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
+            return;
+        }
+
+
+
+        setLoading(true);
+
         try {
             // Gọi API để thêm nhân viên
             await addEmployee(newEmployee);
@@ -66,12 +154,14 @@ const CreateEmployee = () => {
             setEmployees(response.data.data);
             setTotalPage(response.data.totalPage);
 
-            localStorage.setItem("successMessage", "Sản phẩm đã được thêm thành công!");
+            localStorage.setItem("successMessage", "Thêm nhân viên thành công!");
             // Chuyển hướng đến trang quản lý nhân viên
             history.push('/admin/employees');
         } catch (error) {
             console.error('Lỗi khi thêm nhân viên:', error);
             alert('Có lỗi xảy ra khi thêm nhân viên. Vui lòng thử lại!');
+        } finally {
+                setLoading(false);
         }
     };
 
@@ -81,6 +171,12 @@ const CreateEmployee = () => {
 
     return (
         <div>
+            {loading && (
+                <div className="loading-overlay">
+                    <Spinner animation="border" role="status" />
+                    <span>Đang xử lý...</span>
+                </div>
+            )}
             <div className="row">
                 <div className="col-12 grid-margin">
                     <div className="card">
@@ -133,6 +229,7 @@ const CreateEmployee = () => {
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, fullName: e.target.value });
                                                 }} />
+                                            {fullNameError && <div style={{ color: "red" }}>{fullNameError}</div>}
                                         </Form.Group>
 
                                         <Form.Group className="mb-3">
@@ -143,6 +240,7 @@ const CreateEmployee = () => {
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, address: e.target.value });
                                                 }} />
+                                            {addressError && <div style={{ color: "red" }}>{addressError}</div>}
                                         </Form.Group>
                                     </div>
 
@@ -157,6 +255,7 @@ const CreateEmployee = () => {
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, username: e.target.value }); // Change to update username
                                                 }} />
+                                            {usernameError && <div style={{ color: "red" }}>{usernameError}</div>}
                                         </Form.Group>
 
                                         <Form.Group className="mb-3">
@@ -168,9 +267,9 @@ const CreateEmployee = () => {
                                                         type="radio"
                                                         label="Nam"
                                                         name="gender"
-                                                        value="Nam"
-                                                        checked={newEmployee.gender === 'Nam'}
-                                                        onChange={(e) => setNewEmployee({ ...newEmployee, gender: e.target.value })}
+                                                        value="1"
+                                                        checked={newEmployee.gender === 1}
+                                                        onChange={(e) => setNewEmployee({ ...newEmployee, gender: e.target.value ? 1 : 0 })} //
                                                         id="genderNam"
                                                         custom
                                                     />
@@ -182,9 +281,9 @@ const CreateEmployee = () => {
                                                         type="radio"
                                                         label="Nữ"
                                                         name="gender"
-                                                        value="Nữ"
-                                                        checked={newEmployee.gender === 'Nữ'}
-                                                        onChange={(e) => setNewEmployee({ ...newEmployee, gender: e.target.value })}
+                                                        value="0"
+                                                        checked={newEmployee.gender === 0}
+                                                        onChange={(e) => setNewEmployee({ ...newEmployee, gender: e.target.value ? 0 : 1 })}
                                                         id="genderNu"
                                                         custom
                                                     />
@@ -200,6 +299,7 @@ const CreateEmployee = () => {
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, email: e.target.value });
                                                 }} />
+                                            {emailError && <div style={{ color: "red" }}>{emailError}</div>}
                                         </Form.Group>
 
 
@@ -228,7 +328,7 @@ const CreateEmployee = () => {
                                                     }
                                                 }} />
                                             {birthDateError && (
-                                                <div style={{ color: "red", marginTop: "5px" }}>{birthDateError}</div>
+                                                <div style={{ color: "red" }}>{birthDateError}</div>
                                             )}
                                         </Form.Group>
 
@@ -239,6 +339,7 @@ const CreateEmployee = () => {
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, phone: e.target.value });
                                                 }} />
+                                            {phoneError && <div style={{ color: "red" }}>{phoneError}</div>}
                                         </Form.Group>
 
                                         <Form.Group className="mb-3" style={{ marginTop: "20px" }}>
@@ -248,12 +349,13 @@ const CreateEmployee = () => {
                                                 value={roles.find(role => role.id === newEmployee.roleId) ? { value: newEmployee.roleId, label: roles.find(role => role.id === newEmployee.roleId).roleName } : null}
                                                 onChange={(selectedOption) => setNewEmployee({ ...newEmployee, roleId: selectedOption.value })}
                                             />
+                                            {roleIdError && <div style={{ color: "red" }}>{roleIdError}</div>}
                                         </Form.Group>
                                     </div>
                                 </div>
                                 <hr></hr>
                                 {/* Nút Thêm nhân viên */}
-                                <div className="text-end mt-4">
+                                <div className="d-flex justify-content-end mt-4">
                                     <button type="button" className="btn btn-gradient-primary btn-icon-text" onClick={() => handleAddEmployee()}>
                                         Thêm nhân viên
                                     </button>

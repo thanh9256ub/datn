@@ -7,7 +7,7 @@ export class Register extends Component {
       <div>
         <div className="d-flex align-items-center auth px-0">
           <div className="row w-100 mx-0">
-            <div className="col-lg-8 mx-auto">
+            <div className="col-lg-4 mx-auto">
               <div className="auth-form-light text-left py-5 px-4 px-sm-5">
                 <div className="brand-logo">
                   <img src={require("../../assets/images/logo.svg")} alt="logo" />
@@ -21,7 +21,7 @@ export class Register extends Component {
                   <div className="form-group">
                     <input type="email" className="form-control form-control-lg" id="exampleInputEmail1" placeholder="Email" />
                   </div>
-                  {/* <div className="form-group">
+                  <div className="form-group">
                     <select className="form-control form-control-lg" id="exampleFormControlSelect2">
                       <option>Country</option>
                       <option>United States of America</option>
@@ -30,7 +30,7 @@ export class Register extends Component {
                       <option>Germany</option>
                       <option>Argentina</option>
                     </select>
-                  </div> */}
+                  </div>
                   <div className="form-group">
                     <input type="password" className="form-control form-control-lg" id="exampleInputPassword1" placeholder="Password" />
                   </div>
@@ -47,7 +47,7 @@ export class Register extends Component {
                     <Link className="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" to="/dashboard">SIGN UP</Link>
                   </div>
                   <div className="text-center mt-4 font-weight-light">
-                    Already have an account? <Link to="/admin/user-pages/login-1" className="text-primary">Login</Link>
+                    Already have an account? <Link to="/user-pages/login" className="text-primary">Login</Link>
                   </div>
                 </form>
               </div>

@@ -61,6 +61,4 @@ public class OrderDetailController {
                 HttpStatus.OK.value(), "PaymentMethod deleted successfully",null);
         return ResponseEntity.ok(apiResponse);
     }
-
-
 }

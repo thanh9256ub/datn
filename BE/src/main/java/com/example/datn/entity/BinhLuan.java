@@ -41,4 +41,5 @@ public class BinhLuan {
     String noi_dung;
 
     LocalDateTime ngay_tao;
+
 }

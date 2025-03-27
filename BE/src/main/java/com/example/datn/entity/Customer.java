@@ -1,10 +1,7 @@
 package com.example.datn.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,6 +9,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -32,7 +30,7 @@ public class Customer {
     private LocalDate birthDate;
 
     @Column(name = "gender")
-    private String gender;
+    private Integer gender;
 
     @Column(name = "phone")
     private String phone;
@@ -42,6 +40,9 @@ public class Customer {
 
     @Column(name = "password")
     private String password;
+
+    @Column(name = "status")
+    private Integer status;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -55,5 +56,4 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer")
     private List<Address> addressList;
-
 }

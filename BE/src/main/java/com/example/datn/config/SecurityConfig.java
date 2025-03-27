@@ -33,17 +33,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         try {
-            httpSecurity.authorizeHttpRequests(request -> request
-                    .requestMatchers("/auth/token",
-                            "auth/introspect")
-                    .permitAll()
-                    .requestMatchers("/address/**")
-                    .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")
-                    .requestMatchers(
-                            "/customer/**")
-                    .hasAnyRole("EMPLOYEE", "ADMIN")
-                    .anyRequest().hasRole("ADMIN")
-            ).addFilterBefore(new RequestLoggingFilter(), UsernamePasswordAuthenticationFilter.class);
+            httpSecurity
+                    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(request -> request
+                            .requestMatchers("/auth/token",
+                                    "auth/introspect", "authCustomer/token", "authCustomer/register")
+                            .permitAll()
+                            .requestMatchers("/address/**", "/role/**")
+                            .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")
+                            .requestMatchers(
+                                    "/customer/**")
+                            .hasAnyRole("EMPLOYEE", "ADMIN")
+                            .anyRequest().hasRole("ADMIN"))
+                    .addFilterBefore(new RequestLoggingFilter(),
+                            UsernamePasswordAuthenticationFilter.class);
 
             httpSecurity.oauth2ResourceServer(oauth2 ->
                     oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
