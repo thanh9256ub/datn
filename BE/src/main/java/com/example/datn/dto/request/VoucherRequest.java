@@ -21,7 +21,6 @@ public class VoucherRequest {
     private String voucherCode;
 
     private String voucherName;
-    private String condition;
 
     private String condition;
 
