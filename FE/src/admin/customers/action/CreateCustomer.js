@@ -7,6 +7,8 @@ import { addCustomer } from '../service/CustomersService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import { Spinner } from 'react-bootstrap';
 import "./ActionCustomer.css";
+
+
 const CreateCustomer = () => {
 
     const history = useHistory();
@@ -80,7 +82,7 @@ const CreateCustomer = () => {
     };
 
     useEffect(() => {
-        // Fetch provinces from API
+        // Fetch provinces from API 
         delete axios.defaults.headers.common["Authorization"];
         axios.get("https://partner.viettelpost.vn/v2/categories/listProvinceById?provinceId=-1")
             .then(response => {
