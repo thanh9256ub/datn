@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getSizes, createSize } from '../service/SizeService';
 import Select from 'react-select';
 import { Button, Form, Modal } from 'react-bootstrap';
+import { toast } from 'react-toastify';
 
 const SizeContainer = ({ sizeIds, setSizeIds }) => {
     const [sizeOptions, setSizeOptions] = useState([]);
@@ -29,8 +30,16 @@ const SizeContainer = ({ sizeIds, setSizeIds }) => {
         }
 
         try {
+            const sizeResp = await getSizes();
+            const sizes = sizeResp.data.data;
+            const sizeExists = sizes.some(size => size.sizeName.toLowerCase() === newSizeName.toLowerCase());
+
+            if (sizeExists) {
+                toast.error("Kích cỡ đã tồn tại!");
+                return;
+            }
             const response = await createSize({ sizeName: newSizeName });
-            alert("Thêm kích cỡ thành công!");
+            toast.success("Thêm kích cỡ thành công!");
             setShowModal(false);
             setNewSizeName("");
             fetchSizes();

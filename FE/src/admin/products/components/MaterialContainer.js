@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { Form, Modal, Button } from 'react-bootstrap';
-import { createMaterial } from '../service/MaterialService';
+import { getMaterials, createMaterial } from '../service/MaterialService';
 import MaterialSelect from '../select/MaterialSelect';
+import { toast } from 'react-toastify';
 
 const MaterialContainer = ({ materialId, setMaterialId }) => {
     const [showModal, setShowModal] = useState(false);
@@ -15,8 +16,16 @@ const MaterialContainer = ({ materialId, setMaterialId }) => {
         }
 
         try {
+            const materialResp = await getMaterials();
+            const materials = materialResp.data.data;
+            const materialExists = materials.some(material => material.materialName.toLowerCase() === newMaterialName.toLowerCase());
+
+            if (materialExists) {
+                toast.error("Chất liệu đã tồn tại!");
+                return;
+            }
             const response = await createMaterial({ materialName: newMaterialName });
-            alert("Thêm chất liệu thành công!");
+            toast.success("Thêm chất liệu thành công!");
             setShowModal(false);
             setNewMaterialName("");
             setRefresh(prev => !prev);

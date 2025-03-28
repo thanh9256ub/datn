@@ -7,8 +7,11 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
 import Select from "react-select";
+import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 
 const CreateVoucher = () => {
+
+  const history = useHistory()
 
   const [formData, setFormData] = useState({
     voucherName: "",
@@ -77,6 +80,22 @@ const CreateVoucher = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (formData.startDate > formData.endDate) {
+      toast.error("Ngày giờ bắt đầu không được lớn hơn ngày giờ kết thúc!");
+      return;
+    }
+
+    const confirmResult = await Swal.fire({
+      title: "Xác nhận",
+      text: "Bạn có chắc chắn muốn thêm voucher này không?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Có, thêm!",
+      cancelButtonText: "Hủy",
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
     const updatedFormData = {
       ...formData,
       status: calculateStatus(formData.startDate, formData.endDate),
@@ -84,7 +103,9 @@ const CreateVoucher = () => {
 
     try {
       const response = await createVoucher(updatedFormData);
-      alert("Tạo voucher thành công!");
+      toast.success("Tạo voucher thành công!");
+
+      setTimeout(() => history.push("/admin/vouchers"), 1000);
     } catch (error) {
       console.error("Lỗi khi tạo voucher:", error);
       alert("Tạo voucher thất bại!");
@@ -241,6 +262,8 @@ const CreateVoucher = () => {
           </div>
         </div>
       </div>
+
+      <ToastContainer />
     </div>
   );
 };

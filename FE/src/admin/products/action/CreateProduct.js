@@ -203,25 +203,20 @@ const CreateProduct = () => {
             let updatedVariants = [...prevVariants];
             const removedVariant = updatedVariants[index];
 
-            // Tìm tất cả biến thể cùng màu
             const sameColorVariants = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
 
-            // Nếu xóa biến thể đầu tiên của nhóm màu, chuyển ảnh cho biến thể tiếp theo
             if (sameColorVariants.length > 1 && sameColorVariants[0] === removedVariant) {
                 sameColorVariants[1].imageUrls = removedVariant.imageUrls;
                 sameColorVariants[1].images = removedVariant.images;
             }
 
-            // Xóa biến thể khỏi danh sách
             updatedVariants.splice(index, 1);
 
-            // Nếu không còn biến thể nào có cùng màu, xóa ảnh
             if (!updatedVariants.some(v => v.colorId === removedVariant.colorId)) {
                 updatedVariants = updatedVariants.map(v =>
                     v.colorId === removedVariant.colorId ? { ...v, imageUrls: [] } : v
                 );
             }
-
 
             const remainingVariantsWithColor = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
             if (remainingVariantsWithColor.length === 0) {
