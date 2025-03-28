@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class VoucherRespone {
+public class VoucherResponse {
 
     Integer id;
 
@@ -22,21 +22,21 @@ public class VoucherRespone {
 
     String voucherName;
 
-    String condition;
+    Integer discountType;
+
+    Integer quantity;
 
     Double discountValue;
 
-    Integer quantity;
+    Double minOrderValue;
+
+    Double maxDiscountValue;
 
     LocalDateTime startDate;
 
     LocalDateTime endDate;
 
-    Double maxDiscountValue;
-
-    String discountType;
-
-    String status;
+    Integer status;
 
     LocalDateTime createdAt;
 

@@ -2,13 +2,12 @@ package com.example.datn.controller;
 
 import com.example.datn.dto.request.VoucherRequest;
 import com.example.datn.dto.response.ApiResponse;
-import com.example.datn.dto.response.VoucherRespone;
+import com.example.datn.dto.response.VoucherResponse;
 import com.example.datn.service.VoucherService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -18,74 +17,63 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.io.IOException;
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
-@RequestMapping("voucher")
+@RequestMapping("vouchers")
 public class VoucherController {
 
     @Autowired
     private VoucherService voucherService;
 
     @PostMapping("add")
-    public ResponseEntity<ApiResponse<VoucherRespone>> addVoucher(@Valid @RequestBody VoucherRequest request){
+    public ResponseEntity<ApiResponse<VoucherResponse>> addVoucher(@Valid @RequestBody VoucherRequest request) throws IOException {
 
-        VoucherRespone voucherRespone = voucherService.createVoucher(request);
+        VoucherResponse voucherResponse = voucherService.createVoucher(request);
 
-        ApiResponse<VoucherRespone> response = new ApiResponse<>(HttpStatus.CREATED.value(),
-                "Created successfully", voucherRespone);
+        ApiResponse<VoucherResponse> response = new ApiResponse<>(HttpStatus.CREATED.value(),
+                "Created successfully", voucherResponse);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping()
-    public ResponseEntity<ApiResponse<List<VoucherRespone>>> getAll(){
+    @GetMapping("/list")
+    public ResponseEntity<ApiResponse<List<VoucherResponse>>> getAll(){
 
-        List<VoucherRespone> list = voucherService.getAll();
+        List<VoucherResponse> list = voucherService.getAll();
 
-        ApiResponse<List<VoucherRespone>> response = new ApiResponse<>(HttpStatus.OK.value(),
+        ApiResponse<List<VoucherResponse>> response = new ApiResponse<>(HttpStatus.OK.value(),
                 "Voucher retrieved successfully", list);
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<VoucherRespone> getOne(@PathVariable("id") Integer id){
+    public ResponseEntity<VoucherResponse> getOne(@PathVariable("id") Integer id){
 
-        VoucherRespone voucherRespone = voucherService.getVoucherById(id);
+        VoucherResponse voucherResponse = voucherService.getVoucherById(id);
 
-        return ResponseEntity.ok(voucherRespone);
+        return ResponseEntity.ok(voucherResponse);
     }
 
     @PutMapping("/edit/{id}")
-    public ResponseEntity<ApiResponse<VoucherRespone>> updateVoucher(
+    public ResponseEntity<ApiResponse<VoucherResponse>> updateVoucher(
 
             @PathVariable("id") Integer id,
             @Valid @RequestBody VoucherRequest request){
 
-        VoucherRespone voucherRespone = voucherService.updateVoucher(id, request);
+        VoucherResponse voucherResponse = voucherService.updateVoucher(id, request);
 
-        ApiResponse<VoucherRespone> response = new ApiResponse<>(
+        ApiResponse<VoucherResponse> response = new ApiResponse<>(
                 
                 HttpStatus.OK.value(),
                 "Voucher updated successfully",
-                voucherRespone
+                voucherResponse
         );
 
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<ApiResponse<VoucherRespone>> deleteVoucher(@PathVariable("id") Integer id) {
-        voucherService.deleteVoucher(id); // Xóa mềm (Cập nhật status = "Đã xóa")
-
-        ApiResponse<VoucherRespone> response = new ApiResponse<>(
-                HttpStatus.OK.value(),
-                "Voucher has been marked as deleted", // Thông báo rõ là xóa mềm
-                null
-        );
-
-        return ResponseEntity.ok(response);
-    }
 }

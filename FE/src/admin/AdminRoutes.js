@@ -45,18 +45,21 @@ const UpdateCustomer = lazy(() => import('./customers/action/UpdateCustomer'));
 const CreateEmployee = lazy(() => import('./employees/action/CreateEmployee'));
 const UpdateEmployee = lazy(() => import('./employees/action/UpdateEmployee'));
 
+const CreateVoucher = lazy(() => import('./vouchers/CreateVoucher'));
+
+
 // Component bảo vệ route (AuthGuard)
 const ProtectedRoute = ({ component: Component, ...rest }) => {
   const { token } = useAuth();
 
   return (
-      <Route
-          {...rest}
-          render={(props) =>
-              console.log("token: " + !!token) ||
-              !!token ? <Component {...props} /> : <Redirect to="/login-nhan-vien" />
-          }
-      />
+    <Route
+      {...rest}
+      render={(props) =>
+        console.log("token: " + !!token) ||
+          !!token ? <Component {...props} /> : <Redirect to="/login-nhan-vien" />
+      }
+    />
   );
 };
 
@@ -107,7 +110,9 @@ class AdminRoutes extends Component {
 
           <Route exact path="/admin/orders" component={Orders} />
           <Route exact path="/admin/orders/:id" component={OrderDetail} />
+
           <Route exact path="/admin/vouchers" component={Vouchers} />
+          <Route exact path="/admin/vouchers/add" component={CreateVoucher} />
 
           <Redirect to="/admin/dashboard" />
         </Switch>

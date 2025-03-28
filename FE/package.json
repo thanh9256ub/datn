@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@mdi/font": "^4.2.95",
+    "@stomp/stompjs": "^6.1.2",
     "ajv": "^8.17.1",
     "axios": "^1.7.9",
     "bootstrap": "^4.6.0",
