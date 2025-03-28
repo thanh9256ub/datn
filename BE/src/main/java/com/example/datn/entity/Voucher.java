@@ -7,10 +7,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,46 +19,47 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "voucher")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Voucher {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    Integer id;
 
     @Column(name = "voucher_code")
-    private String voucherCode;
+    String voucherCode;
 
     @Column(name = "voucher_name")
-    private String voucherName;
-
-    @Column(name = "condition")
-    private String condition;
-
-    @Column(name = "discount_value")
-    private Double discountValue;
-
-    @Column(name = "quantity")
-    private Integer quantity;
-
-    @Column(name = "start_date")
-    private LocalDateTime startDate;
-
-    @Column(name = "end_date")
-    private LocalDateTime endDate;
-
-    @Column(name = "max_discount_value")
-    private Double maxDiscountValue;
+    String voucherName;
 
     @Column(name = "discount_type")
-    private String discountType;
+    String discountType;
+
+    @Column(name = "quantity")
+    Integer quantity;
+
+    @Column(name = "discount_value")
+    Double discountValue;
+
+    @Column(name = "min_order_value")
+    Double minOrderValue;
+
+    @Column(name = "max_discount_value")
+    Double maxDiscountValue;
+
+    @Column(name = "start_date")
+    LocalDateTime startDate;
+
+    @Column(name = "end_date")
+    LocalDateTime endDate;
 
     @Column(name = "status")
-    private String status;
+    Integer status;
 
     @Column(name = "created_at")
     LocalDateTime createdAt = LocalDateTime.now().withNano(0);
 
     @Column(name = "updated_at")
-    LocalDateTime updateAt = LocalDateTime.now().withNano(0);
+    LocalDateTime updateAt = null;
 
 }

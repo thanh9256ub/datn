@@ -16,30 +16,24 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class VoucherRequest {
 
-    private Integer id;
+    String voucherCode;
 
-    private String voucherCode;
+    String voucherName;
 
-    private String voucherName;
+    Integer discountType;
 
+    Integer quantity;
 
-    private String condition;
+    Double discountValue;
 
-    private Double discountValue;
+    Double minOrderValue;
 
-    private Integer quantity;
+    Double maxDiscountValue;
 
-    private LocalDateTime startDate;
+    LocalDateTime startDate;
 
-    private LocalDateTime endDate;
+    LocalDateTime endDate;
 
-    private Double maxDiscountValue;
+    Integer status;
 
-    private String discountType;
-
-    private String status;
-
-    LocalDateTime createdAt ;
-
-    LocalDateTime updateAt ;
 }

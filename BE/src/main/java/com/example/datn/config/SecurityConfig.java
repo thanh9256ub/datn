@@ -37,6 +37,7 @@ public class SecurityConfig {
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(request -> request
+                            .requestMatchers("/ws/**").permitAll()
                             .requestMatchers("/auth/token",
                                     "auth/introspect", "authCustomer/token", "authCustomer/register")
                             .permitAll()
@@ -96,9 +97,11 @@ public class SecurityConfig {
     @Bean
     UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*", "http://127.0.0.1:3000"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
         configuration.setAllowedMethods(List.of("*"));
         configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

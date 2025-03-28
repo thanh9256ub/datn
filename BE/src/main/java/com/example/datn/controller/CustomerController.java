@@ -36,6 +36,19 @@ public class CustomerController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+    @PostMapping("add")
+    public ResponseEntity<ApiResponse<CustomerResponse>> addCustomer(@Valid @RequestBody CustomerRequest customerRequest) {
+
+        CustomerResponse customerResponse = customerService.creatCustomer(customerRequest);
+
+        ApiResponse<CustomerResponse> response = new ApiResponse<>(
+                HttpStatus.CREATED.value(),
+                "Created successfully",
+                customerResponse
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
     @GetMapping
     public ResponseEntity<ApiPagingResponse<List<CustomerResponse>>> getAll(
             @RequestParam(value = "search", required = false) String search,

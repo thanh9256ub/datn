@@ -11,11 +11,19 @@ const PromoCode = ({ promoCode, setPromo, totalAmount, idOrder }) => {
   useEffect(() => {
     fetchPromoCodes()
       .then(response => {
-        const sortedPromoCodes = response.data.data.sort((a, b) => b.maxDiscountValue - a.maxDiscountValue);
-        setPromoCodes(sortedPromoCodes); // Sort by "Giảm tối đa" in descending order
+        const sortedPromoCodes = response.data.data.sort((a, b) => {
+          const discountA = a.discountType === 1 
+            ? Math.min((totalAmount * a.discountValue) / 100, a.maxDiscountValue) 
+            : a.discountValue;
+          const discountB = b.discountType === 1 
+            ? Math.min((totalAmount * b.discountValue) / 100, b.maxDiscountValue) 
+            : b.discountValue;
+          return discountB - discountA; // Sort by highest applicable discount/
+        });
+        setPromoCodes(sortedPromoCodes);
       })
       .catch(error => console.error('Error fetching promo codes:', error));
-  }, []);
+  }, [totalAmount]);
 
   const handleShowPromoModal = () => {
     if (!idOrder||totalAmount===0) {
@@ -72,7 +80,7 @@ const PromoCode = ({ promoCode, setPromo, totalAmount, idOrder }) => {
                   <td>{promo.voucherName}</td>
                   <td>{promo.condition}</td>
                   <td>
-                    {promo.discountValue} {promo.discountType}
+                    {promo.discountValue} {promo.discountType=1?"%":"VNĐ"}
                   </td>
                   <td>{promo.quantity}</td>
                   <td>{promo.maxDiscountValue}</td>
