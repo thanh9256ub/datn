@@ -40,3 +40,13 @@ export const addOrderVoucher = (orderId, voucherId) =>
   });
 export const addCustomerAddress = (addressPayload) =>
   axios.post(`${API_BASE_URL}/address/add`, addressPayload);
+export const checkVNPayPaymentStatus = (orderId) =>
+  axios.get(`${API_BASE_URL}/vnpay/check-payment-status?orderId=${orderId}`);
+
+export const generateZaloPayPayment = (body) =>
+  axios.post(`${API_BASE_URL}/counter/zalopay/payment`, body, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+export const checkZaloPayPaymentStatus = (transactionId) =>
+  axios.get(`${API_BASE_URL}/counter/zalopay/check-payment-status?transactionId=${transactionId}`);
