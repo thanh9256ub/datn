@@ -19,9 +19,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class OrderService {
+    private static final AtomicInteger orderCounter = new AtomicInteger(1);
+
     @Autowired
     OrderRepository repository;
     @Autowired
@@ -36,9 +39,10 @@ public class OrderService {
     PaymentTypeRepository paymentTypeRepository;
 
     public OrderResponse create(OrderRequest request) {
-        int i = getAll().size();
+        Integer number = orderCounter.getAndIncrement();
+
         Order order = mapper.toOrder(request);
-        order.setOrderCode("HD" + (i + 1));
+        order.setOrderCode("HD" + number);
 
         order.setEmployee(employeeRepository.findById(request.getEmployeeId()).get());
         Order created = repository.save(order);
@@ -65,7 +69,7 @@ public class OrderService {
     public OrderResponse update(Integer id, OrderRequest orderRequest) {
         Order order = repository.findById(id).get();
 
-        if (orderRequest.getStatus()!=null&&orderRequest.getStatus()==1){
+        if (orderRequest.getStatus() != null && orderRequest.getStatus() == 1) {
             order.setStatus(orderRequest.getStatus());
             return mapper.toOrderResponse(repository.save(order));
         }
@@ -83,9 +87,9 @@ public class OrderService {
         order.setPaymentType(paymentTypeRepository.findById(orderRequest.getPaymentTypeId()).get());
         order.setPaymentMethod(paymentMethodRepository.findById(orderRequest.getPaymentMethodId()).get());
         order.setUpdatedAt(LocalDateTime.now().withNano(0));
-        if (orderRequest.getPaymentMethodId().equals(2)){
+        if (orderRequest.getPaymentMethodId().equals(2)) {
             order.setStatus(2);
-        }else{
+        } else {
             order.setStatus(3);
         }
 
@@ -96,4 +100,6 @@ public class OrderService {
     public void detele(Integer id) {
         repository.deleteById(id);
     }
+
+
 }

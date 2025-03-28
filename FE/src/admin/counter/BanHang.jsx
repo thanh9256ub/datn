@@ -48,7 +48,16 @@ const BanHang = () => {
   const [cartItemsPerPage] = useState(5);
   const [currentProductPage, setCurrentProductPage] = useState(1);
   const [productsPerPage] = useState(5);
-
+const [customer ,setCustomer] = useState(null );
+const [customerInfo ,setCustomerInfo] = useState({
+  fullName: '',
+  phone: '',
+  address: '',
+  province: '',
+  district: '',
+  ward: '',
+  note: '',
+ });
   const fetchInvoices = () => {
     fetchOrders()
       .then(response => {
@@ -99,7 +108,7 @@ const BanHang = () => {
   const addInvoice = () => {
     if (!canAdd) return;
 
-    const newInvoice = { employeeId: 1, orderType: 0, status: 0 };
+    const newInvoice = { employeeId: 3, orderType: 0, status: 0 };
 
     axios.post('http://localhost:8080/order/add', newInvoice)
       .then(response => {
@@ -108,6 +117,7 @@ const BanHang = () => {
         setSelectedInvoiceId(createdInvoice.id); // Select the newly created invoice
         setCanAdd(true);
         toast.success("Tạo hóa đơn thành công thành công 🥰", toastOptions);
+        console.log("Tạo hóa đơn thành công",response.data.data);
       })
       .catch(error => console.error('Error adding invoice:', error));
   };
@@ -219,15 +229,28 @@ const BanHang = () => {
   const removeSelectedInvoice = (id) => {
     if (id) {
       toast.success("Hóa đơn hủy thành công", toastOptions);
-      removeItemsByInvoice(id);
-      axios.put(`http://localhost:8080/order/edit/${id}`, { status: 1 })
+     
+      axios.delete(`http://localhost:8080/counter/delete-order/${id}`)
         .then(response => {
-          handleDeleteInvoice(id);
-          fetchInvoices(); // Reload the invoice list after deletion
+          //handleDeleteInvoice(id);
+         // fetchInvoices(); // Reload the invoice list after deletion
           if (selectedInvoiceId === id) {
             setSelectedInvoiceId(null);
-            window.location.reload();
-           
+            setTotalAmount(0);
+            fetchInvoices();
+    fetchProducts();
+    setDelivery(false);
+    setPhoneNumber("");
+    setCustomer(null);
+    setCustomerInfo({
+      name: '',
+      phone: '',
+      province: '',
+      district: '',
+      ward: '',
+      address: '',
+      note: '',
+    });  
           }
           
         })
@@ -245,11 +268,11 @@ const BanHang = () => {
     setSelectedInvoiceId(selectedInvoiceId);
   };
 
-  const handleDeleteInvoice = (invoiceId) => {
-    if (selectedInvoiceId === invoiceId) {
-      setSelectedInvoiceId(null);
-    }
-  };
+  // const handleDeleteInvoice = (invoiceId) => {
+  //   if (selectedInvoiceId === invoiceId) {
+  //     setSelectedInvoiceId(null);
+  //   }
+  // };
 
   const filteredProducts = availableProducts.filter(product => {
     return (
@@ -327,9 +350,7 @@ const BanHang = () => {
                     <thead>
                       <tr>
                         <th>Sản phẩm </th>
-                        <th>Thương hiệu  </th>
-                        <th>Danh mục  </th>
-                        <th>Chất liệu </th>
+                        
 
                         <th>Giá </th>
                         <th>Số lượng </th>
@@ -341,9 +362,7 @@ const BanHang = () => {
                       {currentCartItems.map(item => (
                         <tr key={item.id}>
                           <td>{item.productDetail.product.productName} - {item.productDetail.product.productCode} - {item.productDetail.color.colorName} - {item.productDetail.size.sizeName}</td>
-                          <td>{item.productDetail.product.brand.brandName}</td>
-                          <td>{item.productDetail.product.category.categoryName}</td>
-                          <td>{item.productDetail.product.material.materialName}</td>
+                         
 
                           <td>{item.price.toLocaleString()} </td>
                           <td>
@@ -509,9 +528,7 @@ const BanHang = () => {
                     <thead>
                       <tr>
                         <th>Sản phẩm </th>
-                        <th>Thương hiệu  </th>
-                        <th>Danh mục  </th>
-                        <th>Chất liệu </th>
+                        
 
                         <th>Giá </th>
                         <th>Số lượng </th>
@@ -521,9 +538,7 @@ const BanHang = () => {
                       {currentProducts.map(product => (
                         <tr key={product.id} onClick={(() => handleSelectProduct(product))}>
                           <td>{product.product.productName} - {product.product.productCode} - {product.color.colorName} - {product.size.sizeName}</td>
-                          <td>{product.product.brand.brandName}</td>
-                          <td>{product.product.category.categoryName}</td>
-                          <td>{product.product.material.materialName}</td>
+                         
 
                           <td>{product.price ? product.price.toLocaleString() : 'N/A'} VND</td>
                           <td>{product.quantity}</td>
@@ -582,6 +597,8 @@ const BanHang = () => {
               totalAmount={totalAmount}
               delivery={delivery} phoneNumber={phoneNumber}  setPhoneNumber={setPhoneNumber}  setDelivery={setDelivery} 
               promo={promo} setPromo={setPromo}
+              customer={customer} setCustomer={setCustomer}
+              customerInfo={customerInfo} setCustomerInfo={setCustomerInfo}
             />
             <ToastContainer />
           </div>
