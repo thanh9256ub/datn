@@ -8,13 +8,13 @@ import "react-toastify/dist/ReactToastify.css";
 import { fetchShippingFee, confirmPayment, updatePromoCode, addOrderVoucher, checkVNPayPaymentStatus, generateZaloPayPayment, checkZaloPayPaymentStatus } from '../api'; // Updated import
 import { toastOptions } from '../constants'; // Import constants from the new file
 
-const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,  setPhoneNumber  ,setDelivery , promo, setPromo,customer,setCustomer,customerInfo,setCustomerInfo }) => {
-  
-  
- const [wards, setWards] = useState([]);
-   const [selectedProvince, setSelectedProvince] = useState('');
-   const [selectedDistrict, setSelectedDistrict] = useState('');
-   const [selectedWard, setSelectedWard] = useState('');
+const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber, setPhoneNumber, setDelivery, promo, setPromo, customer, setCustomer, customerInfo, setCustomerInfo }) => {
+
+
+  const [wards, setWards] = useState([]);
+  const [selectedProvince, setSelectedProvince] = useState('');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [selectedWard, setSelectedWard] = useState('');
   const [paymen, setPaymen] = useState('');
   const [isCashPayment, setIsCashPayment] = useState(false);
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
@@ -25,11 +25,11 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   const [finalAmount, setFinalAmount] = useState(totalAmount);
   const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
   const [shippingFee, setShippingFee] = useState(0);
-  
+
 
   useEffect(() => {
-  
-  
+
+
     let calculatedDiscount = 0;
     if (promo && totalAmount >= promo.condition) {
       calculatedDiscount = promo.discountValue;
@@ -44,14 +44,14 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     } else if (promo.voucherCode) {
       setPromo({});
       setPromoCode("");
-    }else{
+    } else {
       setPromoCode("");
     }
     setFinalAmount(totalAmount - calculatedDiscount);
   }, [totalAmount, promo, promoCode]);
 
   useEffect(() => {
-    const isEligibleForPayment = (paymen === 1 || paymen === 3|| paymen === 2) && totalAmount >= 0 && (paymen === 1 ? change >= 0 : true);
+    const isEligibleForPayment = (paymen === 1 || paymen === 3 || paymen === 2) && totalAmount >= 0 && (paymen === 1 ? change >= 0 : true);
     setIsPaymentEnabled(isEligibleForPayment);
   }, [paymen, totalAmount, change]);
 
@@ -70,8 +70,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         SENDER_DISTRICT: 28,
         RECEIVER_PROVINCE: selectedProvince,
         RECEIVER_DISTRICT: selectedDistrict,
-          });
-          
+      });
+
       return response.data.data.MONEY_TOTAL;
     } catch (error) {
       console.error('Error fetching shipping fee:', error);
@@ -90,46 +90,46 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     };
 
     updateShippingFee();
-  }, [delivery, customerInfo, orderDetail]); 
+  }, [delivery, customerInfo, orderDetail]);
 
   const handleShowQR = async () => {
     setIsCashPayment(false);
 
     try {
-        // Generate ZaloPay payment request
-        const response = await generateZaloPayPayment({
-            amount: finalAmount + shippingFee,
-            description: "Thanh toán hóa đơn",
-        });
+      // Generate ZaloPay payment request
+      const response = await generateZaloPayPayment({
+        amount: finalAmount + shippingFee,
+        description: "Thanh toán hóa đơn",
+      });
 
-        console.log("ZaloPay Response:", response.data); // Log the response to debug
+      console.log("ZaloPay Response:", response.data); // Log the response to debug
 
-        const { qrCodeUrl, transactionId } = response.data;
-        if (qrCodeUrl) {
-            setQrImageUrl(qrCodeUrl); // Set the QR code URL
-            setPaymen(2);
-            toast.info("Đã chọn phương thức thanh toán QR qua ZaloPay 🥰", toastOptions);
-        } else {
-            toast.error("Không nhận được URL QR từ ZaloPay!", toastOptions);
+      const { qrCodeUrl, transactionId } = response.data;
+      if (qrCodeUrl) {
+        setQrImageUrl(qrCodeUrl); // Set the QR code URL
+        setPaymen(2);
+        toast.info("Đã chọn phương thức thanh toán QR qua ZaloPay 🥰", toastOptions);
+      } else {
+        toast.error("Không nhận được URL QR từ ZaloPay!", toastOptions);
+      }
+
+      // Poll for payment status
+      const interval = setInterval(async () => {
+        try {
+          const statusResponse = await checkZaloPayPaymentStatus(transactionId);
+          console.log("Payment Status Response:", statusResponse.data); // Log payment status response
+          if (statusResponse.data.status === "SUCCESS") {
+            clearInterval(interval);
+            toast.success("Thanh toán thành công 🥰", toastOptions);
+            handlePaymentConfirmation(); // Trigger payment confirmation
+          }
+        } catch (error) {
+          console.error("Error checking ZaloPay payment status:", error);
         }
-
-        // Poll for payment status
-        const interval = setInterval(async () => {
-            try {
-                const statusResponse = await checkZaloPayPaymentStatus(transactionId);
-                console.log("Payment Status Response:", statusResponse.data); // Log payment status response
-                if (statusResponse.data.status === "SUCCESS") {
-                    clearInterval(interval);
-                    toast.success("Thanh toán thành công 🥰", toastOptions);
-                    handlePaymentConfirmation(); // Trigger payment confirmation
-                }
-            } catch (error) {
-                console.error("Error checking ZaloPay payment status:", error);
-            }
-        }, 3000); // Check every 3 seconds
+      }, 3000); // Check every 3 seconds
     } catch (error) {
-        console.error("Error generating ZaloPay payment:", error);
-        toast.error("Đã xảy ra lỗi khi tạo thanh toán ZaloPay!", toastOptions);
+      console.error("Error generating ZaloPay payment:", error);
+      toast.error("Đã xảy ra lỗi khi tạo thanh toán ZaloPay!", toastOptions);
     }
   };
 
@@ -207,9 +207,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
           </tr>
         </thead>
         <tbody>
-        ${
-          Array.isArray(selectedOrderDetail) && selectedOrderDetail.length > 0
-          ? selectedOrderDetail
+        ${Array.isArray(selectedOrderDetail) && selectedOrderDetail.length > 0
+        ? selectedOrderDetail
           .filter(item => item.quantity > 0)
           .map(item => `
             <tr>
@@ -219,8 +218,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
               <td>${(item.quantity * item.price).toLocaleString()} VNĐ</td>
             </tr>
           `).join('')
-          : '<tr><td colspan="4" style="text-align: center;">Không có sản phẩm</td></tr>'
-        }
+        : '<tr><td colspan="4" style="text-align: center;">Không có sản phẩm</td></tr>'
+      }
         </tbody>
       </table>
       <div class="invoice-footer">
@@ -247,12 +246,12 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng thực hiện đủ các bước 🥰", toastOptions);
       return;
     }
-  
+
     const requestBody = {
       customerId: customer?.id || null,
-      customerName: customerInfo.name,
-      phone: customerInfo.phone,
-      address: `${customerInfo.address}, ${customerInfo.ward}, ${customerInfo.district}, ${customerInfo.province}`,
+      customerName: customerInfo.name || "Khách lẻ", // Thêm trường bắt buộc
+      phone: customerInfo.phone || "",
+      address: `${customerInfo.address || ""}, ${customerInfo.ward || ""}, ${customerInfo.district || ""}, ${customerInfo.province || ""}`,
       note: customerInfo.note || "",
       shippingFee: shippingFee,
       discountValue: totalAmount - finalAmount,
@@ -260,16 +259,18 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       totalPayment: finalAmount + shippingFee,
       paymentTypeId: delivery ? 2 : 1,
       paymentMethodId: paymen,
+      paymentStatus: 1
     };
-  
+    console.log("Request payload:", JSON.stringify(requestBody, null, 2));
     try {
       const response = await confirmPayment(idOrder, requestBody);
-  
+      console.log("===response===" + response.data);
+
       if (response.status === 200) {
         toast.success("Thanh toán thành công 🥰", toastOptions);
-        
+
         if (promo.voucherCode) {
-        
+
           await updatePromoCode(promo.id, { ...promo, quantity: promo.quantity - 1 });
 
           // Call API to associate voucher with the order
@@ -285,7 +286,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.error("Đã xảy ra lỗi. Vui lòng thử lại!", toastOptions);
     }
   };
-  
+
 
   const handleSaveDeliveryInfo = async (customer) => {
     //setCustomer(customer);
@@ -312,11 +313,11 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         setPhoneNumber={setPhoneNumber}
       />
 
-  
-      <DeliveryInfo delivery={delivery} setDelivery={setDelivery} onSave={handleSaveDeliveryInfo} customer={customer} setCustomer={setCustomer} customerInfo={customerInfo} setCustomerInfo={setCustomerInfo} idOrder={idOrder} totalAmount={totalAmount} 
-      setSelectedProvince={setSelectedProvince} selectedProvince={selectedProvince} setSelectedDistrict={setSelectedDistrict} selectedDistrict={selectedDistrict} setSelectedWard={setSelectedWard} selectedWard={selectedWard}
+
+      <DeliveryInfo delivery={delivery} setDelivery={setDelivery} onSave={handleSaveDeliveryInfo} customer={customer} setCustomer={setCustomer} customerInfo={customerInfo} setCustomerInfo={setCustomerInfo} idOrder={idOrder} totalAmount={totalAmount}
+        setSelectedProvince={setSelectedProvince} selectedProvince={selectedProvince} setSelectedDistrict={setSelectedDistrict} selectedDistrict={selectedDistrict} setSelectedWard={setSelectedWard} selectedWard={selectedWard}
       />
-      <PromoCode promoCode={promoCode} setPromo={setPromo} totalAmount={totalAmount} idOrder={idOrder}  />
+      <PromoCode promoCode={promoCode} setPromo={setPromo} totalAmount={totalAmount} idOrder={idOrder} />
 
       {/* Hiển thị tổng tiền */}
       <h5>Tổng tiền: {totalAmount.toLocaleString()} VND</h5>
@@ -412,7 +413,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       <Row>
         <Col sm={12}>
           <Button variant="primary" className="w-100" onClick={handlePaymentConfirmation} >Xác nhận thanh toán</Button>
-          
+
         </Col>
       </Row>
     </div>

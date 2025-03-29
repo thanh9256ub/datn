@@ -3,14 +3,16 @@ import { useLocation, useParams } from 'react-router-dom';
 import { Card, Table, Button, Row, Col, Toast, Modal, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faClock, faBoxOpen, faTruck, faHome, faCheckCircle, faTimesCircle, faPrint, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { fetchOrderDetailsByOrderId, updateOrderStatus } from '../OrderService/orderService';
+import { fetchOrderDetailsByOrderId, updateOrderStatus, updateCustomerInfo } from '../OrderService/orderService';
 import { Image } from 'react-bootstrap';
-
+import CustomerInfo from './CustomerInfo';
 const OrderDetail = () => {
     const location = useLocation();
     const { orderId } = useParams();
     const [orderDetails, setOrderDetails] = useState([]);
     const [order, setOrder] = useState(location.state?.order);
+    console.log("===order===", order);
+
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [showCancelModal, setShowCancelModal] = useState(false);
@@ -19,15 +21,22 @@ const OrderDetail = () => {
         const getOrderDetails = async () => {
             try {
                 const response = await fetchOrderDetailsByOrderId(orderId);
-                const details = Array.isArray(response) ? response : [response];
-                setOrderDetails(details);
-                if (details.length > 0) {
-                    setOrder(details[0].order);
+                console.log('API response:', response); // Kiểm tra cấu trúc dữ liệu
+
+                if (response && response.length > 0) {
+                    const orderData = response[0].order;
+                    console.log('Order data:', orderData); // Kiểm tra đối tượng order
+
+                    if (orderData) {
+                        setOrder(orderData);
+                        setOrderDetails(response);
+                    }
                 }
             } catch (error) {
-                console.error('Error fetching order details:', error);
+                console.error('Error:', error);
             }
         };
+
         getOrderDetails();
     }, [orderId]);
 
@@ -38,14 +47,55 @@ const OrderDetail = () => {
             </div>
         );
     }
+    const handleCustomerUpdate = async (updatedCustomer) => {
+        try {
+            console.log('Data being sent:', updatedCustomer);
 
+            const response = await updateCustomerInfo(orderId, {
+                customerName: updatedCustomer.customerName,
+                phone: updatedCustomer.phone,
+                address: updatedCustomer.address
+            });
+
+            console.log('Raw response from server:', response);
+
+            // Cập nhật state mà không cần reload
+            setOrder(prev => ({
+                ...prev,
+                customerName: updatedCustomer.customerName,
+                phone: updatedCustomer.phone,
+                address: updatedCustomer.address
+            }));
+
+            // Cập nhật orderDetails nếu cần
+            setOrderDetails(prev => prev.map(item => ({
+                ...item,
+                order: {
+                    ...item.order,
+                    customerName: updatedCustomer.customerName,
+                    phone: updatedCustomer.phone,
+                    address: updatedCustomer.address
+                }
+            })));
+
+            showNotification("Cập nhật thông tin thành công!");
+            return response;
+        } catch (error) {
+            console.error('Update failed:', {
+                error: error.response?.data || error.message,
+                request: { orderId, updatedCustomer }
+            });
+            showNotification(`Lỗi cập nhật: ${error.message}`);
+            throw error;
+        }
+    };
     const showNotification = (message) => {
         setToastMessage(message);
         setShowToast(true);
     };
 
     const isCounterOrderWithCashPayment = () => {
-        return order.orderType === 1 && order.paymentType.paymentTypeName === "Trực tiếp";
+        return order.orderType === 0 && order.paymentType.paymentTypeName === "Trực tiếp";
     };
 
     const getNextStatus = (currentStatus) => {
@@ -54,7 +104,7 @@ const OrderDetail = () => {
             const statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận" },
                 { id: 2, name: "Đã tiếp nhận" },
-                { id: 6, name: "Hoàn tất" },
+                { id: 3, name: "Hoàn tất" },
             ];
             const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
             // Nếu đã ở trạng thái cuối (Hoàn tất), không chuyển nữa
@@ -75,7 +125,7 @@ const OrderDetail = () => {
         }
     };
     const getOrderTypeName = (orderType) => {
-        return orderType === 1
+        return orderType === 0
             ? { name: "Tại quầy", color: "#118ab2" }
             : { name: "Đơn online", color: "#4caf50" };
     };
@@ -89,10 +139,12 @@ const OrderDetail = () => {
         try {
             const updateResponse = await updateOrderStatus(order.id, nextStatus);
             console.log('Update Response:', updateResponse);
+
+            // Sau khi cập nhật trạng thái, bạn cần lấy lại chi tiết đơn hàng
             const updatedDetails = await fetchOrderDetailsByOrderId(orderId);
-            const details = Array.isArray(updatedDetails) ? updatedDetails : [updatedDetails];
-            setOrderDetails(details);
-            setOrder(details[0].order);
+            setOrderDetails(updatedDetails);
+            setOrder(updatedDetails[0]?.order);  // Cập nhật lại thông tin trạng thái cho order
+
             showNotification("Cập nhật trạng thái thành công!");
         } catch (error) {
             console.error('Error in handleConfirm:', error.response?.data || error.message);
@@ -166,7 +218,7 @@ const OrderDetail = () => {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
-                { id: 6, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 3, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
                 { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         } else {
@@ -214,12 +266,12 @@ const OrderDetail = () => {
     const getStatusName = (statusId, orderType) => {
         let statusFlow;
 
-        if (orderType === 1) { // Đơn tại quầy
+        if (orderType === 0) { // Đơn tại quầy
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
-                { id: 6, name: "Hoàn tất", color: "#4caf50" },
-                { id: 7, name: "Đã hủy", color: "#ef476f" },
+                { id: 3, name: "Hoàn tất", color: "#4caf50" },
+                { id: 7, name: "Đã hủy", color: "#ef476f" }, // Đổi id từ 4 thành 7 để đồng bộ với timeline
             ];
         } else { // Đơn online
             statusFlow = [
@@ -252,7 +304,7 @@ const OrderDetail = () => {
         return productsTotal + order.shippingFee - order.discountValue;
     };
 
-    const statusInfo = getStatusName(order.status);
+    const statusInfo = getStatusName(order.status, order.orderType);
     const paymentStatusInfo = getPaymentStatusName(order.paymentStatus);
 
     return (
@@ -308,26 +360,16 @@ const OrderDetail = () => {
             <Row className="g-4">
                 {/* Thông tin khách hàng */}
                 <Col md={6}>
-                    <Card className="shadow-sm h-100 bg-white border border-light">
-                        <Card.Header className="bg-white border-bottom d-flex justify-content-between align-items-center">
-                            <h5 className="mb-0">Thông tin khách hàng</h5>
-                            <Button
-                                variant="light"
-                                size="sm"
-                                onClick={handleUpdateCustomerInfo}
-                                className="custom-hover-button"
-                            >
-                                <FontAwesomeIcon icon={faEdit} className="me-2" />
-                                Cập nhật
-                            </Button>
-                        </Card.Header>
-                        <Card.Body>
-                            <p><strong>Tên:</strong> {order.customerName}</p>
-                            <p><strong>Số điện thoại:</strong> {order.phone}</p>
-                            <p><strong>Địa chỉ:</strong> {order.address}</p>
-                            <p><strong>Email:</strong> {order.customer?.email || 'N/A'}</p>
-                        </Card.Body>
-                    </Card>
+                    <CustomerInfo
+                        customer={{
+                            customerName: order.customerName,
+                            phone: order.phone,
+                            address: order.address,
+                            customer: order.customer
+                        }}
+                        onUpdate={handleCustomerUpdate}
+                        showNotification={showNotification}
+                    />
                 </Col>
 
                 {/* Thông tin đơn hàng */}
@@ -349,19 +391,7 @@ const OrderDetail = () => {
                                 </span>
                             </p>
                             <p><strong>Trạng thái:</strong> <span className="badge" style={{ backgroundColor: statusInfo.color, color: '#fff' }}>{statusInfo.name}</span></p>
-                            <p>
-                                <strong>Trạng thái thanh toán:</strong>{" "}
-                                <span
-                                    className="badge"
-                                    style={{
-                                        backgroundColor: paymentStatusInfo.color,
-                                        color: "#fff",
-                                    }}
-                                >
-                                    {paymentStatusInfo.name}
-                                </span>
-                            </p>
-                            <p><strong>Loại thanh toán:</strong> <span className="badge bg-info text-white">{order.paymentType.paymentTypeName}</span></p>
+                            <p><strong>Loại thanh toán:</strong> <span className="badge bg-info text-white">{order.paymentType?.paymentTypeName || 'Không xác định'}</span></p>
                             <p><strong>Phương thức thanh toán:</strong> <span className="badge bg-info text-white">{order.paymentMethod.paymentMethodName}</span></p>
                             <p><strong>Ghi chú:</strong> {order.note || 'Không có'}</p>
                         </Card.Body>

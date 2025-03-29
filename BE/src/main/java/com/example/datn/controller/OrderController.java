@@ -1,5 +1,6 @@
 package com.example.datn.controller;
 
+import com.example.datn.dto.request.CustomerInfoRequest;
 import com.example.datn.dto.request.OrderRequest;
 import com.example.datn.dto.request.PaymentMethodRequest;
 import com.example.datn.dto.response.ApiResponse;
@@ -10,6 +11,7 @@ import com.example.datn.service.DonHangService;
 import com.example.datn.service.OrderService;
 import com.example.datn.service.PaymentMethodService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,6 +63,19 @@ public class OrderController {
         ApiResponse<OrderResponse> apiResponse=new ApiResponse<>(
                 HttpStatus.OK.value(), "PaymentMethod deleted successfully",null);
         return ResponseEntity.ok(apiResponse);
+    }
+    @PutMapping("/{orderId}/customer-info")
+    public ResponseEntity<ApiResponse<OrderResponse>> updateCustomerInfo(
+            @PathVariable Integer orderId,
+            @RequestBody @Valid CustomerInfoRequest request) {
+
+        OrderResponse updatedOrder = service.updateCustomerInfo(orderId, request);
+
+        return ResponseEntity.ok(new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Cập nhật thành công",
+                updatedOrder
+        ));
     }
     @PutMapping("/{id}/status")
     public ResponseEntity<ApiResponse<OrderResponse>> updateStatus(

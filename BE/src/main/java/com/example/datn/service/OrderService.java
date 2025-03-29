@@ -1,5 +1,6 @@
 package com.example.datn.service;
 
+import com.example.datn.dto.request.CustomerInfoRequest;
 import com.example.datn.dto.request.OrderRequest;
 import com.example.datn.dto.request.PaymentTypeRequest;
 import com.example.datn.dto.response.CustomerResponse;
@@ -7,6 +8,7 @@ import com.example.datn.dto.response.OrderResponse;
 import com.example.datn.dto.response.PaymentTypeResponse;
 import com.example.datn.entity.Order;
 import com.example.datn.entity.PaymentType;
+import com.example.datn.exception.ResourceNotFoundException;
 import com.example.datn.mapper.OrderMapper;
 import com.example.datn.mapper.PaymentTypeMapper;
 import com.example.datn.repository.CustomerRepository;
@@ -18,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -83,7 +86,7 @@ public class OrderService {
         order.setPaymentType(paymentTypeRepository.findById(orderRequest.getPaymentTypeId()).get());
         order.setPaymentMethod(paymentMethodRepository.findById(orderRequest.getPaymentMethodId()).get());
         order.setUpdatedAt(LocalDateTime.now().withNano(0));
-        if (orderRequest.getPaymentMethodId().equals(2)){
+        if (orderRequest.getPaymentTypeId().equals(2)){
             order.setStatus(2);
         }else{
             order.setStatus(3);
@@ -96,15 +99,49 @@ public class OrderService {
     public void detele(Integer id) {
         repository.deleteById(id);
     }
-    public List<OrderResponse> filterOrders(String orderCode,
-                                            Double minPrice,
-                                            Double maxPrice,
-                                            LocalDateTime startDate,
-                                            LocalDateTime endDate,
-                                            Integer status) { // Thêm status
-        List<Order> filteredOrders = repository.filterOrders(
-                orderCode, minPrice, maxPrice, startDate, endDate, status
-        );
-        return mapper.toListOrders(filteredOrders);
+    public List<OrderResponse> filterOrders(
+            String orderCode,
+            Double minPrice,
+            Double maxPrice,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Integer status) {
+
+        try {
+            System.out.println("Filtering orders with params:");
+            System.out.println("orderCode: " + orderCode);
+            System.out.println("minPrice: " + minPrice);
+            System.out.println("maxPrice: " + maxPrice);
+            System.out.println("startDate: " + startDate);
+            System.out.println("endDate: " + endDate);
+            System.out.println("status: " + status);
+
+            List<Order> filteredOrders = repository.filterOrders(
+                    orderCode, minPrice, maxPrice, startDate, endDate, status
+            );
+
+            System.out.println("Found " + filteredOrders.size() + " orders");
+            return mapper.toListOrders(filteredOrders);
+        } catch (Exception e) {
+            System.err.println("Error filtering orders: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
+    }
+    public OrderResponse updateCustomerInfo(Integer orderId, CustomerInfoRequest request) {
+        System.out.println("Updating customer info for order: " + orderId);
+        System.out.println("New customer info: " + request.toString());
+
+        Order order = repository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        order.setCustomerName(request.getCustomerName());
+        order.setPhone(request.getPhone());
+        order.setAddress(request.getAddress());
+
+        Order updatedOrder = repository.save(order);
+        System.out.println("Updated order: " + updatedOrder.toString());
+
+        return mapper.toOrderResponse(updatedOrder);
     }
 }

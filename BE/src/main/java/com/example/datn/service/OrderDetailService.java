@@ -17,11 +17,21 @@ import java.util.List;
 
 public class OrderDetailService {
 
-    @Autowired
-    OrderDetailRepository repository;
 
     @Autowired
-    OrderDetailMapper mapper;
+    private OrderDetailRepository repository;
+
+    @Autowired
+    private OrderDetailMapper mapper;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private ProductDetailRepository productDetailRepository;
+
+    @Autowired
+    private ProductDetailService productDetailService;
 
     public OrderDetailResponse create(OrderDetailRequest request) {
         OrderDetail orderDetail = mapper.toOrderDetails(request);
@@ -47,14 +57,7 @@ public class OrderDetailService {
     public void detele(Integer id) {
         repository.deleteById(id);
     }
-    public List<OrderDetailResponse> getOrderDetailsByOrderId(Integer orderId) {
-        List<OrderDetail> orderDetails = repository.findByOrderId(orderId);
-        return mapper.toListResponses(orderDetails);
-    }
-    @Autowired
-    private ProductDetailRepository productDetailRepository;
-@Autowired
-private ProductDetailService productDetailService;
+
 
     public void updateProductQuantity(Integer productId, Integer quantity) {
         ProductDetail productDetail = productDetailRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
@@ -71,8 +74,6 @@ private ProductDetailService productDetailService;
         productDetailRepository.save(productDetail);
     }
 
-    @Autowired
-    OrderRepository orderRepository;
 
     public OrderDetailResponse updateOrAddOrderDetail(Integer orderId, Integer productId, Integer quantity) {
         for (OrderDetail o : repository.findAll()) {
@@ -88,6 +89,7 @@ private ProductDetailService productDetailService;
         OrderDetail orderDetail = new OrderDetail();
 
         orderDetail.setOrder(orderRepository.findById(orderId).get());
+
         orderDetail.setProductDetail(productDetailRepository.findById(productId).get());
         orderDetail.setPrice(productDetailRepository.findById(productId).get().getPrice());
         orderDetail.setQuantity(quantity);
@@ -99,21 +101,43 @@ private ProductDetailService productDetailService;
 
 
     }
-
+    public List<OrderDetailResponse> getOrderDetailsByOrderId(Integer orderId) {
+        List<OrderDetail> orderDetails = repository.findByOrderId(orderId);
+        return mapper.toListResponses(orderDetails);
+    }
     public OrderDetailResponse updateOrderDetail(Integer orderId, Integer quantity) {
         OrderDetail orderDetail = repository.findById(orderId).orElseThrow(() -> new RuntimeException("order not found"));
         orderDetail.setQuantity(quantity);
-        orderDetail.setTotalPrice(quantity*orderDetail.getPrice());
+        orderDetail.setTotalPrice(quantity * orderDetail.getPrice());
 
         repository.save(orderDetail);
         return mapper.toOrderDetailResponse(orderDetail);
     }
+
     public OrderDetailResponse updateOrderDetail2(Integer orderId, Integer quantity) {
         OrderDetail orderDetail = repository.findById(orderId).orElseThrow(() -> new RuntimeException("order not found"));
         orderDetail.setQuantity(quantity);
-        orderDetail.setTotalPrice(quantity*orderDetail.getPrice());
+        orderDetail.setTotalPrice(quantity * orderDetail.getPrice());
         orderDetail.setStatus(1);
         repository.save(orderDetail);
         return mapper.toOrderDetailResponse(orderDetail);
+    }
+    public void deteleOrderDetailByIdOrder (Integer id) {
+        for (OrderDetail orderDetail: repository.findAll() ) {
+            if (orderDetail.getOrder().getId().equals(id)){
+                repository.deleteById(orderDetail.getId());
+            }
+        }
+
+    }
+    public void updateOrderDetail (Integer id) {
+        for (OrderDetail orderDetail: repository.findAll() ) {
+            if (orderDetail.getOrder().getId().equals(id)){
+                ProductDetail productDetail= orderDetail.getProductDetail();
+                productDetail.setQuantity(orderDetail.getQuantity()+orderDetail.getProductDetail().getQuantity());
+                productDetailRepository.save(productDetail) ;
+            }
+        }
+
     }
 }

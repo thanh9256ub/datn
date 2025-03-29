@@ -20,7 +20,7 @@ const Orders = () => {
         maxPrice: '',
         startDate: '',
         endDate: '',
-        status: '' // Add this
+        status: ''
     });
     const history = useHistory();
 
@@ -37,14 +37,9 @@ const Orders = () => {
     const nextPage = () => setCurrentPage(p => Math.min(p + 1, totalPages));
     const prevPage = () => setCurrentPage(p => Math.max(p - 1, 1));
 
-    const fetchData = async () => {
+    const fetchData = async (filterParams = filters) => {
         try {
-            const response = await filterOrders(filters);
-            console.log('Raw response:', response);
-            console.log('Is response an array?', Array.isArray(response));
-            console.log('Response type:', typeof response);
-            console.log('Response constructor:', response?.constructor?.name);
-
+            const response = await filterOrders(filterParams);
             if (Array.isArray(response)) {
                 setData(response);
             } else {
@@ -56,9 +51,12 @@ const Orders = () => {
             setData([]);
         }
     };
-
     useEffect(() => {
+        let mounted = true;
         fetchData();
+        return () => {
+            mounted = false;
+        };
     }, []);
 
     const handleFilterChange = (e) => {
@@ -72,8 +70,18 @@ const Orders = () => {
     const handleFilterSubmit = (e) => {
         e.preventDefault();
         setCurrentPage(1);
-        fetchData();
+
+        // Convert dates to proper format if they exist
+        const formattedFilters = {
+            ...filters,
+            startDate: filters.startDate || undefined,
+            endDate: filters.endDate || undefined
+        };
+
+        fetchData(formattedFilters);
     };
+
+
     const handleResetFilters = () => {
         setFilters({
             orderCode: '',
@@ -100,16 +108,57 @@ const Orders = () => {
         setSelectedOrder(order);
     };
 
-    const StatusTimeline = ({ status }) => {
-        const statusFlow = [
-            { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#f59e0b" },
-            { id: 2, name: "Chờ lấy hàng", icon: faBoxOpen, color: "#f59e0b" },
-            { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#f97316" },
-            { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#f97316" },
-            { id: 5, name: "Đã giao", icon: faHome, color: "#10b981" },
-            { id: 6, name: "Hoàn tất", icon: faCheckCircle, color: "#10b981" },
-            { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef4444" },
-        ];
+    // Đồng bộ hàm getStatusName từ OrderDetail
+    const getStatusName = (statusId, orderType) => {
+        let statusFlow;
+
+        if (orderType === 0) { // Đơn tại quầy
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
+                { id: 3, name: "Hoàn tất", color: "#4caf50" },
+                { id: 7, name: "Đã hủy", color: "#ef476f" },
+            ];
+        } else { // Đơn online
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 2, name: "Chờ lấy hàng", color: "#ffd700" },
+                { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
+                { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
+                { id: 5, name: "Đã giao", color: "#4caf50" },
+                { id: 6, name: "Hoàn tất", color: "#4caf50" },
+                { id: 7, name: "Đã hủy", color: "#ef476f" },
+            ];
+        }
+
+        const status = statusFlow.find(s => s.id === statusId);
+        return status ? { name: status.name, color: status.color } : { name: "Không xác định", color: "#6c757d" };
+    };
+
+    const StatusTimeline = ({ status, orderType }) => {
+        let statusFlow;
+
+        if (orderType === 0) {
+            // Timeline cho đơn tại quầy
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
+                { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
+                { id: 3, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+            ];
+        } else {
+            // Timeline cho đơn online
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
+                { id: 2, name: "Chờ lấy hàng", icon: faBoxOpen, color: "#ffd700" },
+                { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
+                { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
+                { id: 5, name: "Đã giao", icon: faHome, color: "#4caf50" },
+                { id: 6, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+            ];
+        }
+
         const currentIndex = statusFlow.findIndex(s => s.id === status);
         const visibleStatuses = statusFlow.slice(0, currentIndex + 1);
 
@@ -144,7 +193,7 @@ const Orders = () => {
                             {selectedOrder ? (
                                 <>
                                     <h6 className="text-muted">Đơn hàng: {selectedOrder.orderCode}</h6>
-                                    <StatusTimeline status={selectedOrder.status} />
+                                    <StatusTimeline status={selectedOrder.status} orderType={selectedOrder.orderType} />
                                 </>
                             ) : (
                                 <p className="text-muted">Chọn một đơn hàng để xem trạng thái.</p>
@@ -156,7 +205,6 @@ const Orders = () => {
                 <div className="card-body border-bottom">
                     <Form onSubmit={handleFilterSubmit}>
                         <div className="row g-3 mb-4 align-items-center">
-                            {/* Ô tìm kiếm */}
                             <div className="col-12 col-md-4">
                                 <InputGroup className="shadow-sm rounded-pill overflow-hidden">
                                     <InputGroup.Text className="bg-white border-0 pe-0">
@@ -172,8 +220,6 @@ const Orders = () => {
                                     />
                                 </InputGroup>
                             </div>
-
-                            {/* Ô lọc theo giá */}
                             <div className="col-12 col-md-4">
                                 <InputGroup className="shadow-sm rounded-pill overflow-hidden">
                                     <Form.Control
@@ -200,8 +246,6 @@ const Orders = () => {
                                     </InputGroup.Text>
                                 </InputGroup>
                             </div>
-
-                            {/* Ô lọc theo ngày */}
                             <div className="col-12 col-md-4">
                                 <InputGroup className="shadow-sm rounded-pill overflow-hidden">
                                     <InputGroup.Text className="bg-white border-0 pe-0">
@@ -226,7 +270,6 @@ const Orders = () => {
                                     />
                                 </InputGroup>
                             </div>
-
                             <div className="col-12">
                                 <div className="d-flex gap-3 mt-3">
                                     <Button type="submit" variant="primary" className="rounded-pill">
@@ -241,8 +284,9 @@ const Orders = () => {
                                     </Button>
                                 </div>
                             </div>
-                            <div className="col-12 col-md-3 mt-3" >
-                                <Form.Control as="select"
+                            <div className="col-12 col-md-3 mt-3">
+                                <Form.Control
+                                    as="select"
                                     name="status"
                                     value={filters.status}
                                     onChange={handleFilterChange}
@@ -250,13 +294,13 @@ const Orders = () => {
                                     style={{ backgroundColor: "#f8f9fa" }}
                                 >
                                     <option value="">Tất cả</option>
-                                    <option value="1">Chờ</option>
-                                    <option value="2">Lấy hàng</option>
-                                    <option value="3">Vận chuyển</option>
-                                    <option value="4">Vận chuyển</option>
-                                    <option value="5">Giao</option>
-                                    <option value="6">Hoàn</option>
-                                    <option value="7">Hủy</option>
+                                    <option value="1">Chờ tiếp nhận</option>
+                                    <option value="2">Chờ lấy hàng/Đã tiếp nhận</option>
+                                    <option value="3">Chờ vận chuyển</option>
+                                    <option value="4">Đang vận chuyển</option>
+                                    <option value="5">Đã giao</option>
+                                    <option value="6">Hoàn tất</option>
+                                    <option value="7">Đã hủy</option>
                                 </Form.Control>
                             </div>
                         </div>
@@ -283,104 +327,84 @@ const Orders = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentItems.map((order, index) => (
-                                <tr
-                                    key={order.id}
-                                    onClick={() => handleRowClick(order.id)}
-                                    className="align-middle"
-                                    style={{
-                                        cursor: 'pointer',
-                                        transition: 'all 0.3s ease',
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#f1f3f5';
-                                        e.currentTarget.querySelector('button').style.opacity = 1;
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#fff';
-                                        e.currentTarget.querySelector('button').style.opacity = 0;
-                                    }}
-                                >
-                                    <td className="py-3 px-4">{indexOfFirstItem + index + 1}</td>
-                                    <td className="py-3 px-4">{order.customerName || 'N/A'}</td>
-                                    <td className="py-3 px-4">{order.phone || 'N/A'}</td>
-                                    <td className="py-3 px-4">{order.orderCode}</td>
-                                    <td className="py-3 px-4">{new Date(order.createdAt).toLocaleDateString()}</td>
-                                    <td className="py-3 px-4">{order.totalPrice.toLocaleString()} VNĐ</td>
-                                    <td className="py-3 px-4">
-                                        <span
-                                            className="badge"
-                                            style={{
-                                                backgroundColor:
-                                                    order.status === 1 ? "#fef3c7" :
-                                                        order.status === 2 ? "#fef3c7" :
-                                                            order.status === 3 ? "#ffedd5" :
-                                                                order.status === 4 ? "#ffedd5" :
-                                                                    order.status === 5 ? "#d1fae5" :
-                                                                        order.status === 6 ? "#d1fae5" :
-                                                                            "#fee2e2",
-                                                color:
-                                                    order.status === 1 ? "#f59e0b" :
-                                                        order.status === 2 ? "#f59e0b" :
-                                                            order.status === 3 ? "#f97316" :
-                                                                order.status === 4 ? "#f97316" :
-                                                                    order.status === 5 ? "#10b981" :
-                                                                        order.status === 6 ? "#10b981" :
-                                                                            "#ef4444",
-                                                borderColor:
-                                                    order.status === 1 ? "#f59e0b" :
-                                                        order.status === 2 ? "#f59e0b" :
-                                                            order.status === 3 ? "#f97316" :
-                                                                order.status === 4 ? "#f97316" :
-                                                                    order.status === 5 ? "#10b981" :
-                                                                        order.status === 6 ? "#10b981" :
-                                                                            "#ef4444",
-                                                fontFamily: '"Roboto", sans-serif',
-                                                fontWeight: '500',
-                                                padding: '0.5rem 1rem',
-                                                fontSize: '0.95rem',
-                                                borderRadius: '12px',
-                                                borderWidth: '1px',
-                                                borderStyle: 'solid',
-                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
-                                            }}
-                                        >
-                                            {order.status === 1 ? "Chờ tiếp nhận" :
-                                                order.status === 2 ? "Chờ lấy hàng" :
-                                                    order.status === 3 ? "Chờ vận chuyển" :
-                                                        order.status === 4 ? "Đang vận chuyển" :
-                                                            order.status === 5 ? "Đã giao" :
-                                                                order.status === 6 ? "Hoàn tất" :
-                                                                    "Đã hủy"}
-                                        </span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <Button
-                                            variant="link"
-                                            className="p-0"
-                                            style={{
-                                                opacity: 0,
-                                                transition: 'all 0.3s ease',
-                                                transform: 'scale(0.9)',
-                                            }}
-                                            onClick={() => handleNavigate(order.id)}
-                                        >
-                                            <img
-                                                src={eyeIcon}
-                                                alt="View"
+                            {currentItems.map((order, index) => {
+                                const statusInfo = getStatusName(order.status, order.orderType); // Sử dụng hàm đồng bộ từ OrderDetail
+                                return (
+                                    <tr
+                                        key={order.id}
+                                        onClick={() => handleRowClick(order.id)}
+                                        className="align-middle"
+                                        style={{
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s ease',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#f1f3f5';
+                                            e.currentTarget.querySelector('button').style.opacity = 1;
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#fff';
+                                            e.currentTarget.querySelector('button').style.opacity = 0;
+                                        }}
+                                    >
+                                        <td className="py-3 px-4">{indexOfFirstItem + index + 1}</td>
+                                        <td className="py-3 px-4">{order.customerName || 'N/A'}</td>
+                                        <td className="py-3 px-4">{order.phone || 'N/A'}</td>
+                                        <td className="py-3 px-4">{order.orderCode}</td>
+                                        <td className="py-3 px-4">
+                                            {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            {order.totalPrice != null ? `${order.totalPrice.toLocaleString()} VNĐ` : 'N/A'}
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <span
+                                                className="badge"
                                                 style={{
-                                                    width: '26px',
-                                                    height: '26px',
-                                                    filter: 'grayscale(50%) opacity(0.7)',
-                                                    transition: 'all 0.3s ease'
+                                                    backgroundColor: getStatusName(order.status, order.orderType).color,
+                                                    color: '#fff',
+                                                    fontFamily: '"Roboto", sans-serif',
+                                                    fontWeight: '500',
+                                                    padding: '0.5rem 1rem',
+                                                    fontSize: '0.95rem',
+                                                    borderRadius: '12px',
+                                                    borderWidth: '1px',
+                                                    borderStyle: 'solid',
+                                                    borderColor: statusInfo.color,
+                                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
                                                 }}
-                                                onMouseEnter={(e) => e.currentTarget.style.filter = 'grayscale(0%) opacity(1)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.filter = 'grayscale(50%) opacity(0.7)'}
-                                            />
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
+                                            >
+                                                {getStatusName(order.status, order.orderType).name}
+                                            </span>
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <Button
+                                                variant="link"
+                                                className="p-0"
+                                                style={{
+                                                    opacity: 0,
+                                                    transition: 'all 0.3s ease',
+                                                    transform: 'scale(0.9)',
+                                                }}
+                                                onClick={() => handleNavigate(order.id)}
+                                            >
+                                                <img
+                                                    src={eyeIcon}
+                                                    alt="View"
+                                                    style={{
+                                                        width: '26px',
+                                                        height: '26px',
+                                                        filter: 'grayscale(50%) opacity(0.7)',
+                                                        transition: 'all 0.3s ease'
+                                                    }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.filter = 'grayscale(0%) opacity(1)'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.filter = 'grayscale(50%) opacity(0.7)'}
+                                                />
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </Table>
 
@@ -401,7 +425,7 @@ const Orders = () => {
                 </div>
             </div>
 
-            <style >{`
+            <style>{`
                 .table th, .table td {
                     vertical-align: middle;
                 }
