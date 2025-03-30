@@ -1,28 +1,19 @@
 import React, { useState } from 'react';
-import './Css/Login.css';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getTokenCustomer } from '../../loginBanHang/service/Loginservice';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
-import { Alert, Spinner } from 'react-bootstrap';
+import { Typography, Input, Button, Spin, Space } from 'antd';
 
-
+const { Title, Text } = Typography;
 
 const Login = () => {
-
-
-    const [email, setEmail] = useState("");
-
-    const [password, setPassword] = useState("");
-
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const { login } = useAuth();
-
     const history = useHistory();
-
     const [loading, setLoading] = useState(false);
-
-    const [successMessage, setSuccessMessage] = useState("");
-
+    const [successMessage, setSuccessMessage] = useState('');
     const [error, setError] = useState(null);
 
     const handLogin = (e) => {
@@ -30,47 +21,122 @@ const Login = () => {
         setLoading(true);
         e.preventDefault();
 
-        getTokenCustomer(email, password).then((response) => {
-            console.log(response);
+        getTokenCustomer(email, password)
+            .then((response) => {
+                console.log(response);
 
-            if (response.status === 200) {
-                login(response.data.data.token);
-                localStorage.setItem("email", response.data.data.email);
-                localStorage.setItem("role", response.data.data.role);
-                localStorage.setItem("successMessage", "Đăng nhập thành công!");
-                history.push("/");
-            }
-            else {
-                alert("Đăng nhập thất bại");
-            }
-        }).catch((error) => {
-            alert("Đăng nhập thất bại");
-        }).finally(() => {
-            setLoading(false);
-        })
-    }
+                if (response.status === 200) {
+                    login(response.data.data.token);
+                    localStorage.setItem('email', response.data.data.email);
+                    localStorage.setItem('role', response.data.data.role);
+                    localStorage.setItem('successMessage', 'Đăng nhập thành công!');
+                    history.push('/');
+                } else {
+                    alert('Đăng nhập thất bại');
+                }
+            })
+            .catch((error) => {
+                alert('Đăng nhập thất bại');
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
 
     return (
-        <div className='loginsignup'>
+        <div
+            style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: '100vh',
+                background: 'linear-gradient(45deg, #f5e6ff, #e6f0ff, #fff)',
+                backgroundSize: '200% 200%',
+                animation: 'gradientAnimation 5s ease infinite',
+                position: 'relative',
+            }}
+        >
+            <style>
+                {`
+          @keyframes gradientAnimation {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+          }
+        `}
+            </style>
             {loading && (
-                <div className="loading-overlay">
-                    <Spinner animation="border" role="status" />
-                    <span>Đăng nhập...</span>
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        zIndex: 10,
+                    }}
+                >
+                    <Space direction="vertical" align="center">
+                        <Spin size="large" />
+                        <Text style={{ color: '#fff' }}>Đăng nhập...</Text>
+                    </Space>
                 </div>
             )}
-            <div className="loginsignup-container">
-                <h1>Đăng nhập</h1>
-                
-                    <div className="loginsignup-fields">
-                        <input type="email" placeholder="Your email" onChange={(e) => setEmail(e.target.value)} />
-                        <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
-                    </div>
-                <button onClick={handLogin}>Continue</button>
-                <p className='loginsignup-login'>You don't have an account?  <Link to="/signup"><span >Sign Up</span></Link></p>
-
-            </div>s
+            <div
+                style={{
+                    width: 450, // Tăng từ 400px lên 450px
+                    padding: 50, // Tăng từ 40px lên 50px
+                    background: '#fff',
+                    borderRadius: 8,
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                    textAlign: 'center',
+                    position: 'relative',
+                    overflow: 'hidden',
+                }}
+            >
+                <Title level={2} style={{ marginBottom: 20 }}>
+                    Đăng nhập
+                </Title>
+                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                    <Input
+                        type="email"
+                        placeholder="Your email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        size="large"
+                        style={{ width: '100%' }}
+                    />
+                    <Input.Password
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        size="large"
+                        style={{ width: '100%' }}
+                    />
+                    <Button
+                        type="primary"
+                        size="large"
+                        onClick={handLogin}
+                        style={{ width: '100%', background: '#b388ff', borderColor: '#b388ff' }}
+                    >
+                        Continue
+                    </Button>
+                    <Text>
+                        You don't have an account?{' '}
+                        <Link to="/signup">
+                            <Text strong style={{ color: '#b388ff' }}>
+                                Sign Up
+                            </Text>
+                        </Link>
+                    </Text>
+                </Space>
+            </div>
         </div>
-    )
+    );
 };
 
 export default Login;

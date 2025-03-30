@@ -81,7 +81,21 @@ const Orders = () => {
         fetchData(formattedFilters);
     };
 
+    const calculateTotalPayment = (order) => {
+        if (!order) return 0;
 
+        // Ưu tiên tính từ orderDetails nếu có
+        if (order.orderDetails?.length > 0) {
+            const productsTotal = order.orderDetails.reduce(
+                (total, item) => total + (item.totalPrice || 0),
+                0
+            );
+            return productsTotal + (order.shippingFee || 0) - (order.discountValue || 0);
+        }
+
+        // Fallback: dùng totalPrice + shippingFee - discountValue
+        return (order.totalPrice || 0) + (order.shippingFee || 0) - (order.discountValue || 0);
+    };
     const handleResetFilters = () => {
         setFilters({
             orderCode: '',
@@ -355,7 +369,7 @@ const Orders = () => {
                                             {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
                                         </td>
                                         <td className="py-3 px-4">
-                                            {order.totalPrice != null ? `${order.totalPrice.toLocaleString()} VNĐ` : 'N/A'}
+                                            {calculateTotalPayment(order).toLocaleString()} VNĐ
                                         </td>
                                         <td className="py-3 px-4">
                                             <span
