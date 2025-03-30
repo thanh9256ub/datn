@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import { Form } from "react-bootstrap";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { DatePicker } from "antd";
+import "antd/dist/reset.css";
 import { createVoucher } from "./service/VoucherService";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
 import Select from "react-select";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import dayjs from "dayjs";
 
 const CreateVoucher = () => {
-
-  const history = useHistory()
+  const history = useHistory();
 
   const [formData, setFormData] = useState({
     voucherName: "",
@@ -20,8 +20,8 @@ const CreateVoucher = () => {
     discountType: 0,
     discountValue: 0,
     maxDiscountValue: 0,
-    startDate: new Date(),
-    endDate: new Date(),
+    startDate: dayjs(),
+    endDate: dayjs(),
   });
 
   const discountOptions = [
@@ -31,43 +31,30 @@ const CreateVoucher = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    let updatedFormData = { ...formData, [name]: value };
 
-    if (name === "discountType") {
-      const discountTypeValue = parseInt(value);
+    setFormData((prev) => {
+      let updatedData = { ...prev, [name]: value };
 
-      if (discountTypeValue === 0) {
-        // Nếu chọn "Theo số tiền", đặt maxDiscountValue về null
-        updatedFormData = {
-          ...updatedFormData,
-          discountValue: "",
-          maxDiscountValue: null,
-        };
-      } else {
-        // Nếu chọn "Theo %", đảm bảo giá trị hợp lệ
-        updatedFormData = {
-          ...updatedFormData,
-          discountValue: updatedFormData.discountValue || 1, // Giá trị mặc định từ 1
-          maxDiscountValue: updatedFormData.maxDiscountValue || 1,
-        };
+      // Nếu chọn "Theo số tiền", cập nhật maxDiscountValue = discountValue
+      if (name === "discountValue" && prev.discountType === 0) {
+        updatedData.maxDiscountValue = value;
       }
-    }
 
-    if (name === "discountValue" && parseInt(updatedFormData.discountType) === 1) {
-      const numValue = parseInt(value);
-      if (numValue < 1 || numValue > 100) {
-        toast.error("Giá trị giảm phải từ 1-100%");
-        return;
-      }
-    }
+      return updatedData;
+    });
+  };
 
-    setFormData(updatedFormData);
+  const handleDiscountTypeChange = (selectedOption) => {
+    setFormData((prev) => ({
+      ...prev,
+      discountType: selectedOption.value,
+      discountValue: 0, // Reset giá trị giảm
+      maxDiscountValue: 0, // Reset giảm giá tối đa
+    }));
   };
 
   const handleDateChange = (name, date) => {
-    if (date) {
-      setFormData((prevState) => ({ ...prevState, [name]: date }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: date }));
   };
 
   const calculateStatus = (startDate, endDate) => {
@@ -80,8 +67,13 @@ const CreateVoucher = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.startDate > formData.endDate) {
-      toast.error("Ngày giờ bắt đầu không được lớn hơn ngày giờ kết thúc!");
+    if (formData.startDate.isAfter(formData.endDate)) {
+      toast.error("Ngày bắt đầu không được lớn hơn ngày kết thúc!");
+      return;
+    }
+
+    if (!formData.startDate || !formData.endDate) {
+      toast.error("Vui lòng chọn ngày bắt đầu và ngày kết thúc!");
       return;
     }
 
@@ -98,17 +90,17 @@ const CreateVoucher = () => {
 
     const updatedFormData = {
       ...formData,
+      startDate: formData.startDate.add(7, "hour"),
+      endDate: formData.endDate.add(7, "hour"),
       status: calculateStatus(formData.startDate, formData.endDate),
     };
 
     try {
-      const response = await createVoucher(updatedFormData);
+      await createVoucher(updatedFormData);
       toast.success("Tạo voucher thành công!");
-
       setTimeout(() => history.push("/admin/vouchers"), 1000);
     } catch (error) {
-      console.error("Lỗi khi tạo voucher:", error);
-      alert("Tạo voucher thất bại!");
+      toast.error("Tạo voucher thất bại!");
     }
   };
 
@@ -139,13 +131,14 @@ const CreateVoucher = () => {
                   </div>
                   <div className="col-md-6">
                     <Form.Group className="row">
-                      <label className="col-sm-3 col-form-label">Giá trị sản phẩm tối thiểu:</label>
+                      <label className="col-sm-3 col-form-label">Giá trị tối thiểu:</label>
                       <div className="col-sm-9">
                         <Form.Control type="number" name="minOrderValue" value={formData.minOrderValue} onChange={handleChange} />
                       </div>
                     </Form.Group>
                   </div>
                 </div>
+
                 <div className="row">
                   <div className="col-md-6">
                     <Form.Group className="row">
@@ -162,67 +155,51 @@ const CreateVoucher = () => {
                         <Select
                           options={discountOptions}
                           value={discountOptions.find(option => option.value === formData.discountType)}
-                          onChange={(selectedOption) => setFormData({ ...formData, discountType: selectedOption.value })}
+                          onChange={handleDiscountTypeChange}
                         />
                       </div>
                     </Form.Group>
                   </div>
                 </div>
+
                 <div className="row">
                   <div className="col-md-6">
                     <Form.Group className="row">
                       <label className="col-sm-3 col-form-label">Giá trị giảm:</label>
                       <div className="col-sm-9">
-                        <Form.Control
-                          type="number"
-                          name="discountValue"
-                          value={formData.discountValue}
-                          onChange={handleChange}
-                          min={formData.discountType === 1 ? 1 : undefined}  // Nếu là %, min = 1
-                          max={formData.discountType === 1 ? 100 : undefined} // Nếu là %, max = 100
-                        />
+                        <Form.Control type="number" name="discountValue" value={formData.discountValue} onChange={handleChange} />
                       </div>
                     </Form.Group>
                   </div>
 
-                  {formData.discountType === 1 && (
-                    <div className="col-md-6">
-                      <Form.Group className="row">
-                        <label className="col-sm-3 col-form-label">Giảm giá tối đa:</label>
-                        <div className="col-sm-9">
-                          <Form.Control
-                            type="number"
-                            name="maxDiscountValue"
-                            value={formData.maxDiscountValue}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </Form.Group>
-                    </div>
-                  )}
+                  <div className="col-md-6">
+                    <Form.Group className="row">
+                      <label className="col-sm-3 col-form-label">Giảm giá tối đa:</label>
+                      <div className="col-sm-9">
+                        <Form.Control
+                          type="number"
+                          name="maxDiscountValue"
+                          value={formData.maxDiscountValue}
+                          onChange={handleChange}
+                          disabled={formData.discountType === 0}
+                        />
+                      </div>
+                    </Form.Group>
+                  </div>
                 </div>
+
+                {/* Date Picker Ant Design */}
                 <div className="row">
                   <div className="col-md-6">
                     <Form.Group className="row">
                       <label className="col-sm-3 col-form-label">Ngày bắt đầu:</label>
-                      <div className="col-sm-9" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div className="col-sm-9">
                         <DatePicker
+                          showTime
+                          format="DD/MM/YYYY HH:mm:ss"
+                          value={formData.startDate}
+                          onChange={(date) => handleDateChange("startDate", date)}
                           className="form-control"
-                          selected={formData.startDate || null}  // Tránh undefined
-                          onChange={(date) => handleDateChange("startDate", date)}
-                          dateFormat="dd/MM/yyyy"
-                        />
-
-                        <DatePicker
-                          className="form-control ml-2"
-                          selected={formData.startDate || null}  // Tránh undefined
-                          onChange={(date) => handleDateChange("startDate", date)}
-                          showTimeSelect
-                          showTimeSelectOnly
-                          timeFormat="HH:mm:ss"
-                          timeIntervals={1}
-                          dateFormat="HH:mm:ss"
-                          timeCaption="Giờ"
                         />
                       </div>
                     </Form.Group>
@@ -230,30 +207,19 @@ const CreateVoucher = () => {
                   <div className="col-md-6">
                     <Form.Group className="row">
                       <label className="col-sm-3 col-form-label">Ngày kết thúc:</label>
-                      <div className="col-sm-9" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div className="col-sm-9">
                         <DatePicker
+                          showTime
+                          format="DD/MM/YYYY HH:mm:ss"
+                          value={formData.endDate}
+                          onChange={(date) => handleDateChange("endDate", date)}
                           className="form-control"
-                          selected={formData.endDate || null}  // Tránh undefined
-                          onChange={(date) => handleDateChange("endDate", date)}
-                          dateFormat="dd/MM/yyyy"
                         />
-
-                        <DatePicker
-                          className="form-control ml-2"
-                          selected={formData.endDate || null}  // Tránh undefined
-                          onChange={(date) => handleDateChange("endDate", date)}
-                          showTimeSelect
-                          showTimeSelectOnly
-                          timeFormat="HH:mm:ss"
-                          timeIntervals={1}
-                          dateFormat="HH:mm:ss"
-                          timeCaption="Giờ"
-                        />
-
                       </div>
                     </Form.Group>
                   </div>
                 </div>
+
                 <button type="submit" className="btn btn-primary">
                   Lưu
                 </button>

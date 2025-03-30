@@ -89,7 +89,7 @@ public class VoucherService {
     public VoucherResponse createVoucher(VoucherRequest request) {
 
         if (request.getDiscountType() == 0) {
-            request.setMaxDiscountValue(null);
+            request.setMaxDiscountValue(request.getDiscountValue());
         } else {
             if (request.getDiscountValue() < 1 || request.getDiscountValue() > 100) {
                 throw new IllegalArgumentException("Giá trị giảm phải từ 1-100%");

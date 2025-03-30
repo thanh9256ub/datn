@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Form } from 'react-bootstrap'
 import { createCategory, getCategories, updateCategory } from './service/CategoryService'
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Categories = () => {
 
@@ -29,7 +31,7 @@ const Categories = () => {
     const handleAddCategory = async (e) => {
         e.preventDefault();
         if (!categoryName.trim()) {
-            alert("Vui lòng nhập tên danh mục!");
+            toast.error("Vui lòng nhập tên danh mục!");
             return;
         }
 
@@ -37,10 +39,10 @@ const Categories = () => {
             if (categoryId) {
                 console.log("Đang cập nhật danh mục:", categoryId, categoryName, desc);
                 await updateCategory(categoryId, { categoryName, description: desc })
-                alert("Sửa danh mục thành công!");
+                toast.success("Sửa danh mục thành công!");
             } else {
                 await createCategory({ categoryName, description: desc });
-                alert("Thêm danh mục thành công!");
+                toast.success("Thêm danh mục thành công!");
             }
 
             setCategoryName("");
@@ -144,6 +146,7 @@ const Categories = () => {
                     </div>
                 </div>
             </div>
+            <ToastContainer />
         </div >
     )
 }

@@ -459,10 +459,26 @@ const CreateProduct = () => {
         }
     };
 
+    const isEmpty = (value) => value.trim() === "";
+
+    const isExceedLimit = (value, limit = 1000000000) => {
+        const num = parseFloat(value);
+        return isNaN(num) || num < 0 || num > limit;
+    };
 
     const updateAllVariants = () => {
-        if (commonQuantity.trim() === "" && commonPrice.trim() === "") {
-            alert("Vui lòng nhập ít nhất một giá trị!");
+        if (isEmpty(commonQuantity) && isEmpty(commonPrice)) {
+            toast.error("Vui lòng nhập ít nhất một giá trị!");
+            return;
+        }
+
+        if (!isEmpty(commonQuantity) && isExceedLimit(commonQuantity)) {
+            toast.error("Số lượng quá lớn! Vui lòng nhập đúng giá trị.");
+            return;
+        }
+
+        if (!isEmpty(commonPrice) && isExceedLimit(commonPrice)) {
+            toast.error("Giá quá lớn! Vui lòng nhập đúng giá trị.");
             return;
         }
 
@@ -661,7 +677,7 @@ const CreateProduct = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    className="btn btn-gradient-primary btn-icon-text"
+                                    className="btn btn-primary btn-icon-text"
                                     onClick={handleSaveClick}
                                     disabled={isSaving}
                                 >
@@ -673,6 +689,7 @@ const CreateProduct = () => {
                     </div>
                 </div>
             </div>
+
             <Modal show={showModal} onHide={handleCloseModal} centered>
                 <Modal.Header closeButton>
                     <Modal.Title>Thêm thuộc tính chung</Modal.Title>

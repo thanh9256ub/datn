@@ -5,7 +5,7 @@ import { FaImage } from "react-icons/fa";
 import { useParams } from 'react-router-dom/cjs/react-router-dom.min';
 import { AlertCircle } from 'lucide-react';
 
-const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handleRemoveVariant, onImagesSelected, colorImages, errors }) => {
+const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handleRemoveVariant, onImagesSelected }) => {
 
     const { id } = useParams();
     const [loading, setLoading] = useState(true);

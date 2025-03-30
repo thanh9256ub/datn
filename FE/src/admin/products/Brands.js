@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Form, Spinner } from 'react-bootstrap'
 import { createBrand, getBrands, updateBrand } from './service/BrandService'
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Brands = () => {
 
@@ -31,7 +33,7 @@ const Brands = () => {
     const handleAddBrand = async (e) => {
         e.preventDefault();
         if (!brandName.trim()) {
-            alert("Vui lòng nhập tên thương hiệu!");
+            toast.error("Vui lòng nhập tên thương hiệu!");
             return;
         }
 
@@ -41,10 +43,10 @@ const Brands = () => {
             if (brandId) {
                 console.log("Đang cập nhật thương hiệu:", brandId, brandName, desc);
                 await updateBrand(brandId, { brandName, description: desc })
-                alert("Sửa thương hiệu thành công!");
+                toast.success("Sửa thương hiệu thành công!");
             } else {
                 await createBrand({ brandName, description: desc });
-                alert("Thêm thương hiệu thành công!");
+                toast.success("Thêm thương hiệu thành công!");
             }
 
             setBrandName("");
@@ -155,6 +157,7 @@ const Brands = () => {
                     </div>
                 </div>
             </div>
+            <ToastContainer />
         </div >
     )
 }

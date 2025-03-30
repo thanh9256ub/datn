@@ -101,7 +101,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
 
     return (
         <div>
-            <div className='table-responsive' style={{ maxHeight: '200px', overflowY: 'auto' }}>
+            <div className='table-responsive' style={{ maxHeight: '300px', overflowY: 'auto' }}>
                 <table className='table'>
                     <thead>
                         <tr>
@@ -207,6 +207,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
                                         value: size.id,
                                         label: size.sizeName,
                                     }))}
+                                    isDisabled={!!selectedVariant?.size?.id}
                                 />
                             </Form.Group>
                             <Form.Group>
@@ -219,6 +220,10 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
                                     value={selectedVariant.quantity}
                                     onChange={(e) => {
                                         const newValue = e.target.value === "" ? "" : Number(e.target.value);
+                                        if (newValue > 1000000000) {
+                                            toast.error("Số lượng quá lớn, vui lòng nhập lại giá trị");
+                                            return;
+                                        }
                                         setSelectedVariant({ ...selectedVariant, quantity: newValue });
                                     }}
                                 />
@@ -233,6 +238,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
                                     onChange={(e) =>
                                         setSelectedVariant({ ...selectedVariant, price: e.target.value })
                                     }
+                                    disabled
                                 />
                             </Form.Group>
                         </Form>

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Form } from 'react-bootstrap'
 import { createMaterial, getMaterials, updateMaterial } from './service/MaterialService'
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Materials = () => {
 
@@ -29,7 +31,7 @@ const Materials = () => {
     const handleAddMaterial = async (e) => {
         e.preventDefault();
         if (!materialName.trim()) {
-            alert("Vui lòng nhập tên chất liệu!");
+            toast.error("Vui lòng nhập tên chất liệu!");
             return;
         }
 
@@ -37,10 +39,10 @@ const Materials = () => {
             if (materialId) {
                 console.log("Đang cập nhật chất liệu:", materialId, materialName, desc);
                 await updateMaterial(materialId, { materialName, description: desc })
-                alert("Sửa chất liệu thành công!");
+                toast.success("Sửa chất liệu thành công!");
             } else {
                 await createMaterial({ materialName, description: desc });
-                alert("Thêm chất liệu thành công!");
+                toast.success("Thêm chất liệu thành công!");
             }
 
             setMaterialName("");
@@ -144,6 +146,7 @@ const Materials = () => {
                     </div>
                 </div>
             </div>
+            <ToastContainer />
         </div >
     )
 }

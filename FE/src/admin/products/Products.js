@@ -7,6 +7,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import SearchProducts from './action/SearchProducts';
 import Swal from 'sweetalert2';
+import useWebSocket from '../../hook/useWebSocket';
 
 const Products = () => {
     const [products, setProducts] = useState([]);
@@ -16,6 +17,8 @@ const Products = () => {
 
     const [showImageModal, setShowImageModal] = useState(false);
     const [imageUrl, setImageUrl] = useState("");
+
+    const { messages, isConnected } = useWebSocket("/topic/product-updates");
 
     const [filters, setFilters] = useState({
         name: '',
@@ -67,6 +70,14 @@ const Products = () => {
         history.push(`/admin/products?page=${currentPage}&size=${pageSize}`);
     }, [currentPage, pageSize]);
 
+    useEffect(() => {
+        if (messages.length > 0) {
+            const lastMessage = messages[messages.length - 1];
+            toast.info(lastMessage);
+            fetchProducts();
+        }
+    }, [messages]);
+
     const handlePageChange = (page) => {
         if (page >= 0 && page < totalPages) {
             setCurrentPage(page);
@@ -91,7 +102,7 @@ const Products = () => {
         history.push('/admin/products/add');
     }
 
-    const handleProductDetail = (id, productName) => {
+    const handleProductDetail = (id) => {
         history.push(
             `/admin/products/${id}/detail`
         );
@@ -151,15 +162,6 @@ const Products = () => {
             setError('Lỗi khi tìm kiếm sản phẩm.');
             setLoading(false);
         }
-    };
-
-    // useEffect(() => {
-    //     fetchFilteredProducts();
-    // }, []);
-
-    const handleSearch = () => {
-        setCurrentPage(0);
-        fetchFilteredProducts();
     };
 
     const handleExportExcel = async () => {
@@ -269,46 +271,50 @@ const Products = () => {
 
     return (
         <div>
-            <div className="page-header">
-                <h3 className="page-title">
-                    Danh sách sản phẩm
-                </h3>
-            </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px" }}>
-                <div style={{ position: "relative", display: "inline-block" }}>
-                    <button type="button" className='btn btn-success' style={{ cursor: "pointer" }}>
-                        <i className='mdi mdi-file-import'></i>Nhập Excel
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+                <h2>Danh sách sản phẩm</h2>
+                <div>
+                    <button type="button" className="btn btn-gradient-primary btn-sm" onClick={handleAddProduct}>
+                        <i className='mdi mdi-plus'></i> Thêm mới
                     </button>
-                    <input
-                        type="file"
-                        accept=".xlsx, .xls"
-                        onChange={handleImportExcel}
-                        style={{
-                            position: "absolute",
-                            left: 0,
-                            top: 0,
-                            width: "100%",
-                            height: "100%",
-                            opacity: 0,
-                            cursor: "pointer"
-                        }}
-                    />
                 </div>
-                <button type="button" className='btn btn-success' onClick={handleExportExcel}>
+            </div>
+
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-start", marginBottom: 16 }}>
+                <div style={{ position: "relative", display: "inline-block", cursor: "pointer" }}>
+                    <button type="button" className='btn btn-gradient-success btn-sm'>
+                        <i className='mdi mdi-file-import'></i>Nhập Excel
+                        <input
+                            type="file"
+                            accept=".xlsx, .xls"
+                            onChange={handleImportExcel}
+                            style={{
+                                position: "absolute",
+                                left: 0,
+                                top: 0,
+                                width: "100%",
+                                height: "100%",
+                                opacity: 0,
+                                cursor: "pointer"
+                            }}
+                        />
+                    </button>
+
+                </div>
+
+                <button type="button" className='btn btn-gradient-success btn-sm' onClick={handleExportExcel}>
                     <i className='mdi mdi-file-export'></i>Xuất Excel
                 </button>
-                <button type="button" className="btn btn-gradient-primary float-right" onClick={handleAddProduct}>
-                    <i className='mdi mdi-plus'></i> Thêm mới
-                </button>
+            </div>
+            <div className='col-md-12'>
+                <SearchProducts filters={filters} setFilters={setFilters} fetchFilteredProducts={fetchFilteredProducts} />
             </div>
             <div className="row">
                 <div className="col-lg-12 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
                             <div className='row'>
-                                <div className='col-md-12'>
-                                    <SearchProducts filters={filters} setFilters={setFilters} onSearch={handleSearch} />
-                                </div>
+
                             </div>
                             <div style={{ marginBottom: '20px' }}></div>
                             {successMessage && (
