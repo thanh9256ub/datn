@@ -57,11 +57,14 @@ const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
 
   const handleDeliveryChange = () => {
     if (!delivery) {
-      if (!idOrder || totalAmount === 0) {
-        toast.warn("Vui lòng chọn hóa đơn trước khi bật giao hàng 🥰", toastOptions);
+      if (!idOrder ) {
+        toast.warn("Vui lòng chọn hóa đơn trước khi bật giao hàng ", toastOptions);
         return;
       }
-
+      if ( totalAmount === 0) {
+        toast.warn("Vui lòng thêm sản phẩm trước khi bật giao hàng ", toastOptions);
+        return;
+      }
       if (customer) {
         axios.get(`http://localhost:8080/address`)
           .then(response => {
