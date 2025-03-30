@@ -17,13 +17,15 @@ import com.example.datn.repository.PaymentTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class OrderService {
-    private static final AtomicInteger orderCounter = new AtomicInteger(1);
+
 
     @Autowired
     OrderRepository repository;
@@ -39,10 +41,11 @@ public class OrderService {
     PaymentTypeRepository paymentTypeRepository;
 
     public OrderResponse create(OrderRequest request) {
-        Integer number = orderCounter.getAndIncrement();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmssS");
+
 
         Order order = mapper.toOrder(request);
-        order.setOrderCode("HD" + number);
+        order.setOrderCode("HD" + sdf.format(new Date()));
 
         order.setEmployee(employeeRepository.findById(request.getEmployeeId()).get());
         Order created = repository.save(order);

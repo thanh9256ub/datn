@@ -9,6 +9,7 @@ import com.example.datn.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,8 @@ import java.util.UUID;
 import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -183,38 +186,87 @@ public class CounterController {
 
             String appId = "2554";
             String key1 = "sdngKKJmqEMzvh5QQcdD2A9XBSKUNaYn";
-            String key2 = "trMrHtvjo6myautxDUiAcYsVtaeQ8nhf";
 
-            String transactionId = UUID.randomUUID().toString();
+            // Generate unique transaction ID and timestamp
+            String orderId = payload.get("orderId").toString();
+            long appTime = System.currentTimeMillis(); // Current time in milliseconds
+            String appTransId = new java.text.SimpleDateFormat("yyMMdd").format(new java.util.Date()) + "_" + appTime; // Format: yymmdd_<timestamp>
             long amount = Long.parseLong(payload.get("amount").toString());
-            String description = payload.get("description").toString();
+            String description = "Demo - Thanh toan don hang #" + appTransId;
+
+            // Embed data and items
+            String embedData = "{\"promotioninfo\":\"\",\"merchantinfo\":\"embeddata123\"}";
+            String item = "[{\"itemid\":\"knb\",\"itemname\":\"kim nguyen bao\",\"itemprice\":198400,\"itemquantity\":1}]";
+            String bankCode = ""; // Add bank_code field
+            String callbackUrl = "https://yourdomain.com/callback"; // Optional callback URL
+            long expireDurationSeconds = 900; // Optional expiration duration (15 minutes)
 
             // Create data for HMAC
-            String data = appId + "|" + transactionId + "|" + amount + "|" + description;
+            String hmacInput = appId + "|" + appTransId + "|" + "demo" + "|" + amount + "|" + appTime + "|" + embedData + "|" + item;
             Mac mac = Mac.getInstance("HmacSHA256");
             SecretKeySpec secretKeySpec = new SecretKeySpec(key1.getBytes(), "HmacSHA256");
             mac.init(secretKeySpec);
-            String macData = Base64.getEncoder().encodeToString(mac.doFinal(data.getBytes()));
+            String macData = bytesToHex(mac.doFinal(hmacInput.getBytes()));
 
-            // Add bank_code and embed_data fields
-            String bankCode = ""; // Empty for now
-            String embedData = "{\"preferred_payment_method\": [\"vietqr\"]}";
+            // Prepare request payload for ZaloPay API
+            Map<String, Object> requestPayload = new HashMap<>();
+            requestPayload.put("app_id", appId);
+            requestPayload.put("app_user", "demo");
+            requestPayload.put("app_time", appTime);
+            requestPayload.put("amount", amount);
+            requestPayload.put("app_trans_id", appTransId);
+            requestPayload.put("description", description);
+            requestPayload.put("embed_data", embedData);
+            requestPayload.put("item", new ObjectMapper().readValue(item, List.class)); // Parse item as JSON array
+            requestPayload.put("bank_code", bankCode); // Include bank_code in the payload
+            requestPayload.put("key1", key1);
+            requestPayload.put("mac", macData);
 
-            // Generate QR code URL using qr_code and additional fields
-            String qrCodeUrl = "https://sandbox.zalopay.com.vn/qr?appid=" + appId + "&mac=" + macData + "&amount=" + amount + "&description=" + description + "&qr_code=true" +
-                               "&bank_code=" + bankCode + "&embed_data=" + embedData;
+            logger.info("ZaloPay API Request Payload: {}", requestPayload); // Log the request payload
 
-            logger.info("Generated ZaloPay QR Code URL: {}", qrCodeUrl); // Log the generated QR code URL
+            // Call ZaloPay API
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("qrCodeUrl", qrCodeUrl);
-            response.put("transactionId", transactionId);
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestPayload, headers);
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    "https://sb-openapi.zalopay.vn/v2/create",
+                    request,
+                    Map.class
+            );
 
-            return ResponseEntity.ok(response);
+            // Extract order_url from ZaloPay API response
+            Map<String, Object> responseBody = response.getBody();
+            logger.info("ZaloPay API Response: {}", responseBody); // Log the API response
+
+            if (responseBody != null && responseBody.containsKey("order_url")) {
+                String orderUrl = responseBody.get("order_url").toString();
+                logger.info("Generated ZaloPay Order URL: {}", orderUrl); // Log the generated order URL
+
+                Map<String, Object> responseMap = new HashMap<>();
+                responseMap.put("order_url", orderUrl);
+                responseMap.put("transactionId", appTransId);
+
+                return ResponseEntity.ok(responseMap);
+            } else {
+                logger.error("ZaloPay API did not return an order_url: {}", responseBody);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating ZaloPay payment: " + responseBody);
+            }
         } catch (Exception e) {
             logger.error("Error generating ZaloPay payment", e); // Log the error
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating ZaloPay payment");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating ZaloPay payment: " + e.getMessage());
         }
+    }
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) hexString.append('0');
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 
     @GetMapping("/zalopay/check-payment-status")
@@ -228,6 +280,29 @@ public class CounterController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error checking ZaloPay payment status");
+        }
+    }
+
+    @PostMapping("/casso/transactions")
+    public ResponseEntity<?> fetchCassoTransactions() {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Apikey AK_CS.2cb7a1d00c7e11f097089522635f3f80.vKo3BAFDtz8c3vnVSliZ9KKQ2mrvLufagmFwVu9mSmKHUlQmzLgmEzybGLns1tYUm1lX7DVn");
+
+            HttpEntity<String> request = new HttpEntity<>(headers);
+            String url = "https://oauth.casso.vn/v2/transactions";
+
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, request, Map.class);
+
+            // Extract records from the response
+            //List<Map<String, Object>> records = (List<Map<String, Object>>) response;
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error fetching transactions from Casso.vn", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching transactions from Casso.vn: " + e.getMessage());
         }
     }
 
