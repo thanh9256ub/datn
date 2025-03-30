@@ -1,18 +1,24 @@
 package com.example.datn.controller;
 
-import com.example.datn.dto.request.AuthenticationRequest;
+import com.example.datn.dto.request.ChangePasswordRequest;
 import com.example.datn.dto.request.EmployeeRequest;
+import com.example.datn.dto.request.ForgotPasswordRequest;
 import com.example.datn.dto.response.ApiPagingResponse;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.EmployeeResponse;
 import com.example.datn.repository.EmployeeRepository;
+import com.example.datn.service.AuthenticationService;
 import com.example.datn.service.EmployeeService;
+import com.nimbusds.jose.JOSEException;
 import jakarta.validation.Valid;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.security.sasl.AuthenticationException;
+import java.text.ParseException;
 import java.util.List;
 
 
@@ -26,6 +32,9 @@ public class EmployeeController {
 
     @Autowired
     EmployeeRepository employeeRepository;
+
+    @Autowired
+    AuthenticationService authenticationService;
 
     @PostMapping("add")
     public ResponseEntity<ApiResponse<EmployeeResponse>> addEmployee(@Valid @RequestBody EmployeeRequest employeeRequest) {
@@ -101,4 +110,23 @@ public class EmployeeController {
 
         return ResponseEntity.ok(apiResponse);
     }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<?>> changePassword(
+            @RequestHeader("Authorization") String bearerToken,
+            @RequestBody ChangePasswordRequest changePasswordRequest)
+            throws AuthenticationException, ParseException, JOSEException {
+        String token = (StringUtils.isNotBlank(bearerToken) && bearerToken.startsWith("Bearer "))
+                ? bearerToken.substring(7)
+                : StringUtils.EMPTY;
+        if (StringUtils.isBlank(token))
+            throw new AuthenticationException("Authentication failed");
+        return authenticationService.changePassword(token, changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<?>> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) throws AuthenticationException {
+        return authenticationService.forgotPassword(forgotPasswordRequest.getEmail());
+    }
+
 }

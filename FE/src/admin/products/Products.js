@@ -168,11 +168,13 @@ const Products = () => {
                     Danh sách sản phẩm
                 </h3>
             </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px" }}>
-                <button type="button" className="btn btn-gradient-primary float-right" onClick={handleAddProduct}>
-                    <i className='mdi mdi-plus'></i> Thêm mới
-                </button>
-            </div>
+            {localStorage.getItem("role") === "ADMIN" &&
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px" }}>
+                    <button type="button" className="btn btn-gradient-primary float-right" onClick={handleAddProduct}>
+                        <i className='mdi mdi-plus'></i> Thêm mới
+                    </button>
+                </div>
+            }
             <div className="row">
                 <div className="col-lg-12 grid-margin stretch-card">
                     <div className="card">

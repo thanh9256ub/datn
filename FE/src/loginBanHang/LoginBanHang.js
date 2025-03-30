@@ -77,6 +77,14 @@ const LoginBanHang = () => {
       setLoading(false);
     })
   };
+
+  
+ const handleForgotPassword = (e) => {
+    e.preventDefault();
+    window.location.href = '/quen-mat-khau';
+}
+
+
   return (
     <div>
       {loading && (
@@ -96,18 +104,19 @@ const LoginBanHang = () => {
               <h4>Hello!</h4>
               <h6 className="font-weight-light">Sign in to continue.</h6>
               <Form className="pt-3">
+              <Form.Label>Tên đăng nhập</Form.Label>
                 <Form.Group className="d-flex search-field">
                   <Form.Control type="email" placeholder="Username" size="lg" className="h-auto"
                     onChange={(e) => setUsername(e.target.value)} />
                 </Form.Group>
-                {usernameError && <p className="text-danger">{usernameError}</p>} {/* Hiển thị lỗi username */}
+                {usernameError && <p style={{ color:"red"}}>{usernameError}</p>} {/* Hiển thị lỗi username */}
 
-
+                <Form.Label>Mật khẩu</Form.Label>
                 <Form.Group className="d-flex search-field">
                   <Form.Control type="password" placeholder="Password" size="lg" className="h-auto"
                     onChange={(e) => setPassword(e.target.value)} />
                 </Form.Group>
-                {passwordError && <p className="text-danger">{passwordError}</p>} {/* Hiển thị lỗi password */}
+                {passwordError && <p style={{color: "red"}}>{passwordError}</p>} {/* Hiển thị lỗi password */}
 
                 <div className="mt-3">
                   {/* <Link className="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" to="/dashboard" >SIGN IN</Link> */}
@@ -126,7 +135,7 @@ const LoginBanHang = () => {
                       Keep me signed in
                     </label>
                   </div>
-                  <a href="!#" onClick={event => event.preventDefault()} className="auth-link text-black">Forgot password?</a>
+                  <a href='' onClick={handleForgotPassword} className="auth-link text-black">Forgot password?</a>
                 </div>
                 <div className="mb-2">
                 </div>

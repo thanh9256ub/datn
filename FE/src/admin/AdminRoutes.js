@@ -65,11 +65,11 @@ class AdminRoutes extends Component {
     return (
       <Suspense fallback={<Spinner />}>
         <Switch>
-          <Route exact path="/admin/dashboard" component={Dashboard} />
+          <ProtectedRoute exact path="/admin/dashboard" component={Dashboard} />
 
-          <Route exact path="/admin/basic-ui/buttons" component={Buttons} />
-          <Route exact path="/admin/basic-ui/dropdowns" component={Dropdowns} />
-          <Route exact path="/admin/basic-ui/typography" component={Typography} />
+          <ProtectedRoute exact path="/admin/basic-ui/buttons" component={Buttons} />
+          <ProtectedRoute exact path="/admin/basic-ui/dropdowns" component={Dropdowns} />
+          <ProtectedRoute exact path="/admin/basic-ui/typography" component={Typography} />
 
           <Route exact path="/admin/form-Elements/basic-elements" component={BasicElements} />
 

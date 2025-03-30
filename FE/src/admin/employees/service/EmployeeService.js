@@ -64,6 +64,8 @@ export const updateEmployeeStatus = async (id) => {
     return response.data
 }
 
+
+
 export const uploadImageToCloudinary = async (imageFile) => {
     const formData = new FormData();
     formData.append("file", imageFile);
