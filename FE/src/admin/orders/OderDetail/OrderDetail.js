@@ -1,32 +1,42 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import { Card, Table, Button, Row, Col, Toast } from 'react-bootstrap';
+import { Card, Table, Button, Row, Col, Toast, Modal, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faClock, faBoxOpen, faTruck, faHome, faCheckCircle, faTimesCircle, faPrint, faEdit } from '@fortawesome/free-solid-svg-icons';
-import { fetchOrderDetailsByOrderId, updateOrderStatus } from '../OrderService/orderService';
+import { faArrowLeft, faClock, faBoxOpen, faTruck, faHome, faCheckCircle, faTimesCircle, faPrint, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { fetchOrderDetailsByOrderId, updateOrderStatus, updateCustomerInfo } from '../OrderService/orderService';
 import { Image } from 'react-bootstrap';
-
+import CustomerInfo from './CustomerInfo';
 const OrderDetail = () => {
     const location = useLocation();
     const { orderId } = useParams();
-    console.log('Order ID from useParams:', orderId);
     const [orderDetails, setOrderDetails] = useState([]);
     const [order, setOrder] = useState(location.state?.order);
+    console.log("===order===", order);
+
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
+    const [showCancelModal, setShowCancelModal] = useState(false);
 
     useEffect(() => {
         const getOrderDetails = async () => {
             try {
                 const response = await fetchOrderDetailsByOrderId(orderId);
-                console.log('Fetched Order Details:', response); // Log dữ liệu sau khi gọi API
-                // Đảm bảo response là mảng
-                const details = Array.isArray(response) ? response : [response];
-                setOrderDetails(details);
+                console.log('API response:', response); // Kiểm tra cấu trúc dữ liệu
+
+                if (response && response.length > 0) {
+                    const orderData = response[0].order;
+                    console.log('Order data:', orderData); // Kiểm tra đối tượng order
+
+                    if (orderData) {
+                        setOrder(orderData);
+                        setOrderDetails(response);
+                    }
+                }
             } catch (error) {
-                console.error('Error fetching order details:', error);
+                console.error('Error:', error);
             }
         };
+
         getOrderDetails();
     }, [orderId]);
 
@@ -37,26 +47,88 @@ const OrderDetail = () => {
             </div>
         );
     }
+    const handleCustomerUpdate = async (updatedCustomer) => {
+        try {
+            console.log('Data being sent:', updatedCustomer);
 
+            const response = await updateCustomerInfo(orderId, {
+                customerName: updatedCustomer.customerName,
+                phone: updatedCustomer.phone,
+                address: updatedCustomer.address
+            });
+
+            console.log('Raw response from server:', response);
+
+            // Cập nhật state mà không cần reload
+            setOrder(prev => ({
+                ...prev,
+                customerName: updatedCustomer.customerName,
+                phone: updatedCustomer.phone,
+                address: updatedCustomer.address
+            }));
+
+            // Cập nhật orderDetails nếu cần
+            setOrderDetails(prev => prev.map(item => ({
+                ...item,
+                order: {
+                    ...item.order,
+                    customerName: updatedCustomer.customerName,
+                    phone: updatedCustomer.phone,
+                    address: updatedCustomer.address
+                }
+            })));
+
+            showNotification("Cập nhật thông tin thành công!");
+            return response;
+        } catch (error) {
+            console.error('Update failed:', {
+                error: error.response?.data || error.message,
+                request: { orderId, updatedCustomer }
+            });
+            showNotification(`Lỗi cập nhật: ${error.message}`);
+            throw error;
+        }
+    };
     const showNotification = (message) => {
         setToastMessage(message);
         setShowToast(true);
     };
 
-    const getNextStatus = (currentStatus) => {
-        const statusFlow = [
-            { id: 1, name: "Chờ tiếp nhận" },
-            { id: 2, name: "Chờ lấy hàng" },
-            { id: 3, name: "Chờ vận chuyển" },
-            { id: 4, name: "Đang vận chuyển" },
-            { id: 5, name: "Đã giao" },
-            { id: 6, name: "Hoàn tất" },
-            { id: 7, name: "Đã hủy" },
-        ];
-        const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
-        return currentIndex < statusFlow.length - 1 ? statusFlow[currentIndex + 1].id : currentStatus;
+    const isCounterOrderWithCashPayment = () => {
+        return order.orderType === 0 && order.paymentType.paymentTypeName === "Trực tiếp";
     };
 
+    const getNextStatus = (currentStatus) => {
+        if (isCounterOrderWithCashPayment()) {
+            // Đơn tại quầy thanh toán trực tiếp - 3 trạng thái
+            const statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận" },
+                { id: 2, name: "Đã tiếp nhận" },
+                { id: 3, name: "Hoàn tất" },
+            ];
+            const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
+            // Nếu đã ở trạng thái cuối (Hoàn tất), không chuyển nữa
+            return currentIndex < statusFlow.length - 1 ? statusFlow[currentIndex + 1].id : currentStatus;
+        } else {
+            // Các loại đơn khác - 7 trạng thái
+            const statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận" },
+                { id: 2, name: "Chờ lấy hàng" },
+                { id: 3, name: "Chờ vận chuyển" },
+                { id: 4, name: "Đang vận chuyển" },
+                { id: 5, name: "Đã giao" },
+                { id: 6, name: "Hoàn tất" },
+            ];
+            const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
+            // Nếu đã ở trạng thái cuối (Hoàn tất), không chuyển nữa
+            return currentIndex < statusFlow.length - 1 ? statusFlow[currentIndex + 1].id : currentStatus;
+        }
+    };
+    const getOrderTypeName = (orderType) => {
+        return orderType === 0
+            ? { name: "Tại quầy", color: "#118ab2" }
+            : { name: "Đơn online", color: "#4caf50" };
+    };
     const handleConfirm = async () => {
         const nextStatus = getNextStatus(order.status);
         if (nextStatus === order.status) {
@@ -65,15 +137,20 @@ const OrderDetail = () => {
         }
 
         try {
-            await updateOrderStatus(order.id, nextStatus);
-            setOrder(prev => ({ ...prev, status: nextStatus }));
+            const updateResponse = await updateOrderStatus(order.id, nextStatus);
+            console.log('Update Response:', updateResponse);
+
+            // Sau khi cập nhật trạng thái, bạn cần lấy lại chi tiết đơn hàng
+            const updatedDetails = await fetchOrderDetailsByOrderId(orderId);
+            setOrderDetails(updatedDetails);
+            setOrder(updatedDetails[0]?.order);  // Cập nhật lại thông tin trạng thái cho order
+
             showNotification("Cập nhật trạng thái thành công!");
         } catch (error) {
-            console.error('Error updating order status:', error);
-            showNotification("Có lỗi xảy ra khi cập nhật trạng thái.");
+            console.error('Error in handleConfirm:', error.response?.data || error.message);
+            showNotification(`Có lỗi xảy ra khi cập nhật trạng thái: ${error.response?.data?.data || error.message}`);
         }
     };
-
     const handleUpdateCustomerInfo = () => {
         showNotification("Đã gửi yêu cầu cập nhật thông tin khách hàng!");
     };
@@ -134,15 +211,29 @@ const OrderDetail = () => {
     };
 
     const StatusTimeline = ({ status }) => {
-        const statusFlow = [
-            { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
-            { id: 2, name: "Chờ lấy hàng", icon: faBoxOpen, color: "#ffd700" },
-            { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
-            { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
-            { id: 5, name: "Đã giao", icon: faHome, color: "#4caf50" },
-            { id: 6, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
-            { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
-        ];
+        let statusFlow;
+
+        if (isCounterOrderWithCashPayment()) {
+            // Timeline cho đơn tại quầy thanh toán trực tiếp
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
+                { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
+                { id: 3, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+            ];
+        } else {
+            // Timeline cho các loại đơn khác
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
+                { id: 2, name: "Chờ lấy hàng", icon: faBoxOpen, color: "#ffd700" },
+                { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
+                { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
+                { id: 5, name: "Đã giao", icon: faHome, color: "#4caf50" },
+                { id: 6, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+            ];
+        }
+
         const currentIndex = statusFlow.findIndex(s => s.id === status);
         const visibleStatuses = statusFlow.slice(0, currentIndex + 1);
 
@@ -163,16 +254,37 @@ const OrderDetail = () => {
         );
     };
 
-    const getStatusName = (statusId) => {
-        const statusFlow = [
-            { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
-            { id: 2, name: "Chờ lấy hàng", color: "#ffd700" },
-            { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
-            { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
-            { id: 5, name: "Đã giao", color: "#4caf50" },
-            { id: 6, name: "Hoàn tất", color: "#4caf50" },
-            { id: 7, name: "Đã hủy", color: "#ef476f" },
-        ];
+    const canCancelOrder = () => {
+        if (isCounterOrderWithCashPayment()) {
+            // Đơn tại quầy thanh toán trực tiếp: chỉ hủy khi chờ tiếp nhận
+            return order.status === 1;
+        } else {
+            // Các đơn khác: hủy trước khi giao hàng
+            return order.status < 5;
+        }
+    };
+    const getStatusName = (statusId, orderType) => {
+        let statusFlow;
+
+        if (orderType === 0) { // Đơn tại quầy
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
+                { id: 3, name: "Hoàn tất", color: "#4caf50" },
+                { id: 7, name: "Đã hủy", color: "#ef476f" }, // Đổi id từ 4 thành 7 để đồng bộ với timeline
+            ];
+        } else { // Đơn online
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 2, name: "Chờ lấy hàng", color: "#ffd700" },
+                { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
+                { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
+                { id: 5, name: "Đã giao", color: "#4caf50" },
+                { id: 6, name: "Hoàn tất", color: "#4caf50" },
+                { id: 7, name: "Đã hủy", color: "#ef476f" },
+            ];
+        }
+
         const status = statusFlow.find(s => s.id === statusId);
         return status ? { name: status.name, color: status.color } : { name: "Không xác định", color: "#6c757d" };
     };
@@ -192,7 +304,7 @@ const OrderDetail = () => {
         return productsTotal + order.shippingFee - order.discountValue;
     };
 
-    const statusInfo = getStatusName(order.status);
+    const statusInfo = getStatusName(order.status, order.orderType);
     const paymentStatusInfo = getPaymentStatusName(order.paymentStatus);
 
     return (
@@ -216,7 +328,7 @@ const OrderDetail = () => {
                         <Card.Body>
                             <StatusTimeline status={order.status} />
                             <div className="d-flex gap-2 mt-3">
-                                {order.status !== 6 && (
+                                {order.status !== 6 && order.status !== 7 && (
                                     <Button variant="primary" onClick={handleConfirm}>
                                         Xác nhận
                                     </Button>
@@ -229,6 +341,16 @@ const OrderDetail = () => {
                                     <FontAwesomeIcon icon={faPrint} className="me-2" />
                                     In hóa đơn
                                 </Button>
+                                {canCancelOrder() && (
+                                    <Button
+                                        variant="danger"
+                                        onClick={() => setShowCancelModal(true)}
+                                        className="custom-hover-button"
+                                    >
+                                        <FontAwesomeIcon icon={faTrash} className="me-2" />
+                                        Hủy đơn hàng
+                                    </Button>
+                                )}
                             </div>
                         </Card.Body>
                     </Card>
@@ -238,26 +360,16 @@ const OrderDetail = () => {
             <Row className="g-4">
                 {/* Thông tin khách hàng */}
                 <Col md={6}>
-                    <Card className="shadow-sm h-100 bg-white border border-light">
-                        <Card.Header className="bg-white border-bottom d-flex justify-content-between align-items-center">
-                            <h5 className="mb-0">Thông tin khách hàng</h5>
-                            <Button
-                                variant="light"
-                                size="sm"
-                                onClick={handleUpdateCustomerInfo}
-                                className="custom-hover-button"
-                            >
-                                <FontAwesomeIcon icon={faEdit} className="me-2" />
-                                Cập nhật
-                            </Button>
-                        </Card.Header>
-                        <Card.Body>
-                            <p><strong>Tên:</strong> {order.customerName}</p>
-                            <p><strong>Số điện thoại:</strong> {order.phone}</p>
-                            <p><strong>Địa chỉ:</strong> {order.address}</p>
-                            <p><strong>Email:</strong> {order.customer?.email || 'N/A'}</p>
-                        </Card.Body>
-                    </Card>
+                    <CustomerInfo
+                        customer={{
+                            customerName: order.customerName,
+                            phone: order.phone,
+                            address: order.address,
+                            customer: order.customer
+                        }}
+                        onUpdate={handleCustomerUpdate}
+                        showNotification={showNotification}
+                    />
                 </Col>
 
                 {/* Thông tin đơn hàng */}
@@ -269,20 +381,17 @@ const OrderDetail = () => {
                         <Card.Body>
                             <p><strong>Mã đơn:</strong> {order.orderCode}</p>
                             <p><strong>Ngày đặt:</strong> {new Date(order.createdAt).toLocaleString()}</p>
-                            <p><strong>Trạng thái:</strong> <span className="badge" style={{ backgroundColor: statusInfo.color, color: '#fff' }}>{statusInfo.name}</span></p>
                             <p>
-                                <strong>Trạng thái thanh toán:</strong>{" "}
-                                <span
-                                    className="badge"
-                                    style={{
-                                        backgroundColor: paymentStatusInfo.color,
-                                        color: "#fff",
-                                    }}
-                                >
-                                    {paymentStatusInfo.name}
+                                <strong>Loại đơn hàng:</strong>{" "}
+                                <span className="badge" style={{
+                                    backgroundColor: getOrderTypeName(order.orderType).color,
+                                    color: '#fff'
+                                }}>
+                                    {getOrderTypeName(order.orderType).name}
                                 </span>
                             </p>
-                            <p><strong>Loại thanh toán:</strong> <span className="badge bg-info text-white">{order.paymentType.paymentTypeName}</span></p>
+                            <p><strong>Trạng thái:</strong> <span className="badge" style={{ backgroundColor: statusInfo.color, color: '#fff' }}>{statusInfo.name}</span></p>
+                            <p><strong>Loại thanh toán:</strong> <span className="badge bg-info text-white">{order.paymentType?.paymentTypeName || 'Không xác định'}</span></p>
                             <p><strong>Phương thức thanh toán:</strong> <span className="badge bg-info text-white">{order.paymentMethod.paymentMethodName}</span></p>
                             <p><strong>Ghi chú:</strong> {order.note || 'Không có'}</p>
                         </Card.Body>

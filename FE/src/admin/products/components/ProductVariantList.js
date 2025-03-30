@@ -12,7 +12,6 @@ import SizeContainer from './SizeContainer';
 const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVariant, colors, sizes, handleVariantClick, refreshProductDetail }) => {
 
     const [showModalUpdate, setShowModalUpdate] = useState(false);
-    const [showModalAdd, setShowModalAdd] = useState(false);
     const [isSaving, setIsSaving] = useState(false)
     const [originalVariant, setOriginalVariant] = useState(null);
 
@@ -21,14 +20,6 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
             handleVariantClick(selectedVariant);
         }
     }, [selectedVariant]);
-
-    const handleShowModalAdd = () => {
-        setShowModalAdd(true);
-    }
-
-    const handleCloseModalAdd = () => {
-        setShowModalUpdate(false);
-    }
 
     const handleShowModalUpdate = (productDetail) => {
         setOriginalVariant({ ...productDetail });
@@ -110,14 +101,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
 
     return (
         <div>
-            <button
-                type="button"
-                className="btn btn-gradient-primary btn-sm float-right"
-                onClick={handleShowModalAdd}
-            >
-                <i className='mdi mdi-plus'></i>Thêm biến thể
-            </button>
-            <div className='table-responsive' style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            <div className='table-responsive' style={{ maxHeight: '200px', overflowY: 'auto' }}>
                 <table className='table'>
                     <thead>
                         <tr>
@@ -165,7 +149,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
                     </tbody>
                 </table>
             </div>
-            {/* Modal của update variant */}
+
             <Modal show={showModalUpdate} onHide={handleCloseModal}>
                 <Modal.Header closeButton>
                     <Modal.Title>Cập nhật biến thể</Modal.Title>
@@ -224,66 +208,6 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
                                         label: size.sizeName,
                                     }))}
                                 />
-                            </Form.Group>
-                            <Form.Group>
-                                <Form.Label>
-                                    <strong>Số lượng:</strong>
-                                </Form.Label>
-                                <Form.Control
-                                    type="number"
-                                    min={0}
-                                    value={selectedVariant.quantity}
-                                    onChange={(e) => {
-                                        const newValue = e.target.value === "" ? "" : Number(e.target.value);
-                                        setSelectedVariant({ ...selectedVariant, quantity: newValue });
-                                    }}
-                                />
-                            </Form.Group>
-                            <Form.Group>
-                                <Form.Label>
-                                    <strong>Giá:</strong>
-                                </Form.Label>
-                                <Form.Control
-                                    type="number"
-                                    value={selectedVariant.price}
-                                    onChange={(e) =>
-                                        setSelectedVariant({ ...selectedVariant, price: e.target.value })
-                                    }
-                                />
-                            </Form.Group>
-                        </Form>
-                    )}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseModal}>Đóng</Button>
-                    <Button
-                        variant="primary"
-                        onClick={handleUpdateVariant}
-                        disabled={isSaving}
-                    >
-                        {isSaving ? "Đang lưu..." : "Sửa"}</Button>
-                </Modal.Footer>
-            </Modal>
-            {/* Modal của add variant */}
-            <Modal show={showModalAdd} onHide={handleCloseModalAdd}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Thêm biến thể</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    {selectedVariant && (
-                        <Form>
-                            <Form.Group>
-                                <Form.Label>
-                                    <strong>Màu sắc:</strong>
-                                </Form.Label>
-                                <ColorContainer />
-                            </Form.Group>
-
-                            <Form.Group>
-                                <Form.Label>
-                                    <strong>Kích cỡ:</strong>
-                                </Form.Label>
-                                <SizeContainer />
                             </Form.Group>
                             <Form.Group>
                                 <Form.Label>

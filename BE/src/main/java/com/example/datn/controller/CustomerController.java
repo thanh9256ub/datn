@@ -42,14 +42,14 @@ public class CustomerController {
     public ResponseEntity<ApiResponse<CustomerResponse>> addCustomer(@Valid @RequestBody CustomerRequest customerRequest) {
 
         CustomerResponse customerResponse = customerService.creatCustomer(customerRequest);
-            ApiResponse<CustomerResponse> response = new ApiResponse<>(
-                    HttpStatus.CREATED.value(),
-                    "Created successfully",
-                    customerResponse
-            );
+        ApiResponse<CustomerResponse> response = new ApiResponse<>(
+                HttpStatus.CREATED.value(),
+                "Created successfully",
+                customerResponse
+        );
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
 
     @GetMapping

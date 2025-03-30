@@ -4,7 +4,9 @@
   "private": true,
   "dependencies": {
     "@mdi/font": "^4.2.95",
+    "@stomp/stompjs": "^6.1.2",
     "ajv": "^8.17.1",
+    "antd": "^5.24.5",
     "axios": "^1.7.9",
     "bootstrap": "^4.6.0",
     "bosket": "^0.2.3",
@@ -72,7 +74,7 @@
     "web-vitals": "^4.2.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": " react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

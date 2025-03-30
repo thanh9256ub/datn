@@ -4,14 +4,15 @@ import { toast } from "react-toastify";
 import axios from 'axios'; // Add this import
 import { fetchProvinces, fetchDistricts, fetchWards, fetchCustomerAddresses, addCustomerAddress } from '../api'; // Updated import
 import { toastOptions } from '../constants'; // Import constants
-import Select from 'react-select';
-const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, setCustomerInfo, idOrder, totalAmount,setSelectedProvince,selectedProvince,setSelectedDistrict,selectedDistrict,setSelectedWard,selectedWard }) => {
+
+import {  addCustomer } from '../api';
+const DeliveryInfo = ({ delivery, setDelivery, onSave, customer,setCustomer, customerInfo, setCustomerInfo, idOrder, totalAmount,setSelectedProvince,selectedProvince,setSelectedDistrict,selectedDistrict,setSelectedWard,selectedWard }) => {
   const [tempDelivery, setTempDelivery] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
-
+const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
 
   useEffect(() => {
     fetchProvinces()
@@ -56,11 +57,14 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
 
   const handleDeliveryChange = () => {
     if (!delivery) {
-      if (!idOrder || totalAmount === 0) {
-        toast.warn("Vui lòng chọn hóa đơn trước khi bật giao hàng 🥰", toastOptions);
+      if (!idOrder ) {
+        toast.warn("Vui lòng chọn hóa đơn trước khi bật giao hàng ", toastOptions);
         return;
       }
-
+      if ( totalAmount === 0) {
+        toast.warn("Vui lòng thêm sản phẩm trước khi bật giao hàng ", toastOptions);
+        return;
+      }
       if (customer) {
         axios.get(`http://localhost:8080/address`)
           .then(response => {
@@ -156,72 +160,87 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
     setDelivery(false);
   };
 
-  const handleSaveModal = () => {
-
+  const handleSaveModal = async () => {
     // Validation
     if (!customerInfo.name.trim()) {
       toast.error("Họ tên không được để trống 🥰", toastOptions);
       return;
     }
-
+  
     if (!customerInfo.phone.trim() || !/^\d+$/.test(customerInfo.phone)) {
       toast.error("Số điện thoại không hợp lệ 🥰", toastOptions);
       return;
     }
-
+  
     if (!selectedProvince) {
       toast.error("Vui lòng chọn tỉnh/thành phố 🥰", toastOptions);
       return;
     }
-
+  
     if (!selectedDistrict) {
       toast.error("Vui lòng chọn quận/huyện 🥰", toastOptions);
       return;
     }
-
+  
     if (!selectedWard) {
       toast.error("Vui lòng chọn phường/xã 🥰", toastOptions);
       return;
     }
+  
     if (!customerInfo.address.trim()) {
       toast.error("Địa chỉ cụ thể không được để trống 🥰", toastOptions);
       return;
     }
-
+  
     const updatedCustomerInfo = {
-
       ...customerInfo,
       province: selectedProvince,
       district: selectedDistrict,
       ward: selectedWard,
     };
-
-    if (tempDelivery) {
-      const addressPayload = {
-        city: customerInfo.province,
-        district: customerInfo.district,
-        ward: customerInfo.ward,
-        detailedAddress: customerInfo.address,
-        customerId: customer.id,
-        status: 1,
-      };
   
-      addCustomerAddress(addressPayload)
-        .then(() => {
-          toast.success("Địa chỉ đã được lưu thành công 🥰", toastOptions);
-        })
-        .catch((error) => {
-          console.error("Lỗi khi lưu địa chỉ:", error);
-          toast.error("Lỗi khi lưu địa chỉ 🥰", toastOptions);
-        });
+    try {
+      if (tempDelivery) {
+        let addressPayload = {};
+        if (!customer) {
+          const response = await addCustomer(newCustomer);
+          setCustomer(response.data.data);
+          console.log(response.data.data.id);
+          addressPayload = {
+            city: customerInfo.province,
+            district: customerInfo.district,
+            ward: customerInfo.ward,
+            detailedAddress: customerInfo.address,
+            customerId: response.data.data.id,
+            status: 1,
+            defaultAddress:true,
+          };
+        } else {
+          addressPayload = {
+            city: customerInfo.province,
+            district: customerInfo.district,
+            ward: customerInfo.ward,
+            detailedAddress: customerInfo.address,
+            customerId: customer.id,
+            status: 1,
+            defaultAddress:true,
+          };
+        }
+  
+        await addCustomerAddress(addressPayload);
+        toast.success("Địa chỉ đã được lưu thành công 🥰", toastOptions);
+      }
+  
+      toast.success("Chuyển sang giao hàng thành công 🥰", toastOptions);
+      setDelivery(true);
+      setShowModal(false);
+      onSave(updatedCustomerInfo);
+    } catch (error) {
+      console.error("Lỗi khi lưu địa chỉ hoặc khách hàng:", error);
+      toast.error("Lỗi khi lưu địa chỉ hoặc khách hàng 🥲", toastOptions);
     }
-
-    toast.success("Chuyển sang giao hàng thành công 🥰", toastOptions);
-    setDelivery(true);
-    setShowModal(false);
-    onSave(updatedCustomerInfo);
-
   };
+  
 
   return (
     <>
@@ -255,8 +274,10 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
               <Col sm={8}>
                 <Form.Control
                   type="text"
-                  value={customerInfo.name}
-                  onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
+                  value={customerInfo.name?customerInfo.name:""}
+                  onChange={(e) =>{
+                    setNewCustomer({ ...newCustomer, fullName: e.target.value });
+                    setCustomerInfo({ ...customerInfo, name: e.target.value })} }
                 />
               </Col>
             </Row>
@@ -269,7 +290,8 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, customerInfo, s
                 <Form.Control
                   type="text"
                   value={customerInfo.phone}
-                  onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
+                  onChange={(e) => {setNewCustomer({ ...newCustomer, phone: e.target.value });
+                    setCustomerInfo({ ...customerInfo, phone: e.target.value })}}
                 />
               </Col>
             </Row>

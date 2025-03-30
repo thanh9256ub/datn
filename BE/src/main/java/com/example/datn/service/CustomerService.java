@@ -85,6 +85,9 @@ public class CustomerService {
         Customer customer = customerMapper.toCustomer(customerRequest);
         customer.setCreatedAt(LocalDateTime.now().withNano(0));
         customer.setUpdatedAt(LocalDateTime.now().withNano(0));
+        customer.setGender(0);
+        customer.setStatus(1);
+        customer.setBirthDate(LocalDate.now());
         customer.setRole(roleRepository.findById(1).get());
         customer.setCustomerCode("KH" + (i + 1));
         Customer created = customerRepository.save(customer);
