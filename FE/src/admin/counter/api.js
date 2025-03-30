@@ -8,6 +8,7 @@ export const VIETTEL_POST_API = 'https://partner.viettelpost.vn/v2/categories';
 export const fetchCustomers = () => axios.get(`${API_BASE_URL}/customer/list`);
 export const fetchCustomerAddresses = () => axios.get(`${API_BASE_URL}/address`);
 export const fetchProvinces = () => axios.get(`${API_BASE_URL}/counter/provinces`);
+
 export const fetchDistricts = (provinceId) => axios.get(`${API_BASE_URL}/counter/districts?provinceId=${provinceId}`);
 export const fetchWards = (districtId) => axios.get(`${API_BASE_URL}/counter/wards?districtId=${districtId}`);
 export const fetchPromoCodes = () => axios.get(`${API_BASE_URL}/voucher/list`);
@@ -50,3 +51,14 @@ export const generateZaloPayPayment = (body) =>
 
 export const checkZaloPayPaymentStatus = (transactionId) =>
   axios.get(`${API_BASE_URL}/counter/zalopay/check-payment-status?transactionId=${transactionId}`);
+
+export const handleCassoWebhook = () =>
+  axios.post(`https://oauth.casso.vn/v2/transactions`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Apikey AK_CS.2cb7a1d00c7e11f097089522635f3f80.vKo3BAFDtz8c3vnVSliZ9KKQ2mrvLufagmFwVu9mSmKHUlQmzLgmEzybGLns1tYUm1lX7DVn',
+    },
+  });
+
+export const fetchCassoTransactions = () =>
+  axios.post(`${API_BASE_URL}/counter/casso/transactions`);
