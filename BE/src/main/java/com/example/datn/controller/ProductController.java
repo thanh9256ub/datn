@@ -205,31 +205,31 @@ public class ProductController {
 //        }
 
         @PostMapping("/export-excel")
-        public void exportToExcel(@RequestBody ExportExcelRequest request, HttpServletResponse response) throws IOException {
-                // Lấy danh sách sản phẩm theo ID từ request
+        public void exportToExcel(
+                @RequestBody ExportExcelRequest request,
+                HttpServletResponse response) throws IOException {
+
                 List<Product> selectedProducts = service.getProductsByIds(request.getProductIds());
 
                 if (selectedProducts.isEmpty()) {
                         throw new RuntimeException("Không tìm thấy sản phẩm nào để xuất Excel!");
                 }
 
-                // Đặt header cho file Excel
                 response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                 response.setHeader("Content-Disposition", "attachment; filename=danh_sach_san_pham_xuat_excel.xlsx");
 
-                // Xuất file Excel
                 ExcelExporter excelExporter = new ExcelExporter(selectedProducts, productDetailRepository);
                 excelExporter.export(response);
         }
 
         @PostMapping("/import-excel")
-        public ResponseEntity<String> importProducts(@RequestParam("file") MultipartFile file) {
+        public ResponseEntity<?> importProducts(@RequestParam("file") MultipartFile file) {
                 try {
                         if (file.isEmpty()) {
                                 return ResponseEntity.badRequest().body("File không được để trống!");
                         }
-                        service.importProductsFromExcel(file);
-                        return ResponseEntity.ok("Import thành công!");
+
+                        return service.importProductsFromExcel(file);
                 } catch (IOException e) {
                         return ResponseEntity.status(500).body("Lỗi khi đọc file: " + e.getMessage());
                 } catch (Exception e) {

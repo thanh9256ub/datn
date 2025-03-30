@@ -111,4 +111,13 @@ public class AuthenticationService {
                 .valid(verified && expityTime.after(new Date()))
                 .build();
     }
+
+    public boolean introspectToken(SignedJWT signedJWT) throws JOSEException, ParseException {
+        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
+
+        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        boolean verified = signedJWT.verify(verifier);
+
+        return verified && expiryTime.after(new Date());
+    }
 }
