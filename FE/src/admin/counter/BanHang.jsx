@@ -72,7 +72,7 @@ const BanHang = () => {
   const fetchProducts = () => {
     axios.get('http://localhost:8080/product-detail')
       .then(response => {
-        const products = response.data.data.filter(product => product.quantity > 0);
+        const products = response.data.data.filter(product => product.quantity > 0&&product.status === 1 );
         setAvailableProducts(products);
       })
       .catch(error => console.error('Error fetching products:', error));
