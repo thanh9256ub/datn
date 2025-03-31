@@ -23,6 +23,8 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail,Int
 
     List<ProductDetail> findByProduct(Product product);
 
+    List<ProductDetail> findByProductIdIn(List<Integer> productIds);
+
     @Query("SELECT SUM(pd.quantity) FROM ProductDetail pd WHERE pd.product.id = :productId")
     Optional<Integer> sumQuantityByProduct(@Param("productId") Integer productId);
 }

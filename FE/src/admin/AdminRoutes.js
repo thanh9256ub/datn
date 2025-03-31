@@ -6,21 +6,14 @@ import { useAuth } from '../context/AuthContext';
 
 const Dashboard = lazy(() => import('./dashboard/Dashboard'));
 const Buttons = lazy(() => import('./basic-ui/Buttons'));
-
 const Dropdowns = lazy(() => import('./basic-ui/Dropdowns'));
 const Typography = lazy(() => import('./basic-ui/Typography'));
-
 const BasicElements = lazy(() => import('./form-elements/BasicElements'));
-
 const BasicTable = lazy(() => import('./tables/BasicTable'));
-
 const Mdi = lazy(() => import('./icons/Mdi'));
-
 const ChartJs = lazy(() => import('./charts/ChartJs'));
-
 const Error404 = lazy(() => import('./error-pages/Error404'));
 const Error500 = lazy(() => import('./error-pages/Error500'));
-
 const Login = lazy(() => import('./user-pages/Login'));
 const Register1 = lazy(() => import('./user-pages/Register'));
 const Lockscreen = lazy(() => import('./user-pages/Lockscreen'));
@@ -28,7 +21,7 @@ const Lockscreen = lazy(() => import('./user-pages/Lockscreen'));
 const BanHang = lazy(() => import('./counter/BanHang'));
 const Products = lazy(() => import('./products/Products'));
 const ProductDetail = lazy(() => import('./products/ProductDetail'));
-const InactiveProducts = lazy(() => import('./products/InactiveProducts'));
+const Bin = lazy(() => import('./products/Bin'));
 const Employees = lazy(() => import('./employees/Employees'));
 const Customers = lazy(() => import('./customers/Customers'));
 const Orders = lazy(() => import('./orders/Orders'));
@@ -95,7 +88,7 @@ class AdminRoutes extends Component {
           <ProtectedRoute exact path="/admin/products/:id/detail" component={ProductDetail} />
           <ProtectedRoute exact path="/admin/products/add" component={CreateProduct} />
           <ProtectedRoute exact path="/admin/products/edit/:id" component={UpdateProduct} />
-          <ProtectedRoute exact path="/admin/products/inactive" component={InactiveProducts} />
+          <ProtectedRoute exact path="/admin/products/bin" component={Bin} />
           <ProtectedRoute exact path="/admin/brands" component={Brands} />
           <ProtectedRoute exact path="/admin/categories" component={Categories} />
           <ProtectedRoute exact path="/admin/materials" component={Materials} />

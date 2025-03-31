@@ -29,4 +29,14 @@ public class ProductSpecification {
         return (root, query, cb) ->
                 status == null ? cb.conjunction() : cb.equal(root.get("status"), status);
     }
+
+    public static Specification<Product> statusNotTwo() {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.notEqual(root.get("status"), 2);
+    }
+
+    public static Specification<Product> hasStatusTwo() {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("status"), 2);
+    }
 }

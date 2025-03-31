@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -115,12 +116,43 @@ public class ProductService {
 //    }
 
     public Page<ProductResponse> getAll(Pageable pageable) {
-        Pageable sortedByIdDesc = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
-        return repository.findAll(sortedByIdDesc).map(mapper::toProductResponse);
+        Specification<Product> spec = Specification.where(ProductSpecification.statusNotTwo());
+
+        Pageable sortedByIdDesc = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by("id").descending()
+        );
+        return repository.findAll(spec, sortedByIdDesc).map(mapper::toProductResponse);
     }
 
     public List<ProductResponse> getList() {
         return mapper.toListProductResponse(repository.findAll());
+    }
+
+    public Page<ProductResponse> searchProducts(String name, Integer brandId, Integer categoryId, Integer materialId,
+                                                Integer status, Pageable pageable) {
+        Specification<Product> spec = Specification
+                .where(ProductSpecification.hasName(name))
+                .and(ProductSpecification.hasBrandId(brandId))
+                .and(ProductSpecification.hasCategoryId(categoryId))
+                .and(ProductSpecification.hasMaterialId(materialId))
+                .and(ProductSpecification.hasStatus(status))
+                .and(ProductSpecification.statusNotTwo());
+
+        Pageable sortedByIdDesc = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by("id").descending());
+
+        return repository.findAll(spec, sortedByIdDesc).map(mapper::toProductResponse);
+    }
+
+    public Page<ProductResponse> getBin(Pageable pageable) {
+        Specification<Product> spec = Specification.where(ProductSpecification.hasStatusTwo());
+
+        Pageable sortedByIdDesc = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by("id").descending());
+
+        return repository.findAll(spec, sortedByIdDesc).map(mapper::toProductResponse);
     }
 
     public ProductResponse getById(Integer id) {
@@ -160,20 +192,68 @@ public class ProductService {
         return mapper.toProductResponse(repository.save(product));
     }
 
-    public void deleteProduct(Integer id) {
-        repository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Product not found with ID: " + id));
-
-        repository.deleteById(id);
-    }
-
     public ProductResponse updateStatus(Integer productId, Integer status) {
         Product product = repository.findById(productId).orElseThrow(() -> new RuntimeException("Product not exist"));
 
         product.setStatus(status);
 
-        return mapper.toProductResponse(repository.save(product));
+        repository.save(product);
+
+        List<ProductDetail> productDetails = productDetailRepository.findByProductId(productId);
+
+        for (ProductDetail detail : productDetails) {
+            if (status == 2) {
+                detail.setStatus(2);
+            } else {
+                detail.setStatus(detail.getQuantity() > 0 ? 1 : 0);
+            }
+        }
+
+        productDetailRepository.saveAll(productDetails);
+
+        return mapper.toProductResponse(product);
     }
+
+    @Transactional
+    public List<ProductResponse> updateMultipleStatuses(List<Integer> productIds) {
+        List<Product> products = repository.findAllById(productIds);
+
+        if (products.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy sản phẩm nào với các ID đã cung cấp");
+        }
+
+        // Tìm tất cả ProductDetail cùng lúc để tránh query nhiều lần
+        List<ProductDetail> allDetails = productDetailRepository.findByProductIdIn(productIds);
+        Map<Integer, List<ProductDetail>> detailMap = allDetails.stream()
+                .collect(Collectors.groupingBy(detail -> detail.getProduct().getId()));
+
+        for (Product product : products) {
+            List<ProductDetail> productDetails = detailMap.getOrDefault(product.getId(), new ArrayList<>());
+
+            boolean allDetailsInactive = productDetails.stream().allMatch(d -> d.getStatus() == 2);
+
+            if (product.getStatus() != 2) {
+                product.setStatus(2);
+            } else {
+                product.setStatus((product.getTotalQuantity() > 0 && !allDetailsInactive) ? 1 : 0);
+            }
+
+            for (ProductDetail detail : productDetails) {
+                if (detail.getStatus() != 2) {
+                    detail.setStatus(2);
+                } else {
+                    detail.setStatus(detail.getQuantity() > 0 ? 1 : 0);
+                }
+            }
+        }
+
+        // Lưu tất cả thay đổi một lần để tối ưu hiệu suất
+        productDetailRepository.saveAll(allDetails);
+        repository.saveAll(products);
+
+        return mapper.toListProductResponse(products);
+    }
+
 
     // public List<ProductResponse> getActiveProducts(){
     //
@@ -188,18 +268,6 @@ public class ProductService {
     //
     // return mapper.toListProduct(productList);
     // }
-
-    public Page<ProductResponse> searchProducts(String name, Integer brandId, Integer categoryId, Integer materialId,
-                                                Integer status, Pageable pageable) {
-        Specification<Product> spec = Specification
-                .where(ProductSpecification.hasName(name))
-                .and(ProductSpecification.hasBrandId(brandId))
-                .and(ProductSpecification.hasCategoryId(categoryId))
-                .and(ProductSpecification.hasMaterialId(materialId))
-                .and(ProductSpecification.hasStatus(status));
-
-        return repository.findAll(spec, pageable).map(mapper::toProductResponse);
-    }
 
     private double getCellValueAsDouble(Cell cell) {
         if (cell == null) {
@@ -401,14 +469,12 @@ public class ProductService {
                 productDetail.setCreatedAt(LocalDateTime.now().withNano(0));
                 productDetail.setQr("");
             } else {
-                // Nếu đã có, cập nhật số lượng (cộng dồn)
                 productDetail.setQuantity(productDetail.getQuantity() + quantity);
                 productDetail.setStatus(productDetail.getQuantity() > 0 ? 1 : 0); // Nếu số lượng > 0, đặt trạng thái 1
             }
 
             productDetails.add(productDetail);
 
-            // ✅ Cập nhật tổng số lượng của Product
             productTotalQuantities.put(product, productTotalQuantities.getOrDefault(product, 0) + quantity);
         }
 

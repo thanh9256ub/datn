@@ -77,7 +77,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
         const updateData = {
             quantity: selectedVariant.quantity,
             price: selectedVariant.price,
-            status: selectedVariant.status,
+            status: selectedVariant.quantity > 0 ? 1 : 0,
             colorId: selectedVariant.color?.id,
             sizeId: selectedVariant.size?.id
         };
@@ -101,7 +101,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
 
     return (
         <div>
-            <div className='table-responsive' style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            <div className='table-responsive' style={{ height: '225px', overflowY: 'auto' }}>
                 <table className='table'>
                     <thead>
                         <tr>
