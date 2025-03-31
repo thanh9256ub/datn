@@ -217,7 +217,7 @@ const Employees = () => {
                 <div style={{ flex: 1, maxWidth: "300px" }}>
                     <InputGroup>
                         <Form.Control
-                            placeholder="Tìm kiếm..."
+                            placeholder="Mã, tên nhân viên....."
                             style={{
                                 border: "1px solid #ccc",
                                 borderRadius: "px",

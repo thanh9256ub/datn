@@ -17,6 +17,7 @@ import java.util.List;
 
 public class OrderDetailService {
 
+
     @Autowired
     private OrderDetailRepository repository;
 
@@ -102,7 +103,10 @@ public class OrderDetailService {
 
 
     }
-
+    public List<OrderDetailResponse> getOrderDetailsByOrderId(Integer orderId) {
+        List<OrderDetail> orderDetails = repository.findByOrderId(orderId);
+        return mapper.toListResponses(orderDetails);
+    }
     public OrderDetailResponse updateOrderDetail(Integer orderId, Integer quantity) {
         OrderDetail orderDetail = repository.findById(orderId).orElseThrow(() -> new RuntimeException("order not found"));
         orderDetail.setQuantity(quantity);
@@ -131,9 +135,9 @@ public class OrderDetailService {
     public void updateOrderDetail (Integer id) {
         for (OrderDetail orderDetail: repository.findAll() ) {
             if (orderDetail.getOrder().getId().equals(id)){
-              ProductDetail productDetail= orderDetail.getProductDetail();
-              productDetail.setQuantity(orderDetail.getQuantity()+orderDetail.getProductDetail().getQuantity());
-              productDetailRepository.save(productDetail) ;
+                ProductDetail productDetail= orderDetail.getProductDetail();
+                productDetail.setQuantity(orderDetail.getQuantity()+orderDetail.getProductDetail().getQuantity());
+                productDetailRepository.save(productDetail) ;
             }
         }
 

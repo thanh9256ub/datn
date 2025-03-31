@@ -36,11 +36,12 @@ public class CustomerController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+
     @PostMapping("add")
     public ResponseEntity<ApiResponse<CustomerResponse>> addCustomer(@Valid @RequestBody CustomerRequest customerRequest) {
 
         CustomerResponse customerResponse = customerService.creatCustomer(customerRequest);
-
         ApiResponse<CustomerResponse> response = new ApiResponse<>(
                 HttpStatus.CREATED.value(),
                 "Created successfully",
@@ -49,17 +50,21 @@ public class CustomerController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+
     @GetMapping
     public ResponseEntity<ApiPagingResponse<List<CustomerResponse>>> getAll(
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "page", defaultValue = "0") Integer page) {
 
-        int pageSize = 3;
+        int pageSize = 5;
 
         ApiPagingResponse<List<CustomerResponse>> response = customerService.getAll(search, page, pageSize);
 
         return ResponseEntity.ok(response);
     }
+
+
     @GetMapping("/list")
     public ResponseEntity<ApiResponse<List<CustomerResponse>>> getAll() {
 

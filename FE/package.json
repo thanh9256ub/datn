@@ -6,6 +6,7 @@
     "@mdi/font": "^4.2.95",
     "@stomp/stompjs": "^6.1.2",
     "ajv": "^8.17.1",
+    "antd": "^5.24.5",
     "axios": "^1.7.9",
     "bootstrap": "^4.6.0",
     "bosket": "^0.2.3",
