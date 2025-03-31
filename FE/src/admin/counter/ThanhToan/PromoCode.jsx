@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { fetchPromoCodes } from '../api'; // Correct the relative path
 import { toastOptions } from '../constants'; // Import constants
 
-const PromoCode = ({ promoCode, setPromo, totalAmount, idOrder }) => {
+const PromoCode = ({ promo, setPromo, totalAmount, idOrder }) => {
   const [isPromoModalVisible, setIsPromoModalVisible] = useState(false);
   const [promoCodes, setPromoCodes] = useState([]);
   
@@ -18,7 +18,7 @@ const PromoCode = ({ promoCode, setPromo, totalAmount, idOrder }) => {
           const discountB = b.discountType === 1 
             ? Math.min((totalAmount * b.discountValue) / 100, b.maxDiscountValue) 
             : b.discountValue;
-          return discountB - discountA; // Sort by highest applicable discount/
+          return discountB - discountA; // Sort by highest applicable discount
         });
         setPromoCodes(sortedPromoCodes);
       })
@@ -37,6 +37,7 @@ const PromoCode = ({ promoCode, setPromo, totalAmount, idOrder }) => {
 
   const handleSelectPromoCode = (promo) => {
     setPromo(promo);
+    
     setIsPromoModalVisible(false);
     toast.success("Chọn mã giảm giá thành công 🥰", toastOptions);
   };
@@ -47,7 +48,7 @@ const PromoCode = ({ promoCode, setPromo, totalAmount, idOrder }) => {
       <Row className="mb-3">
         <Col sm={12}>
           <InputGroup>
-            <Form.Control placeholder="Mã giảm giá" value={promoCode} readOnly />
+            <Form.Control placeholder="Mã giảm giá" value={promo.voucherCode||""} readOnly />
             <Button variant="primary" style={{ flex: "0 0 auto", padding: "6px 12px" }} onClick={handleShowPromoModal}>
               Chọn
             </Button>
@@ -78,9 +79,9 @@ const PromoCode = ({ promoCode, setPromo, totalAmount, idOrder }) => {
                 <tr key={index}>
                   <td>{promo.voucherCode}</td>
                   <td>{promo.voucherName}</td>
-                  <td>{promo.condition}</td>
+                  <td>{promo.minOrderValue}</td>
                   <td>
-                    {promo.discountValue} {promo.discountType=1?"%":"VNĐ"}
+                    {promo.discountValue} {promo.discountType===1?"%":"VNĐ"}
                   </td>
                   <td>{promo.quantity}</td>
                   <td>{promo.maxDiscountValue}</td>
@@ -89,7 +90,7 @@ const PromoCode = ({ promoCode, setPromo, totalAmount, idOrder }) => {
                       variant="primary" 
                       size="sm" 
                       onClick={() => handleSelectPromoCode(promo)} 
-                      disabled={totalAmount < promo.condition}
+                      disabled={totalAmount < promo.minOrderValue} // Fixed condition
                     >
                       Chọn
                     </Button>

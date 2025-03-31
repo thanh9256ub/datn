@@ -11,7 +11,7 @@ export const fetchProvinces = () => axios.get(`${API_BASE_URL}/counter/provinces
 
 export const fetchDistricts = (provinceId) => axios.get(`${API_BASE_URL}/counter/districts?provinceId=${provinceId}`);
 export const fetchWards = (districtId) => axios.get(`${API_BASE_URL}/counter/wards?districtId=${districtId}`);
-export const fetchPromoCodes = () => axios.get(`${API_BASE_URL}/voucher/list`);
+export const fetchPromoCodes = () => axios.get(`${API_BASE_URL}/vouchers/list`);
 export const fetchOrderDetails = () => axios.get(`${API_BASE_URL}/order-detail`);
 export const fetchOrders = () => axios.get(`${API_BASE_URL}/order`);
 export const fetchProducts = () => axios.get(`${API_BASE_URL}/product-detail`);

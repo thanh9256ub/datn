@@ -59,6 +59,7 @@ const LoginBanHang = () => {
 
       if (response.status === 200) {
         login(response.data.data.token);
+        localStorage.setItem("id", response.data.data.idEmployee );
         localStorage.setItem("fullName", response.data.data.fullName);
         localStorage.setItem("role", response.data.data.role);
         localStorage.setItem("successMessage", "Đăng nhập thành công!");

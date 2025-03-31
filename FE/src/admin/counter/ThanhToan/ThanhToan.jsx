@@ -11,7 +11,7 @@ import { toastOptions } from '../constants'; // Import constants from the new fi
 const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber, setPhoneNumber, setDelivery, promo, setPromo, customer, setCustomer, customerInfo, setCustomerInfo }) => {
 
 
-  const [wards, setWards] = useState([]);
+  
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedWard, setSelectedWard] = useState('');
@@ -21,35 +21,36 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   const [cashPaid, setCashPaid] = useState('');
   const [change, setChange] = useState();
   const [qrImageUrl, setQrImageUrl] = useState('');
-  const [promoCode, setPromoCode] = useState("");
+  
   const [finalAmount, setFinalAmount] = useState(totalAmount);
   const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
   const [shippingFee, setShippingFee] = useState(0);
   const qrIntervalRef = useRef(null); // Use useRef to store the interval ID
+  const [isPaymentSuccessful, setIsPaymentSuccessful] = useState(false); // New state variable
 
 
   useEffect(() => {
 
 
     let calculatedDiscount = 0;
-    if (promo && totalAmount >= promo.condition) {
+    if (promo && totalAmount >= promo.minOrderValue) { // Fixed condition
       calculatedDiscount = promo.discountValue;
-      if (promo.discountType === '1') {
+      if (promo.discountType === 1 ) {
         calculatedDiscount = (totalAmount * promo.discountValue) / 100;
         if (calculatedDiscount > promo.maxDiscountValue) {
           calculatedDiscount = promo.maxDiscountValue;
         }
       }
-      setPromoCode(promo.voucherCode);
+      //setPromoCode(promo.voucherCode);
 
     } else if (promo.voucherCode) {
       setPromo({});
-      setPromoCode("");
+     // setPromoCode("");
     } else {
-      setPromoCode("");
+      //setPromoCode("");
     }
     setFinalAmount(totalAmount - calculatedDiscount);
-  }, [totalAmount, promo, promoCode]);
+  }, [totalAmount, promo]);
 
   useEffect(() => {
     const isEligibleForPayment = (paymen === 1 || paymen === 3 || paymen === 2) && totalAmount >= 0 && (paymen === 1 ? change >= 0 : true);
@@ -109,6 +110,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     }
 
     setIsCashPayment(false);
+    setIsPaymentSuccessful(false); // Reset payment success status
 
     // Generate QR code URL dynamically
     const qrUrl = `https://img.vietqr.io/image/MB-02062004666-compact2.jpg?amount=${finalAmount + shippingFee}&addInfo=thanh%20toan%20hoa%20don%20ID${idOrder}HD&accountName=HOANG%20VAN%20TUAN`;
@@ -128,6 +130,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         if (matchingRecord) {
           clearInterval(interval);
           qrIntervalRef.current = null; // Clear the ref
+          setIsPaymentSuccessful(true); // Mark payment as successful
           toast.success("Thanh toán thành công 🥰", toastOptions);
         }
       } catch (error) {
@@ -288,6 +291,12 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Tiền thừa không được nhỏ hơn 0 ", toastOptions);
       return;
     }
+
+    if (paymen === 2 && !isPaymentSuccessful) { // Use the new variable
+      toast.warn("Khách hàng chưa chuyển khoản thành công. Vui lòng kiểm tra lại!", toastOptions);
+      return;
+    }
+
     if (!isPaymentEnabled) {
       toast.warn("Vui lòng thực hiện đủ các bước ", toastOptions);
       return;
@@ -319,7 +328,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
           await addOrderVoucher(idOrder, promo.id);
         }
         handlePrintInvoice();
-        window.location.reload();
+      //  window.location.reload();
       } else {
         toast.error("Thanh toán thất bại. Vui lòng thử lại!", toastOptions);
       }
@@ -358,7 +367,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       <DeliveryInfo delivery={delivery} setDelivery={setDelivery} onSave={handleSaveDeliveryInfo} customer={customer} setCustomer={setCustomer} customerInfo={customerInfo} setCustomerInfo={setCustomerInfo} idOrder={idOrder} totalAmount={totalAmount}
         setSelectedProvince={setSelectedProvince} selectedProvince={selectedProvince} setSelectedDistrict={setSelectedDistrict} selectedDistrict={selectedDistrict} setSelectedWard={setSelectedWard} selectedWard={selectedWard}
       />
-      <PromoCode promoCode={promoCode} setPromo={setPromo} totalAmount={totalAmount} idOrder={idOrder} />
+      <PromoCode promo={promo} setPromo={setPromo} totalAmount={totalAmount} idOrder={idOrder} />
 
       {/* Hiển thị tổng tiền */}
       <h5>Tổng tiền: {totalAmount.toLocaleString()} VND</h5>
