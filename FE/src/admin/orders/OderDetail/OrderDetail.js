@@ -113,7 +113,7 @@ const OrderDetail = () => {
             // Các loại đơn khác - 7 trạng thái
             const statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận" },
-                { id: 2, name: "Chờ lấy hàng" },
+                { id: 2, name: "Đã xác nhận" },
                 { id: 3, name: "Chờ vận chuyển" },
                 { id: 4, name: "Đang vận chuyển" },
                 { id: 5, name: "Đã giao" },
@@ -225,7 +225,7 @@ const OrderDetail = () => {
             // Timeline cho các loại đơn khác
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
-                { id: 2, name: "Chờ lấy hàng", icon: faBoxOpen, color: "#ffd700" },
+                { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 5, name: "Đã giao", icon: faHome, color: "#4caf50" },
@@ -276,7 +276,7 @@ const OrderDetail = () => {
         } else { // Đơn online
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
-                { id: 2, name: "Chờ lấy hàng", color: "#ffd700" },
+                { id: 2, name: "Đã xác nhận", color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
                 { id: 5, name: "Đã giao", color: "#4caf50" },

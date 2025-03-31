@@ -183,12 +183,81 @@ export const apiAddToCart = async (cartData) => {
     }
 };
 
-export const getCartDetails = async (customerId) => {
+// export const getCartDetails = async (customerId) => {
+//     try {
+//         const response = await api.get(`/cart-details/cart/${customerId}`);
+//         return response.data.data || [];
+//     } catch (error) {
+//         console.error("Error fetching cart details:", error);
+//         return [];
+//     }
+// };
+export const getCartDetails = async (cartId) => {
     try {
-        const response = await api.get(`/cart-details/cart/${customerId}`);
+        const response = await api.get(`/cart-details/cart/${cartId}`);
+        console.log("API res (cart details):", response.data);
         return response.data.data || [];
     } catch (error) {
         console.error("Error fetching cart details:", error);
         return [];
+    }
+};
+export const removeFromCartApi = async (cartDetailId) => {
+    try {
+        const response = await api.delete(`/cart-details/${cartDetailId}`);
+        console.log("API res (remove from cart):", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error removing from cart:", error);
+        throw error;
+    }
+};
+
+// Lấy hoặc tạo giỏ hàng theo customerId
+export const getOrCreateCart = async (customerId) => {
+    try {
+        const response = await api.get(`/cart/get-or-create/${customerId}`);
+        console.log("API res (get or create cart):", response.data);
+        return response.data.data; // Trả về CartResponse
+    } catch (error) {
+        console.error("Error fetching or creating cart:", error);
+        throw error;
+    }
+};
+export const updateCartQuantity = async (cartDetailId, quantity) => {
+    try {
+        const response = await api.put(`/cart-details/update-quantity/${cartDetailId}`, { quantity });
+        console.log("API res (update cart quantity):", response.data);
+        return response.data.data || response.data;
+    } catch (error) {
+        console.error("Error updating cart quantity:", error);
+        throw error;
+    }
+};
+export const fetchCustomerProfile = async (token) => {
+    try {
+        const response = await api.get("/authCustomer/profile", {
+            headers: {
+                Authorization: `Bearer ${token}`, // Thêm token vào header
+            },
+        });
+        console.log("API res (customer profile):", response.data);
+        return response.data.data; // Trả về CustomerProfileResponse từ ApiResponse
+    } catch (error) {
+        console.error("Error fetching customer profile:", error);
+        throw error;
+    }
+};
+export const getTokenCustomer = async (email, password) => {
+    const body = { email, password };
+    try {
+        const response = await axios.post(`${API_BASE_URL}/authCustomer/token`, body, {
+            headers: { Authorization: "" }
+        });
+        console.log("API res (customer token):", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching customer token:", error);
+        throw error;
     }
 };

@@ -3,6 +3,7 @@ package com.example.datn.controller;
 import com.example.datn.dto.request.CartRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.CartResponse;
+import com.example.datn.entity.Cart;
 import com.example.datn.service.CartService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,5 +90,21 @@ public class CartController {
         );
 
         return ResponseEntity.ok(response);
+    }
+    @GetMapping("/get-or-create/{customerId}")
+    public ResponseEntity<ApiResponse<CartResponse>> getOrCreateCart(@PathVariable("customerId") Integer customerId) {
+        try {
+            Cart cart = cartService.getOrCreateCart(customerId); // Nhận Cart
+            CartResponse cartResponse = cartService.getCartById(cart.getId()); // Chuyển thành CartResponse
+            return ResponseEntity.ok(new ApiResponse<>(
+                    HttpStatus.OK.value(),
+                    "Cart retrieved or created successfully",
+                    cartResponse
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null)
+            );
+        }
     }
 }

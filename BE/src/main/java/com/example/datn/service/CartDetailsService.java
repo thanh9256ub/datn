@@ -126,6 +126,27 @@ public class CartDetailsService {
         System.out.println("Saved cart detail with ID: " + savedCartDetails.getId());
         return mapper.toCartDetailsResponse(savedCartDetails);
     }
+    @Transactional
+    public CartDetailsResponse updateCartQuantity(Long cartDetailId, Integer newQuantity) {
+        // 1. Tìm CartDetails theo ID
+        CartDetails cartDetails = repository.findById(cartDetailId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Cart detail not found with id: " + cartDetailId));
 
+        // 2. Kiểm tra số lượng hợp lệ
+        if (newQuantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than 0");
+        }
+
+        // 3. Cập nhật số lượng và tổng giá
+        cartDetails.setQuantity(newQuantity);
+        cartDetails.setTotal_price(cartDetails.getPrice() * newQuantity);
+
+        // 4. Lưu vào database
+        CartDetails updatedCartDetails = repository.save(cartDetails);
+
+        // 5. Trả về response
+        return mapper.toCartDetailsResponse(updatedCartDetails);
+    }
 
 }

@@ -4,6 +4,7 @@ import com.example.datn.dto.request.AuthencaticationCustomerRequest;
 import com.example.datn.dto.request.RegisterCustomerRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.AuthenticationCustomerResponse;
+import com.example.datn.dto.response.CustomerProfileResponse;
 import com.example.datn.service.AuthenticationCustomerService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -38,5 +39,12 @@ public class AuthencaticationCustomerController {
 
         return authenticationCustomerService.register(registerCustomerRequest);
     }
-
+    @GetMapping("profile")
+    public ApiResponse<CustomerProfileResponse> getProfile(@RequestHeader("Authorization") String authorizationHeader) throws AuthenticationException {
+        String token = authorizationHeader.replace("Bearer ", ""); // Loại bỏ "Bearer " từ header
+        var result = authenticationCustomerService.getCustomerProfile(token);
+        return ApiResponse.<CustomerProfileResponse>builder()
+                .data(result)
+                .build();
+    }
 }

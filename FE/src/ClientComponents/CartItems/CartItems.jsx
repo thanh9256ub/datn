@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import {
     Button, Card, Col, Divider, Form, Input, List, Row, Select,
-    Space, Typography, message, Spin, Empty, Image, Radio, Modal, Alert, Badge, Tag
+    Space, Typography, message, Spin, Empty, Image, Radio, Modal, Alert, Badge, InputNumber, Checkbox
 } from 'antd';
 import {
     DeleteOutlined, ShoppingCartOutlined, EnvironmentOutlined, PhoneOutlined,
@@ -15,7 +15,21 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const CartItems = () => {
-    const { cartItems, removeFromCart, getTotalCartAmount, clearCart } = useContext(ShopContext);
+    const { 
+        cartItems, 
+        removeFromCart, 
+        getTotalCartAmount, 
+        clearCart, 
+        updateQuantity, 
+        toggleItemSelection, 
+        selectedItems,
+        login,
+        logout,
+        isGuest,
+        customerId,
+        handleLogout
+    } = useContext(ShopContext);
+
     const [loading, setLoading] = useState(false);
     const [provinces, setProvinces] = useState([]);
     const [districts, setDistricts] = useState([]);
@@ -152,6 +166,11 @@ const CartItems = () => {
         try {
             await form.validateFields();
 
+            if (selectedItems.length === 0) {
+                message.warning('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+                return;
+            }
+
             if (paymentMethod === 2 && paymentStatus !== 'success') {
                 message.warning('Vui lòng hoàn thành thanh toán qua VietQR trước');
                 return;
@@ -161,7 +180,7 @@ const CartItems = () => {
             const orderData = {
                 paymentMethod,
                 paymentStatus: paymentMethod === 2 ? 'paid' : 'pending',
-                cartItems,
+                cartItems: cartItems.filter(item => selectedItems.includes(item.id || item.productDetailId)),
                 totalAmount: getTotalCartAmount() + shippingFee,
             };
 
@@ -180,16 +199,23 @@ const CartItems = () => {
         return () => clearInterval(paymentCheckInterval.current);
     }, []);
 
-    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
     return (
         <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
-            <Space style={{ width: '100%', justifyContent: 'center', marginBottom: 24 }}>
+            <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 24 }}>
                 <Title level={2} style={{ margin: 0 }}>
                     <ShoppingCartOutlined style={{ color: '#1890ff', marginRight: 8 }} />
                     Giỏ hàng của bạn
                     <Badge count={cartItems.length} style={{ marginLeft: 16 }} />
                 </Title>
+                {/* Hiển thị trạng thái đăng nhập và nút đăng xuất nếu đã đăng nhập */}
+                {!isGuest && (
+                    <Space>
+                        <Text>Đã đăng nhập với ID: {customerId}</Text>
+                        <Button type="default" onClick={handleLogout}>
+                            Đăng xuất
+                        </Button>
+                    </Space>
+                )}
             </Space>
 
             <Row gutter={[24, 24]}>
@@ -199,32 +225,61 @@ const CartItems = () => {
                             <List
                                 itemLayout="horizontal"
                                 dataSource={cartItems}
-                                renderItem={item => (
-                                    <List.Item
-                                        style={{ padding: '16px 24px' }}
-                                        actions={[
-                                            <Button icon={<DeleteOutlined />} danger onClick={() => removeFromCart(item.id)} />
-                                        ]}
-                                    >
-                                        <List.Item.Meta
-                                            avatar={<Image src={item.productDetail?.image || 'https://via.placeholder.com/80'} width={80} height={80} style={{ objectFit: 'cover' }} preview={false} />}
-                                            title={<Text strong>{item.productDetail?.product?.name || 'Sản phẩm'}</Text>}
-                                            description={
-                                                <Space size="middle" style={{ marginTop: 8 }}>
-                                                    <Text>Giá: {(item.price || 0).toLocaleString('vi-VN')}₫</Text>
-                                                    <Text>Số lượng: {item.quantity}</Text>
-                                                    <Text>Màu: {item.productDetail?.color?.colorName || 'N/A'}</Text>
-                                                    <Text>Size: {item.productDetail?.size?.sizeName || 'N/A'}</Text>
-                                                </Space>
-                                            }
-                                        />
-                                        <Space size="middle" style={{ marginRight: 16 }}>
-                                            <Text strong style={{ minWidth: 100, textAlign: 'right' }}>
-                                                {(item.total_price || item.price * item.quantity).toLocaleString('vi-VN')}₫
-                                            </Text>
-                                        </Space>
-                                    </List.Item>
-                                )}
+                                renderItem={item => {
+                                    const itemId = item.id || item.productDetailId;
+                                    return (
+                                        <List.Item
+                                            key={itemId}
+                                            style={{ padding: '16px 24px' }}
+                                            actions={[
+                                                <Button 
+                                                    icon={<DeleteOutlined />} 
+                                                    danger 
+                                                    onClick={() => removeFromCart(itemId)}
+                                                />
+                                            ]}
+                                        >
+                                            <Checkbox
+                                                checked={selectedItems.includes(itemId)}
+                                                onChange={() => toggleItemSelection(itemId)}
+                                                style={{ marginRight: 16 }}
+                                            />
+                                            <List.Item.Meta
+                                                avatar={
+                                                    <Image 
+                                                        src={item.productDetail?.product?.mainImage || 'https://via.placeholder.com/80'} 
+                                                        width={80} 
+                                                        height={80} 
+                                                        style={{ objectFit: 'cover' }} 
+                                                        preview={false} 
+                                                    />
+                                                }
+                                                title={<Text strong>{item.productDetail?.product?.productName || 'Sản phẩm'}</Text>}
+                                                description={
+                                                    <Space size="middle" style={{ marginTop: 8 }}>
+                                                        <Text>Giá: {(item.price || 0).toLocaleString('vi-VN')}₫</Text>
+                                                        <Space>
+                                                            <Text>Số lượng:</Text>
+                                                            <InputNumber
+                                                                min={1}
+                                                                value={item.quantity}
+                                                                onChange={(value) => updateQuantity(itemId, value)}
+                                                                style={{ width: 60 }}
+                                                            />
+                                                        </Space>
+                                                        <Text>Màu: {item.productDetail?.color?.colorName || 'N/A'}</Text>
+                                                        <Text>Size: {item.productDetail?.size?.sizeName || 'N/A'}</Text>
+                                                    </Space>
+                                                }
+                                            />
+                                            <Space size="middle" style={{ marginRight: 16 }}>
+                                                <Text strong style={{ minWidth: 100, textAlign: 'right' }}>
+                                                    {(item.total_price || item.price * item.quantity).toLocaleString('vi-VN')}₫
+                                                </Text>
+                                            </Space>
+                                        </List.Item>
+                                    );
+                                }}
                             />
                         ) : (
                             <Empty description="Giỏ hàng của bạn đang trống" style={{ padding: '48px 0' }} />
@@ -281,23 +336,56 @@ const CartItems = () => {
                                 <Row justify="space-between"><Text>Tạm tính:</Text><Text strong>{getTotalCartAmount().toLocaleString('vi-VN')}₫</Text></Row>
                                 <Spin spinning={shippingLoading}><Row justify="space-between"><Text>Phí vận chuyển:</Text><Text strong>{shippingFee.toLocaleString('vi-VN')}₫</Text></Row></Spin>
                                 <Divider style={{ margin: '12px 0' }} />
-                                <Row justify="space-between" style={{ marginBottom: 24 }}><Text strong style={{ fontSize: 16 }}>Tổng cộng:</Text><Text strong style={{ fontSize: 18, color: '#1890ff' }}>{(getTotalCartAmount() + shippingFee).toLocaleString('vi-VN')}₫</Text></Row>
-                                <Button type="primary" size="large" block loading={loading} onClick={handleCheckout} icon={<ShoppingCartOutlined />} disabled={cartItems.length === 0}>{paymentMethod === 2 ? 'Xác nhận đơn hàng' : 'Đặt hàng'}</Button>
+                                <Row justify="space-between" style={{ marginBottom: 24 }}>
+                                    <Text strong style={{ fontSize: 16 }}>Tổng cộng:</Text>
+                                    <Text strong style={{ fontSize: 18, color: '#1890ff' }}>
+                                        {(getTotalCartAmount() + shippingFee).toLocaleString('vi-VN')}₫
+                                    </Text>
+                                </Row>
+                                <Button 
+                                    type="primary" 
+                                    size="large" 
+                                    block 
+                                    loading={loading} 
+                                    onClick={handleCheckout} 
+                                    icon={<ShoppingCartOutlined />} 
+                                    disabled={cartItems.length === 0 || selectedItems.length === 0}
+                                >
+                                    {paymentMethod === 2 ? 'Xác nhận đơn hàng' : 'Đặt hàng'}
+                                </Button>
                             </Space>
                         </Form>
                     </Card>
                 </Col>
             </Row>
-            <Modal title="Thanh toán qua VietQR" visible={qrModalVisible} onCancel={() => { setQrModalVisible(false); stopPaymentCheck(); }} footer={null} width={350} destroyOnClose>
+            <Modal 
+                title="Thanh toán qua VietQR" 
+                visible={qrModalVisible} 
+                onCancel={() => { setQrModalVisible(false); stopPaymentCheck(); }} 
+                footer={null} 
+                width={350} 
+                destroyOnClose
+            >
                 <Space direction="vertical" style={{ width: '100%', textAlign: 'center' }}>
                     {paymentStatus === 'success' ? (
-                        <Alert message="Thanh toán thành công" description="Bạn đã thanh toán thành công qua VietQR" type="success" showIcon />
+                        <Alert 
+                            message="Thanh toán thành công" 
+                            description="Bạn đã thanh toán thành công qua VietQR" 
+                            type="success" 
+                            showIcon 
+                        />
                     ) : (
                         <>
                             <Image src={generateVietQrUrl()} alt="VietQR Code" preview={false} style={{ maxWidth: '100%' }} />
-                            <Text strong style={{ fontSize: 18 }}>{(getTotalCartAmount() + shippingFee).toLocaleString('vi-VN')}₫</Text>
+                            <Text strong style={{ fontSize: 18 }}>
+                                {(getTotalCartAmount() + shippingFee).toLocaleString('vi-VN')}₫
+                            </Text>
                             <Text type="secondary">Vui lòng quét mã QR để thanh toán</Text>
-                            {paymentStatus === 'pending' && <div style={{ marginTop: 16 }}><Spin tip="Đang kiểm tra thanh toán..." /></div>}
+                            {paymentStatus === 'pending' && (
+                                <div style={{ marginTop: 16 }}>
+                                    <Spin tip="Đang kiểm tra thanh toán..." />
+                                </div>
+                            )}
                         </>
                     )}
                 </Space>

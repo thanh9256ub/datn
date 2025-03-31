@@ -3,6 +3,7 @@ package com.example.datn.controller;
 import com.example.datn.dto.request.AddToCartRequest;
 import com.example.datn.dto.request.CartDetailsRequest;
 import com.example.datn.dto.request.CartRequest;
+import com.example.datn.dto.request.UpdateCartQuantityRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.CartDetailsResponse;
 import com.example.datn.dto.response.CartResponse;
@@ -130,5 +131,29 @@ public class CartDetailsController {
         );
 
         return ResponseEntity.ok(response);
+    }
+    @PutMapping("/update-quantity/{id}")
+    public ResponseEntity<ApiResponse<CartDetailsResponse>> updateCartQuantity(
+            @PathVariable("id") Long id,
+            @Valid @RequestBody UpdateCartQuantityRequest    request) {
+        try {
+            CartDetailsResponse response = service.updateCartQuantity(id, request.getQuantity());
+            return ResponseEntity.ok(new ApiResponse<>(
+                    HttpStatus.OK.value(),
+                    "Cart quantity updated successfully",
+                    response
+            ));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ApiResponse<>(HttpStatus.NOT_FOUND.value(), e.getMessage(), null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Error updating cart quantity: " + e.getMessage(), null));
+        }
     }
 }

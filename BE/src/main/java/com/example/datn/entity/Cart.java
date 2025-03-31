@@ -17,13 +17,14 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "cart_temp")
+@Table(name = "cart")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
 public class Cart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+            @Column(name = "id")
     Integer id;
 
     @OneToOne

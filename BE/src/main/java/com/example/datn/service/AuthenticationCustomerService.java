@@ -4,13 +4,16 @@ import com.example.datn.dto.request.AuthencaticationCustomerRequest;
 import com.example.datn.dto.request.RegisterCustomerRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.AuthenticationCustomerResponse;
+import com.example.datn.dto.response.CustomerProfileResponse;
 import com.example.datn.entity.Customer;
 import com.example.datn.entity.Role;
 import com.example.datn.repository.CustomerRepository;
 import com.example.datn.repository.RoleRepository;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -163,7 +166,44 @@ public class AuthenticationCustomerService {
                 .message("Đăng ký thành công!")
                 .build();
     }
+    public CustomerProfileResponse getCustomerProfile(String token) throws AuthenticationException {
+        try {
+            // Parse và xác thực token
+            SignedJWT signedJWT = SignedJWT.parse(token);
+            JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
+            boolean isValid = signedJWT.verify(verifier);
 
+            if (!isValid) {
+                throw new AuthenticationException("Invalid token");
+            }
+
+            // Kiểm tra thời gian hết hạn
+            Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+            if (expirationTime.before(new Date())) {
+                throw new AuthenticationException("Token has expired");
+            }
+
+            // Lấy email từ token
+            String email = signedJWT.getJWTClaimsSet().getSubject();
+
+            // Tìm khách hàng trong cơ sở dữ liệu
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new AuthenticationException("Customer not found"));
+
+            // Trả về thông tin profile
+            return CustomerProfileResponse.builder()
+                    .customerId(customer.getCustomerCode()) // Dùng customerCode làm customerId
+                    .email(customer.getEmail())
+                    .fullName(customer.getFullName())
+                    .phone(customer.getPhone())
+                    .role(customer.getRole().getRoleName())
+                    .build();
+
+        } catch (JOSEException | java.text.ParseException e) {
+            log.error("Error parsing token", e);
+            throw new AuthenticationException("Invalid token format");
+        }
+    }
     private String generateCustomerCode(Integer id) {
         return String.format("KH%05d", id);
     }
