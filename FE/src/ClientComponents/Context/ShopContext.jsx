@@ -1,66 +1,108 @@
-import React, { createContext, useState } from 'react'
-import all_product from "../Assets/all_product"
-import { Toast } from 'bootstrap';
+import React, { createContext, useState, useEffect } from 'react';
+import { apiAddToCart, fetchProductDetailByAttributes } from '../Service/productService';
+import axios from 'axios';
+
+// Tạo context
 export const ShopContext = createContext(null);
-const getDefaultCart = () => {
-    let cart = {};
-    for (let index = 0; index < all_product.length + 1; index++) {
-        cart[index] = 0;
-    }
-    return cart;
-}
+
 const ShopContextProvider = (props) => {
-    const [cartItems, setCartItems] = useState(getDefaultCart());
+    const [cartItems, setCartItems] = useState([]);
+    const api = axios.create({
+        baseURL: 'http://localhost:8080',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
 
+    const addToCart = async ({ productId, colorId, sizeId, quantity = 1 }) => {
+        try {
+            const productDetail = await fetchProductDetailByAttributes(productId, colorId, sizeId);
+            if (!productDetail || !productDetail.id) {
+                throw new Error("Không tìm thấy thông tin chi tiết sản phẩm");
+            }
 
-    const addToCart = (itemId) => {
-        setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }))
-        console.log(cartItems);
+            const cartData = {
+                customerId: 2, // Thay bằng ID user thực tế, lấy từ auth context nếu có
+                productDetailId: productDetail.id,
+                quantity: quantity,
+                price: productDetail.price
+            };
 
-    }
-    const clearCart = () => {
-        setCartItems(prevCart => {
-            const newCart = {};
-            Object.keys(prevCart).forEach(key => {
-                newCart[key] = 0;
+            console.log("Sending cart data:", cartData);
+            const response = await apiAddToCart(cartData);
+
+            // Cập nhật cartItems với dữ liệu từ response
+            setCartItems(prev => {
+                const existingItem = prev.find(item => item.productDetailId === productDetail.id);
+                if (existingItem) {
+                    return prev.map(item =>
+                        item.productDetailId === productDetail.id
+                            ? { ...item, quantity: item.quantity + quantity }
+                            : item
+                    );
+                }
+                return [...prev, {
+                    id: response.data.id,
+                    productDetailId: productDetail.id,
+                    productDetail: productDetail,
+                    quantity: quantity,
+                    price: productDetail.price,
+                    total_price: productDetail.price * quantity
+                }];
             });
-            return newCart;
-        });
+
+            return response;
+        } catch (error) {
+            console.error("Add to cart failed:", error);
+            throw error;
+        }
+    };
+    const removeFromCart = async (cartDetailId) => {
+        try {
+            await api.delete(`/cart-details/${cartDetailId}`);
+            setCartItems(prev => prev.filter(item => item.id !== cartDetailId));
+        } catch (error) {
+            console.error("Remove from cart failed:", error);
+            throw error;
+        }
     };
 
-    const removeFromCart = (itemId) => {
-        setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }))
-    }
+    const clearCart = () => {
+        setCartItems([]);
+    };
 
     const getTotalCartAmount = () => {
-        let totalAmount = 0;
-        for (const item in cartItems) {
-            if (cartItems[item] > 0) {
-                let itemInfo = all_product.find((product) => product.id === Number(item));
-                if (itemInfo) {  // Kiểm tra nếu itemInfo tồn tại
-                    totalAmount += itemInfo.new_price * cartItems[item];
-                }
-            }
-        }
-        return totalAmount; // Chỉ return sau khi đã tính tổng cho toàn bộ sản phẩm
+        return cartItems.reduce((total, item) => total + (item.total_price || item.price * item.quantity), 0);
     };
-    const getTotalCartItems = () => {
-        let totalItem = 0;
-        for (const item in cartItems) {
-            if (cartItems[item] > 0) {
-                totalItem += cartItems[item]
-            }
-        }
-        return totalItem;
-    }
 
-    const contextValue = { clearCart, getTotalCartItems, getTotalCartAmount, all_product, cartItems, addToCart, removeFromCart }
+    const getTotalCartItems = () => {
+        return cartItems.reduce((total, item) => total + item.quantity, 0);
+    };
+
+    const loadCartItems = async (customerId) => {
+        try {
+            const response = await api.get(`/cart-details/cart/${customerId}`);
+            setCartItems(response.data.data || []);
+        } catch (error) {
+            console.error("Load cart items failed:", error);
+        }
+    };
+
+    const contextValue = {
+        cartItems,
+        addToCart,
+        removeFromCart,
+        clearCart,
+        getTotalCartAmount,
+        getTotalCartItems,
+        loadCartItems
+    };
+
     return (
         <ShopContext.Provider value={contextValue}>
-            {
-                props.children
-            }
+            {props.children}
         </ShopContext.Provider>
-    )
-}
+    );
+};
+
 export default ShopContextProvider;

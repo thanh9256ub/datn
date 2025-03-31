@@ -1,12 +1,6 @@
 package com.example.datn.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,13 +9,15 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "gio_hang")
+@Table(name = "cart_temp")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
 public class Cart {
@@ -30,14 +26,24 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "id_khach_hang")
+    @OneToOne
+    @JoinColumn(name = "customer_id")
     Customer customer;
 
-    Double tong_tien;
+    @Column(name = "total_price")
+    Double total_price;
 
-    LocalDateTime ngay_tao;
+    @Column(name = "created_at")
+    LocalDateTime created_at;
 
-    Integer trang_thai;
-
+    @Column(name = "status")
+    Integer status;
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CartDetails> items = new ArrayList<>();
+    @PrePersist
+    @PreUpdate
+    public void calculateTotal() {
+        this.total_price = items.stream()
+                .mapToDouble(CartDetails::getTotal_price)
+                .sum();}
 }

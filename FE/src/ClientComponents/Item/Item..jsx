@@ -157,7 +157,7 @@ const Item = (props) => {
                         fontWeight: 600,
                     }}
                 >
-                    ${price !== undefined && price !== null ? price.toLocaleString() : 'N/A'}
+                    {price !== undefined && price !== null ? price.toLocaleString() : 'N/A'} VNĐ
                 </Text>
             </div>
         </Card>

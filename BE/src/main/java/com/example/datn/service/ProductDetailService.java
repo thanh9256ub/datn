@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductDetailService {
@@ -178,6 +179,38 @@ public class ProductDetailService {
         updateTotalQuantity(productId);
 
         return mapper.toListProductDetail(updatedDetails);
+    }
+    public List<Size> getSizesByProductIdAndColor(Integer productId, Integer colorId) {
+
+        // Kiểm tra sự tồn tại của sản phẩm
+        productRepository.findById(productId).orElseThrow(
+                () -> new ResourceNotFoundException("Product not found with ID: " + productId)
+        );
+
+        // Kiểm tra sự tồn tại của màu sắc
+        Color color = colorRepository.findById(colorId).orElseThrow(
+                () -> new ResourceNotFoundException("Color not found with ID: " + colorId)
+        );
+
+        // Lấy tất cả các productDetail theo productId và colorId
+        List<ProductDetail> productDetails = repository.findByProductIdAndColorId(productId, colorId);
+
+        // Lấy danh sách các size của productDetail
+        List<Size> sizes = productDetails.stream()
+                .map(ProductDetail::getSize)
+                .distinct()  // Đảm bảo chỉ lấy các size duy nhất
+                .collect(Collectors.toList());
+
+        return sizes;
+    }
+    public ProductDetailResponse getDetailByAttributes(Integer productId, Integer colorId, Integer sizeId) {
+        ProductDetail productDetail = repository.findByProductColorAndSize(productId, colorId, sizeId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format("Product detail not found with productId: %d, colorId: %d, sizeId: %d",
+                                productId, colorId, sizeId)
+                ));
+
+        return mapper.toProductDetailResponse(productDetail);
     }
 
 }

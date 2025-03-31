@@ -32,6 +32,8 @@ const ShopAllProduct = (props) => {
         const getProductsAndDetails = async () => {
             try {
                 const productsResponse = await fetchProducts();
+                console.log("===productsResponse===" + productsResponse.data);
+
                 const productDetailsResponse = await fetchProductDetail();
 
                 if (isMounted) {

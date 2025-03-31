@@ -37,7 +37,7 @@ public class SecurityConfig {
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(request -> request
-                            .requestMatchers("/ws/**").permitAll()
+                            .requestMatchers("/ws/**","/products/**","/product-detail/**","/product-color/**","/counter/**","/cart-details/**").permitAll()
                             .requestMatchers("/auth/token",
                                     "auth/introspect", "authCustomer/token", "authCustomer/register")
                             .permitAll()
