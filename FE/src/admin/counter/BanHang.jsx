@@ -108,16 +108,28 @@ const BanHang = () => {
   const addInvoice = () => {
     if (!canAdd) return;
 
-    const newInvoice = { employeeId: 3, orderType: 0, status: 0 };
-
+    const newInvoice = { employeeId: localStorage.getItem("id") , orderType: 0, status: 0 };
+console.log(localStorage.getItem("id"));
     axios.post('http://localhost:8080/order/add', newInvoice)
       .then(response => {
+toast.success("Tạo hóa đơn thành công thành công 🥰", toastOptions);
         const createdInvoice = response.data.data;
         setInvoices([createdInvoice, ...invoices]); // Add the new invoice to the top of the list
         setSelectedInvoiceId(createdInvoice.id); // Select the newly created invoice
         setCanAdd(true);
-        toast.success("Tạo hóa đơn thành công thành công 🥰", toastOptions);
-        console.log("Tạo hóa đơn thành công", response.data.data);
+        setPromo({});
+        setDelivery(false);
+        setPhoneNumber("");
+        setCustomer(null);
+        setCustomerInfo({
+          name: '',
+          phone: '',
+          province: '',
+          district: '',
+          ward: '',
+          address: '',
+          note: '',
+        });
       })
       .catch(error => console.error('Error adding invoice:', error));
   };
@@ -275,9 +287,20 @@ const BanHang = () => {
       });
   };
   const handleScan = (data) => {
-    if (data && selectedInvoiceId) {
+    
+    if ( !selectedInvoiceId) {
+      console.log("Vui lòng chọn hóa đơn ");
+      toast.warn("Vui lòng chọn hóa đơn ", toastOptions);
       setIsQrReaderVisible(false);
-      // Stop scanning
+      return;}
+   
+    if (data && selectedInvoiceId) {
+      console.log("Đã quét mã QR:", data.text);
+     setIsQrReaderVisible(false);
+      setTimeout(() => {
+      setIsQrReaderVisible(true);
+      }, 2000); 
+      
       axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoiceId}&productID=${data.text}&purchaseQuantity=1`)
         .then(response => {
           // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
@@ -313,11 +336,12 @@ const BanHang = () => {
         .then(response => {
           //handleDeleteInvoice(id);
           // fetchInvoices(); // Reload the invoice list after deletion
+          fetchInvoices();
+            fetchProducts();
           if (selectedInvoiceId === id) {
             setSelectedInvoiceId(null);
             setTotalAmount(0);
-            fetchInvoices();
-            fetchProducts();
+            setPromo({});
             setDelivery(false);
             setPhoneNumber("");
             setCustomer(null);
@@ -505,7 +529,7 @@ const BanHang = () => {
                   {isQrReaderVisible && (
                     <div>
                       <QrReader
-                        delay={1000}
+                        delay={5000}
                         style={{ width: '45%' }}
                         onError={handleError}
                         onScan={handleScan}

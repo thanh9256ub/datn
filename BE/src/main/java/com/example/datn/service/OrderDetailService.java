@@ -62,8 +62,9 @@ public class OrderDetailService {
     public void updateProductQuantity(Integer productId, Integer quantity) {
         ProductDetail productDetail = productDetailRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
         productDetail.setQuantity(productDetail.getQuantity() - quantity);
-        productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
         productDetailRepository.save(productDetail);
+        productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
+
     }
 
     public void updateProductDetail(Integer orderid, Integer productId, Integer quantity) {
@@ -72,6 +73,7 @@ public class OrderDetailService {
         OrderDetail orderDetail = repository.findById(orderid).orElseThrow(() -> new RuntimeException("order not found"));
         productDetail.setQuantity(productDetail.getQuantity() + orderDetail.getQuantity() - quantity);
         productDetailRepository.save(productDetail);
+        productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
     }
 
 
