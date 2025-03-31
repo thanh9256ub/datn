@@ -3,7 +3,7 @@ import { Alert, Button, Form, Spinner } from 'react-bootstrap';
 import { QRCodeCanvas } from "qrcode.react";
 import { FaImage } from "react-icons/fa";
 import { useParams } from 'react-router-dom/cjs/react-router-dom.min';
-import { AlertCircle } from 'lucide-react';
+
 
 const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handleRemoveVariant, onImagesSelected }) => {
 

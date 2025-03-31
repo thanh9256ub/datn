@@ -1,7 +1,5 @@
 package com.example.datn.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -17,7 +15,6 @@ public class EmployeeRequest {
 
     Integer id;
 
-    @NotBlank(message = "Employee code is required")
     String employeeCode;
 
     String fullName;
@@ -36,12 +33,11 @@ public class EmployeeRequest {
 
     String password;
 
-    @JsonProperty("role_id")
     Integer roleId;
 
-    LocalDateTime createdAt;
+    String createdAt;
 
-    LocalDateTime updatedAt;
+    String updatedAt;
 
     Integer status;
 

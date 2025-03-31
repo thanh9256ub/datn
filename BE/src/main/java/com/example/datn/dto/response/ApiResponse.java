@@ -9,6 +9,9 @@ import lombok.Setter;
 
 import lombok.experimental.FieldDefaults;
 
+
+
+
 @Getter
 @Setter
 @Builder
@@ -21,4 +24,9 @@ public class ApiResponse<T> {
     String message;
 
     T data;
+
+    public ApiResponse(int status, String message) {
+        this.status = status;
+        this.message = message;
+    }
 }

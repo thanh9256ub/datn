@@ -3,20 +3,14 @@ package com.example.datn.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Data
-@Builder
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AuthenticationResponse {
-    String token;
+public class ChangePasswordRespone {
 
-    boolean authenticated;
+    String oldPassword;
 
-    Integer idEmployee;
-
-    String fullName;
-
-    String role;
-
+    String newPassword;
 }

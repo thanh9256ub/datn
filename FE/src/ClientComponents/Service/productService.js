@@ -10,7 +10,7 @@ const api = axios.create({
 });
 export const fetchProducts = async () => {
     try {
-        const response = await api.get('/products'); // Thay thế endpoint tương ứng
+        const response = await api.get('/products/list'); // Thay thế endpoint tương ứng
         console.log("API res:" + response.data);
         return response.data;
     } catch (error) {

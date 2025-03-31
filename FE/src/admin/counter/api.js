@@ -8,9 +8,10 @@ export const VIETTEL_POST_API = 'https://partner.viettelpost.vn/v2/categories';
 export const fetchCustomers = () => axios.get(`${API_BASE_URL}/customer/list`);
 export const fetchCustomerAddresses = () => axios.get(`${API_BASE_URL}/address`);
 export const fetchProvinces = () => axios.get(`${API_BASE_URL}/counter/provinces`);
+
 export const fetchDistricts = (provinceId) => axios.get(`${API_BASE_URL}/counter/districts?provinceId=${provinceId}`);
 export const fetchWards = (districtId) => axios.get(`${API_BASE_URL}/counter/wards?districtId=${districtId}`);
-export const fetchPromoCodes = () => axios.get(`${API_BASE_URL}/voucher/list`);
+export const fetchPromoCodes = () => axios.get(`${API_BASE_URL}/vouchers/list`);
 export const fetchOrderDetails = () => axios.get(`${API_BASE_URL}/order-detail`);
 export const fetchOrders = () => axios.get(`${API_BASE_URL}/order`);
 export const fetchProducts = () => axios.get(`${API_BASE_URL}/product-detail`);
@@ -40,3 +41,24 @@ export const addOrderVoucher = (orderId, voucherId) =>
   });
 export const addCustomerAddress = (addressPayload) =>
   axios.post(`${API_BASE_URL}/address/add`, addressPayload);
+export const checkVNPayPaymentStatus = (orderId) =>
+  axios.get(`${API_BASE_URL}/vnpay/check-payment-status?orderId=${orderId}`);
+
+export const generateZaloPayPayment = (body) =>
+  axios.post(`${API_BASE_URL}/counter/zalopay/payment`, body, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+export const checkZaloPayPaymentStatus = (transactionId) =>
+  axios.get(`${API_BASE_URL}/counter/zalopay/check-payment-status?transactionId=${transactionId}`);
+
+export const handleCassoWebhook = () =>
+  axios.post(`https://oauth.casso.vn/v2/transactions`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Apikey AK_CS.2cb7a1d00c7e11f097089522635f3f80.vKo3BAFDtz8c3vnVSliZ9KKQ2mrvLufagmFwVu9mSmKHUlQmzLgmEzybGLns1tYUm1lX7DVn',
+    },
+  });
+
+export const fetchCassoTransactions = () =>
+  axios.post(`${API_BASE_URL}/counter/casso/transactions`);

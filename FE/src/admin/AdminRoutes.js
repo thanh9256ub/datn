@@ -38,9 +38,6 @@ const UpdateCustomer = lazy(() => import('./customers/action/UpdateCustomer'));
 const CreateEmployee = lazy(() => import('./employees/action/CreateEmployee'));
 const UpdateEmployee = lazy(() => import('./employees/action/UpdateEmployee'));
 
-const CreateVoucher = lazy(() => import('./vouchers/CreateVoucher'));
-
-
 // Component bảo vệ route (AuthGuard)
 const ProtectedRoute = ({ component: Component, ...rest }) => {
   const { token } = useAuth();
@@ -61,11 +58,11 @@ class AdminRoutes extends Component {
     return (
       <Suspense fallback={<Spinner />}>
         <Switch>
-          <Route exact path="/admin/dashboard" component={Dashboard} />
+          <ProtectedRoute exact path="/admin/dashboard" component={Dashboard} />
 
-          <Route exact path="/admin/basic-ui/buttons" component={Buttons} />
-          <Route exact path="/admin/basic-ui/dropdowns" component={Dropdowns} />
-          <Route exact path="/admin/basic-ui/typography" component={Typography} />
+          <ProtectedRoute exact path="/admin/basic-ui/buttons" component={Buttons} />
+          <ProtectedRoute exact path="/admin/basic-ui/dropdowns" component={Dropdowns} />
+          <ProtectedRoute exact path="/admin/basic-ui/typography" component={Typography} />
 
           <Route exact path="/admin/form-Elements/basic-elements" component={BasicElements} />
 
@@ -101,11 +98,9 @@ class AdminRoutes extends Component {
 
           <ProtectedRoute exact path="/admin/customers/add" component={CreateCustomer} />
 
-          <Route exact path="/admin/orders" component={Orders} />
-          <Route exact path="/admin/orders/:id" component={OrderDetail} />
-
+          <ProtectedRoute exact path="/admin/orders" component={Orders} />
+          <Route exact path="/admin/order-detail/orders/:orderId" component={OrderDetail} />
           <Route exact path="/admin/vouchers" component={Vouchers} />
-          <Route exact path="/admin/vouchers/add" component={CreateVoucher} />
 
           <Redirect to="/admin/dashboard" />
         </Switch>

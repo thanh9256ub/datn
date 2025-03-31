@@ -15,6 +15,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
 
     Optional<Employee> findByUsername(String username);
 
+    Optional<Employee> findByEmail(String email);
 
     @Query("SELECT e FROM Employee e" +
             " WHERE (LOWER(e.fullName) LIKE LOWER(concat('%', :search, '%'))" +

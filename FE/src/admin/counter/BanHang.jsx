@@ -17,7 +17,7 @@ import {
 import { toastOptions } from './constants'; // Import constants
 
 const BanHang = () => {
-   const [promo, setPromo] = useState({});
+  const [promo, setPromo] = useState({});
   const [phoneNumber, setPhoneNumber] = useState('');
   const [delivery, setDelivery] = useState(false);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
@@ -48,7 +48,16 @@ const BanHang = () => {
   const [cartItemsPerPage] = useState(5);
   const [currentProductPage, setCurrentProductPage] = useState(1);
   const [productsPerPage] = useState(5);
-
+  const [customer, setCustomer] = useState(null);
+  const [customerInfo, setCustomerInfo] = useState({
+    fullName: '',
+    phone: '',
+    address: '',
+    province: '',
+    district: '',
+    ward: '',
+    note: '',
+  });
   const fetchInvoices = () => {
     fetchOrders()
       .then(response => {
@@ -63,7 +72,7 @@ const BanHang = () => {
   const fetchProducts = () => {
     axios.get('http://localhost:8080/product-detail')
       .then(response => {
-        const products = response.data.data.filter(product => product.quantity > 0);
+        const products = response.data.data.filter(product => product.quantity > 0&&product.status === 1 );
         setAvailableProducts(products);
       })
       .catch(error => console.error('Error fetching products:', error));
@@ -99,15 +108,28 @@ const BanHang = () => {
   const addInvoice = () => {
     if (!canAdd) return;
 
-    const newInvoice = { employeeId: 1, orderType: 0, status: 0 };
-
+    const newInvoice = { employeeId: localStorage.getItem("id") , orderType: 0, status: 0 };
+console.log(localStorage.getItem("id"));
     axios.post('http://localhost:8080/order/add', newInvoice)
       .then(response => {
+toast.success("Tạo hóa đơn thành công thành công 🥰", toastOptions);
         const createdInvoice = response.data.data;
         setInvoices([createdInvoice, ...invoices]); // Add the new invoice to the top of the list
         setSelectedInvoiceId(createdInvoice.id); // Select the newly created invoice
         setCanAdd(true);
-        toast.success("Tạo hóa đơn thành công thành công 🥰", toastOptions);
+        setPromo({});
+        setDelivery(false);
+        setPhoneNumber("");
+        setCustomer(null);
+        setCustomerInfo({
+          name: '',
+          phone: '',
+          province: '',
+          district: '',
+          ward: '',
+          address: '',
+          note: '',
+        });
       })
       .catch(error => console.error('Error adding invoice:', error));
   };
@@ -120,75 +142,165 @@ const BanHang = () => {
     setQuantity(1);
   };
 
-  const handleRemoveItem = (orderDetailID, productDetailID) => {
-    axios.get(`http://localhost:8080/counter/update-quantity2?orderDetailID=${orderDetailID}&productDetailID=${productDetailID}&quantity=${newQuantitya}`)
-      .then(response => {
-        fetchProducts();
-        fetchOrderItems();
-
-      })
-      .catch(error => {
-        console.error('Error removing item:', error);
-        toast.error("Xóa sản phẩm khỏi giỏ hàng thất bại 🥲", toastOptions);
-      });
-  };
+  // const handleRemoveItem = (orderDetailID, productDetailID) => {
+  //     axios.get(`http://localhost:8080/counter/update-quantity2?orderDetailID=${orderDetailID}&productDetailID=${productDetailID}&quantity=${newQuantitya}`)
+  //         .then(response => {
+  //           fetchProducts();
+  //           fetchOrderItems();
+    
+  //         })
+  //         .catch(error => {
+  //           console.error('Error removing item:', error);
+  //           toast.error("Xóa sản phẩm khỏi giỏ hàng thất bại 🥲", toastOptions);
+  //         });
+     
+  // };
   const handleRemoveItemId = (orderDetailID, productDetailID) => {
-    axios.get(`http://localhost:8080/counter/update-quantity3?orderDetailID=${orderDetailID}&productDetailID=${productDetailID}&quantity=${newQuantitya}`)
+    fetchOrderItems();
+    axios.get(`http://localhost:8080/order-detail`)
       .then(response => {
-        fetchProducts();
-        fetchOrderItems();
-        toast.success("Xóa sản phẩm khỏi giỏ hàng thành công 🥰", toastOptions);
+        const orderDetails = response.data.data;
+        const itemToRemove = orderDetails.find(item => item.id === orderDetailID && item.productDetail.id === productDetailID);
+
+        if (!itemToRemove) {
+          toast.error("Sản phẩm không tồn tại trong giỏ hàng 🥲", toastOptions);
+          return;
+        }
+
+        axios.get(`http://localhost:8080/counter/update-quantity3?orderDetailID=${orderDetailID}&productDetailID=${productDetailID}&quantity=${newQuantitya}`)
+          .then(() => {
+            fetchProducts();
+            fetchOrderItems();
+            toast.success("Xóa sản phẩm khỏi giỏ hàng thành công 🥰", toastOptions);
+          })
+          .catch(error => {
+            console.error('Error removing item:', error);
+            toast.error("Xóa sản phẩm khỏi giỏ hàng thất bại 🥲", toastOptions);
+          });
       })
       .catch(error => {
-        console.error('Error removing item:', error);
-        toast.error("Xóa sản phẩm khỏi giỏ hàng thất bại 🥲", toastOptions);
+        console.error('Error fetching order items:', error);
+        toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm trong giỏ hàng 🥲", toastOptions);
       });
   };
 
   const handleSelectProduct = (product) => {
+
     if (selectedInvoiceId === null) {
       toast.warn("Vui lòng chọn hóa đơn trước khi thêm sản phẩm 🥰", toastOptions);
       return
     }
+
     setSelectedProduct(product);
     setQuantity(1);
     handleShowModal();
   };
 
   const handleAddToCart = () => {
-    if (!selectedProduct || quantity < 1 || selectedProduct.quantity < quantity) {
-      toast.error("Vui lòng nhập lại số lượng 🥰", toastOptions);
-      return;
-    }
+    fetchProducts();
+    axios.get('http://localhost:8080/product-detail')
+      .then(response => {
+        const productDetails = response.data.data;
+        const selectedProductDetail = productDetails.find(product => product.id === selectedProduct.id);
 
-    addToCart(selectedInvoiceId, selectedProduct.id, quantity)
-      .then(() => {
-        fetchProducts();
-        fetchOrderItems(); // Đảm bảo gọi lại để cập nhật giỏ hàng
-        handleCloseModal();
-        toast.success("Thêm sản phẩm vào giỏ hàng thành công 🥰", toastOptions);
+        if (!selectedProduct || quantity <= 0) {
+          toast.error("Vui lòng nhập lại số lượng", toastOptions);
+
+          return;
+        }
+
+        if (!selectedProductDetail || selectedProductDetail.quantity < quantity || selectedProductDetail.quantity === 0) {
+          toast.error("Sản phẩm không đủ số lượng trong kho", toastOptions);
+          handleCloseModal();
+          return;
+        }
+
+        addToCart(selectedInvoiceId, selectedProduct.id, quantity)
+          .then(() => {
+            fetchProducts();
+            fetchOrderItems(); // Đảm bảo gọi lại để cập nhật giỏ hàng
+            handleCloseModal();
+            toast.success("Thêm sản phẩm vào giỏ hàng thành công 🥰", toastOptions);
+          })
+          .catch(error => {
+            console.error('Error adding to cart:', error);
+            toast.error("Thêm sản phẩm vào giỏ hàng thất bại 🥲", toastOptions);
+          });
       })
       .catch(error => {
-        console.error('Error adding to cart:', error);
-        toast.error("Thêm sản phẩm vào giỏ hàng thất bại 🥲", toastOptions);
+        console.error('Error fetching products:', error);
+        toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm", toastOptions);
       });
+
+
   };
 
   const handleQuantityChange = (item, newQuantity) => {
+    fetchOrderItems();
+    axios.get(`http://localhost:8080/order-detail`)
+      .then(response => {
+        const orderDetails = response.data.data;
+        const itemToRemove = orderDetails.find(items => items.id ===  item.id && items.productDetail.id === item.productDetail.id);
 
-    if (newQuantity < 0 || item.productDetail.quantity + item.quantity < newQuantity) return;
+        if (!itemToRemove) {
+          toast.error("Sản phẩm không tồn tại trong giỏ hàng 🥲", toastOptions);
+          return;
+        }
+
+    if (newQuantity < 0 || itemToRemove.productDetail.quantity + itemToRemove.quantity < newQuantity) return;
     axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
       .then(response => {
         fetchProducts();
         fetchOrderItems();
       })
-      .catch(error => console.error('Error updating quantity:', error));
+      .catch(error => console.error('Error updating quantity:', error)); })
+      .catch(error => {
+        console.error('Error fetching order items:', error);
+        toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm trong giỏ hàng 🥲", toastOptions);
+      });
   };
+  const handleQuantityChangeInput  = (item, newQuantity) => {
+   
+    axios.get(`http://localhost:8080/order-detail`)
+      .then(response => {
+        const orderDetails = response.data.data;
+        const itemToRemove = orderDetails.find(items => items.id ===  item.id && items.productDetail.id === item.productDetail.id);
 
+        if (!itemToRemove) {
+          toast.error("Sản phẩm không tồn tại trong giỏ hàng 🥲", toastOptions);
+          fetchOrderItems();
+          fetchProducts();
+          return;
+        }
+
+    if (newQuantity < 0 || item.productDetail.quantity + item.quantity < newQuantity) return;
+       axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
+         .then(response => {
+           fetchProducts();
+           fetchOrderItems();
+         })
+         .catch(error => console.error('Error updating quantity:', error));
+     })
+      .catch(error => {
+        console.error('Error fetching order items:', error);
+        toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm trong giỏ hàng 🥲", toastOptions);
+      });
+  };
   const handleScan = (data) => {
-    if (data && selectedInvoiceId) {
+    
+    if ( !selectedInvoiceId) {
+      console.log("Vui lòng chọn hóa đơn ");
+      toast.warn("Vui lòng chọn hóa đơn ", toastOptions);
       setIsQrReaderVisible(false);
-      // Stop scanning
+      return;}
+   
+    if (data && selectedInvoiceId) {
+      console.log("Đã quét mã QR:", data.text);
+     setIsQrReaderVisible(false);
+      setTimeout(() => {
+      setIsQrReaderVisible(true);
+      }, 2000); 
+      
       axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoiceId}&productID=${data.text}&purchaseQuantity=1`)
         .then(response => {
           // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
@@ -205,31 +317,45 @@ const BanHang = () => {
     console.error(error);
   };
 
-  const removeItemsByInvoice = (id) => {
-    axios.get(`http://localhost:8080/order-detail`)
-      .then(response => {
-        const itemsToRemove = response.data.data.filter(item => item.order.id === id);
-        itemsToRemove.forEach(item => {
-          handleRemoveItem(item.id, item.productDetail.id);
-        });
-      })
-      .catch(error => console.error('Error fetching order items:', error));
-  };
+  // const removeItemsByInvoice = (id) => {
+  //   axios.get(`http://localhost:8080/order-detail`)
+  //     .then(response => {
+  //       const itemsToRemove = response.data.data.filter(item => item.order.id === id);
+  //       itemsToRemove.forEach(item => {
+  //         handleRemoveItem(item.id, item.productDetail.id);
+  //       });
+  //     })
+  //     .catch(error => console.error('Error fetching order items:', error));
+  // };
 
   const removeSelectedInvoice = (id) => {
     if (id) {
       toast.success("Hóa đơn hủy thành công", toastOptions);
-      removeItemsByInvoice(id);
-      axios.put(`http://localhost:8080/order/edit/${id}`, { status: 1 })
+
+      axios.delete(`http://localhost:8080/counter/delete-order/${id}`)
         .then(response => {
-          handleDeleteInvoice(id);
-          fetchInvoices(); // Reload the invoice list after deletion
+          //handleDeleteInvoice(id);
+          // fetchInvoices(); // Reload the invoice list after deletion
+          fetchInvoices();
+            fetchProducts();
           if (selectedInvoiceId === id) {
             setSelectedInvoiceId(null);
-            window.location.reload();
-           
+            setTotalAmount(0);
+            setPromo({});
+            setDelivery(false);
+            setPhoneNumber("");
+            setCustomer(null);
+            setCustomerInfo({
+              name: '',
+              phone: '',
+              province: '',
+              district: '',
+              ward: '',
+              address: '',
+              note: '',
+            });
           }
-          
+
         })
         .catch(error => console.error('Error deleting invoice:', error));
     }
@@ -238,18 +364,18 @@ const BanHang = () => {
   const handleSelectInvoice = (index) => {
     const selectedInvoiceId = invoices[index].id;
 
-    
-    if (setPhoneNumber) setPhoneNumber(""); 
-    if (setDelivery) setDelivery(false); 
-    if (promo ) setPromo({}); 
+
+    if (setPhoneNumber) setPhoneNumber("");
+    if (setDelivery) setDelivery(false);
+    if (promo) setPromo({});
     setSelectedInvoiceId(selectedInvoiceId);
   };
 
-  const handleDeleteInvoice = (invoiceId) => {
-    if (selectedInvoiceId === invoiceId) {
-      setSelectedInvoiceId(null);
-    }
-  };
+  // const handleDeleteInvoice = (invoiceId) => {
+  //   if (selectedInvoiceId === invoiceId) {
+  //     setSelectedInvoiceId(null);
+  //   }
+  // };
 
   const filteredProducts = availableProducts.filter(product => {
     return (
@@ -327,9 +453,7 @@ const BanHang = () => {
                     <thead>
                       <tr>
                         <th>Sản phẩm </th>
-                        <th>Thương hiệu  </th>
-                        <th>Danh mục  </th>
-                        <th>Chất liệu </th>
+
 
                         <th>Giá </th>
                         <th>Số lượng </th>
@@ -341,9 +465,7 @@ const BanHang = () => {
                       {currentCartItems.map(item => (
                         <tr key={item.id}>
                           <td>{item.productDetail.product.productName} - {item.productDetail.product.productCode} - {item.productDetail.color.colorName} - {item.productDetail.size.sizeName}</td>
-                          <td>{item.productDetail.product.brand.brandName}</td>
-                          <td>{item.productDetail.product.category.categoryName}</td>
-                          <td>{item.productDetail.product.material.materialName}</td>
+
 
                           <td>{item.price.toLocaleString()} </td>
                           <td>
@@ -357,13 +479,13 @@ const BanHang = () => {
                                 min="1"
                                 max={item.productDetail.quantity}
                                 value={item.quantity}
-                                onChange={(e) => handleQuantityChange(item, Number(e.target.value))}
+                                onChange={(e) => handleQuantityChangeInput(item, Number(e.target.value))}
                                 onBlur={() => {
                                   if (item.quantity === 0) {
-                                    handleRemoveItem(item.id, item.productDetail.id);
+                                    handleRemoveItemId(item.id, item.productDetail.id);
                                   }
                                 }}
-                                style={{ width: '40px', textAlign: 'center', height: '20px' }}
+                                style={{ width: '40px', textAlign: 'center', height: '20px', padding: '5px',    fontSize: '14px', }}
                               />
                               <button type="button" className="btn btn-outline-secondary btn-sm btn-rounded btn-icon"
                                 onClick={() => handleQuantityChange(item, Math.min(item.productDetail.quantity + item.quantity, item.quantity + 1))}
@@ -407,7 +529,7 @@ const BanHang = () => {
                   {isQrReaderVisible && (
                     <div>
                       <QrReader
-                        delay={1000}
+                        delay={5000}
                         style={{ width: '45%' }}
                         onError={handleError}
                         onScan={handleScan}
@@ -509,9 +631,7 @@ const BanHang = () => {
                     <thead>
                       <tr>
                         <th>Sản phẩm </th>
-                        <th>Thương hiệu  </th>
-                        <th>Danh mục  </th>
-                        <th>Chất liệu </th>
+
 
                         <th>Giá </th>
                         <th>Số lượng </th>
@@ -521,9 +641,7 @@ const BanHang = () => {
                       {currentProducts.map(product => (
                         <tr key={product.id} onClick={(() => handleSelectProduct(product))}>
                           <td>{product.product.productName} - {product.product.productCode} - {product.color.colorName} - {product.size.sizeName}</td>
-                          <td>{product.product.brand.brandName}</td>
-                          <td>{product.product.category.categoryName}</td>
-                          <td>{product.product.material.materialName}</td>
+
 
                           <td>{product.price ? product.price.toLocaleString() : 'N/A'} VND</td>
                           <td>{product.quantity}</td>
@@ -580,8 +698,10 @@ const BanHang = () => {
               idOrder={selectedInvoiceId}
               orderDetail={items}
               totalAmount={totalAmount}
-              delivery={delivery} phoneNumber={phoneNumber}  setPhoneNumber={setPhoneNumber}  setDelivery={setDelivery} 
+              delivery={delivery} phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber} setDelivery={setDelivery}
               promo={promo} setPromo={setPromo}
+              customer={customer} setCustomer={setCustomer}
+              customerInfo={customerInfo} setCustomerInfo={setCustomerInfo}
             />
             <ToastContainer />
           </div>

@@ -39,7 +39,12 @@ public class SecurityConfig {
                     .authorizeHttpRequests(request -> request
                             .requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
                             .requestMatchers("/auth/token",
-                                    "auth/introspect", "authCustomer/token", "authCustomer/register")
+                                    "auth/introspect",
+                                    "authCustomer/token",
+                                    "authCustomer/register",
+                                    "products/**",
+                                    "employee/forgot-password",
+                                    "product-detail")
                             .permitAll()
                             .requestMatchers("/address/**", "/role/**")
                             .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")
