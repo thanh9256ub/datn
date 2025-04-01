@@ -106,4 +106,10 @@ public class ProductDetailController {
                 return ResponseEntity.ok(response);
         }
 
+        @PatchMapping("/update-status/{id}")
+        public ResponseEntity<ProductDetailResponse> deleteAndRestoreProductDetail(@PathVariable("id") Integer pdId){
+                ProductDetailResponse productDetailResponse = service.deleteAndRestoreProductDetail(pdId);
+                return ResponseEntity.ok(productDetailResponse);
+        }
+
 }

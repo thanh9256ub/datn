@@ -16,6 +16,8 @@ public class SizeResponse {
 
     String sizeName;
 
+    Integer status;
+
     String description;
 
 }

@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Form, Modal, Button } from 'react-bootstrap';
-import { createMaterial, getMaterials } from '../service/MaterialService';
+import React, { useEffect, useState } from 'react';
+import { getActive, getMaterials } from '../service/MaterialService';
 import Select from 'react-select';
 
 const MaterialSelect = ({ materialId, setMaterialId, refresh }) => {
@@ -18,16 +17,39 @@ const MaterialSelect = ({ materialId, setMaterialId, refresh }) => {
 
     const fetchMaterials = async () => {
         try {
-            const response = await getMaterials();
-            const formattedMaterials = response.data.data.map((material) => ({
+            const activeResponse = await getActive();
+            const activeMaterials = activeResponse.data.data.map((material) => ({
                 value: material.id,
                 label: material.materialName,
             }));
-            setMaterialOptions(formattedMaterials);
+
+            let updatedSelectedMaterial = null;
+            let finalMaterialOptions = [...activeMaterials];
 
             if (materialId) {
-                setSelectedMaterial(formattedMaterials.find((b) => b.value === materialId));
+                const isActive = activeMaterials.some((b) => b.value === materialId);
+
+                if (!isActive) {
+                    const allResponse = await getMaterials();
+                    const allMaterials = allResponse.data.data;
+                    const currentMaterial = allMaterials.find((b) => b.id === materialId);
+
+                    if (currentMaterial) {
+                        updatedSelectedMaterial = {
+                            value: currentMaterial.id,
+                            label: `${currentMaterial.materialName} (Ngừng hoạt động)`,
+                            isDisabled: true,
+                        };
+
+                        finalMaterialOptions.push(updatedSelectedMaterial);
+                    }
+                } else {
+                    updatedSelectedMaterial = activeMaterials.find((b) => b.value === materialId);
+                }
             }
+
+            setMaterialOptions(finalMaterialOptions);
+            setSelectedMaterial(updatedSelectedMaterial);
         } catch (error) {
             console.error("Lỗi khi lấy dữ liệu chất liệu:", error);
         }
@@ -43,7 +65,7 @@ const MaterialSelect = ({ materialId, setMaterialId, refresh }) => {
                 placeholder="Chất liệu..."
             />
         </div>
-    )
-}
+    );
+};
 
-export default MaterialSelect
+export default MaterialSelect;

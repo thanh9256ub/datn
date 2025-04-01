@@ -109,7 +109,6 @@ const Bin = () => {
         }
     };
 
-    // Khôi phục sản phẩm đã chọn (đổi trạng thái khác 2)
     const handleBulkDeleteProducts = async () => {
         if (selectedProducts.length === 0) {
             toast.warning("Vui lòng chọn ít nhất một sản phẩm để xoá!");
@@ -132,7 +131,6 @@ const Bin = () => {
 
             await deleteAndRestoreProducts(selectedProducts);
 
-            // Cập nhật UI
             setProducts(prevProducts =>
                 prevProducts.map(product =>
                     selectedProducts.includes(product.id) ? { ...product, status: 2 } : product
@@ -154,6 +152,15 @@ const Bin = () => {
         <div>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
                 <h2>Thùng rác</h2>
+                <button
+                    type="button"
+                    className="btn btn-link"
+                    style={{ padding: "0px", marginBottom: "10px" }}
+                    onClick={() => history.push('/admin/products')}
+                >
+                    <i className="mdi mdi-keyboard-backspace"></i>
+                    Quay lại
+                </button>
             </div>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-start", marginBottom: 16 }}>
                 <Dropdown>

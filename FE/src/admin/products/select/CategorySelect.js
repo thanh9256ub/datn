@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { getCategories } from '../service/CategoryService';
+import { getActive, getCategories } from '../service/CategoryService';
 import Select from 'react-select';
 
 const CategorySelect = ({ categoryId, setCategoryId, refresh }) => {
@@ -7,7 +7,7 @@ const CategorySelect = ({ categoryId, setCategoryId, refresh }) => {
     const [selectedCategory, setSelectedCategory] = useState(null);
 
     useEffect(() => {
-        fetchCategorys();
+        fetchCategories();
     }, [categoryId, refresh]);
 
     const handleCategoryChange = (selectedOption) => {
@@ -15,20 +15,43 @@ const CategorySelect = ({ categoryId, setCategoryId, refresh }) => {
         setCategoryId(selectedOption ? selectedOption.value : "");
     };
 
-    const fetchCategorys = async () => {
+    const fetchCategories = async () => {
         try {
-            const response = await getCategories();
-            const formattedCategorys = response.data.data.map((category) => ({
+            const activeResponse = await getActive();
+            const activeCategories = activeResponse.data.data.map((category) => ({
                 value: category.id,
                 label: category.categoryName,
             }));
-            setCategoryOptions(formattedCategorys);
+
+            let updatedSelectedCategory = null;
+            let finalCategoryOptions = [...activeCategories];
 
             if (categoryId) {
-                setSelectedCategory(formattedCategorys.find((b) => b.value === categoryId));
+                const isActive = activeCategories.some((b) => b.value === categoryId);
+
+                if (!isActive) {
+                    const allResponse = await getCategories();
+                    const allCategories = allResponse.data.data;
+                    const currentCategory = allCategories.find((b) => b.id === categoryId);
+
+                    if (currentCategory) {
+                        updatedSelectedCategory = {
+                            value: currentCategory.id,
+                            label: `${currentCategory.categoryName} (Ngừng hoạt động)`,
+                            isDisabled: true, // Không cho phép chọn lại
+                        };
+
+                        finalCategoryOptions.push(updatedSelectedCategory);
+                    }
+                } else {
+                    updatedSelectedCategory = activeCategories.find((b) => b.value === categoryId);
+                }
             }
+
+            setCategoryOptions(finalCategoryOptions);
+            setSelectedCategory(updatedSelectedCategory);
         } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu thương hiệu:", error);
+            console.error("Lỗi khi lấy dữ liệu danh mục:", error);
         }
     };
 

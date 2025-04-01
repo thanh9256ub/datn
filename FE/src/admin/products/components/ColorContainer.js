@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getColors, createColor } from '../service/ColorService';
+import { getColors, createColor, getActive } from '../service/ColorService';
 import Select from 'react-select';
 import { Button, Form, Modal } from 'react-bootstrap';
 import { toast } from 'react-toastify';
@@ -14,7 +14,7 @@ const ColorContainer = ({ colorIds, setColorIds }) => {
     }, []);
 
     const fetchColors = async () => {
-        getColors()
+        getActive()
             .then(response => {
                 const formattedColors = response.data.data.map(color => ({
                     value: color.id,

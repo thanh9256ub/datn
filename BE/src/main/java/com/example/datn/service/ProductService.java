@@ -127,7 +127,10 @@ public class ProductService {
     }
 
     public List<ProductResponse> getList() {
-        return mapper.toListProductResponse(repository.findAll());
+        Specification<Product> spec = ProductSpecification.statusNotTwo();
+
+        List<Product> products = repository.findAll(spec);
+        return mapper.toListProductResponse(products);
     }
 
     public Page<ProductResponse> searchProducts(String name, Integer brandId, Integer categoryId, Integer materialId,
@@ -390,6 +393,7 @@ public class ProductService {
                     .orElseGet(() -> {
                         Brand newBrand = new Brand();
                         newBrand.setBrandName(brandName);
+                        newBrand.setStatus(1);
                         return brandRepository.save(newBrand);
                     });
 
@@ -398,6 +402,7 @@ public class ProductService {
                     .orElseGet(() -> {
                         Category newCategory = new Category();
                         newCategory.setCategoryName(categoryName);
+                        newCategory.setStatus(1);
                         return categoryRepository.save(newCategory);
                     });
 
@@ -406,6 +411,7 @@ public class ProductService {
                     .orElseGet(() -> {
                         Material newMaterial = new Material();
                         newMaterial.setMaterialName(materialName);
+                        newMaterial.setStatus(1);
                         return materialRepository.save(newMaterial);
                     });
 
@@ -433,6 +439,7 @@ public class ProductService {
                     .orElseGet(() -> {
                         Color newColor = new Color();
                         newColor.setColorName(colorName);
+                        newColor.setStatus(1);
                         return colorRepository.save(newColor);
                     });
 
@@ -441,6 +448,7 @@ public class ProductService {
                     .orElseGet(() -> {
                         Size newSize = new Size();
                         newSize.setSizeName(sizeName);
+                        newSize.setStatus(1);
                         return sizeRepository.save(newSize);
                     });
 
