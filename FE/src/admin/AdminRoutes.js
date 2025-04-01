@@ -45,6 +45,7 @@ const UpdateCustomer = lazy(() => import('./customers/action/UpdateCustomer'));
 const CreateEmployee = lazy(() => import('./employees/action/CreateEmployee'));
 const UpdateEmployee = lazy(() => import('./employees/action/UpdateEmployee'));
 
+const Statistics  = lazy(() => import('./statistics/Statistics'));
 // Component bảo vệ route (AuthGuard)
 const ProtectedRoute = ({ component: Component, ...rest }) => {
   const { token } = useAuth();
@@ -109,6 +110,8 @@ class AdminRoutes extends Component {
           <Route exact path="/admin/order-detail/orders/:orderId" component={OrderDetail} />
           <Route exact path="/admin/vouchers" component={Vouchers} />
 
+          <ProtectedRoute exact path="/admin/statistics" component={Statistics} />
+          
           <Redirect to="/admin/dashboard" />
         </Switch>
       </Suspense>

@@ -52,6 +52,7 @@ class Sidebar extends Component {
       { path: '/admin/customers', state: 'customersPagesMenuOpen' },
       { path: '/admin/orders', state: 'ordersPagesMenuOpen' },
       { path: '/admin/vouchers', state: 'vouchersPagesMenuOpen' },
+      { path: '/admin/statistics', state: 'statisticsPagesMenuOpen' },
     ];
 
     dropdownPaths.forEach((obj => {
@@ -165,6 +166,18 @@ class Sidebar extends Component {
               </ul>
             </Collapse>
           </li>
+          <li className={this.isPathActive('/admin/statistics') ? 'nav-item active' : 'nav-item'}>
+            <div className={this.state.statisticsPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('statisticsPagesMenuOpen')} data-toggle="collapse">
+              <span className="menu-title"><Trans>Thống kê</Trans></span>
+              <i className="menu-arrow"></i>
+              <i className="mdi mdi-sale menu-icon"></i>
+            </div>
+            <Collapse in={this.state.statisticsPagesMenuOpen}>
+              <ul className="nav flex-column sub-menu">
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/statistics') ? 'nav-link active' : 'nav-link'} to="/admin/statistics"><Trans>Thống kê</Trans></Link></li>
+              </ul>
+            </Collapse>
+          </li>
           <hr />
           <li className={this.isPathActive('/admin/basic-ui') ? 'nav-item active' : 'nav-item'}>
             <div className={this.state.basicUiMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('basicUiMenuOpen')} data-toggle="collapse">
@@ -216,6 +229,7 @@ class Sidebar extends Component {
               </ul>
             </Collapse>
           </li>
+          
           {/* <li className={this.isPathActive('/admin/charts') ? 'nav-item active' : 'nav-item'}>
             <div className={this.state.chartsMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('chartsMenuOpen')} data-toggle="collapse">
               <span className="menu-title"><Trans>Charts</Trans></span>
