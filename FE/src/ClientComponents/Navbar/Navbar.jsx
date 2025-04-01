@@ -14,7 +14,7 @@ const Navbar = () => {
     const closeDrawer = () => setVisible(false);
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
+        localStorage.removeItem('tokenClient');
         localStorage.removeItem('email');
         localStorage.removeItem('role');
         window.location.href = '/login';
@@ -36,7 +36,7 @@ const Navbar = () => {
     return (
         <ConfigProvider
             theme={{
-                token: {
+                tokenClient: {
                     colorPrimary: '#ca51f0',
                     colorBgContainer: '#ffffff',
                     borderRadius: 8,
@@ -134,7 +134,7 @@ const Navbar = () => {
 
                 {/* Cart and Auth Buttons */}
                 <Space size="large">
-                    {localStorage.getItem('token') ? (
+                    {localStorage.getItem('tokenClient') ? (
                         <Button
                             type="primary"
                             danger

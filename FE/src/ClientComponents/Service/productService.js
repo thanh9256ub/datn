@@ -153,21 +153,18 @@ export const fetchProductDetailByAttributes = async (productId, colorId, sizeId)
             throw new Error('Thiếu thông tin bắt buộc: productId, colorId, sizeId');
         }
 
+        console.log('Calling API with params:', { productId, colorId, sizeId });
         const response = await api.get('/product-detail/find-by-attributes', {
             params: { productId, colorId, sizeId }
         });
 
-        if (!response.data.data) {
-            throw new Error('Không tìm thấy thông tin sản phẩm');
-        }
-
-        return response.data.data;
+        console.log('API res (product detail by attributes):', response.data);
+        return response.data.data || null; // Trả về null nếu không có dữ liệu
     } catch (error) {
         console.error('Error in fetchProductDetailByAttributes:', error);
-        throw new Error(error.response?.data?.message || 'Lỗi khi lấy thông tin sản phẩm');
+        return null; // Trả về null thay vì ném lỗi
     }
 };
-
 export const apiAddToCart = async (cartData) => {
     try {
         console.log("Sending cart data:", cartData);
@@ -248,7 +245,7 @@ export const getOrCreateCart = async (customerId) => {
     }
 };
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('tokenClient');
     console.log('Sending request with token:', token); // Log token
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;

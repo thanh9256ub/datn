@@ -59,7 +59,9 @@ public class SecurityConfig {
                                     "/counter/wards",
                                     "/counter/get-price",
                                     "/cart-details/**",
-                                    "/carts/**","/order/checkout/{cartId}","/order/checkout/guest"
+                                    "/carts/**",
+                                    "/order/checkout/{cartId}",
+                                    "/order/checkout/guest"
                             )
                             .permitAll()
                             .requestMatchers("/address/**", "/role/**")

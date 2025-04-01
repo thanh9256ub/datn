@@ -21,22 +21,21 @@ const ShopContextProvider = (props) => {
     const [customerId, setCustomerId] = useState(null);
     const [cartId, setCartId] = useState(null);
     const [selectedItems, setSelectedItems] = useState([]);
-    const [token, setToken] = useState(localStorage.getItem('token') || null);
+    const [tokenClient, settokenClient] = useState(localStorage.getItem('tokenClient') || null); // Đổi từ 'token' thành 'tokenClient'
 
-    // Hàm đăng nhập
+    // Hàm đăng nhập cho client
     const login = async ({ email, password }) => {
         try {
             const response = await getTokenCustomer(email, password);
             console.log('Full response:', response);
 
-            // Kiểm tra dữ liệu trả về từ API
             if (!response || !response.data || !response.data.token) {
                 throw new Error('Không nhận được token từ server');
             }
 
             const newToken = response.data.token;
-            localStorage.setItem('token', newToken);
-            setToken(newToken);
+            localStorage.setItem('tokenClient', newToken); // Lưu dưới khóa 'tokenClient'
+            settokenClient(newToken);
 
             const profile = await fetchCustomerProfile(newToken);
             if (!profile || !profile.customerId) {
@@ -47,11 +46,9 @@ const ShopContextProvider = (props) => {
             setCustomerId(newCustomerId);
             setIsGuest(false);
 
-            // Khởi tạo hoặc lấy giỏ hàng
             const cartData = await getOrCreateCart(newCustomerId);
             setCartId(cartData.id);
 
-            // Đồng bộ giỏ hàng khách vãng lai lên server
             if (cartItems.length > 0) {
                 await syncGuestCartToServer(cartData.id);
             } else {
@@ -61,9 +58,9 @@ const ShopContextProvider = (props) => {
             console.error('Đăng nhập thất bại:', error.message);
             setIsGuest(true);
             setCustomerId(null);
-            setToken(null);
-            localStorage.removeItem('token');
-            throw error; // Ném lỗi để component Login xử lý
+            settokenClient(null);
+            localStorage.removeItem('tokenClient');
+            throw error;
         }
     };
 
@@ -80,7 +77,7 @@ const ShopContextProvider = (props) => {
                 await apiAddToCart(cartData);
             }
             await loadCartItems(cartId);
-            localStorage.removeItem('cartItems'); // Xóa giỏ hàng local sau khi đồng bộ
+            localStorage.removeItem('cartItems');
         } catch (error) {
             console.error('Đồng bộ giỏ hàng thất bại:', error);
         }
@@ -98,11 +95,9 @@ const ShopContextProvider = (props) => {
             const response = await getCartDetails(cartId);
             console.log('API response:', response);
 
-            // Kiểm tra response có hợp lệ không
             const cartDetails = response && response.data ? response.data : [];
             console.log('Cart details:', cartDetails);
 
-            // Nếu không có dữ liệu, giữ nguyên mảng rỗng
             const items = cartDetails.length > 0 ? cartDetails[0]?.cart?.items || [] : [];
             console.log('Extracted cart items:', items);
 
@@ -159,7 +154,7 @@ const ShopContextProvider = (props) => {
                     price: productDetail.price,
                 };
                 await apiAddToCart(cartData);
-                await loadCartItems(cartId); // Cập nhật lại giỏ hàng sau khi thêm
+                await loadCartItems(cartId);
             }
         } catch (error) {
             console.error('Thêm vào giỏ hàng thất bại:', error.message);
@@ -223,12 +218,13 @@ const ShopContextProvider = (props) => {
         setCartId(null);
         setSelectedItems([]);
         setCartItems([]);
-        setToken(null);
-        localStorage.removeItem('token');
+        settokenClient(null);
+        localStorage.removeItem('tokenClient'); // Xóa 'tokenClient'
     };
 
     const contextValue = {
         cartItems,
+        setCartItems, // Thêm setCartItems vào context
         addToCart,
         removeFromCart,
         clearCart,
@@ -242,18 +238,25 @@ const ShopContextProvider = (props) => {
         customerId,
         login,
         handleLogout,
+        tokenClient,
+        cartId,
+        setCartId, // Thêm setCartId vào context
+        getOrCreateCart, // Thêm getOrCreateCart vào context
     };
-
     useEffect(() => {
         const initializeUser = async () => {
-            if (token && isGuest) {
+            if (tokenClient) {
                 try {
-                    const profile = await fetchCustomerProfile(token);
+                    const profile = await fetchCustomerProfile(tokenClient);
                     setCustomerId(profile.customerId);
                     setIsGuest(false);
+
+                    // Lấy hoặc tạo cartId ngay lập tức
                     const cartData = await getOrCreateCart(profile.customerId);
                     console.log('Cart data from getOrCreateCart:', cartData);
                     setCartId(cartData.id);
+
+                    // Tải giỏ hàng với cartId vừa nhận được
                     await loadCartItems(cartData.id);
                 } catch (error) {
                     console.error('Không thể xác thực token:', error);
@@ -262,7 +265,7 @@ const ShopContextProvider = (props) => {
             }
         };
         initializeUser();
-    }, [token]); // Chỉ phụ thuộc vào token
+    }, [tokenClient]);
 
     useEffect(() => {
         if (!isGuest && customerId && !cartId) {
@@ -278,7 +281,7 @@ const ShopContextProvider = (props) => {
             };
             initializeCart();
         }
-    }, [isGuest, customerId, cartId])
+    }, [isGuest, customerId, cartId]);
 
     return <ShopContext.Provider value={contextValue}>{props.children}</ShopContext.Provider>;
 };
