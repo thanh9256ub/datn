@@ -100,10 +100,18 @@ class Sidebar extends Component {
             <Collapse in={this.state.productsPagesMenuOpen}>
               <ul className="nav flex-column sub-menu">
                 <li className="nav-item"> <Link className={this.isPathActive('/admin/products') ? 'nav-link active' : 'nav-link'} to="/admin/products"><Trans>Sản phẩm</Trans></Link></li>
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/products/inactive') ? 'nav-link active' : 'nav-link'} to="/admin/products/inactive"><Trans>Kho lưu trữ</Trans></Link></li>
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/brands') ? 'nav-link active' : 'nav-link'} to="/admin/brands"><Trans>Thương hiệu</Trans></Link></li>
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/categories') ? 'nav-link active' : 'nav-link'} to="/admin/categories"><Trans>Danh mục</Trans></Link></li>
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/materials') ? 'nav-link active' : 'nav-link'} to="/admin/materials"><Trans>Chất liệu</Trans></Link></li>
+                {localStorage.getItem("role") === "ADMIN" &&
+                  <li className="nav-item"> <Link className={this.isPathActive('/admin/products/inactive') ? 'nav-link active' : 'nav-link'} to="/admin/products/inactive"><Trans>Kho lưu trữ</Trans></Link></li>
+                }
+                {localStorage.getItem("role") === "ADMIN" &&
+                  <li className="nav-item"> <Link className={this.isPathActive('/admin/brands') ? 'nav-link active' : 'nav-link'} to="/admin/brands"><Trans>Thương hiệu</Trans></Link></li>
+                }
+                {localStorage.getItem("role") === "ADMIN" &&
+                  <li className="nav-item"> <Link className={this.isPathActive('/admin/categories') ? 'nav-link active' : 'nav-link'} to="/admin/categories"><Trans>Danh mục</Trans></Link></li>
+                }
+                {localStorage.getItem("role") === "ADMIN" &&
+                  <li className="nav-item"> <Link className={this.isPathActive('/admin/materials') ? 'nav-link active' : 'nav-link'} to="/admin/materials"><Trans>Chất liệu</Trans></Link></li>
+                }
               </ul>
             </Collapse>
           </li>

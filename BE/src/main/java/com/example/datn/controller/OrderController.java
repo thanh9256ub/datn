@@ -1,5 +1,6 @@
 package com.example.datn.controller;
 
+import com.example.datn.dto.request.CustomerInfoRequest;
 import com.example.datn.dto.request.OrderRequest;
 import com.example.datn.dto.request.PaymentMethodRequest;
 import com.example.datn.dto.response.ApiResponse;
@@ -10,11 +11,13 @@ import com.example.datn.service.DonHangService;
 import com.example.datn.service.OrderService;
 import com.example.datn.service.PaymentMethodService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -61,6 +64,19 @@ public class OrderController {
                 HttpStatus.OK.value(), "PaymentMethod deleted successfully",null);
         return ResponseEntity.ok(apiResponse);
     }
+    @PutMapping("/{orderId}/customer-info")
+    public ResponseEntity<ApiResponse<OrderResponse>> updateCustomerInfo(
+            @PathVariable Integer orderId,
+            @RequestBody @Valid CustomerInfoRequest request) {
+
+        OrderResponse updatedOrder = service.updateCustomerInfo(orderId, request);
+
+        return ResponseEntity.ok(new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Cập nhật thành công",
+                updatedOrder
+        ));
+    }
     @PutMapping("/{id}/status")
     public ResponseEntity<ApiResponse<OrderResponse>> updateStatus(
             @PathVariable("id") Integer id,
@@ -81,5 +97,15 @@ public class OrderController {
 
         // Trả về phản hồi
         return ResponseEntity.ok(apiResponse);
+    }
+    @GetMapping("/filter")
+    public List<OrderResponse> filterOrders(
+            @RequestParam(required = false) String orderCode,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) LocalDateTime startDate,
+            @RequestParam(required = false) LocalDateTime endDate,
+            @RequestParam(required = false) Integer status) { // Thêm status
+        return service.filterOrders(orderCode, minPrice, maxPrice, startDate, endDate, status);
     }
 }

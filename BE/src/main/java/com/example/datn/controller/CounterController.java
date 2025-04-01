@@ -134,6 +134,8 @@ public class CounterController {
     public ResponseEntity<?> getProvinces() {
         try {
             RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Token", "eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwMzM1NjAyMTE1IiwiVXNlcklkIjoxNTgzOTczNCwiRnJvbVNvdXJjZSI6NSwiVG9rZW4iOiJKWEdZV0Q5QTkwQyIsImV4cCI6MTc0MjE4MjU2MCwiUGFydG5lciI6MTU4Mzk3MzR9.hdibqEJCL4qN1qO7JGPMEnisfUgvRdng1pWDaBhVL_Iz71NhRWMCCPXyz9GydOhazXxIzjLYzS26mdacsyRlYg");
             String url = "https://partner.viettelpost.vn/v2/categories/listProvinceById?provinceId=-1";
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
             return ResponseEntity.ok(response.getBody());

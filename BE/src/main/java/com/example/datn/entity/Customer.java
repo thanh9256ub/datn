@@ -1,5 +1,7 @@
 package com.example.datn.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -54,6 +56,7 @@ public class Customer {
     @JoinColumn(name = "role_id", referencedColumnName = "id")
     private Role role;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "customer")
     private List<Address> addressList;
 }

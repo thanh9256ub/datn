@@ -26,7 +26,6 @@ public class CustomerRequest {
 
     Integer gender;
 
-    @NotBlank(message = "Customer phone is unique")
     String phone;
 
     String email;

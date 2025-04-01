@@ -33,8 +33,6 @@ public class CustomerResponse {
 
     String email;
 
-    String password;
-
     String createdAt;
 
     String updatedAt;
@@ -53,7 +51,6 @@ public class CustomerResponse {
         this.gender = customer.getGender();
         this.phone = customer.getPhone();
         this.email = customer.getEmail();
-        this.password = customer.getPassword();
         this.createdAt = customer.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         this.updatedAt = Objects.isNull(customer.getUpdatedAt())
                 ? customer.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))

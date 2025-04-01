@@ -15,12 +15,17 @@ class Navbar extends Component {
 
   handleLogout = (e) => {
     e.preventDefault(); // prevent the default action
-    console.log('Logout....');
     localStorage.removeItem('token');
     localStorage.removeItem('fullName');
     localStorage.removeItem('role');
     window.location.href = '/login-nhan-vien';
   }
+
+  handleChangePassword = (e) => {
+    e.preventDefault();
+    window.location.href = '/doi-mat-khau';
+  }
+
 
   render() {
     return (
@@ -57,13 +62,13 @@ class Navbar extends Component {
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu className="navbar-dropdown">
-                  <Dropdown.Item href="!#" onClick={evt => evt.preventDefault()}>
+                  <Dropdown.Item onClick={this.handleChangePassword}>
                     <i className="mdi mdi-cached mr-2 text-success"></i>
-                    <Trans>Activity Log</Trans>
+                    <Trans>Đổi mật khẩu</Trans>
                   </Dropdown.Item>
-                  <Dropdown.Item href="!#" onClick={this.handleLogout}>
+                  <Dropdown.Item onClick={this.handleLogout}>
                     <i className="mdi mdi-logout mr-2 text-primary"></i>
-                    <Trans>Signout</Trans>
+                    <Trans>Đăng xuất</Trans>
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
