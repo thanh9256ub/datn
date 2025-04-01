@@ -444,7 +444,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
                 <Form.Label style={{ fontWeight: 'bold' }}>Tiền thừa</Form.Label>
                 <Form.Control
                   type="number"
-                  value={change}
+                  value={change<0?0:change}
                   style={{ fontWeight: 'bold' }}
                   readOnly
                   placeholder="Tiền thừa"
