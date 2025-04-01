@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Button, Modal, Col, InputGroup, Container, Form, Alert, Spinner } from "react-bootstrap";
+import { Button, Modal, Col, InputGroup, Container, Form, Alert, Spinner, Pagination } from "react-bootstrap";
 import { addCustomer, listAddress, listCustomer, listRole, updateCustomer, addAddressCustomer } from './service/CustomersService.js';
 import './Customer.css';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min.js';
@@ -217,7 +217,7 @@ const Customers = () => {
                 <div style={{ width: "300px", overflow: "hidden" }}>
                     <InputGroup>
                         <Form.Control
-                            placeholder="Tìm kiếm..."
+                            placeholder="Tên, số điện thoại..."
                             style={{ border: "none", outline: "none", padding: "8px 12px" }}
                             value={search}
                             onChange={handleSearchChange}

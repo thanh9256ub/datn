@@ -106,6 +106,7 @@ public class ProductDetailController {
 
                 return ResponseEntity.ok(response);
         }
+        
         @GetMapping("/sizes-by-color/{productId}/{colorId}")
         public ResponseEntity<ApiResponse<List<Size>>> getSizesByProductAndColor(
                 @PathVariable("productId") Integer productId,
@@ -121,6 +122,7 @@ public class ProductDetailController {
 
                 return ResponseEntity.ok(response);
         }
+
         @GetMapping("/find-by-attributes")
         public ResponseEntity<ApiResponse<ProductDetailResponse>> getDetailByAttributes(
                 @RequestParam Integer productId,
@@ -137,4 +139,11 @@ public class ProductDetailController {
 
                 return ResponseEntity.ok(apiResponse);
         }
+
+        @PatchMapping("/update-status/{id}")
+        public ResponseEntity<ProductDetailResponse> deleteAndRestoreProductDetail(@PathVariable("id") Integer pdId){
+                ProductDetailResponse productDetailResponse = service.deleteAndRestoreProductDetail(pdId);
+                return ResponseEntity.ok(productDetailResponse);
+        }
+
 }

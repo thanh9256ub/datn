@@ -63,7 +63,7 @@ public class EmployeeService {
     public EmployeeResponse createEmployee(EmployeeRequest employeeRequest) {
         Employee employee = employeeMapper.toEmployee(employeeRequest);
         employee.setEmployeeCode("NV.....");
-        employee.setCreatedAt(LocalDateTime.now());   
+        employee.setCreatedAt(LocalDateTime.now());
         employee.setUpdatedAt(LocalDateTime.now());
         employee.setStatus(1);
         Role role = roleRepository.findById(employeeRequest.getRoleId()).get();
@@ -118,7 +118,6 @@ public class EmployeeService {
         employee.setStatus(employeeRequest.getStatus());
 //        employeeMapper.updateEmployee(employee, employeeRequest);
 
-
         employee.setUpdatedAt(LocalDateTime.now());
 
 //        return employeeMapper.toEmployeeResponse(employeeRepository.save(employee));
@@ -150,4 +149,5 @@ public class EmployeeService {
     private String generatePassword() {
         return String.format("%06d", new Random().nextInt(1000000));
     }
+
 }

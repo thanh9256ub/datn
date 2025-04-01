@@ -1,5 +1,6 @@
 package com.example.datn.service;
 
+import com.example.datn.controller.WebSocketController;
 import com.example.datn.dto.request.ProductRequest;
 import com.example.datn.dto.response.ProductResponse;
 import com.example.datn.entity.*;
@@ -18,6 +19,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +29,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -56,6 +61,26 @@ public class ProductService {
 
     @Autowired
     ProductColorRepository productColorRepository;
+
+    @Autowired
+    WebSocketController webSocketController;
+
+    @Autowired
+    ProductUpdateRepository productUpdateRepository;
+
+    @Scheduled(fixedRate = 5000) // Kiểm tra mỗi 5 giây
+    @Transactional
+    public void checkProductQuantityUpdates() {
+        List<ProductUpdate> updates = productUpdateRepository.findLatestUpdates();
+
+        for (ProductUpdate update : updates) {
+            webSocketController.sendProductQuantityUpdate(update.getProductCode(), update.getNewTotalQuantity());
+        }
+
+        // Xóa sau khi gửi thông báo để tránh lặp lại
+        productUpdateRepository.deleteAll(updates);
+    }
+
 
     private String generateProductCode() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss");
@@ -91,12 +116,46 @@ public class ProductService {
 //    }
 
     public Page<ProductResponse> getAll(Pageable pageable) {
-        Pageable sortedByIdDesc = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
-        return repository.findAll(sortedByIdDesc).map(mapper::toProductResponse);
+        Specification<Product> spec = Specification.where(ProductSpecification.statusNotTwo());
+
+        Pageable sortedByIdDesc = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by("id").descending()
+        );
+        return repository.findAll(spec, sortedByIdDesc).map(mapper::toProductResponse);
     }
 
     public List<ProductResponse> getList() {
-        return mapper.toListProductResponse(repository.findAll());
+        Specification<Product> spec = ProductSpecification.statusNotTwo();
+
+        List<Product> products = repository.findAll(spec);
+        return mapper.toListProductResponse(products);
+    }
+
+    public Page<ProductResponse> searchProducts(String name, Integer brandId, Integer categoryId, Integer materialId,
+                                                Integer status, Pageable pageable) {
+        Specification<Product> spec = Specification
+                .where(ProductSpecification.hasName(name))
+                .and(ProductSpecification.hasBrandId(brandId))
+                .and(ProductSpecification.hasCategoryId(categoryId))
+                .and(ProductSpecification.hasMaterialId(materialId))
+                .and(ProductSpecification.hasStatus(status))
+                .and(ProductSpecification.statusNotTwo());
+
+        Pageable sortedByIdDesc = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by("id").descending());
+
+        return repository.findAll(spec, sortedByIdDesc).map(mapper::toProductResponse);
+    }
+
+    public Page<ProductResponse> getBin(Pageable pageable) {
+        Specification<Product> spec = Specification.where(ProductSpecification.hasStatusTwo());
+
+        Pageable sortedByIdDesc = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by("id").descending());
+
+        return repository.findAll(spec, sortedByIdDesc).map(mapper::toProductResponse);
     }
 
     public ProductResponse getById(Integer id) {
@@ -136,20 +195,68 @@ public class ProductService {
         return mapper.toProductResponse(repository.save(product));
     }
 
-    public void deleteProduct(Integer id) {
-        repository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Product not found with ID: " + id));
-
-        repository.deleteById(id);
-    }
-
     public ProductResponse updateStatus(Integer productId, Integer status) {
         Product product = repository.findById(productId).orElseThrow(() -> new RuntimeException("Product not exist"));
 
         product.setStatus(status);
 
-        return mapper.toProductResponse(repository.save(product));
+        repository.save(product);
+
+        List<ProductDetail> productDetails = productDetailRepository.findByProductId(productId);
+
+        for (ProductDetail detail : productDetails) {
+            if (status == 2) {
+                detail.setStatus(2);
+            } else {
+                detail.setStatus(detail.getQuantity() > 0 ? 1 : 0);
+            }
+        }
+
+        productDetailRepository.saveAll(productDetails);
+
+        return mapper.toProductResponse(product);
     }
+
+    @Transactional
+    public List<ProductResponse> updateMultipleStatuses(List<Integer> productIds) {
+        List<Product> products = repository.findAllById(productIds);
+
+        if (products.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy sản phẩm nào với các ID đã cung cấp");
+        }
+
+        // Tìm tất cả ProductDetail cùng lúc để tránh query nhiều lần
+        List<ProductDetail> allDetails = productDetailRepository.findByProductIdIn(productIds);
+        Map<Integer, List<ProductDetail>> detailMap = allDetails.stream()
+                .collect(Collectors.groupingBy(detail -> detail.getProduct().getId()));
+
+        for (Product product : products) {
+            List<ProductDetail> productDetails = detailMap.getOrDefault(product.getId(), new ArrayList<>());
+
+            boolean allDetailsInactive = productDetails.stream().allMatch(d -> d.getStatus() == 2);
+
+            if (product.getStatus() != 2) {
+                product.setStatus(2);
+            } else {
+                product.setStatus((product.getTotalQuantity() > 0 && !allDetailsInactive) ? 1 : 0);
+            }
+
+            for (ProductDetail detail : productDetails) {
+                if (detail.getStatus() != 2) {
+                    detail.setStatus(2);
+                } else {
+                    detail.setStatus(detail.getQuantity() > 0 ? 1 : 0);
+                }
+            }
+        }
+
+        // Lưu tất cả thay đổi một lần để tối ưu hiệu suất
+        productDetailRepository.saveAll(allDetails);
+        repository.saveAll(products);
+
+        return mapper.toListProductResponse(products);
+    }
+
 
     // public List<ProductResponse> getActiveProducts(){
     //
@@ -164,18 +271,6 @@ public class ProductService {
     //
     // return mapper.toListProduct(productList);
     // }
-
-    public Page<ProductResponse> searchProducts(String name, Integer brandId, Integer categoryId, Integer materialId,
-            Integer status, Pageable pageable) {
-        Specification<Product> spec = Specification
-                .where(ProductSpecification.hasName(name))
-                .and(ProductSpecification.hasBrandId(brandId))
-                .and(ProductSpecification.hasCategoryId(categoryId))
-                .and(ProductSpecification.hasMaterialId(materialId))
-                .and(ProductSpecification.hasStatus(status));
-
-        return repository.findAll(spec, pageable).map(mapper::toProductResponse);
-    }
 
     private double getCellValueAsDouble(Cell cell) {
         if (cell == null) {
@@ -215,7 +310,11 @@ public class ProductService {
             case STRING:
                 return cell.getStringCellValue().trim();
             case NUMERIC:
-                return String.valueOf(cell.getNumericCellValue()); // Chuyển số thành chuỗi
+                double numericValue = cell.getNumericCellValue();
+                if (numericValue == (int) numericValue) {
+                    return String.valueOf((int) numericValue); // Nếu là số nguyên, ép kiểu về int để bỏ .0
+                }
+                return String.valueOf(numericValue);
             case FORMULA:
                 return cell.getCachedFormulaResultType() == CellType.NUMERIC
                         ? String.valueOf(cell.getNumericCellValue())
@@ -294,6 +393,7 @@ public class ProductService {
                     .orElseGet(() -> {
                         Brand newBrand = new Brand();
                         newBrand.setBrandName(brandName);
+                        newBrand.setStatus(1);
                         return brandRepository.save(newBrand);
                     });
 
@@ -302,6 +402,7 @@ public class ProductService {
                     .orElseGet(() -> {
                         Category newCategory = new Category();
                         newCategory.setCategoryName(categoryName);
+                        newCategory.setStatus(1);
                         return categoryRepository.save(newCategory);
                     });
 
@@ -310,6 +411,7 @@ public class ProductService {
                     .orElseGet(() -> {
                         Material newMaterial = new Material();
                         newMaterial.setMaterialName(materialName);
+                        newMaterial.setStatus(1);
                         return materialRepository.save(newMaterial);
                     });
 
@@ -337,6 +439,7 @@ public class ProductService {
                     .orElseGet(() -> {
                         Color newColor = new Color();
                         newColor.setColorName(colorName);
+                        newColor.setStatus(1);
                         return colorRepository.save(newColor);
                     });
 
@@ -345,6 +448,7 @@ public class ProductService {
                     .orElseGet(() -> {
                         Size newSize = new Size();
                         newSize.setSizeName(sizeName);
+                        newSize.setStatus(1);
                         return sizeRepository.save(newSize);
                     });
 
@@ -373,14 +477,12 @@ public class ProductService {
                 productDetail.setCreatedAt(LocalDateTime.now().withNano(0));
                 productDetail.setQr("");
             } else {
-                // Nếu đã có, cập nhật số lượng (cộng dồn)
                 productDetail.setQuantity(productDetail.getQuantity() + quantity);
                 productDetail.setStatus(productDetail.getQuantity() > 0 ? 1 : 0); // Nếu số lượng > 0, đặt trạng thái 1
             }
 
             productDetails.add(productDetail);
 
-            // ✅ Cập nhật tổng số lượng của Product
             productTotalQuantities.put(product, productTotalQuantities.getOrDefault(product, 0) + quantity);
         }
 

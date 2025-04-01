@@ -22,6 +22,9 @@ public class Color {
     @NotBlank(message = "Color name is required")
     String colorName;
 
+    @Column(name = "status")
+    Integer status;
+
     @Column(name = "description")
     String description;
 }

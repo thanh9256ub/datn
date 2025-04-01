@@ -27,6 +27,9 @@ public class Category {
         @NotBlank(message = "Category code is required")
     String categoryName;
 
+    @Column(name = "status")
+    Integer status;
+
     @Column(name = "description")
     String description;
 

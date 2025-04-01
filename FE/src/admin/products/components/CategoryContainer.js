@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { createCategory } from '../service/CategoryService';
+import { getCategories, createCategory } from '../service/CategoryService';
 import { Button, Form, Modal } from 'react-bootstrap';
 import CategorySelect from '../select/CategorySelect';
+import { toast } from 'react-toastify';
 
 const CategoryContainer = ({ categoryId, setCategoryId }) => {
     const [showModal, setShowModal] = useState(false);
@@ -15,8 +16,16 @@ const CategoryContainer = ({ categoryId, setCategoryId }) => {
         }
 
         try {
+            const categoryResp = await getCategories();
+            const categorys = categoryResp.data.data;
+            const categoryExists = categorys.some(category => category.categoryName.toLowerCase() === newCategoryName.toLowerCase());
+
+            if (categoryExists) {
+                toast.error("Danh mục đã tồn tại!");
+                return;
+            }
             const response = await createCategory({ categoryName: newCategoryName });
-            alert("Thêm danh mục thành công!");
+            toast.success("Thêm danh mục thành công!");
             setShowModal(false);
             setNewCategoryName("");
             setRefresh(prev => !prev);

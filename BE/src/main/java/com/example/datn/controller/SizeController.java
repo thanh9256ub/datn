@@ -3,6 +3,8 @@ package com.example.datn.controller;
 import com.example.datn.dto.request.SizeRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.SizeResponse;
+import com.example.datn.dto.response.SizeResponse;
+import com.example.datn.dto.response.SizeResponse;
 import com.example.datn.service.SizeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,17 @@ public class SizeController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<SizeResponse>>> getActive(){
+
+        List<SizeResponse> list = service.getActive();
+
+        ApiResponse<List<SizeResponse>> response = new ApiResponse<>(HttpStatus.OK.value(),
+                "Sizes retrieved successfully", list);
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<SizeResponse> getOne(@PathVariable("id") Integer id){
 
@@ -66,18 +79,18 @@ public class SizeController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<ApiResponse<SizeResponse>> deleteSize(@PathVariable("id") Integer id){
+    @PatchMapping ("/update-status/{id}")
+    public ResponseEntity<ApiResponse<SizeResponse>> updateStatus(@PathVariable("id") Integer id){
 
-        service.deleteSize(id);
+        SizeResponse brandResponse = service.updateStatus(id);
 
         ApiResponse<SizeResponse> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
-                "Size deleted successfully",
-                null
+                "Updated status successfully",
+                brandResponse
         );
 
         return ResponseEntity.ok(response);
-
     }
+
 }

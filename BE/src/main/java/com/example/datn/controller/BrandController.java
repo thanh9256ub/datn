@@ -42,6 +42,17 @@ public class BrandController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<BrandResponse>>> getActive(){
+
+        List<BrandResponse> list = service.getActive();
+
+        ApiResponse<List<BrandResponse>> response = new ApiResponse<>(HttpStatus.OK.value(),
+                "Brands retrieved successfully", list);
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<BrandResponse> getOne(@PathVariable("id") Integer id){
 
@@ -66,17 +77,18 @@ public class BrandController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<ApiResponse<BrandResponse>> deleteBrand(@PathVariable("id") Integer id){
+    @PatchMapping ("/update-status/{id}")
+    public ResponseEntity<ApiResponse<BrandResponse>> updateStatus(@PathVariable("id") Integer id){
 
-        service.deleteBrand(id);
+        BrandResponse brandResponse = service.updateStatus(id);
 
         ApiResponse<BrandResponse> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
-                "Brand deleted successfully",
-                null
+                "Updated status successfully",
+                brandResponse
         );
 
         return ResponseEntity.ok(response);
     }
+
 }

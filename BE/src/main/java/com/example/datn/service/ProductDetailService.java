@@ -37,7 +37,11 @@ public class ProductDetailService {
     SizeRepository sizeRepository;
 
     public List<ProductDetailResponse> getAll() {
-        return mapper.toListProductDetail(repository.findAll());
+        return mapper.toListProductDetail(repository.findByStatusNot(2));
+    }
+
+    public List<ProductDetailResponse> getBin() {
+        return mapper.toListProductDetail(repository.findByStatus(2));
     }
 
     public List<ProductDetailResponse> getProductDetailsByProductId(Integer productId) {
@@ -211,6 +215,19 @@ public class ProductDetailService {
                 ));
 
         return mapper.toProductDetailResponse(productDetail);
+    }
+
+    public ProductDetailResponse deleteAndRestoreProductDetail(Integer pdId) {
+        ProductDetail productDetail = repository.findById(pdId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + pdId));
+
+        if (productDetail.getStatus() != 2) {
+            productDetail.setStatus(2);
+        } else {
+            productDetail.setStatus(productDetail.getQuantity() > 0 ? 1 : 0);
+        }
+
+        return mapper.toProductDetailResponse(repository.save(productDetail));
     }
 
 }

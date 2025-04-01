@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Row, Col, Modal, Button, Table, Form } from 'react-bootstrap';
 import axios from 'axios';
 import QrReader from 'react-qr-scanner';
@@ -17,6 +17,8 @@ import {
 import { toastOptions } from './constants'; // Import constants
 
 const BanHang = () => {
+  const qrIntervalRef = useRef(null);
+  const [qrImageUrl, setQrImageUrl] = useState('');
   const [promo, setPromo] = useState({});
   const [phoneNumber, setPhoneNumber] = useState('');
   const [delivery, setDelivery] = useState(false);
@@ -108,16 +110,31 @@ const BanHang = () => {
   const addInvoice = () => {
     if (!canAdd) return;
 
-    const newInvoice = { employeeId: 3, orderType: 0, status: 0 };
-
+    const newInvoice = { employeeId: localStorage.getItem("id"), orderType: 0, status: 0 };
+    console.log(localStorage.getItem("id"));
     axios.post('http://localhost:8080/order/add', newInvoice)
       .then(response => {
+        toast.success("Tạo hóa đơn thành công thành công 🥰", toastOptions);
         const createdInvoice = response.data.data;
         setInvoices([createdInvoice, ...invoices]); // Add the new invoice to the top of the list
         setSelectedInvoiceId(createdInvoice.id); // Select the newly created invoice
         setCanAdd(true);
-        toast.success("Tạo hóa đơn thành công thành công 🥰", toastOptions);
-        console.log("Tạo hóa đơn thành công", response.data.data);
+        setPromo({});
+        clearInterval(qrIntervalRef.current);
+        qrIntervalRef.current = null;
+        setQrImageUrl(null);
+        setDelivery(false);
+        setPhoneNumber("");
+        setCustomer(null);
+        setCustomerInfo({
+          name: '',
+          phone: '',
+          province: '',
+          district: '',
+          ward: '',
+          address: '',
+          note: '',
+        });
       })
       .catch(error => console.error('Error adding invoice:', error));
   };
@@ -160,6 +177,9 @@ const BanHang = () => {
             fetchProducts();
             fetchOrderItems();
             toast.success("Xóa sản phẩm khỏi giỏ hàng thành công 🥰", toastOptions);
+            clearInterval(qrIntervalRef.current);
+            qrIntervalRef.current = null;
+            setQrImageUrl(null);
           })
           .catch(error => {
             console.error('Error removing item:', error);
@@ -209,6 +229,9 @@ const BanHang = () => {
             fetchOrderItems(); // Đảm bảo gọi lại để cập nhật giỏ hàng
             handleCloseModal();
             toast.success("Thêm sản phẩm vào giỏ hàng thành công 🥰", toastOptions);
+            clearInterval(qrIntervalRef.current);
+            qrIntervalRef.current = null;
+            setQrImageUrl(null);
           })
           .catch(error => {
             console.error('Error adding to cart:', error);
@@ -238,8 +261,12 @@ const BanHang = () => {
         if (newQuantity < 0 || itemToRemove.productDetail.quantity + itemToRemove.quantity < newQuantity) return;
         axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
           .then(response => {
+            toast.success("Cập nhật số lượng thành công 🥰", toastOptions);
             fetchProducts();
             fetchOrderItems();
+            clearInterval(qrIntervalRef.current);
+            qrIntervalRef.current = null;
+            setQrImageUrl(null);
           })
           .catch(error => console.error('Error updating quantity:', error));
       })
@@ -249,7 +276,9 @@ const BanHang = () => {
       });
   };
   const handleQuantityChangeInput = (item, newQuantity) => {
-
+    clearInterval(qrIntervalRef.current);
+    qrIntervalRef.current = null;
+    setQrImageUrl(null);
     axios.get(`http://localhost:8080/order-detail`)
       .then(response => {
         const orderDetails = response.data.data;
@@ -276,15 +305,30 @@ const BanHang = () => {
       });
   };
   const handleScan = (data) => {
-    if (data && selectedInvoiceId) {
+
+    if (!selectedInvoiceId) {
+      console.log("Vui lòng chọn hóa đơn ");
+      toast.warn("Vui lòng chọn hóa đơn ", toastOptions);
       setIsQrReaderVisible(false);
-      // Stop scanning
+      return;
+    }
+
+    if (data && selectedInvoiceId) {
+      console.log("Đã quét mã QR:", data.text);
+      setIsQrReaderVisible(false);
+      setTimeout(() => {
+        setIsQrReaderVisible(true);
+      }, 2000);
+
       axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoiceId}&productID=${data.text}&purchaseQuantity=1`)
         .then(response => {
           // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
           fetchProducts();
           fetchOrderItems();
           toast.success("Thêm sản phẩm thành công 🥰", toastOptions);
+          clearInterval(qrIntervalRef.current);
+          qrIntervalRef.current = null;
+          setQrImageUrl(null);
         })
         .catch(error => {
         });
@@ -314,11 +358,15 @@ const BanHang = () => {
         .then(response => {
           //handleDeleteInvoice(id);
           // fetchInvoices(); // Reload the invoice list after deletion
+          fetchInvoices();
+          fetchProducts();
           if (selectedInvoiceId === id) {
+            clearInterval(qrIntervalRef.current);
+            qrIntervalRef.current = null;
+            setQrImageUrl(null);
             setSelectedInvoiceId(null);
             setTotalAmount(0);
-            fetchInvoices();
-            fetchProducts();
+            setPromo({});
             setDelivery(false);
             setPhoneNumber("");
             setCustomer(null);
@@ -339,6 +387,11 @@ const BanHang = () => {
   };
 
   const handleSelectInvoice = (index) => {
+    clearInterval(qrIntervalRef.current);
+    qrIntervalRef.current = null;
+    setQrImageUrl(null);
+
+
     const selectedInvoiceId = invoices[index].id;
 
 
@@ -346,6 +399,7 @@ const BanHang = () => {
     if (setDelivery) setDelivery(false);
     if (promo) setPromo({});
     setSelectedInvoiceId(selectedInvoiceId);
+
   };
 
   // const handleDeleteInvoice = (invoiceId) => {
@@ -394,7 +448,7 @@ const BanHang = () => {
           <div className="p-3 border">
             <div className="d-flex align-items-center rounded p-2 w-100 overflow-hidden" style={{ marginBottom: "10px" }}>
               <div style={{ flexShrink: 0 }}>
-                <Button variant="primary" className="rounded-pill px-4 py-2" onClick={addInvoice} disabled={!canAdd}>
+                <Button variant="primary" className=" px-4 py-2" onClick={addInvoice} disabled={!canAdd}>
                   Tạo hóa đơn
                 </Button>
               </div>
@@ -422,34 +476,34 @@ const BanHang = () => {
               </div>
             </div>
             <div className="cart-container">
-              <h3>Giỏ hàng </h3>
+              <h3 style={{ fontWeight: 'bold' }}>Giỏ hàng</h3>
               {/* Bảng giỏ hàng */}
               <div className="table-responsive" >
                 <div style={{ height: '300px', overflowY: 'auto' }}>
                   <Table hover >
                     <thead>
                       <tr>
-                        <th>Sản phẩm </th>
+                        <th style={{ fontWeight: 'bold' }}>Sản phẩm </th>
 
 
-                        <th>Giá </th>
-                        <th>Số lượng </th>
-                        <th>Tổng tiền </th>
-                        <th>Hàng động </th>
+                        <th style={{ fontWeight: 'bold' }}>Giá (VND)</th>
+                        <th style={{ fontWeight: 'bold' }}>Số lượng </th>
+                        <th style={{ fontWeight: 'bold' }}>Tổng tiền </th>
+                        <th style={{ fontWeight: 'bold' }}>Hàng động </th>
                       </tr>
                     </thead>
                     <tbody>
                       {currentCartItems.map(item => (
                         <tr key={item.id}>
-                          <td>{item.productDetail.product.productName} - {item.productDetail.product.productCode} - {item.productDetail.color.colorName} - {item.productDetail.size.sizeName}</td>
+                          <td style={{ fontWeight: 'bold' }}>{item.productDetail.product.productName} - {item.productDetail.product.productCode} - {item.productDetail.color.colorName} - {item.productDetail.size.sizeName}</td>
 
 
-                          <td>{item.price.toLocaleString()} </td>
-                          <td>
+                          <td style={{ whiteSpace: 'nowrap', width: '1%', fontWeight: 'bold' }}>{item.price.toLocaleString()} </td>
+                          <td style={{ whiteSpace: 'nowrap', width: '1%' }}>
                             <div style={{ display: 'flex', alignItems: 'center' }}>
-                              <button type="button" className="btn btn-outline-secondary btn-sm btn-rounded btn-icon"
+                              <button type="button" className="btn btn-dark btn-sm btn-rounded btn-icon"
                                 onClick={() => handleQuantityChange(item, Math.max(1, item.quantity - 1))}
-                                style={{ width: '20px', height: '20px' }}
+                                style={{ width: '20px', height: '20px', fontWeight: 'bold' }}
                               ><i className="mdi mdi-minus"></i></button>
                               <Form.Control
                                 type="tel"
@@ -458,22 +512,23 @@ const BanHang = () => {
                                 value={item.quantity}
                                 onChange={(e) => handleQuantityChangeInput(item, Number(e.target.value))}
                                 onBlur={() => {
+
                                   if (item.quantity === 0) {
                                     handleRemoveItemId(item.id, item.productDetail.id);
                                   }
                                 }}
-                                style={{ width: '40px', textAlign: 'center', height: '20px', padding: '5px', fontSize: '14px', }}
+                                style={{ width: '40px', textAlign: 'center', height: '20px', padding: '5px', fontSize: '14px', fontWeight: "bold" }}
                               />
-                              <button type="button" className="btn btn-outline-secondary btn-sm btn-rounded btn-icon"
+                              <button type="button" className="btn btn-dark btn-sm btn-rounded btn-icon"
                                 onClick={() => handleQuantityChange(item, Math.min(item.productDetail.quantity + item.quantity, item.quantity + 1))}
-                                style={{ width: '20px', height: '20px' }}
+                                style={{ width: '20px', height: '20px', fontWeight: 'bold' }}
                               >
                                 <i className="mdi mdi-plus"></i>
                               </button>
                             </div>
                           </td>
-                          <td>{item.totalPrice.toLocaleString()} </td>
-                          <td>
+                          <td style={{ whiteSpace: 'nowrap', width: '1%', fontWeight: 'bold' }}>{item.totalPrice.toLocaleString()} </td>
+                          <td style={{ whiteSpace: 'nowrap', width: '1%' }}>
                             <i
                               className="mdi mdi-cart-off"
                               style={{ fontSize: '20px', cursor: 'pointer' }}
@@ -499,14 +554,14 @@ const BanHang = () => {
               <hr />
               <Row className="d-flex align-items-center">
                 <Col className="d-flex justify-content-start">
-                  <h3>Danh sach sản phẩm </h3>
+                  <h3 style={{ fontWeight: 'bold' }}>Danh sách sản phẩm</h3>
                 </Col>
                 <Col className="d-flex justify-content-end">
 
                   {isQrReaderVisible && (
                     <div>
                       <QrReader
-                        delay={1000}
+                        delay={5000}
                         style={{ width: '45%' }}
                         onError={handleError}
                         onScan={handleScan}
@@ -528,13 +583,29 @@ const BanHang = () => {
                       placeholder="Tìm kiếm sản phẩm"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      style={{ marginRight: "10px", marginBottom: "10px", width: "150px", height: "30px" }}
+                      style={{
+                        marginRight: "10px",
+                        marginBottom: "10px",
+                        width: "160px",
+                        height: "30px",
+                        fontWeight: "bold",
+                        color: "black", // Ensure text color is always visible
+                        backgroundColor: "white", // Ensure background color is not faint
+                      }}
                     />
                     <Form.Control
                       as="select"
                       value={selectedColor}
                       onChange={(e) => setSelectedColor(e.target.value)}
-                      style={{ marginRight: "10px", marginBottom: "10px", width: "150px", height: "30px" }}
+                      style={{
+                        marginRight: "10px",
+                        marginBottom: "10px",
+                        width: "160px",
+                        height: "30px",
+                        fontWeight: "bold",
+                        color: "black", // Ensure text color is always visible
+                        backgroundColor: "white",   // Ensure background color is not faint
+                      }}
                     >
                       <option value="">Tất cả màu sắc</option>
                       {[...new Set(availableProducts.map(product => product.color.colorName))].map(color => (
@@ -545,7 +616,15 @@ const BanHang = () => {
                       as="select"
                       value={selectedSize}
                       onChange={(e) => setSelectedSize(e.target.value)}
-                      style={{ marginRight: "10px", marginBottom: "10px", width: "150px", height: "30px" }}
+                      style={{
+                        marginRight: "10px",
+                        marginBottom: "10px",
+                        width: "160px",
+                        height: "30px",
+                        fontWeight: "bold",
+                        color: "black", // Ensure text color is always visible
+                        backgroundColor: "white", // Ensure background color is not faint
+                      }}
                     >
                       <option value="">Tất cả kích thước</option>
                       {[...new Set(availableProducts.map(product => product.size.sizeName))].map(size => (
@@ -556,9 +635,17 @@ const BanHang = () => {
                       as="select"
                       value={selectedBrand}
                       onChange={(e) => setSelectedBrand(e.target.value)}
-                      style={{ marginRight: "10px", marginBottom: "10px", width: "150px", height: "30px" }}
+                      style={{
+                        marginRight: "10px",
+                        marginBottom: "10px",
+                        width: "170px",
+                        height: "30px",
+                        fontWeight: "bold",
+                        color: "black", // Ensure text color is always visible
+                        backgroundColor: "white", // Ensure background color is not faint
+                      }}
                     >
-                      <option value="">Tất cả thương hiệu</option>
+                      <option value="" >Tất cả thương hiệu</option>
                       {[...new Set(availableProducts.map(product => product.product.brand.brandName))].map(brand => (
                         <option key={brand} value={brand}>{brand}</option>
                       ))}
@@ -567,7 +654,15 @@ const BanHang = () => {
                       as="select"
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
-                      style={{ marginRight: "10px", marginBottom: "10px", width: "150px", height: "30px" }}
+                      style={{
+                        marginRight: "10px",
+                        marginBottom: "10px",
+                        width: "160px",
+                        height: "30px",
+                        fontWeight: "bold",
+                        color: "black", // Ensure text color is always visible
+                        backgroundColor: "white", // Ensure background color is not faint
+                      }}
                     >
                       <option value="">Tất cả danh mục</option>
                       {[...new Set(availableProducts.map(product => product.product.category.categoryName))].map(category => (
@@ -578,7 +673,15 @@ const BanHang = () => {
                       as="select"
                       value={selectedMaterial}
                       onChange={(e) => setSelectedMaterial(e.target.value)}
-                      style={{ marginRight: "10px", marginBottom: "10px", width: "150px", height: "30px" }}
+                      style={{
+                        marginRight: "10px",
+                        marginBottom: "10px",
+                        width: "160px",
+                        height: "30px",
+                        fontWeight: "bold",
+                        color: "black", // Ensure text color is always visible
+                        backgroundColor: "white", // Ensure background color is not faint
+                      }}
                     >
                       <option value="">Tất cả chất liệu</option>
                       {[...new Set(availableProducts.map(product => product.product.material.materialName))].map(material => (
@@ -587,15 +690,25 @@ const BanHang = () => {
                     </Form.Control>
                     <Form.Control
                       type="number"
+                      min="0"
                       placeholder="Giá từ"
                       onChange={(e) => setPriceRange({ ...priceRange, min: Number(e.target.value) || 0 })}
-                      style={{ marginRight: "10px", marginBottom: "10px", width: "100px", height: "30px" }}
+                      style={{
+                        marginRight: "10px", marginBottom: "10px", width: "160px", height: "30px", fontWeight: "bold",
+                        color: "black", // Ensure text color is always visible
+                        backgroundColor: "white",
+                      }}
                     />
                     <Form.Control
                       type="number"
+                      min="0"
                       placeholder="Giá đến"
                       onChange={(e) => setPriceRange({ ...priceRange, max: Number(e.target.value) || Infinity })}
-                      style={{ marginRight: "10px", marginBottom: "10px", width: "100px", height: "30px" }}
+                      style={{
+                        marginRight: "10px", marginBottom: "10px", width: "160px", height: "30px", fontWeight: "bold",
+                        color: "black", // Ensure text color is always visible
+                        backgroundColor: "white",
+                      }}
                     />
                   </div>
                 </Col>
@@ -607,21 +720,28 @@ const BanHang = () => {
                   <Table hover>
                     <thead>
                       <tr>
-                        <th>Sản phẩm </th>
-
-
-                        <th>Giá </th>
-                        <th>Số lượng </th>
+                        <th style={{ fontWeight: 'bold' }}>Hình ảnh  </th>
+                        <th style={{ fontWeight: 'bold' }}>Sản phẩm </th>
+                        <th style={{ fontWeight: 'bold' }}>Giá (VND)</th>
+                        <th style={{ fontWeight: 'bold' }}>Số lượng </th>
                       </tr>
                     </thead>
                     <tbody>
                       {currentProducts.map(product => (
                         <tr key={product.id} onClick={(() => handleSelectProduct(product))}>
-                          <td>{product.product.productName} - {product.product.productCode} - {product.color.colorName} - {product.size.sizeName}</td>
+                          <td style={{ fontWeight: 'bold' }} >{product.product.mainImage != "image.png" ? (
+                            <img
+                              src={product.product.mainImage}
+                              alt="Product"
+                              style={{ width: '100px', height: 'auto', cursor: 'pointer', borderRadius: '5%', objectFit: 'contain' }}
 
-
-                          <td>{product.price ? product.price.toLocaleString() : 'N/A'} VND</td>
-                          <td>{product.quantity}</td>
+                            />
+                          ) : (
+                            <span>No Image</span>
+                          )}</td>
+                          <td style={{ fontWeight: 'bold' }}>{product.product.productName} - {product.product.productCode} - {product.color.colorName} - {product.size.sizeName}</td>
+                          <td style={{ fontWeight: 'bold' }}>{product.price ? product.price.toLocaleString() : 'N/A'} </td>
+                          <td style={{ fontWeight: 'bold' }} >{product.quantity}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -637,14 +757,14 @@ const BanHang = () => {
               {/* Modal để chọn số lượng */}
               <Modal show={showModal} onHide={handleCloseModal} centered>
                 <Modal.Header closeButton>
-                  <Modal.Title>Nhập số lượng</Modal.Title>
+                  <Modal.Title style={{ fontWeight: 'bold' }}>Nhập số lượng</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                   {selectedProduct && (
                     <div>
                       <h5>{selectedProduct.product.productName}</h5>
-                      <p>Giá: {selectedProduct.price.toLocaleString()} VND</p>
-                      <p>Kho: {selectedProduct.quantity} </p>
+                      <p style={{ fontWeight: 'bold' }}>Giá: {selectedProduct.price.toLocaleString()} VND</p>
+                      <p style={{ fontWeight: 'bold' }}>Kho: {selectedProduct.quantity}</p>
                       <Form.Group controlId="quantity">
                         <Form.Label>Nhập số lượng:</Form.Label>
                         <Form.Control
@@ -658,7 +778,7 @@ const BanHang = () => {
                   )}
                 </Modal.Body>
                 <Modal.Footer>
-                  <Button variant="secondary" onClick={handleCloseModal}>
+                  <Button variant="dark" onClick={handleCloseModal}>
                     Đóng
                   </Button>
                   <Button variant="primary" onClick={handleAddToCart}>
@@ -679,6 +799,7 @@ const BanHang = () => {
               promo={promo} setPromo={setPromo}
               customer={customer} setCustomer={setCustomer}
               customerInfo={customerInfo} setCustomerInfo={setCustomerInfo}
+              qrImageUrl={qrImageUrl} setQrImageUrl={setQrImageUrl} qrIntervalRef={qrIntervalRef}
             />
             <ToastContainer />
           </div>

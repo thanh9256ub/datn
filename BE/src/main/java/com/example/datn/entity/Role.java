@@ -21,6 +21,6 @@ public class Role {
     @Column(name = "role_name")
     private String roleName;
 
-    @Column(name = "status")
+    @Column(name = "description")
     private String status;
 }

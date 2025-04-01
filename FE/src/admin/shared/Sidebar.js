@@ -52,6 +52,7 @@ class Sidebar extends Component {
       { path: '/admin/customers', state: 'customersPagesMenuOpen' },
       { path: '/admin/orders', state: 'ordersPagesMenuOpen' },
       { path: '/admin/vouchers', state: 'vouchersPagesMenuOpen' },
+      { path: '/admin/statistics', state: 'statisticsPagesMenuOpen' },
     ];
 
     dropdownPaths.forEach((obj => {
@@ -100,10 +101,21 @@ class Sidebar extends Component {
             <Collapse in={this.state.productsPagesMenuOpen}>
               <ul className="nav flex-column sub-menu">
                 <li className="nav-item"> <Link className={this.isPathActive('/admin/products') ? 'nav-link active' : 'nav-link'} to="/admin/products"><Trans>Sản phẩm</Trans></Link></li>
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/products/inactive') ? 'nav-link active' : 'nav-link'} to="/admin/products/inactive"><Trans>Kho lưu trữ</Trans></Link></li>
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/brands') ? 'nav-link active' : 'nav-link'} to="/admin/brands"><Trans>Thương hiệu</Trans></Link></li>
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/categories') ? 'nav-link active' : 'nav-link'} to="/admin/categories"><Trans>Danh mục</Trans></Link></li>
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/materials') ? 'nav-link active' : 'nav-link'} to="/admin/materials"><Trans>Chất liệu</Trans></Link></li>
+                {localStorage.getItem("role") === "ADMIN" && (
+                  <li className="nav-item"> <Link className={this.isPathActive('/admin/brands') ? 'nav-link active' : 'nav-link'} to="/admin/brands"><Trans>Thương hiệu</Trans></Link></li>
+                )}
+                {localStorage.getItem("role") === "ADMIN" && (
+                  <li className="nav-item"> <Link className={this.isPathActive('/admin/categories') ? 'nav-link active' : 'nav-link'} to="/admin/categories"><Trans>Danh mục</Trans></Link></li>
+                )}
+                {localStorage.getItem("role") === "ADMIN" && (
+                  <li className="nav-item"> <Link className={this.isPathActive('/admin/materials') ? 'nav-link active' : 'nav-link'} to="/admin/materials"><Trans>Chất liệu</Trans></Link></li>
+                )}
+                {localStorage.getItem("role") === "ADMIN" && (
+                  <li className="nav-item"> <Link className={this.isPathActive('/admin/colors') ? 'nav-link active' : 'nav-link'} to="/admin/colors"><Trans>Màu sắc</Trans></Link></li>
+                )}
+                {localStorage.getItem("role") === "ADMIN" && (
+                  <li className="nav-item"> <Link className={this.isPathActive('/admin/sizes') ? 'nav-link active' : 'nav-link'} to="/admin/sizes"><Trans>Kích cỡ</Trans></Link></li>
+                )}
               </ul>
             </Collapse>
           </li>
@@ -154,6 +166,18 @@ class Sidebar extends Component {
             <Collapse in={this.state.vouchersPagesMenuOpen}>
               <ul className="nav flex-column sub-menu">
                 <li className="nav-item"> <Link className={this.isPathActive('/admin/vouchers') ? 'nav-link active' : 'nav-link'} to="/admin/vouchers"><Trans>Vouchers</Trans></Link></li>
+              </ul>
+            </Collapse>
+          </li>
+          <li className={this.isPathActive('/admin/statistics') ? 'nav-item active' : 'nav-item'}>
+            <div className={this.state.statisticsPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('statisticsPagesMenuOpen')} data-toggle="collapse">
+              <span className="menu-title"><Trans>Thống kê</Trans></span>
+              <i className="menu-arrow"></i>
+              <i className="mdi mdi-sale menu-icon"></i>
+            </div>
+            <Collapse in={this.state.statisticsPagesMenuOpen}>
+              <ul className="nav flex-column sub-menu">
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/statistics') ? 'nav-link active' : 'nav-link'} to="/admin/statistics"><Trans>Thống kê</Trans></Link></li>
               </ul>
             </Collapse>
           </li>
@@ -208,6 +232,7 @@ class Sidebar extends Component {
               </ul>
             </Collapse>
           </li>
+          
           {/* <li className={this.isPathActive('/admin/charts') ? 'nav-item active' : 'nav-item'}>
             <div className={this.state.chartsMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('chartsMenuOpen')} data-toggle="collapse">
               <span className="menu-title"><Trans>Charts</Trans></span>
