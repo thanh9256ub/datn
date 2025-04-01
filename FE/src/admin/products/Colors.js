@@ -1,88 +1,88 @@
 import React, { useEffect, useState } from 'react'
 import { Form, Spinner } from 'react-bootstrap'
-import { createMaterial, getMaterials, updateMaterial, updateStatus } from './service/MaterialService'
+import { createColor, getColors, updateColor, updateStatus } from './service/ColorService'
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Switch from 'react-switch';
 
-const Materials = () => {
+const Colors = () => {
 
-    const [materials, setMaterials] = useState([])
+    const [colors, setColors] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [materialName, setMaterialName] = useState("")
+    const [colorName, setColorName] = useState("")
     const [desc, setDesc] = useState("")
-    const [materialId, setMaterialId] = useState(null)
+    const [colorId, setColorId] = useState(null)
     const [submitLoading, setSubmitLoading] = useState(false);
 
-    const fetchMaterials = async () => {
+    const fetchColors = async () => {
         try {
             setLoading(true);
-            const response = await getMaterials();
-            setMaterials(response.data.data);
+            const response = await getColors();
+            setColors(response.data.data);
         } catch (err) {
-            setError('Đã xảy ra lỗi khi tải chất liệu.');
+            setError('Đã xảy ra lỗi khi tải màu sắc.');
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchMaterials()
+        fetchColors()
     }, [])
 
-    const handleAddMaterial = async (e) => {
+    const handleAddColor = async (e) => {
         e.preventDefault();
-        if (!materialName.trim()) {
-            toast.error("Vui lòng nhập tên chất liệu!");
+        if (!colorName.trim()) {
+            toast.error("Vui lòng nhập tên màu sắc!");
             return;
         }
 
         setSubmitLoading(true);
 
         try {
-            if (materialId) {
-                console.log("Đang cập nhật chất liệu:", materialId, materialName, desc);
-                await updateMaterial(materialId, { materialName, description: desc })
-                toast.success("Sửa chất liệu thành công!");
+            if (colorId) {
+                console.log("Đang cập nhật màu sắc:", colorId, colorName, desc);
+                await updateColor(colorId, { colorName, description: desc })
+                toast.success("Sửa màu sắc thành công!");
             } else {
-                await createMaterial({ materialName, description: desc });
-                toast.success("Thêm chất liệu thành công!");
+                await createColor({ colorName, description: desc });
+                toast.success("Thêm màu sắc thành công!");
             }
 
-            setMaterialName("");
+            setColorName("");
             setDesc("")
-            setMaterialId(null);
-            fetchMaterials();
+            setColorId(null);
+            fetchColors();
         } catch (error) {
-            console.error("Lỗi khi thêm chất liệu:", error);
-            alert("Lỗi khi thêm chất liệu!");
+            console.error("Lỗi khi thêm màu sắc:", error);
+            alert("Lỗi khi thêm màu sắc!");
         } finally {
             setSubmitLoading(false);
         }
     };
 
-    const handleEditMaterial = (material) => {
-        setMaterialName(material.materialName);
-        setDesc(material.description);
-        setMaterialId(material.id);
+    const handleEditColor = (color) => {
+        setColorName(color.colorName);
+        setDesc(color.description);
+        setColorId(color.id);
     };
 
-    const handleToggleStatus = async (materialId, currentStatus) => {
+    const handleToggleStatus = async (colorId, currentStatus) => {
         try {
-            await updateStatus(materialId);
+            await updateStatus(colorId);
 
-            setMaterials(prevMaterials =>
-                prevMaterials.map(material =>
-                    material.id === materialId ? { ...material, status: currentStatus === 1 ? 0 : 1 } : material
+            setColors(prevColors =>
+                prevColors.map(color =>
+                    color.id === colorId ? { ...color, status: currentStatus === 1 ? 0 : 1 } : color
                 )
             );
 
-            fetchMaterials()
+            fetchColors()
 
             toast.success("Cập nhật trạng thái thành công!");
         } catch (error) {
-            console.error("Lỗi khi cập nhật trạng thái chất liệu:", error);
+            console.error("Lỗi khi cập nhật trạng thái màu sắc:", error);
             toast.error("Cập nhật trạng thái thất bại!");
         }
     };
@@ -94,15 +94,15 @@ const Materials = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Thông tin chất liệu</h4>
+                            <h4 className="card-title">Thông tin màu sắc</h4>
                             <div style={{ marginBottom: '20px' }}></div>
                             <hr />
-                            <form className="forms-sample" onSubmit={handleAddMaterial}>
+                            <form className="forms-sample" onSubmit={handleAddColor}>
                                 <Form.Group>
-                                    <label htmlFor="exampleInputUsername1">Tên chất liệu</label>
-                                    <Form.Control type="text" placeholder="Nhập tên chất liệu" size="lg"
-                                        value={materialName}
-                                        onChange={(e) => setMaterialName(e.target.value)}
+                                    <label htmlFor="exampleInputUsername1">Tên màu sắc</label>
+                                    <Form.Control type="text" placeholder="Nhập tên màu sắc" size="lg"
+                                        value={colorName}
+                                        onChange={(e) => setColorName(e.target.value)}
                                     />
                                 </Form.Group>
                                 <Form.Group>
@@ -115,13 +115,13 @@ const Materials = () => {
                                 <button type="submit" className="btn btn-gradient-primary mr-2" disabled={submitLoading}>
                                     {submitLoading ? (
                                         <Spinner animation="border" size="sm" />
-                                    ) : materialId ? "Edit" : "Submit"}
+                                    ) : colorId ? "Edit" : "Submit"}
                                 </button>
                                 <button type='button' className="btn btn-light"
                                     onClick={() => {
-                                        setMaterialName("");
+                                        setColorName("");
                                         setDesc("");
-                                        setMaterialId(null);
+                                        setColorId(null);
                                     }}>Cancel</button>
                             </form>
                         </div>
@@ -130,7 +130,7 @@ const Materials = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Danh sách chất liệu</h4>
+                            <h4 className="card-title">Danh sách màu sắc</h4>
                             {loading ? (
                                 <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
                                     <Spinner animation="border" variant="primary" />
@@ -144,38 +144,38 @@ const Materials = () => {
                                         <thead>
                                             <tr>
                                                 <th>#</th>
-                                                <th>Tên chất liệu</th>
+                                                <th>Tên màu sắc</th>
                                                 <th>Mô tả</th>
                                                 <th>Trạng thái</th>
                                                 <th>Hành động</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {materials.length > 0 ? (
-                                                materials.map((material, index) => (
-                                                    <tr key={material.id}
-                                                        onClick={() => handleEditMaterial(material)}
+                                            {colors.length > 0 ? (
+                                                colors.map((color, index) => (
+                                                    <tr key={color.id}
+                                                        onClick={() => handleEditColor(color)}
                                                         style={{ cursor: "pointer" }}
                                                     >
                                                         <td>{index + 1}</td>
-                                                        <td>{material.materialName}</td>
-                                                        <td>{material.description}</td>
+                                                        <td>{color.colorName}</td>
+                                                        <td>{color.description}</td>
                                                         <td>
-                                                            <span className={`badge ${material.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
-                                                                {material.status === 1 ? "Hoạt động" : "Không hoạt động"}
+                                                            <span className={`badge ${color.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
+                                                                {color.status === 1 ? "Hoạt động" : "Không hoạt động"}
                                                             </span>
                                                         </td>
                                                         <td
                                                             onClick={(event) => event.stopPropagation()}
                                                             style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                                             {/* <Button variant="link"
-                                                                onClick={() => handleEditMaterial(material)}
+                                                                onClick={() => handleEditColor(color)}
                                                             >
                                                                 <i className='mdi mdi-pencil'></i>
                                                             </Button> */}
                                                             <Switch
-                                                                checked={material.status == 1}
-                                                                onChange={() => handleToggleStatus(material.id)}
+                                                                checked={color.status == 1}
+                                                                onChange={() => handleToggleStatus(color.id)}
                                                                 offColor="#888"
                                                                 onColor="#ca51f0"
                                                                 uncheckedIcon={false}
@@ -188,7 +188,7 @@ const Materials = () => {
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan="10" className="text-center">Không có chất liệu nào</td>
+                                                    <td colSpan="10" className="text-center">Không có màu sắc nào</td>
                                                 </tr>
                                             )}
                                         </tbody>
@@ -204,4 +204,4 @@ const Materials = () => {
     )
 }
 
-export default Materials
+export default Colors

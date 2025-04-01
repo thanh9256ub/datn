@@ -569,7 +569,18 @@ const CreateProduct = () => {
                 <div className="col-12 grid-margin">
                     <div className="card">
                         <div className="card-body">
-                            <h3 className="card-title">Thêm mới sản phẩm</h3>
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <h3 className="card-title">Thêm mới sản phẩm</h3>
+                                <button
+                                    type="button"
+                                    className="btn btn-link"
+                                    style={{ padding: "0px", marginBottom: "10px" }}
+                                    onClick={() => history.push('/admin/products')}
+                                >
+                                    <i className="mdi mdi-subdirectory-arrow-left"></i>
+                                    Quay lại
+                                </button>
+                            </div>
                             <hr />
                             <div style={{ marginBottom: '50px' }}></div>
                             <form className="form-sample">
@@ -667,14 +678,7 @@ const CreateProduct = () => {
                             </div>
                             <hr />
                             <div className="d-flex justify-content-end mt-4">
-                                <button
-                                    type="button"
-                                    className="btn btn-secondary btn-icon-text"
-                                    onClick={() => history.push('/admin/products')}
-                                >
-                                    <i className="mdi mdi-subdirectory-arrow-left"></i>
-                                    Quay lại
-                                </button>
+
                                 <button
                                     type="button"
                                     className="btn btn-primary btn-icon-text"

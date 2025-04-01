@@ -18,5 +18,7 @@ public class MaterialRequest {
     @NotBlank(message = "Material name is required")
     String materialName;
 
+    Integer status = 1;
+
     String description;
 }

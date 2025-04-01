@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Form, Spinner } from 'react-bootstrap'
-import { createBrand, getBrands, updateBrand } from './service/BrandService'
+import { createBrand, getBrands, updateBrand, updateStatus } from './service/BrandService'
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Switch from 'react-switch';
 
 const Brands = () => {
 
@@ -67,6 +68,26 @@ const Brands = () => {
         setBrandId(brand.id);
     };
 
+    const handleToggleStatus = async (brandId, currentStatus) => {
+        try {
+            await updateStatus(brandId);
+
+            setBrands(prevBrands =>
+                prevBrands.map(brand =>
+                    brand.id === brandId ? { ...brand, status: currentStatus === 1 ? 0 : 1 } : brand
+                )
+            );
+
+            fetchBrands()
+
+            toast.success("Cập nhật trạng thái thành công!");
+        } catch (error) {
+            console.error("Lỗi khi cập nhật trạng thái thương hiệu:", error);
+            toast.error("Cập nhật trạng thái thất bại!");
+        }
+    };
+
+
     return (
         <div>
             <div className="row">
@@ -125,22 +146,43 @@ const Brands = () => {
                                                 <th>#</th>
                                                 <th>Tên thương hiệu</th>
                                                 <th>Mô tả</th>
+                                                <th>Trạng thái</th>
                                                 <th>Hành động</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {brands.length > 0 ? (
                                                 brands.map((brand, index) => (
-                                                    <tr key={brand.id}>
+                                                    <tr key={brand.id}
+                                                        onClick={() => handleEditBrand(brand)}
+                                                        style={{ cursor: "pointer" }}
+                                                    >
                                                         <td>{index + 1}</td>
                                                         <td>{brand.brandName}</td>
                                                         <td>{brand.description}</td>
-                                                        <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                                            <button className="btn btn-danger btn-sm ml-2"
+                                                        <td>
+                                                            <span className={`badge ${brand.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
+                                                                {brand.status === 1 ? "Hoạt động" : "Không hoạt động"}
+                                                            </span>
+                                                        </td>
+                                                        <td
+                                                            onClick={(event) => event.stopPropagation()}
+                                                            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                            {/* <Button variant="link"
                                                                 onClick={() => handleEditBrand(brand)}
                                                             >
-                                                                <i className='mdi mdi-border-color'></i>
-                                                            </button>
+                                                                <i className='mdi mdi-pencil'></i>
+                                                            </Button> */}
+                                                            <Switch
+                                                                checked={brand.status == 1}
+                                                                onChange={() => handleToggleStatus(brand.id)}
+                                                                offColor="#888"
+                                                                onColor="#ca51f0"
+                                                                uncheckedIcon={false}
+                                                                checkedIcon={false}
+                                                                height={20}
+                                                                width={40}
+                                                            />
                                                         </td>
                                                     </tr>
                                                 ))

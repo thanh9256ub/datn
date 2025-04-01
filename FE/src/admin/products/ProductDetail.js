@@ -97,14 +97,16 @@ const ProductDetail = () => {
         <div>
 
             <div className="row">
-                <div className="col-md-12" style={{ marginBottom: "20px" }}>
-                    <button type='button'
-                        className='btn btn-gradient-primary btn-fw  float-right'
-                        onClick={() => handleUpdateProduct(product.id)}
-                    >
-                        <i className='mdi mdi-pencil'></i>Chỉnh sửa
-                    </button>
-                </div>
+                {localStorage.getItem("role") === "ADMIN" &&
+                    <div className="col-md-12" style={{ marginBottom: "20px" }}>
+                        <button type='button'
+                            className='btn btn-gradient-primary btn-sm float-right'
+                            onClick={() => handleUpdateProduct(product.id)}
+                        >
+                            <i className='mdi mdi-pencil'></i>Chỉnh sửa
+                        </button>
+                    </div>
+                }
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className='row'>
                         <div className="col-lg-12 grid-margin stretch-card">

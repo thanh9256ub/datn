@@ -67,6 +67,16 @@ const CreateVoucher = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (formData.voucherName.trim() === '') {
+      toast.error("Vui lòng nhập tên voucher");
+      return;
+    }
+
+    if (formData.discountValue <= 0) {
+      toast.error("Giá trị giảm phải lớn hơn 0");
+      return;
+    }
+
     if (formData.startDate.isAfter(formData.endDate)) {
       toast.error("Ngày bắt đầu không được lớn hơn ngày kết thúc!");
       return;

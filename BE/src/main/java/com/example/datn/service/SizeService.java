@@ -1,6 +1,7 @@
 package com.example.datn.service;
 
 import com.example.datn.dto.request.SizeRequest;
+import com.example.datn.dto.response.BrandResponse;
 import com.example.datn.dto.response.SizeResponse;
 import com.example.datn.entity.Size;
 import com.example.datn.exception.ResourceNotFoundException;
@@ -23,6 +24,11 @@ public class SizeService {
     public List<SizeResponse> getAll(){
         return mapper.toListResponse(repository.findAll());
     }
+
+    public List<SizeResponse> getActive(){
+        return mapper.toListResponse(repository.findByStatus(1));
+    }
+
 
     public SizeResponse createSize(SizeRequest request){
 
@@ -51,11 +57,12 @@ public class SizeService {
         return mapper.toSizeResponse(repository.save(brand));
     }
 
-    public void deleteSize(Integer id){
-
-        repository.findById(id).orElseThrow(
+    public SizeResponse updateStatus(Integer id){
+        Size brand = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Size id is not exists with given id: " + id));
 
-        repository.deleteById(id);
+        brand.setStatus(brand.getStatus() == 1 ? 0 : 1);
+
+        return mapper.toSizeResponse(repository.save(brand));
     }
 }

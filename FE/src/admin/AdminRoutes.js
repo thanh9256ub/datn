@@ -3,6 +3,8 @@ import { Switch, Route, Redirect } from 'react-router-dom';
 import Spinner from '../admin/shared/Spinner';
 
 import { useAuth } from '../context/AuthContext';
+import Colors from './products/Colors';
+import Sizes from './products/Sizes';
 
 const Dashboard = lazy(() => import('./dashboard/Dashboard'));
 const Buttons = lazy(() => import('./basic-ui/Buttons'));
@@ -38,6 +40,7 @@ const UpdateCustomer = lazy(() => import('./customers/action/UpdateCustomer'));
 const CreateEmployee = lazy(() => import('./employees/action/CreateEmployee'));
 const UpdateEmployee = lazy(() => import('./employees/action/UpdateEmployee'));
 
+const CreateVoucher = lazy(() => import('./vouchers/CreateVoucher'));
 // Component bảo vệ route (AuthGuard)
 const ProtectedRoute = ({ component: Component, ...rest }) => {
   const { token } = useAuth();
@@ -89,6 +92,8 @@ class AdminRoutes extends Component {
           <ProtectedRoute exact path="/admin/brands" component={Brands} />
           <ProtectedRoute exact path="/admin/categories" component={Categories} />
           <ProtectedRoute exact path="/admin/materials" component={Materials} />
+          <ProtectedRoute exact path="/admin/colors" component={Colors} />
+          <ProtectedRoute exact path="/admin/sizes" component={Sizes} />
 
           <ProtectedRoute exact path="/admin/employees" component={Employees} />
           <ProtectedRoute exact path="/admin/employees/add" component={CreateEmployee} />
@@ -100,7 +105,9 @@ class AdminRoutes extends Component {
 
           <ProtectedRoute exact path="/admin/orders" component={Orders} />
           <Route exact path="/admin/order-detail/orders/:orderId" component={OrderDetail} />
-          <Route exact path="/admin/vouchers" component={Vouchers} />
+
+          <ProtectedRoute exact path="/admin/vouchers" component={Vouchers} />
+          <ProtectedRoute exact path="/admin/vouchers/add" component={CreateVoucher} />
 
           <Redirect to="/admin/dashboard" />
         </Switch>

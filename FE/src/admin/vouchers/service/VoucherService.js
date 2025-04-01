@@ -7,5 +7,7 @@ export const createVoucher = (v) => {
 }
 
 export const getVouchers = () => {
+    let token = localStorage.getItem('token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     return axios.get(`${BASE_URL}/list`)
 }

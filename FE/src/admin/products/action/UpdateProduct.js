@@ -240,11 +240,11 @@ const UpdateProduct = () => {
                 const colorId = variant.color?.id || variant.color;
                 const variantInfo = `Biến thể (Màu: ${variant.color.colorName}, Size: ${variant.size.sizeName})`;
 
-                if (!variant.price) {
-                    newErrors[`price_${index}`] = `${variantInfo}: Chưa nhập giá`;
-                } else if (variant.price <= 0) {
-                    newErrors[`price_${index}`] = `${variantInfo}: Giá phải lớn hơn 0`;
-                }
+                // if (!variant.price) {
+                //     newErrors[`price_${index}`] = `${variantInfo}: Chưa nhập giá`;
+                // } else if (variant.price <= 0) {
+                //     newErrors[`price_${index}`] = `${variantInfo}: Giá phải lớn hơn 0`;
+                // }
 
                 if (!variant.quantity) {
                     newErrors[`quantity_${index}`] = `${variantInfo}: Chưa nhập số lượng`;
@@ -297,7 +297,18 @@ const UpdateProduct = () => {
                 <div className="col-12 grid-margin">
                     <div className="card">
                         <div className="card-body">
-                            <h3 className="card-title">Chỉnh sửa sản phẩm</h3>
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <h3 className="card-title">Chỉnh sửa sản phẩm</h3>
+                                <button
+                                    type="button"
+                                    className="btn btn-link"
+                                    style={{ padding: "0px", marginBottom: "10px" }}
+                                    onClick={() => history.push(`/admin/products/${id}/detail`)}
+                                >
+                                    <i className="mdi mdi-subdirectory-arrow-left"></i>
+                                    Quay lại
+                                </button>
+                            </div>
                             <hr />
                             <div style={{ marginBottom: '50px' }}></div>
                             <form className="form-sample">
@@ -367,7 +378,7 @@ const UpdateProduct = () => {
                             <hr />
                             <button
                                 type="button"
-                                className="btn btn-gradient-primary btn-icon-text"
+                                className="btn btn-gradient-primary btn-icon-text float-right"
                                 onClick={handleSaveClick}
                                 disabled={isSaving}
                             >

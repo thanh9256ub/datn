@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getSizes, createSize } from '../service/SizeService';
+import { getSizes, createSize, getActive } from '../service/SizeService';
 import Select from 'react-select';
 import { Button, Form, Modal } from 'react-bootstrap';
 import { toast } from 'react-toastify';
@@ -14,13 +14,17 @@ const SizeContainer = ({ sizeIds, setSizeIds }) => {
     }, []);
 
     const fetchSizes = async () => {
-        getSizes().then(response => {
-            const formattedSizes = response.data.data.map(size => ({
-                value: size.id,
-                label: size.sizeName
-            }));
-            setSizeOptions(formattedSizes);
-        });
+        getActive()
+            .then(response => {
+                const formattedSizes = response.data.data.map(size => ({
+                    value: size.id,
+                    label: size.sizeName
+                }));
+                setSizeOptions(formattedSizes);
+            })
+            .catch(error => {
+                console.error("Lỗi khi lấy dữ liệu cỡ:", error);
+            });
     }
 
     const handleAddSize = async () => {

@@ -315,87 +315,89 @@ const Products = () => {
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
                 <h2>Danh sách sản phẩm</h2>
                 <div>
-                    <button type="button" className="btn btn-gradient-primary btn-sm" onClick={handleAddProduct}>
-                        <i className='mdi mdi-plus'></i> Thêm mới
-                    </button>
+                    {localStorage.getItem("role") === "ADMIN" && (
+                        <button type="button" className="btn btn-gradient-primary btn-sm" onClick={handleAddProduct}>
+                            <i className='mdi mdi-plus'></i> Thêm mới
+                        </button>
+                    )}
                 </div>
             </div>
-
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-start" }}>
-                <div style={{ position: "relative", display: "inline-block" }}>
-                    <label style={{
-                        cursor: "pointer",
-                        display: "inline-block",
-                        position: "relative"
-                    }}
-                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
-                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
-                    >
-                        <div style={{ cursor: "pointer", textDecoration: "none" }}>
-                            <i className='mdi mdi-format-vertical-align-bottom'></i>Nhập Excel
-                        </div>
-                        <input
-                            type="file"
-                            accept=".xlsx, .xls"
-                            onChange={handleImportExcel}
-                            style={{
-                                position: "absolute",
-                                left: 0,
-                                top: 0,
-                                width: "100%",
-                                height: "100%",
-                                opacity: 0,
-                                cursor: "pointer",
-                                pointerEvents: "none"
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
-                            onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
-                        />
-                    </label>
-                </div>
-
-                <div style={{ cursor: "pointer", textDecoration: "none" }}
-                    onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
-                    onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
-                    onClick={handleExportExcel}>
-                    <i className='mdi mdi-format-vertical-align-top'></i>Xuất Excel
-                </div>
-                <span style={{
-                    borderLeft: "1px solid #ccc",
-                    height: "20px",
-                    display: "inline-block",
-                    margin: "0 10px"
-                }}></span>
-                <div style={{ cursor: "pointer", textDecoration: "none" }}
-                    onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
-                    onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
-                    onClick={() => history.push("/admin/products/bin")}
-                >
-                    Thùng rác
-                </div>
-                <span style={{
-                    borderLeft: "1px solid #ccc",
-                    height: "20px",
-                    display: "inline-block",
-                    margin: "0 10px"
-                }}></span>
-                <Dropdown>
-                    <Dropdown.Toggle as="div" id="dropdownMenuSizeButton3" style={{ cursor: "pointer", display: "inline-block" }}>
-                        <span style={{ textDecoration: "none" }}
+            {localStorage.getItem("role") === "ADMIN" && (
+                <div style={{ display: "flex", gap: 8, justifyContent: "flex-start" }}>
+                    <div style={{ position: "relative", display: "inline-block" }}>
+                        <label style={{
+                            cursor: "pointer",
+                            display: "inline-block",
+                            position: "relative"
+                        }}
                             onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
                             onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
                         >
-                            Thao tác
-                        </span>
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu>
-                        <Dropdown.Item onClick={handleBulkDeleteProducts}>
-                            <i className='mdi mdi-delete'></i>
-                            Xoá các sản phẩm đã chọn</Dropdown.Item>
-                    </Dropdown.Menu>
-                </Dropdown>
-            </div>
+                            <div style={{ cursor: "pointer", textDecoration: "none" }}>
+                                <i className='mdi mdi-format-vertical-align-bottom'></i>Nhập Excel
+                            </div>
+                            <input
+                                type="file"
+                                accept=".xlsx, .xls"
+                                onChange={handleImportExcel}
+                                style={{
+                                    position: "absolute",
+                                    left: 0,
+                                    top: 0,
+                                    width: "100%",
+                                    height: "100%",
+                                    opacity: 0,
+                                    cursor: "pointer",
+                                    pointerEvents: "none"
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
+                                onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
+                            />
+                        </label>
+                    </div>
 
+                    <div style={{ cursor: "pointer", textDecoration: "none" }}
+                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
+                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
+                        onClick={handleExportExcel}>
+                        <i className='mdi mdi-format-vertical-align-top'></i>Xuất Excel
+                    </div>
+                    <span style={{
+                        borderLeft: "1px solid #ccc",
+                        height: "20px",
+                        display: "inline-block",
+                        margin: "0 10px"
+                    }}></span>
+                    <div style={{ cursor: "pointer", textDecoration: "none" }}
+                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
+                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
+                        onClick={() => history.push("/admin/products/bin")}
+                    >
+                        Thùng rác
+                    </div>
+                    <span style={{
+                        borderLeft: "1px solid #ccc",
+                        height: "20px",
+                        display: "inline-block",
+                        margin: "0 10px"
+                    }}></span>
+                    <Dropdown>
+                        <Dropdown.Toggle as="div" id="dropdownMenuSizeButton3" style={{ cursor: "pointer", display: "inline-block" }}>
+                            <span style={{ textDecoration: "none" }}
+                                onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
+                                onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
+                            >
+                                Thao tác
+                            </span>
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                            <Dropdown.Item onClick={handleBulkDeleteProducts}>
+                                <i className='mdi mdi-delete'></i>
+                                Xoá các sản phẩm đã chọn</Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
+                </div>
+            )}
             <div className="row">
                 <div className="col-lg-12 grid-margin stretch-card">
                     <div className="card">
@@ -448,7 +450,9 @@ const Products = () => {
                                                     <th>Mô tả</th>
                                                     <th style={{ width: '50px' }}>Tổng số lượng</th>
                                                     <th>Trạng thái</th>
-                                                    <th style={{ width: '100px' }}>Hành động</th>
+                                                    {localStorage.getItem("role") === "ADMIN" &&
+                                                        <th style={{ width: '100px' }}>Hành động</th>
+                                                    }
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -497,40 +501,42 @@ const Products = () => {
                                                                         {product.status === 1 ? 'Đang bán' : product.status === 2 ? 'Ngừng bán' : 'Hết hàng'}
                                                                     </span>
                                                                 </td>
-                                                                <td>
-                                                                    <div
-                                                                        onClick={(event) => event.stopPropagation()}
-                                                                        style={{
-                                                                            display: 'flex',
-                                                                            justifyContent: 'center',
-                                                                            alignItems: 'center',
-                                                                            gap: '10px',
-                                                                            textAlign: 'center',
-                                                                            height: '100%',
-                                                                            padding: '10px'
-                                                                        }} >
-                                                                        {/* <button className="btn btn-outline-warning btn-sm btn-rounded btn-icon"
+                                                                {localStorage.getItem("role") === "ADMIN" &&
+                                                                    <td>
+                                                                        <div
+                                                                            onClick={(event) => event.stopPropagation()}
+                                                                            style={{
+                                                                                display: 'flex',
+                                                                                justifyContent: 'center',
+                                                                                alignItems: 'center',
+                                                                                gap: '10px',
+                                                                                textAlign: 'center',
+                                                                                height: '100%',
+                                                                                padding: '10px'
+                                                                            }} >
+                                                                            {/* <button className="btn btn-outline-warning btn-sm btn-rounded btn-icon"
                                                                             onClick={() => handleProductDetail(product.id, product.productName)}
                                                                         >
                                                                             <i className='mdi mdi-eye'></i>
                                                                         </button> */}
-                                                                        <Switch
-                                                                            checked={product.status !== 2}
-                                                                            onChange={() => handleToggleStatus(product.id, product.status, product.totalQuantity)}
-                                                                            offColor="#888"
-                                                                            onColor="#ca51f0"
-                                                                            uncheckedIcon={false}
-                                                                            checkedIcon={false}
-                                                                            height={20}
-                                                                            width={40}
-                                                                        />
-                                                                        {/* <button className="btn btn-outline-danger btn-sm btn-rounded btn-icon"
+                                                                            <Switch
+                                                                                checked={product.status !== 2}
+                                                                                onChange={() => handleToggleStatus(product.id, product.status, product.totalQuantity)}
+                                                                                offColor="#888"
+                                                                                onColor="#ca51f0"
+                                                                                uncheckedIcon={false}
+                                                                                checkedIcon={false}
+                                                                                height={20}
+                                                                                width={40}
+                                                                            />
+                                                                            {/* <button className="btn btn-outline-danger btn-sm btn-rounded btn-icon"
                                                                             onClick={() => handleUpdateProduct(product.id)}
                                                                         >
                                                                             <i className='mdi mdi mdi-wrench'></i>
                                                                         </button> */}
-                                                                    </div>
-                                                                </td>
+                                                                        </div>
+                                                                    </td>
+                                                                }
                                                             </tr>
                                                         ))
                                                 ) : (

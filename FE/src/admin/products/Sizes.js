@@ -1,88 +1,88 @@
 import React, { useEffect, useState } from 'react'
 import { Form, Spinner } from 'react-bootstrap'
-import { createMaterial, getMaterials, updateMaterial, updateStatus } from './service/MaterialService'
+import { createSize, getSizes, updateSize, updateStatus } from './service/SizeService'
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Switch from 'react-switch';
 
-const Materials = () => {
+const Sizes = () => {
 
-    const [materials, setMaterials] = useState([])
+    const [sizes, setSizes] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [materialName, setMaterialName] = useState("")
+    const [sizeName, setSizeName] = useState("")
     const [desc, setDesc] = useState("")
-    const [materialId, setMaterialId] = useState(null)
+    const [sizeId, setSizeId] = useState(null)
     const [submitLoading, setSubmitLoading] = useState(false);
 
-    const fetchMaterials = async () => {
+    const fetchSizes = async () => {
         try {
             setLoading(true);
-            const response = await getMaterials();
-            setMaterials(response.data.data);
+            const response = await getSizes();
+            setSizes(response.data.data);
         } catch (err) {
-            setError('Đã xảy ra lỗi khi tải chất liệu.');
+            setError('Đã xảy ra lỗi khi tải kích cỡ.');
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchMaterials()
+        fetchSizes()
     }, [])
 
-    const handleAddMaterial = async (e) => {
+    const handleAddSize = async (e) => {
         e.preventDefault();
-        if (!materialName.trim()) {
-            toast.error("Vui lòng nhập tên chất liệu!");
+        if (!sizeName.trim()) {
+            toast.error("Vui lòng nhập tên kích cỡ!");
             return;
         }
 
         setSubmitLoading(true);
 
         try {
-            if (materialId) {
-                console.log("Đang cập nhật chất liệu:", materialId, materialName, desc);
-                await updateMaterial(materialId, { materialName, description: desc })
-                toast.success("Sửa chất liệu thành công!");
+            if (sizeId) {
+                console.log("Đang cập nhật kích cỡ:", sizeId, sizeName, desc);
+                await updateSize(sizeId, { sizeName, description: desc })
+                toast.success("Sửa kích cỡ thành công!");
             } else {
-                await createMaterial({ materialName, description: desc });
-                toast.success("Thêm chất liệu thành công!");
+                await createSize({ sizeName, description: desc });
+                toast.success("Thêm kích cỡ thành công!");
             }
 
-            setMaterialName("");
+            setSizeName("");
             setDesc("")
-            setMaterialId(null);
-            fetchMaterials();
+            setSizeId(null);
+            fetchSizes();
         } catch (error) {
-            console.error("Lỗi khi thêm chất liệu:", error);
-            alert("Lỗi khi thêm chất liệu!");
+            console.error("Lỗi khi thêm kích cỡ:", error);
+            alert("Lỗi khi thêm kích cỡ!");
         } finally {
             setSubmitLoading(false);
         }
     };
 
-    const handleEditMaterial = (material) => {
-        setMaterialName(material.materialName);
-        setDesc(material.description);
-        setMaterialId(material.id);
+    const handleEditSize = (size) => {
+        setSizeName(size.sizeName);
+        setDesc(size.description);
+        setSizeId(size.id);
     };
 
-    const handleToggleStatus = async (materialId, currentStatus) => {
+    const handleToggleStatus = async (sizeId, currentStatus) => {
         try {
-            await updateStatus(materialId);
+            await updateStatus(sizeId);
 
-            setMaterials(prevMaterials =>
-                prevMaterials.map(material =>
-                    material.id === materialId ? { ...material, status: currentStatus === 1 ? 0 : 1 } : material
+            setSizes(prevSizes =>
+                prevSizes.map(size =>
+                    size.id === sizeId ? { ...size, status: currentStatus === 1 ? 0 : 1 } : size
                 )
             );
 
-            fetchMaterials()
+            fetchSizes()
 
             toast.success("Cập nhật trạng thái thành công!");
         } catch (error) {
-            console.error("Lỗi khi cập nhật trạng thái chất liệu:", error);
+            console.error("Lỗi khi cập nhật trạng thái kích cỡ:", error);
             toast.error("Cập nhật trạng thái thất bại!");
         }
     };
@@ -94,15 +94,15 @@ const Materials = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Thông tin chất liệu</h4>
+                            <h4 className="card-title">Thông tin kích cỡ</h4>
                             <div style={{ marginBottom: '20px' }}></div>
                             <hr />
-                            <form className="forms-sample" onSubmit={handleAddMaterial}>
+                            <form className="forms-sample" onSubmit={handleAddSize}>
                                 <Form.Group>
-                                    <label htmlFor="exampleInputUsername1">Tên chất liệu</label>
-                                    <Form.Control type="text" placeholder="Nhập tên chất liệu" size="lg"
-                                        value={materialName}
-                                        onChange={(e) => setMaterialName(e.target.value)}
+                                    <label htmlFor="exampleInputUsername1">Tên kích cỡ</label>
+                                    <Form.Control type="text" placeholder="Nhập tên kích cỡ" size="lg"
+                                        value={sizeName}
+                                        onChange={(e) => setSizeName(e.target.value)}
                                     />
                                 </Form.Group>
                                 <Form.Group>
@@ -115,13 +115,13 @@ const Materials = () => {
                                 <button type="submit" className="btn btn-gradient-primary mr-2" disabled={submitLoading}>
                                     {submitLoading ? (
                                         <Spinner animation="border" size="sm" />
-                                    ) : materialId ? "Edit" : "Submit"}
+                                    ) : sizeId ? "Edit" : "Submit"}
                                 </button>
                                 <button type='button' className="btn btn-light"
                                     onClick={() => {
-                                        setMaterialName("");
+                                        setSizeName("");
                                         setDesc("");
-                                        setMaterialId(null);
+                                        setSizeId(null);
                                     }}>Cancel</button>
                             </form>
                         </div>
@@ -130,7 +130,7 @@ const Materials = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Danh sách chất liệu</h4>
+                            <h4 className="card-title">Danh sách kích cỡ</h4>
                             {loading ? (
                                 <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
                                     <Spinner animation="border" variant="primary" />
@@ -144,38 +144,38 @@ const Materials = () => {
                                         <thead>
                                             <tr>
                                                 <th>#</th>
-                                                <th>Tên chất liệu</th>
+                                                <th>Tên kích cỡ</th>
                                                 <th>Mô tả</th>
                                                 <th>Trạng thái</th>
                                                 <th>Hành động</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {materials.length > 0 ? (
-                                                materials.map((material, index) => (
-                                                    <tr key={material.id}
-                                                        onClick={() => handleEditMaterial(material)}
+                                            {sizes.length > 0 ? (
+                                                sizes.map((size, index) => (
+                                                    <tr key={size.id}
+                                                        onClick={() => handleEditSize(size)}
                                                         style={{ cursor: "pointer" }}
                                                     >
                                                         <td>{index + 1}</td>
-                                                        <td>{material.materialName}</td>
-                                                        <td>{material.description}</td>
+                                                        <td>{size.sizeName}</td>
+                                                        <td>{size.description}</td>
                                                         <td>
-                                                            <span className={`badge ${material.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
-                                                                {material.status === 1 ? "Hoạt động" : "Không hoạt động"}
+                                                            <span className={`badge ${size.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
+                                                                {size.status === 1 ? "Hoạt động" : "Không hoạt động"}
                                                             </span>
                                                         </td>
                                                         <td
                                                             onClick={(event) => event.stopPropagation()}
                                                             style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                                             {/* <Button variant="link"
-                                                                onClick={() => handleEditMaterial(material)}
+                                                                onClick={() => handleEditSize(size)}
                                                             >
                                                                 <i className='mdi mdi-pencil'></i>
                                                             </Button> */}
                                                             <Switch
-                                                                checked={material.status == 1}
-                                                                onChange={() => handleToggleStatus(material.id)}
+                                                                checked={size.status == 1}
+                                                                onChange={() => handleToggleStatus(size.id)}
                                                                 offColor="#888"
                                                                 onColor="#ca51f0"
                                                                 uncheckedIcon={false}
@@ -188,7 +188,7 @@ const Materials = () => {
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan="10" className="text-center">Không có chất liệu nào</td>
+                                                    <td colSpan="10" className="text-center">Không có kích cỡ nào</td>
                                                 </tr>
                                             )}
                                         </tbody>
@@ -204,4 +204,4 @@ const Materials = () => {
     )
 }
 
-export default Materials
+export default Sizes

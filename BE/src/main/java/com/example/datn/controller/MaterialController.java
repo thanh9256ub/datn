@@ -3,6 +3,8 @@ package com.example.datn.controller;
 import com.example.datn.dto.request.MaterialRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.MaterialResponse;
+import com.example.datn.dto.response.MaterialResponse;
+import com.example.datn.dto.response.MaterialResponse;
 import com.example.datn.service.MaterialService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,17 @@ public class MaterialController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<MaterialResponse>>> getActive(){
+
+        List<MaterialResponse> list = service.getActive();
+
+        ApiResponse<List<MaterialResponse>> response = new ApiResponse<>(HttpStatus.OK.value(),
+                "Materials retrieved successfully", list);
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<MaterialResponse> getOne(@PathVariable("id") Integer id){
 
@@ -66,15 +79,15 @@ public class MaterialController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<ApiResponse<MaterialResponse>> deleteMaterial(@PathVariable("id") Integer id){
+    @PatchMapping ("/update-status/{id}")
+    public ResponseEntity<ApiResponse<MaterialResponse>> updateStatus(@PathVariable("id") Integer id){
 
-        service.deleteMaterial(id);
+        MaterialResponse brandResponse = service.updateStatus(id);
 
         ApiResponse<MaterialResponse> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
-                "Material deleted successfully",
-                null
+                "Updated status successfully",
+                brandResponse
         );
 
         return ResponseEntity.ok(response);
