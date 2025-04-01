@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { fetchCustomers, addCustomer } from '../api'; // Correct the relative path
 import { toastOptions } from '../constants'; // Import constants
 
-const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, totalAmount, setFinalAmount,phoneNumber,setPhoneNumber }) => {
+const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, totalAmount, setFinalAmount,phoneNumber,setPhoneNumber,setQrImageUrl,qrIntervalRef }) => {
   
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
@@ -18,9 +18,12 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, to
         toast.error("Không tìm thấy khách hàng", toastOptions);
         return;
       }
-
+setQrImageUrl(null);
       setCustomer(customer);
       toast.success("Tìm thấy khách hàng 🥰", toastOptions);
+      clearInterval(qrIntervalRef.current);
+      qrIntervalRef.current = null;
+      setQrImageUrl(null);
     } catch (error) {
       console.error('Lỗi tìm kiếm khách hàng:', error);
       toast.error("Lỗi khi tìm kiếm khách hàng 🥲", toastOptions);
@@ -48,6 +51,9 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, to
       setShippingFee(0);
       setFinalAmount(totalAmount);
       setPhoneNumber(newCustomer.phone);
+      clearInterval(qrIntervalRef.current);
+      qrIntervalRef.current = null;
+      setQrImageUrl(null);
     } catch (error) {
       console.error('Lỗi thêm khách hàng:', error);
       toast.error("Thêm khách hàng thất bại", toastOptions);
@@ -59,7 +65,10 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, to
      
         <Row className="mb-3">
           <Col sm={12}>
-            <Button variant="primary" onClick={() => setShowAddCustomerModal(true)}>
+            <Button variant="primary" onClick={() => {setShowAddCustomerModal(true)
+
+              setQrImageUrl(null); 
+            }}>
               Thêm khách hàng
             </Button>
           </Col>
@@ -70,6 +79,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, to
           <InputGroup>
             <Form.Control
               type="tel"
+              style={{ fontWeight: 'bold' }}
               placeholder="Nhập số điện thoại"
               value={phoneNumber}
               onChange={(e) => {
@@ -95,15 +105,18 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, to
         <Col sm={12}>
           <InputGroup>
           
-            <h5 style={{ marginRight: "15px" }} >Khách hàng: {customer ? customer.fullName : 'khách lẻ'}</h5>
+            <h5 style={{ marginRight: "15px", fontWeight: "bold" }}>Khách hàng: {customer ? customer.fullName : 'khách lẻ'}</h5>
             <h5
               style={{ cursor: "pointer", color: "red" }}
-              onClick={() => {
+              onClick={() => {if (!customer) return;
                 setCustomer(null);
                 setPhoneNumber('');
                 setDelivery(false); 
                 setShippingFee(0); 
                 toast.info("Đã xóa thông tin khách hàng 🥰", toastOptions);
+                clearInterval(qrIntervalRef.current);
+      qrIntervalRef.current = null;
+      setQrImageUrl(null);
               }}
             >
               X
@@ -115,23 +128,25 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, to
       {/* Modal thêm khách hàng */}
       <Modal show={showAddCustomerModal} onHide={() => setShowAddCustomerModal(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Thêm Khách Hàng</Modal.Title>
+          <Modal.Title style={{ fontWeight: 'bold' }}>Thêm Khách Hàng</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Họ tên</Form.Label>
+              <Form.Label style={{ fontWeight: 'bold' }}>Họ tên</Form.Label>
               <Form.Control
                 type="text"
+                style={{ fontWeight: 'bold' }}
                 placeholder="Nhập họ tên"
                 value={newCustomer.fullName}
                 onChange={(e) => setNewCustomer({ ...newCustomer, fullName: e.target.value })}
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Số điện thoại</Form.Label>
+              <Form.Label style={{ fontWeight: 'bold' }}>Số điện thoại</Form.Label>
               <Form.Control
                 type="tel"
+                style={{ fontWeight: 'bold' }}
                 placeholder="Nhập số điện thoại"
                 value={newCustomer.phone}
                 onChange={(e) => {
@@ -144,7 +159,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, to
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowAddCustomerModal(false)}>
+          <Button variant="dark" onClick={() => setShowAddCustomerModal(false)}>
             Đóng
           </Button>
           <Button variant="primary" onClick={handleAddCustomer}>

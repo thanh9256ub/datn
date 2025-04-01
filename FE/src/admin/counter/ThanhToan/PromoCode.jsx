@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { fetchPromoCodes } from '../api'; // Correct the relative path
 import { toastOptions } from '../constants'; // Import constants
 
-const PromoCode = ({ promo, setPromo, totalAmount, idOrder }) => {
+const PromoCode = ({ promo, setPromo, totalAmount, idOrder,setQrImageUrl,qrIntervalRef }) => {
   const [isPromoModalVisible, setIsPromoModalVisible] = useState(false);
   const [promoCodes, setPromoCodes] = useState([]);
   
@@ -26,6 +26,7 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder }) => {
   }, [totalAmount]);
 
   const handleShowPromoModal = () => {
+    setQrImageUrl(null);
     if (!idOrder||totalAmount===0) {
       toast.warn("Vui lòng chọn hóa đơn trước khi chọn mã giảm giá 🥰", toastOptions);
       return;
@@ -40,6 +41,9 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder }) => {
     
     setIsPromoModalVisible(false);
     toast.success("Chọn mã giảm giá thành công 🥰", toastOptions);
+    clearInterval(qrIntervalRef.current);
+        qrIntervalRef.current = null;
+        setQrImageUrl(null);
   };
 
   return (
@@ -59,32 +63,32 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder }) => {
       {/* Modal chọn mã giảm giá */}
       <Modal show={isPromoModalVisible} onHide={handleClosePromoModal} centered size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Chọn Mã Khuyến Mãi</Modal.Title>
+          <Modal.Title style={{ fontWeight: 'bold' }}>Chọn Mã Khuyến Mãi</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ overflowX: 'auto' }}>
           <Table  bordered hover>
             <thead>
               <tr>
-                <th>Mã</th>
-                <th>Tên</th>
-                <th>Điều kiện</th>
-                <th>Giá trị giảm</th>
-                <th>Số lượng</th>
-                <th>Giảm tối đa</th>
-                <th>Chọn</th>
+                <th style={{ fontWeight: 'bold' }}>Mã</th>
+                <th style={{ fontWeight: 'bold' }}>Tên</th>
+                <th style={{ fontWeight: 'bold' }}>Điều kiện</th>
+                <th style={{ fontWeight: 'bold' }}>Giá trị giảm</th>
+                <th style={{ fontWeight: 'bold' }}>Số lượng</th>
+                <th style={{ fontWeight: 'bold' }}>Giảm tối đa</th>
+                <th style={{ fontWeight: 'bold' }}>Chọn</th>
               </tr>
             </thead>
             <tbody>
               {promoCodes.map((promo, index) => (
                 <tr key={index}>
-                  <td>{promo.voucherCode}</td>
-                  <td>{promo.voucherName}</td>
-                  <td>{promo.minOrderValue}</td>
-                  <td>
+                  <td style={{ fontWeight: 'bold' }}>{promo.voucherCode}</td>
+                  <td style={{ fontWeight: 'bold' }}>{promo.voucherName}</td>
+                  <td style={{ fontWeight: 'bold' }}>{promo.minOrderValue}</td>
+                  <td style={{ fontWeight: 'bold' }}>
                     {promo.discountValue} {promo.discountType===1?"%":"VNĐ"}
                   </td>
-                  <td>{promo.quantity}</td>
-                  <td>{promo.maxDiscountValue}</td>
+                  <td style={{ fontWeight: 'bold' }}>{promo.quantity}</td>
+                  <td style={{ fontWeight: 'bold' }}>{promo.maxDiscountValue}</td>
                   <td>
                     <Button 
                       variant="primary" 
@@ -101,7 +105,7 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder }) => {
           </Table>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClosePromoModal}>
+          <Button variant="dark" onClick={handleClosePromoModal}>
             Đóng
           </Button>
         </Modal.Footer>

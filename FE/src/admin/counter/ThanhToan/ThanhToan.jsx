@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Row, Col, Form, Button, Modal } from 'react-bootstrap';
 import CustomerSearch from './CustomerSearch';
 import DeliveryInfo from './DeliveryInfo';
@@ -7,11 +7,9 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { fetchShippingFee, confirmPayment, updatePromoCode, addOrderVoucher, checkVNPayPaymentStatus, generateZaloPayPayment, checkZaloPayPaymentStatus, handleCassoWebhook, fetchCassoTransactions } from '../api'; // Updated import
 import { toastOptions } from '../constants'; // Import constants from the new file
+import logo from '../../../assets/images/logo_h2tl.png';
+const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber, setPhoneNumber, setDelivery, promo, setPromo, customer, setCustomer, customerInfo, setCustomerInfo, qrImageUrl, setQrImageUrl, qrIntervalRef }) => {
 
-const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber, setPhoneNumber, setDelivery, promo, setPromo, customer, setCustomer, customerInfo, setCustomerInfo }) => {
-
-
-  
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedWard, setSelectedWard] = useState('');
@@ -20,34 +18,27 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
   const [cashPaid, setCashPaid] = useState('');
   const [change, setChange] = useState();
-  const [qrImageUrl, setQrImageUrl] = useState('');
-  
+  let interval = null;
+
   const [finalAmount, setFinalAmount] = useState(totalAmount);
   const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
   const [shippingFee, setShippingFee] = useState(0);
-  const qrIntervalRef = useRef(null); // Use useRef to store the interval ID
+  // Use useRef to store the interval ID
   const [isPaymentSuccessful, setIsPaymentSuccessful] = useState(false); // New state variable
-
+  const [showPrintModal, setShowPrintModal] = useState(false); // State for the confirmation modal
 
   useEffect(() => {
-
-
     let calculatedDiscount = 0;
     if (promo && totalAmount >= promo.minOrderValue) { // Fixed condition
       calculatedDiscount = promo.discountValue;
-      if (promo.discountType === 1 ) {
+      if (promo.discountType === 1) {
         calculatedDiscount = (totalAmount * promo.discountValue) / 100;
         if (calculatedDiscount > promo.maxDiscountValue) {
           calculatedDiscount = promo.maxDiscountValue;
         }
       }
-      //setPromoCode(promo.voucherCode);
-
     } else if (promo.voucherCode) {
       setPromo({});
-     // setPromoCode("");
-    } else {
-      //setPromoCode("");
     }
     setFinalAmount(totalAmount - calculatedDiscount);
   }, [totalAmount, promo]);
@@ -94,6 +85,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     updateShippingFee();
   }, [delivery, customerInfo, orderDetail]);
 
+
+
   const handleShowQR = () => {
     if (!idOrder) {
       toast.warn("Vui lòng chọn hóa đơn trước khi chọn QR ", toastOptions);
@@ -103,67 +96,58 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng thêm sản phẩm trước khi chọn QR  ", toastOptions);
       return;
     }
-    // Clear any existing interval before starting a new one
     if (qrIntervalRef.current) {
       clearInterval(qrIntervalRef.current);
       qrIntervalRef.current = null;
     }
 
     setIsCashPayment(false);
-    setIsPaymentSuccessful(false); // Reset payment success status
+    setIsPaymentSuccessful(false);
 
-    // Generate QR code URL dynamically
     const qrUrl = `https://img.vietqr.io/image/MB-02062004666-compact2.jpg?amount=${finalAmount + shippingFee}&addInfo=thanh%20toan%20hoa%20don%20ID${idOrder}HD&accountName=HOANG%20VAN%20TUAN`;
     setQrImageUrl(qrUrl);
     setPaymen(2);
     toast.info("Đã chọn phương thức thanh toán QR 🥰", toastOptions);
-    setTimeout(() => {
-    // Start polling for payment status
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetchCassoTransactions();
-        const records = response.data.body.data.records || [];
-        const matchingRecord = records.find(record =>
-          record.description.includes(`thanh toan hoa don ID${idOrder}HD`)&&record.amount === (finalAmount + shippingFee) 
-        );
 
-        if (matchingRecord) {
-          clearInterval(interval);
-          qrIntervalRef.current = null; // Clear the ref
-          setIsPaymentSuccessful(true); // Mark payment as successful
-          toast.success("Thanh toán thành công 🥰", toastOptions);
+ 
+      qrIntervalRef.current = setInterval(async () => {
+      
+    
+        try {
+          const response = await fetchCassoTransactions();
+          const records = response.data.body.data.records || [];
+          const matchingRecord = records.find(record =>
+            record.description.includes(`thanh toan hoa don ID${idOrder}HD`) && record.amount === (finalAmount + shippingFee)
+          );
+
+          if (matchingRecord) {
+            clearInterval(qrIntervalRef.current);
+            qrIntervalRef.current = null;
+            setIsPaymentSuccessful(true);
+            toast.success("Thanh toán thành công 🥰", toastOptions);
+          }
+        } catch (error) {
+          console.error("Error checking payment status:", error);
         }
-      } catch (error) {
-        console.error("Error checking payment status:", error);
-      }
-    }, 10000);
-     qrIntervalRef.current = interval;
-  }, 20000);
-    // Store the interval ID in the ref
+        
+      }, 30000);
+    
   };
 
   const handleCashPayment = () => {
-    // Clear the interval if it exists
+    setQrImageUrl("");
     if (qrIntervalRef.current) {
-      clearInterval(qrIntervalRef.current);
-      qrIntervalRef.current = null;
+      clearInterval(qrIntervalRef.current); // Clear the interval
+      qrIntervalRef.current = null; // Reset the ref
     }
-
     setPaymen(1);
     setIsCashPayment(true);
-    setQrImageUrl(""); // Hide QR code
+    setChange(0); // Reset change to avoid validation errors
+    setCashPaid(''); // Reset cashPaid input
     toast.info("Đã chọn phương thức thanh toán Tiền mặt 🥰", toastOptions);
   };
 
-  useEffect(() => {
-    // Cleanup interval on component unmount
-    return () => {
-      if (qrIntervalRef.current) {
-        clearInterval(qrIntervalRef.current);
-        qrIntervalRef.current = null;
-      }
-    };
-  }, []);
+
 
   const handlePrintInvoice = () => {
     const selectedOrderDetail = orderDetail.filter(item => String(item.order.id) === String(idOrder));
@@ -208,7 +192,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         margin: 5px 0;
       }
       .thank-you {
-        text-align: left;
+        text-align: center;
         margin-top: 30px;
         font-size: 16px;
         font-weight: bold;
@@ -217,10 +201,11 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       </head>
       <body>
       <div class="invoice-header">
+      <image src="${logo}" alt="Logo" style="width: 200px; height: auto;" />
       <h2>H2TL</h2>
       <p>Địa chỉ: Nam Từ Liêm, Hà Nội</p>
       <p>Điện thoại: 0123456789</p>
-      <h2>HÓA ĐƠN BÁN HÀNG</h2>
+      <h3>HÓA ĐƠN BÁN HÀNG</h2>
       </div>
       <div class="invoice-info">
       <p><strong>Tên nhân viên:</strong> Hoàng Văn Tuấn</p>
@@ -273,39 +258,14 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     printWindow.print();
   };
 
-  const handlePaymentConfirmation = async () => {
-    if (!idOrder) {
-      toast.warn("Vui lòng chọn hóa đơn trước khi thanh toán ", toastOptions);
-      return;
-    }
-    if (totalAmount === 0) {
-      toast.warn("Vui lòng thêm sản phẩm trước khi thanh toán ", toastOptions);
-      return;
-    }
-    if (!(paymen === 1 || paymen === 2)) {
-      toast.warn("Hãy chọn phương thức thanh toán ", toastOptions);
-      return;
-    }
+  const handlePaymentConfirmation = async (shouldPrint) => {
 
-    if (paymen === 1 && change < 0) {
-      toast.warn("Tiền thừa không được nhỏ hơn 0 ", toastOptions);
-      return;
-    }
-
-    if (paymen === 2 && !isPaymentSuccessful) { // Use the new variable
-      toast.warn("Khách hàng chưa chuyển khoản thành công. Vui lòng kiểm tra lại!", toastOptions);
-      return;
-    }
-
-    if (!isPaymentEnabled) {
-      toast.warn("Vui lòng thực hiện đủ các bước ", toastOptions);
-      return;
-    }
+    const addressDetails = `${customerInfo.address}, ${customerInfo.ward}, ${customerInfo.district}, ${customerInfo.province}`;
     const requestBody = {
       customerId: customer?.id || null,
       customerName: customerInfo.name,
       phone: customerInfo.phone,
-      address: `${customerInfo.address}, ${customerInfo.ward}, ${customerInfo.district}, ${customerInfo.province}`,
+      address: addressDetails || "",
       note: customerInfo.note || "",
       shippingFee: shippingFee,
       discountValue: totalAmount - finalAmount,
@@ -323,12 +283,12 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
 
         if (promo.voucherCode) {
           await updatePromoCode(promo.id, { ...promo, quantity: promo.quantity - 1 });
-
-          // Call API to associate voucher with the order
           await addOrderVoucher(idOrder, promo.id);
         }
-        handlePrintInvoice();
-      //  window.location.reload();
+
+        if (shouldPrint) {
+          handlePrintInvoice();
+        }
       } else {
         toast.error("Thanh toán thất bại. Vui lòng thử lại!", toastOptions);
       }
@@ -338,21 +298,55 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     }
   };
 
+  const handleConfirmPayment = () => {
+    if (!idOrder) {
+      toast.warn("Vui lòng chọn hóa đơn trước khi thanh toán ", toastOptions);
+      return;
+    }
+    if (totalAmount === 0) {
+      toast.warn("Vui lòng thêm sản phẩm trước khi thanh toán ", toastOptions);
+      return;
+    }
+    if (!(paymen === 1 || paymen === 2)) {
+      toast.warn("Hãy chọn phương thức thanh toán ", toastOptions);
+      return;
+    }
+
+    if (paymen === 1 && (change < 0 || change === undefined)) {
+      toast.warn("Tiền thừa không được nhỏ hơn 0 ", toastOptions);
+      return;
+    }
+
+    if (paymen === 2 && !isPaymentSuccessful) {
+      toast.warn("Khách hàng chưa chuyển khoản thành công. Vui lòng kiểm tra lại!", toastOptions);
+      return;
+    }
+
+    if (!isPaymentEnabled) {
+      toast.warn("Vui lòng thực hiện đủ các bước ", toastOptions);
+      return;
+    }
+    setShowPrintModal(true);
+  };
+
+  const handlePrintModalClose = (shouldPrint) => {
+    setShowPrintModal(false);
+    handlePaymentConfirmation(shouldPrint);
+  };
+
   const handleSaveDeliveryInfo = async (customer) => {
-    //setCustomer(customer);
     setDelivery(true);
-    const fee = await fetchShippingFeeWrapper(customer);
-    setShippingFee(fee);
+   // const fee = await fetchShippingFeeWrapper(customer);
+    //setShippingFee(fee);
   };
 
   return (
     <div className="container my-4">
-      <h3>Thông tin thanh toán</h3>
+      <h3 style={{ fontWeight: 'bold' }}>Thông tin thanh toán</h3>
       <hr />
       <br />
 
       <CustomerSearch
-
         customer={customer}
         setCustomer={setCustomer}
         setDelivery={setDelivery}
@@ -361,34 +355,54 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         setFinalAmount={setFinalAmount}
         phoneNumber={phoneNumber}
         setPhoneNumber={setPhoneNumber}
+        setQrImageUrl={setQrImageUrl}
+        qrIntervalRef={qrIntervalRef}
       />
 
-
-      <DeliveryInfo delivery={delivery} setDelivery={setDelivery} onSave={handleSaveDeliveryInfo} customer={customer} setCustomer={setCustomer} customerInfo={customerInfo} setCustomerInfo={setCustomerInfo} idOrder={idOrder} totalAmount={totalAmount}
-        setSelectedProvince={setSelectedProvince} selectedProvince={selectedProvince} setSelectedDistrict={setSelectedDistrict} selectedDistrict={selectedDistrict} setSelectedWard={setSelectedWard} selectedWard={selectedWard}
+      <DeliveryInfo delivery={delivery}
+        setDelivery={setDelivery}
+        onSave={handleSaveDeliveryInfo}
+        customer={customer}
+        setCustomer={setCustomer}
+        customerInfo={customerInfo}
+        setCustomerInfo={setCustomerInfo}
+        idOrder={idOrder}
+        totalAmount={totalAmount}
+        setSelectedProvince={setSelectedProvince}
+        selectedProvince={selectedProvince}
+        setSelectedDistrict={setSelectedDistrict}
+        selectedDistrict={selectedDistrict}
+        setSelectedWard={setSelectedWard}
+        selectedWard={selectedWard}
+        qrIntervalRef={qrIntervalRef}
+        setQrImageUrl={setQrImageUrl}
       />
-      <PromoCode promo={promo} setPromo={setPromo} totalAmount={totalAmount} idOrder={idOrder} />
+      <PromoCode promo={promo} 
+      setPromo={setPromo} 
+      totalAmount={totalAmount}
+       idOrder={idOrder} 
+       setQrImageUrl={setQrImageUrl} 
+       qrIntervalRef={qrIntervalRef} />
 
-      {/* Hiển thị tổng tiền */}
-      <h5>Tổng tiền: {totalAmount.toLocaleString()} VND</h5>
-      <h5>Giảm giá: {(totalAmount - finalAmount).toLocaleString()} VND</h5>
-      <h5>Phí vận chuyển: {shippingFee ? shippingFee.toLocaleString() : 0} VND</h5>
-      <h5>Thanh toán: {(finalAmount + shippingFee).toLocaleString()} VND</h5>
+      <h5 style={{ fontWeight: 'bold' }}>Tổng tiền: {totalAmount.toLocaleString()} VND</h5>
+      <h5 style={{ fontWeight: 'bold' }}>Giảm giá: {(totalAmount - finalAmount).toLocaleString()} VND</h5>
+      <h5 style={{ fontWeight: 'bold' }}>Phí vận chuyển: {shippingFee ? shippingFee.toLocaleString() : 0} VND</h5>
+      <h5 style={{ fontWeight: 'bold' }}>Thanh toán: {(finalAmount + shippingFee).toLocaleString()} VND</h5>
 
-      {/* Chọn phương thức thanh toán */}
       <Row className="mb-3">
         <Col sm={6}>
-          <Button
-            variant={paymen === 1 ? "primary" : "light"} // Highlight when "Tiền mặt" is selected
+          <Button style={{ fontWeight: 'bold' }}
+            variant={paymen === 1 ? "primary" : "light"}
             className="w-100"
+
             onClick={handleCashPayment}
           >
             Tiền mặt
           </Button>
         </Col>
         <Col sm={6}>
-          <Button
-            variant={paymen === 2 ? "primary" : "light"} // Highlight when "QR" is selected
+          <Button style={{ fontWeight: 'bold' }}
+            variant={paymen === 2 ? "primary" : "light"}
             className="w-100"
             onClick={handleShowQR}
           >
@@ -396,23 +410,26 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
           </Button>
         </Col>
       </Row>
-      {/* Hiển thị QR Code bên dưới */}
+
       {qrImageUrl && (
         <div className="text-center mt-3">
           <img src={qrImageUrl} alt="QR Code Thanh Toán" className="img-fluid" style={{ maxWidth: "200px" }} />
         </div>
       )}
-      {/* Hiển thị ô nhập tiền khách trả nếu chọn tiền mặt */}
+
       {isCashPayment && (
         <>
           <Row className="mb-3">
             <Col sm={12}>
               <Form.Group controlId="formCashPaid">
-                <Form.Label>Tiền khách trả</Form.Label>
+                <Form.Label style={{ fontWeight: 'bold' }}>Tiền khách trả</Form.Label>
                 <Form.Control
                   type="number"
+                  min="0" // Ensure the input value is >= 0
                   value={cashPaid}
+                  style={{ fontWeight: 'bold' }}
                   onChange={(e) => {
+                    // Prevent negative values
                     setCashPaid(e.target.value);
                     setChange(e.target.value - (finalAmount + shippingFee));
                   }}
@@ -424,10 +441,11 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
           <Row className="mb-3">
             <Col sm={12}>
               <Form.Group controlId="formChange">
-                <Form.Label>Tiền thừa</Form.Label>
+                <Form.Label style={{ fontWeight: 'bold' }}>Tiền thừa</Form.Label>
                 <Form.Control
                   type="number"
                   value={change}
+                  style={{ fontWeight: 'bold' }}
                   readOnly
                   placeholder="Tiền thừa"
                 />
@@ -437,17 +455,48 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         </>
       )}
 
-
-      {/* Hiển thị QR Code nếu có */}
-
-
-      {/* Xác nhận thanh toán */}
       <Row>
-        <Col sm={12}>
-          <Button variant="primary" className="w-100" onClick={handlePaymentConfirmation} >Xác nhận thanh toán</Button>
-
+        <Col sm={12} style={{ textAlign: 'center' }}>
+          <Button variant="primary" className="w-100" onClick={handleConfirmPayment}>
+            Xác nhận thanh toán
+          </Button>
         </Col>
       </Row>
+
+      <Modal
+        show={showPrintModal}
+        onHide={() => setShowPrintModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title style={{ fontWeight: 'bold', fontSize: '18px' }}>
+            <i className="mdi mdi-printer" style={{ marginRight: '8px', color: '#007bff' }}></i>
+            Xác nhận in hóa đơn
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ textAlign: 'center', fontSize: '16px', color: '#333', fontWeight: 'bold' }}>
+          <p>Bạn có muốn in hóa đơn sau khi thanh toán không?</p>
+          <i className="mdi mdi-file-document-outline" style={{ fontSize: '48px', color: '#007bff' }}></i>
+        </Modal.Body>
+        <Modal.Footer style={{ justifyContent: 'center' }}>
+          <Button
+            variant="dark"
+            onClick={() => handlePrintModalClose(false)}
+            style={{ padding: '10px 20px', fontWeight: 'bold' }}
+          >
+            <i className="mdi mdi-close-circle-outline" style={{ marginRight: '5px' }}></i>
+            Không
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => handlePrintModalClose(true)}
+            style={{ padding: '10px 20px', fontWeight: 'bold' }}
+          >
+            <i className="mdi mdi-check-circle-outline" style={{ marginRight: '5px' }}></i>
+            Có
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
