@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CustomerProfileResponse {
-     String customerId; // ID của khách hàng (có thể là customerCode hoặc id)
+     Integer customerId; // ID của khách hàng (có thể là customerCode hoặc id)
      String email;
      String fullName;
      String phone;

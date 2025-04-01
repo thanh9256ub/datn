@@ -196,10 +196,11 @@ export const getCartDetails = async (cartId) => {
     try {
         const response = await api.get(`/cart-details/cart/${cartId}`);
         console.log("API res (cart details):", response.data);
-        return response.data.data || [];
+        // Đảm bảo luôn trả về object hoặc mảng hợp lệ
+        return response.data || { data: [] };
     } catch (error) {
         console.error("Error fetching cart details:", error);
-        return [];
+        return { data: [] }; // Trả về mặc định nếu lỗi
     }
 };
 export const removeFromCartApi = async (cartDetailId) => {
@@ -213,17 +214,8 @@ export const removeFromCartApi = async (cartDetailId) => {
     }
 };
 
-// Lấy hoặc tạo giỏ hàng theo customerId
-export const getOrCreateCart = async (customerId) => {
-    try {
-        const response = await api.get(`/cart/get-or-create/${customerId}`);
-        console.log("API res (get or create cart):", response.data);
-        return response.data.data; // Trả về CartResponse
-    } catch (error) {
-        console.error("Error fetching or creating cart:", error);
-        throw error;
-    }
-};
+
+
 export const updateCartQuantity = async (cartDetailId, quantity) => {
     try {
         const response = await api.put(`/cart-details/update-quantity/${cartDetailId}`, { quantity });
@@ -236,28 +228,74 @@ export const updateCartQuantity = async (cartDetailId, quantity) => {
 };
 export const fetchCustomerProfile = async (token) => {
     try {
-        const response = await api.get("/authCustomer/profile", {
-            headers: {
-                Authorization: `Bearer ${token}`, // Thêm token vào header
-            },
-        });
-        console.log("API res (customer profile):", response.data);
-        return response.data.data; // Trả về CustomerProfileResponse từ ApiResponse
+        const response = await api.get('/authCustomer/profile');
+        console.log('API res (customer profile):', response.data);
+        return response.data.data; // customerId là Integer
     } catch (error) {
-        console.error("Error fetching customer profile:", error);
+        console.error('Error fetching customer profile:', error);
         throw error;
     }
 };
+// Lấy hoặc tạo giỏ hàng theo customerId
+export const getOrCreateCart = async (customerId) => {
+    try {
+        const response = await api.get(`/carts/get-or-create/${customerId}`); // customerId là Integer
+        console.log('API res (get or create cart):', response.data);
+        return response.data.data;
+    } catch (error) {
+        console.error('Error fetching or creating cart:', error);
+        throw error;
+    }
+};
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    console.log('Sending request with token:', token); // Log token
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+// Các hàm API hiện có giữ nguyên, chỉ bổ sung những hàm cần thiết
 export const getTokenCustomer = async (email, password) => {
     const body = { email, password };
     try {
-        const response = await axios.post(`${API_BASE_URL}/authCustomer/token`, body, {
-            headers: { Authorization: "" }
-        });
-        console.log("API res (customer token):", response.data);
+        const response = await axios.post(`${API_BASE_URL}/authCustomer/token`, body);
+        console.log('API res (customer token):', response);
+
+        // Kiểm tra mã trạng thái HTTP thay vì response.data.status
+        if (response.status !== 200) {
+            throw new Error(response.data.message || 'Đăng nhập thất bại từ server');
+        }
+
+        return response.data; // Trả về toàn bộ response.data
+    } catch (error) {
+        console.error('Error fetching customer token:', error.response?.data || error.message);
+        throw error.response?.data?.message || error.message || 'Lỗi không xác định';
+    }
+};
+export const createOrder = async (cartId, orderData) => {
+    try {
+        const response = await api.post(`/order/checkout/${cartId}`, orderData);
+        console.log('Create Order Response:', response.data);
+        return response;
+    } catch (error) {
+        console.error('Error creating order:', error.response?.data || error.message);
+        throw error;
+    }
+};
+export const createGuestOrder = async (orderData) => {
+    try {
+        const response = await api.post('/order/checkout/guest', orderData);
+        console.log('API res (create guest order):', response.data);
         return response.data;
     } catch (error) {
-        console.error("Error fetching customer token:", error);
-        throw error;
+        console.error('Error creating guest order:', {
+            url: error.config?.url,
+            method: error.config?.method,
+            status: error.response?.status,
+            errorData: error.response?.data,
+        });
+        throw new Error(error.response?.data?.message || 'Lỗi khi tạo đơn hàng cho khách vãng lai');
     }
 };

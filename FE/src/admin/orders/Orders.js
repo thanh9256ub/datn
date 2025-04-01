@@ -309,7 +309,7 @@ const Orders = () => {
                                 >
                                     <option value="">Tất cả</option>
                                     <option value="1">Chờ tiếp nhận</option>
-                                    <option value="2">Chờ lấy hàng/Đã tiếp nhận</option>
+                                    <option value="2">Đã tiếp nhận</option>
                                     <option value="3">Chờ vận chuyển</option>
                                     <option value="4">Đang vận chuyển</option>
                                     <option value="5">Đã giao</option>

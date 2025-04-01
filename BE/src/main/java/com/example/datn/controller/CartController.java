@@ -5,12 +5,17 @@ import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.CartResponse;
 import com.example.datn.entity.Cart;
 import com.example.datn.service.CartService;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.SignedJWT;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:3000")
@@ -19,7 +24,8 @@ import java.util.List;
 public class CartController {
     @Autowired
     private CartService cartService;
-
+    @Value("${jwt.signerKey}") // Lấy SIGNER_KEY từ application.properties
+    private String SIGNER_KEY;
     // Tạo một cart mới
     @PostMapping("/add")
     public ResponseEntity<ApiResponse<CartResponse>> addCart(@Valid @RequestBody CartRequest request) {
@@ -92,10 +98,38 @@ public class CartController {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/get-or-create/{customerId}")
-    public ResponseEntity<ApiResponse<CartResponse>> getOrCreateCart(@PathVariable("customerId") Integer customerId) {
+    public ResponseEntity<ApiResponse<CartResponse>> getOrCreateCart(
+            @PathVariable("customerId") Integer customerId,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         try {
-            Cart cart = cartService.getOrCreateCart(customerId); // Nhận Cart
-            CartResponse cartResponse = cartService.getCartById(cart.getId()); // Chuyển thành CartResponse
+            // Kiểm tra token nếu có
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);
+                SignedJWT signedJWT = SignedJWT.parse(token);
+                JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
+                boolean isValid = signedJWT.verify(verifier);
+
+                if (!isValid) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                            new ApiResponse<>(HttpStatus.FORBIDDEN.value(), "Invalid token", null)
+                    );
+                }
+
+                // Kiểm tra thời gian hết hạn
+                if (signedJWT.getJWTClaimsSet().getExpirationTime().before(new Date())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                            new ApiResponse<>(HttpStatus.FORBIDDEN.value(), "Token expired", null)
+                    );
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                        new ApiResponse<>(HttpStatus.UNAUTHORIZED.value(), "No token provided", null)
+                );
+            }
+
+            // Logic lấy hoặc tạo giỏ hàng
+            Cart cart = cartService.getOrCreateCart(customerId); // Cập nhật CartService để nhận String
+            CartResponse cartResponse = cartService.getCartById(cart.getId());
             return ResponseEntity.ok(new ApiResponse<>(
                     HttpStatus.OK.value(),
                     "Cart retrieved or created successfully",

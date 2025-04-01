@@ -72,7 +72,7 @@ const BanHang = () => {
   const fetchProducts = () => {
     axios.get('http://localhost:8080/product-detail')
       .then(response => {
-        const products = response.data.data.filter(product => product.quantity > 0&&product.status === 1 );
+        const products = response.data.data.filter(product => product.quantity > 0 && product.status === 1);
         setAvailableProducts(products);
       })
       .catch(error => console.error('Error fetching products:', error));
@@ -135,13 +135,13 @@ const BanHang = () => {
   //         .then(response => {
   //           fetchProducts();
   //           fetchOrderItems();
-    
+
   //         })
   //         .catch(error => {
   //           console.error('Error removing item:', error);
   //           toast.error("Xóa sản phẩm khỏi giỏ hàng thất bại 🥲", toastOptions);
   //         });
-     
+
   // };
   const handleRemoveItemId = (orderDetailID, productDetailID) => {
     fetchOrderItems();
@@ -228,31 +228,32 @@ const BanHang = () => {
     axios.get(`http://localhost:8080/order-detail`)
       .then(response => {
         const orderDetails = response.data.data;
-        const itemToRemove = orderDetails.find(items => items.id ===  item.id && items.productDetail.id === item.productDetail.id);
+        const itemToRemove = orderDetails.find(items => items.id === item.id && items.productDetail.id === item.productDetail.id);
 
         if (!itemToRemove) {
           toast.error("Sản phẩm không tồn tại trong giỏ hàng 🥲", toastOptions);
           return;
         }
 
-    if (newQuantity < 0 || itemToRemove.productDetail.quantity + itemToRemove.quantity < newQuantity) return;
-    axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
-      .then(response => {
-        fetchProducts();
-        fetchOrderItems();
+        if (newQuantity < 0 || itemToRemove.productDetail.quantity + itemToRemove.quantity < newQuantity) return;
+        axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
+          .then(response => {
+            fetchProducts();
+            fetchOrderItems();
+          })
+          .catch(error => console.error('Error updating quantity:', error));
       })
-      .catch(error => console.error('Error updating quantity:', error)); })
       .catch(error => {
         console.error('Error fetching order items:', error);
         toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm trong giỏ hàng 🥲", toastOptions);
       });
   };
-  const handleQuantityChangeInput  = (item, newQuantity) => {
-   
+  const handleQuantityChangeInput = (item, newQuantity) => {
+
     axios.get(`http://localhost:8080/order-detail`)
       .then(response => {
         const orderDetails = response.data.data;
-        const itemToRemove = orderDetails.find(items => items.id ===  item.id && items.productDetail.id === item.productDetail.id);
+        const itemToRemove = orderDetails.find(items => items.id === item.id && items.productDetail.id === item.productDetail.id);
 
         if (!itemToRemove) {
           toast.error("Sản phẩm không tồn tại trong giỏ hàng 🥲", toastOptions);
@@ -261,14 +262,14 @@ const BanHang = () => {
           return;
         }
 
-    if (newQuantity < 0 || item.productDetail.quantity + item.quantity < newQuantity) return;
-       axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
-         .then(response => {
-           fetchProducts();
-           fetchOrderItems();
-         })
-         .catch(error => console.error('Error updating quantity:', error));
-     })
+        if (newQuantity < 0 || item.productDetail.quantity + item.quantity < newQuantity) return;
+        axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
+          .then(response => {
+            fetchProducts();
+            fetchOrderItems();
+          })
+          .catch(error => console.error('Error updating quantity:', error));
+      })
       .catch(error => {
         console.error('Error fetching order items:', error);
         toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm trong giỏ hàng 🥲", toastOptions);
@@ -461,7 +462,7 @@ const BanHang = () => {
                                     handleRemoveItemId(item.id, item.productDetail.id);
                                   }
                                 }}
-                                style={{ width: '40px', textAlign: 'center', height: '20px', padding: '5px',    fontSize: '14px', }}
+                                style={{ width: '40px', textAlign: 'center', height: '20px', padding: '5px', fontSize: '14px', }}
                               />
                               <button type="button" className="btn btn-outline-secondary btn-sm btn-rounded btn-icon"
                                 onClick={() => handleQuantityChange(item, Math.min(item.productDetail.quantity + item.quantity, item.quantity + 1))}

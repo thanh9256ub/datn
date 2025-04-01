@@ -21,4 +21,7 @@ public class CartRequest {
     LocalDateTime created_at;
 
     Integer status;
+
+    public CartRequest(Integer customerId, Double total_price, LocalDateTime created_at, Integer status) {
+    }
 }

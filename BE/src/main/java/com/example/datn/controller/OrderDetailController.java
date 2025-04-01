@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -62,8 +63,12 @@ public class OrderDetailController {
         return ResponseEntity.ok(apiResponse);
     }
     @GetMapping("/order/{orderId}")
-    public List<OrderDetailResponse> getOrderDetailsByOrderId(@PathVariable Integer orderId) {
-        return service.getOrderDetailsByOrderId(orderId);
+    public ResponseEntity<List<OrderDetailResponse>> getOrderDetailsByOrderId(@PathVariable Integer orderId) {
+        if (orderId == null) {
+            return ResponseEntity.badRequest().body(Collections.emptyList());
+        }
+        List<OrderDetailResponse> orderDetails = service.getOrderDetailsByOrderId(orderId);
+        return ResponseEntity.ok(orderDetails);
     }
 
 }

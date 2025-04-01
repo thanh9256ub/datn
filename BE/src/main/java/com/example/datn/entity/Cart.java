@@ -1,5 +1,6 @@
 package com.example.datn.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -24,7 +25,7 @@ public class Cart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-            @Column(name = "id")
+    @Column(name = "id")
     Integer id;
 
     @OneToOne
@@ -39,12 +40,16 @@ public class Cart {
 
     @Column(name = "status")
     Integer status;
+
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // Quản lý phía "chính" của mối quan hệ
     private List<CartDetails> items = new ArrayList<>();
+
     @PrePersist
     @PreUpdate
     public void calculateTotal() {
         this.total_price = items.stream()
                 .mapToDouble(CartDetails::getTotal_price)
-                .sum();}
+                .sum();
+    }
 }

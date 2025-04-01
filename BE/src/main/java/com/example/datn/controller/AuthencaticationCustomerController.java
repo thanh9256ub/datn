@@ -10,6 +10,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.security.sasl.AuthenticationException;
@@ -25,13 +27,24 @@ public class AuthencaticationCustomerController {
     AuthenticationCustomerService authenticationCustomerService;
 
     @PostMapping("token")
-    public ApiResponse<AuthenticationCustomerResponse> authenticate(@RequestBody AuthencaticationCustomerRequest authencaticationCustomerRequest) throws AuthenticationException {
-
-        var result = authenticationCustomerService.authenticationResponse(authencaticationCustomerRequest);
-
-        return ApiResponse.<AuthenticationCustomerResponse>builder()
-                .data(result)
-                .build();
+    public ResponseEntity<ApiResponse<AuthenticationCustomerResponse>> authenticate(
+            @RequestBody AuthencaticationCustomerRequest authencaticationCustomerRequest) {
+        try {
+            var result = authenticationCustomerService.authenticationResponse(authencaticationCustomerRequest);
+            ApiResponse<AuthenticationCustomerResponse> response = ApiResponse.<AuthenticationCustomerResponse>builder()
+                    .status(HttpStatus.OK.value()) // 200
+                    .message("Đăng nhập thành công")
+                    .data(result)
+                    .build();
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (AuthenticationException e) {
+            ApiResponse<AuthenticationCustomerResponse> errorResponse = ApiResponse.<AuthenticationCustomerResponse>builder()
+                    .status(HttpStatus.UNAUTHORIZED.value()) // 401
+                    .message(e.getMessage()) // "Customer not existed" hoặc "Unauthenticated"
+                    .data(null)
+                    .build();
+            return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+        }
     }
 
     @PostMapping("register")

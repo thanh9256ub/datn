@@ -21,19 +21,36 @@ const OrderDetail = () => {
         const getOrderDetails = async () => {
             try {
                 const response = await fetchOrderDetailsByOrderId(orderId);
-                console.log('API response:', response); // Kiểm tra cấu trúc dữ liệu
+                console.log('API response:', response); // Log toàn bộ dữ liệu trả về
 
-                if (response && response.length > 0) {
-                    const orderData = response[0].order;
-                    console.log('Order data:', orderData); // Kiểm tra đối tượng order
+                if (response) {
+                    // Trường hợp response là mảng
+                    if (Array.isArray(response) && response.length > 0) {
+                        const orderData = response[0].order;
+                        console.log('Order data:', orderData);
+                        console.log('Order details:', response);
 
-                    if (orderData) {
                         setOrder(orderData);
                         setOrderDetails(response);
                     }
+                    // Trường hợp response là object
+                    else if (!Array.isArray(response) && response.order) {
+                        console.log('Order data (object):', response.order);
+                        console.log('Order details (object):', response.orderDetails || []);
+
+                        setOrder(response.order);
+                        setOrderDetails(response.orderDetails || []);
+                    } else {
+                        console.error('Dữ liệu không hợp lệ từ API:', response);
+                        setOrderDetails([]);
+                    }
+                } else {
+                    console.error('Không nhận được dữ liệu từ API');
+                    setOrderDetails([]);
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Lỗi khi lấy chi tiết đơn hàng:', error);
+                setOrderDetails([]);
             }
         };
 

@@ -167,38 +167,37 @@ public class AuthenticationCustomerService {
                 .build();
     }
     public CustomerProfileResponse getCustomerProfile(String token) throws AuthenticationException {
+        log.info("Received token: {}", token);
         try {
-            // Parse và xác thực token
             SignedJWT signedJWT = SignedJWT.parse(token);
+            log.info("Parsed JWT: {}", signedJWT.getJWTClaimsSet().toString());
             JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
             boolean isValid = signedJWT.verify(verifier);
+            log.info("Token valid: {}", isValid);
 
             if (!isValid) {
                 throw new AuthenticationException("Invalid token");
             }
 
-            // Kiểm tra thời gian hết hạn
             Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+            log.info("Expiration time: {}", expirationTime);
             if (expirationTime.before(new Date())) {
                 throw new AuthenticationException("Token has expired");
             }
 
-            // Lấy email từ token
             String email = signedJWT.getJWTClaimsSet().getSubject();
-
-            // Tìm khách hàng trong cơ sở dữ liệu
+            log.info("Extracted email: {}", email);
             Customer customer = customerRepository.findByEmail(email)
                     .orElseThrow(() -> new AuthenticationException("Customer not found"));
+            log.info("Found customer: {}", customer.getEmail());
 
-            // Trả về thông tin profile
             return CustomerProfileResponse.builder()
-                    .customerId(customer.getCustomerCode()) // Dùng customerCode làm customerId
+                    .customerId(customer.getId())
                     .email(customer.getEmail())
                     .fullName(customer.getFullName())
                     .phone(customer.getPhone())
                     .role(customer.getRole().getRoleName())
                     .build();
-
         } catch (JOSEException | java.text.ParseException e) {
             log.error("Error parsing token", e);
             throw new AuthenticationException("Invalid token format");

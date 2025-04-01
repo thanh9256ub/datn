@@ -1,5 +1,6 @@
 package com.example.datn.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -27,6 +28,7 @@ public class CartDetails {
 
     @ManyToOne
     @JoinColumn(name = "cart_id")
+    @JsonBackReference // Ngăn serialize ngược về Cart
     Cart cart;
 
     @ManyToOne

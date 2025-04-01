@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface CustomerRepository extends JpaRepository<Customer, Integer> {
 
     Optional<Customer> findByEmail(String email);
-
+    Optional<Customer> findByCustomerCode(String customerCode);
     @Query("SELECT c FROM Customer c " +
             "WHERE LOWER(c.phone) LIKE LOWER(CONCAT('%', :search, '%'))" +
             "OR LOWER(c.fullName) LIKE LOWER(concat('%', :search, '%'))")

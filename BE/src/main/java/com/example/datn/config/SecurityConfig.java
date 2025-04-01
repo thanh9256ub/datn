@@ -37,9 +37,13 @@ public class SecurityConfig {
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(request -> request
-                            .requestMatchers("/ws/**","/products/**","/product-detail/**","/product-color/**","/counter/**","/cart-details/**").permitAll()
+                            .requestMatchers("/ws/**","/products/**","/product-detail/**","/product-color/**","/counter/provinces"
+                                    ,"/counter/districts"
+                                    ,"/counter/wards"
+                                    ,"/counter/get-price"
+                                    ,"/cart-details/**","/carts/**","/order/checkout/{cartId}","/order/checkout/guest").permitAll()
                             .requestMatchers("/auth/token",
-                                    "auth/introspect", "authCustomer/token", "authCustomer/register")
+                                    "auth/introspect", "authCustomer/token", "authCustomer/register","authCustomer/profile")
                             .permitAll()
                             .requestMatchers("/address/**", "/role/**")
                             .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")

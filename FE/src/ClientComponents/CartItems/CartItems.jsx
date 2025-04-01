@@ -1,33 +1,34 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import {
     Button, Card, Col, Divider, Form, Input, List, Row, Select,
-    Space, Typography, message, Spin, Empty, Image, Radio, Modal, Alert, Badge, InputNumber, Checkbox
+    Space, Typography, Spin, Empty, Image, Radio, Modal, Alert, Badge, InputNumber, Checkbox, message
 } from 'antd';
 import {
     DeleteOutlined, ShoppingCartOutlined, EnvironmentOutlined, PhoneOutlined,
     UserOutlined, CreditCardOutlined, MoneyCollectOutlined
 } from '@ant-design/icons';
 import { ShopContext } from '../Context/ShopContext';
-import { fetchProvinces, fetchDistricts, fetchWards, fetchShippingFee } from '../Service/productService';
+import { fetchProvinces, fetchDistricts, fetchWards, fetchShippingFee, createOrder, createGuestOrder } from '../Service/productService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
 const CartItems = () => {
-    const { 
-        cartItems, 
-        removeFromCart, 
-        getTotalCartAmount, 
-        clearCart, 
-        updateQuantity, 
-        toggleItemSelection, 
+    const {
+        cartItems,
+        removeFromCart,
+        getTotalCartItems,
+        getTotalCartAmount,
+        clearCart,
+        updateQuantity,
+        toggleItemSelection,
         selectedItems,
-        login,
-        logout,
         isGuest,
         customerId,
-        handleLogout
+        handleLogout,
+        loadCartItems,
+        cartId,
     } = useContext(ShopContext);
 
     const [loading, setLoading] = useState(false);
@@ -44,10 +45,30 @@ const CartItems = () => {
     const [qrModalVisible, setQrModalVisible] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState(null);
     const paymentCheckInterval = useRef();
+    const [cartLoading, setCartLoading] = useState(false);
+    const hasLoadedCart = useRef(false);
+
+    useEffect(() => {
+        const initializeCart = async () => {
+            if (!isGuest && cartId && !hasLoadedCart.current) {
+                setCartLoading(true);
+                try {
+                    await loadCartItems(cartId);
+                    hasLoadedCart.current = true;
+                } catch (error) {
+                    console.error('Không thể khởi tạo giỏ hàng:', error);
+                    message.error('Không thể tải giỏ hàng, vui lòng thử lại sau.');
+                } finally {
+                    setCartLoading(false);
+                }
+            }
+        };
+        initializeCart();
+    }, [isGuest, cartId, loadCartItems]);
 
     const generateVietQrUrl = () => {
         const totalAmount = getTotalCartAmount() + shippingFee;
-        return `https://img.vietqr.io/image/MB-0835520298-compact.png`;
+        return `https://img.vietqr.io/image/MB-0835520298-compact.png?amount=${totalAmount}`;
     };
 
     const checkPaymentStatus = async () => {
@@ -79,6 +100,9 @@ const CartItems = () => {
         if (e.target.value === 2) {
             setQrModalVisible(true);
             startPaymentCheck();
+        } else {
+            setQrModalVisible(false);
+            stopPaymentCheck();
         }
     };
 
@@ -177,19 +201,60 @@ const CartItems = () => {
             }
 
             setLoading(true);
+
+            const formValues = form.getFieldsValue();
+            const address = `${formValues.address}, ${wards.find(w => w.WARDS_ID === selectedWard)?.WARDS_NAME || ''}, ${districts.find(d => d.DISTRICT_ID === selectedDistrict)?.DISTRICT_NAME || ''}, ${provinces.find(p => p.PROVINCE_ID === selectedProvince)?.PROVINCE_NAME || ''}`;
+
+            const selectedCartItems = cartItems
+                .filter(item => selectedItems.includes(item.id || item.productDetailId))
+                .map(item => ({
+                    productDetailId: item.productDetailId || item.id,
+                    quantity: item.quantity,
+                    price: item.price,
+                    total_price: item.total_price || item.price * item.quantity
+                }));
+
             const orderData = {
-                paymentMethod,
-                paymentStatus: paymentMethod === 2 ? 'paid' : 'pending',
-                cartItems: cartItems.filter(item => selectedItems.includes(item.id || item.productDetailId)),
-                totalAmount: getTotalCartAmount() + shippingFee,
+                customerName: formValues.name,
+                phone: formValues.phone,
+                address: address,
+                note: formValues.note || '',
+                shippingFee: shippingFee,
+                discountValue: 0.0,
+                totalPrice: getTotalCartAmount(),
+                totalPayment: getTotalCartAmount() + shippingFee,
+                paymentMethodId: paymentMethod === 1 ? 3 : 2,
+                paymentTypeId: 2,
+                orderType: 1,
+                status: paymentMethod === 1 ? 1 : 2,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                cartItems: selectedCartItems,
+                customerId: isGuest ? null : customerId // Thêm customerId cho người dùng đăng nhập
             };
 
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Mock API
-            message.success('Đặt hàng thành công!');
-            clearCart();
-            stopPaymentCheck();
+            console.log('Order data to send:', JSON.stringify(orderData, null, 2));
+
+            let response;
+            if (isGuest) {
+                response = await createGuestOrder(orderData);
+            } else {
+                if (!cartId) {
+                    throw new Error('Giỏ hàng chưa được khởi tạo trên server');
+                }
+                response = await createOrder(cartId, orderData);
+            }
+
+            if (response.status === 201) {
+                message.success('Đặt hàng thành công!');
+                clearCart();
+                stopPaymentCheck();
+            } else {
+                throw new Error('Phản hồi không mong đợi từ server');
+            }
         } catch (error) {
-            message.error(error.message || 'Đã có lỗi xảy ra');
+            console.error('Lỗi khi đặt hàng:', error);
+            message.error(error.message || 'Đã có lỗi xảy ra khi đặt hàng');
         } finally {
             setLoading(false);
         }
@@ -205,12 +270,10 @@ const CartItems = () => {
                 <Title level={2} style={{ margin: 0 }}>
                     <ShoppingCartOutlined style={{ color: '#1890ff', marginRight: 8 }} />
                     Giỏ hàng của bạn
-                    <Badge count={cartItems.length} style={{ marginLeft: 16 }} />
+                    <Badge count={getTotalCartItems()} style={{ marginLeft: 16 }} />
                 </Title>
-                {/* Hiển thị trạng thái đăng nhập và nút đăng xuất nếu đã đăng nhập */}
                 {!isGuest && (
                     <Space>
-                        <Text>Đã đăng nhập với ID: {customerId}</Text>
                         <Button type="default" onClick={handleLogout}>
                             Đăng xuất
                         </Button>
@@ -221,7 +284,9 @@ const CartItems = () => {
             <Row gutter={[24, 24]}>
                 <Col xs={24} md={16}>
                     <Card title={<Text strong>Sản phẩm trong giỏ hàng</Text>} headStyle={{ backgroundColor: '#fafafa' }} bodyStyle={{ padding: 0 }}>
-                        {cartItems.length > 0 ? (
+                        {cartLoading ? (
+                            <Spin tip="Đang tải giỏ hàng..." style={{ padding: '48px 0', width: '100%' }} />
+                        ) : cartItems.length > 0 ? (
                             <List
                                 itemLayout="horizontal"
                                 dataSource={cartItems}
@@ -232,9 +297,9 @@ const CartItems = () => {
                                             key={itemId}
                                             style={{ padding: '16px 24px' }}
                                             actions={[
-                                                <Button 
-                                                    icon={<DeleteOutlined />} 
-                                                    danger 
+                                                <Button
+                                                    icon={<DeleteOutlined />}
+                                                    danger
                                                     onClick={() => removeFromCart(itemId)}
                                                 />
                                             ]}
@@ -246,12 +311,12 @@ const CartItems = () => {
                                             />
                                             <List.Item.Meta
                                                 avatar={
-                                                    <Image 
-                                                        src={item.productDetail?.product?.mainImage || 'https://via.placeholder.com/80'} 
-                                                        width={80} 
-                                                        height={80} 
-                                                        style={{ objectFit: 'cover' }} 
-                                                        preview={false} 
+                                                    <Image
+                                                        src={item.productDetail?.product?.mainImage || 'https://via.placeholder.com/80'}
+                                                        width={80}
+                                                        height={80}
+                                                        style={{ objectFit: 'cover' }}
+                                                        preview={false}
                                                     />
                                                 }
                                                 title={<Text strong>{item.productDetail?.product?.productName || 'Sản phẩm'}</Text>}
@@ -342,13 +407,13 @@ const CartItems = () => {
                                         {(getTotalCartAmount() + shippingFee).toLocaleString('vi-VN')}₫
                                     </Text>
                                 </Row>
-                                <Button 
-                                    type="primary" 
-                                    size="large" 
-                                    block 
-                                    loading={loading} 
-                                    onClick={handleCheckout} 
-                                    icon={<ShoppingCartOutlined />} 
+                                <Button
+                                    type="primary"
+                                    size="large"
+                                    block
+                                    loading={loading}
+                                    onClick={handleCheckout}
+                                    icon={<ShoppingCartOutlined />}
                                     disabled={cartItems.length === 0 || selectedItems.length === 0}
                                 >
                                     {paymentMethod === 2 ? 'Xác nhận đơn hàng' : 'Đặt hàng'}
@@ -358,21 +423,21 @@ const CartItems = () => {
                     </Card>
                 </Col>
             </Row>
-            <Modal 
-                title="Thanh toán qua VietQR" 
-                visible={qrModalVisible} 
-                onCancel={() => { setQrModalVisible(false); stopPaymentCheck(); }} 
-                footer={null} 
-                width={350} 
+            <Modal
+                title="Thanh toán qua VietQR"
+                visible={qrModalVisible}
+                onCancel={() => { setQrModalVisible(false); stopPaymentCheck(); }}
+                footer={null}
+                width={350}
                 destroyOnClose
             >
                 <Space direction="vertical" style={{ width: '100%', textAlign: 'center' }}>
                     {paymentStatus === 'success' ? (
-                        <Alert 
-                            message="Thanh toán thành công" 
-                            description="Bạn đã thanh toán thành công qua VietQR" 
-                            type="success" 
-                            showIcon 
+                        <Alert
+                            message="Thanh toán thành công"
+                            description="Bạn đã thanh toán thành công qua VietQR"
+                            type="success"
+                            showIcon
                         />
                     ) : (
                         <>
