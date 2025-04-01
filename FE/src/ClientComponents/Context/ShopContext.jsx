@@ -21,7 +21,7 @@ const ShopContextProvider = (props) => {
     const [customerId, setCustomerId] = useState(null);
     const [cartId, setCartId] = useState(null);
     const [selectedItems, setSelectedItems] = useState([]);
-    const [token, setToken] = useState(localStorage.getItem('token') || null);
+    const [tokenClient, setTokenClient] = useState(localStorage.getItem('tokenClient') || null);
 
     // Hàm đăng nhập
     const login = async ({ email, password }) => {
@@ -35,8 +35,8 @@ const ShopContextProvider = (props) => {
             }
 
             const newToken = response.data.token;
-            localStorage.setItem('token', newToken);
-            setToken(newToken);
+            localStorage.setItem('tokenClient', newToken);
+            setTokenClient(newToken);
 
             const profile = await fetchCustomerProfile(newToken);
             if (!profile || !profile.customerId) {
@@ -61,8 +61,8 @@ const ShopContextProvider = (props) => {
             console.error('Đăng nhập thất bại:', error.message);
             setIsGuest(true);
             setCustomerId(null);
-            setToken(null);
-            localStorage.removeItem('token');
+            setTokenClient(null);
+            localStorage.removeItem('tokenClient');
             throw error; // Ném lỗi để component Login xử lý
         }
     };
@@ -223,8 +223,8 @@ const ShopContextProvider = (props) => {
         setCartId(null);
         setSelectedItems([]);
         setCartItems([]);
-        setToken(null);
-        localStorage.removeItem('token');
+        setTokenClient(null);
+        localStorage.removeItem('tokenClient');
     };
 
     const contextValue = {
@@ -246,9 +246,9 @@ const ShopContextProvider = (props) => {
 
     useEffect(() => {
         const initializeUser = async () => {
-            if (token && isGuest) {
+            if (tokenClient && isGuest) {
                 try {
-                    const profile = await fetchCustomerProfile(token);
+                    const profile = await fetchCustomerProfile(tokenClient);
                     setCustomerId(profile.customerId);
                     setIsGuest(false);
                     const cartData = await getOrCreateCart(profile.customerId);
@@ -262,7 +262,7 @@ const ShopContextProvider = (props) => {
             }
         };
         initializeUser();
-    }, [token]); // Chỉ phụ thuộc vào token
+    }, [tokenClient]); // Chỉ phụ thuộc vào token
 
     useEffect(() => {
         if (!isGuest && customerId && !cartId) {

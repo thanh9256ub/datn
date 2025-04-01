@@ -45,6 +45,7 @@ public class SecurityConfig {
                                     "authCustomer/profile",
                                     "authCustomer/register",
                                     "products/**",
+                                    "product/**",
                                     "employee/forgot-password",
                                     "product-detail/**",
                                     "/brand",

@@ -138,13 +138,35 @@ const ProductDisplay = ({ product, productColors }) => {
     };
     if (!product) return <Card>Sản phẩm không tồn tại</Card>;
 
+    const handleColorChange = async (colorId, productColorId, newImage) => {
+        setSelectedColorId(colorId);
+        setSelectedProductColorId(productColorId);
+        setMainImage(newImage || product.image || '');
+
+        // Reset size khi đổi màu
+        setSizes([]);
+        setSelectedSize(null);
+
+        try {
+            const sizeResponse = await fetchSizesByColor(product.id, colorId);
+            setSizes(sizeResponse || []);
+
+            if (sizeResponse.length > 0) {
+                setSelectedSize(sizeResponse[0].id); // Chọn size đầu tiên của màu mới
+            }
+        } catch (error) {
+            message.error('Lỗi tải danh sách size');
+        }
+    };
+
+
     return (
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 16px' }}>
             <Row gutter={[32, 32]} align="middle">
                 <Col xs={24} md={12}>
                     <Card bordered={false} bodyStyle={{ padding: 0 }} style={{ borderRadius: 8, overflow: 'hidden' }}>
                         <div style={{ position: 'relative', paddingTop: '100%', backgroundColor: '#f8f8f8' }}>
-                            {mainImage ? (
+                            {mainImage && mainImage != "image.png" ? (
                                 <img src={mainImage} alt={product.name} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', padding: 16 }} />
                             ) : (
                                 <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
@@ -176,7 +198,19 @@ const ProductDisplay = ({ product, productColors }) => {
                             <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 15 }}>MÀU SẮC</Text>
                             <Space wrap>
                                 {productColors.map((pc, index) => (
-                                    <Button key={index} shape="round" size="middle" onClick={() => { setSelectedColorId(pc.color.id); setSelectedProductColorId(pc.id); setMainImage(pc.image || product.image || ''); }} style={{ minWidth: 80, borderColor: selectedColorId === pc.color.id ? primaryColor : '#d9d9d9', backgroundColor: selectedColorId === pc.color.id ? lightPurple : 'white', color: selectedColorId === pc.color.id ? primaryColor : 'inherit', fontWeight: selectedColorId === pc.color.id ? 600 : 'normal' }}>
+                                    <Button
+                                        key={index}
+                                        shape="round"
+                                        size="middle"
+                                        onClick={() => handleColorChange(pc.color.id, pc.id, pc.image)}
+                                        style={{
+                                            minWidth: 80,
+                                            borderColor: selectedColorId === pc.color.id ? primaryColor : '#d9d9d9',
+                                            backgroundColor: selectedColorId === pc.color.id ? lightPurple : 'white',
+                                            color: selectedColorId === pc.color.id ? primaryColor : 'inherit',
+                                            fontWeight: selectedColorId === pc.color.id ? 600 : 'normal'
+                                        }}
+                                    >
                                         {pc.color.colorName}
                                     </Button>
                                 ))}

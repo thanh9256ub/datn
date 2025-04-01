@@ -125,9 +125,9 @@ public class ProductDetailController {
 
         @GetMapping("/find-by-attributes")
         public ResponseEntity<ApiResponse<ProductDetailResponse>> getDetailByAttributes(
-                @RequestParam Integer productId,
-                @RequestParam Integer colorId,
-                @RequestParam Integer sizeId) {
+                @RequestParam(value = "productId", required = false) Integer productId,
+                @RequestParam(value = "colorId", required = false) Integer colorId,
+                @RequestParam(value = "sizeId", required = false) Integer sizeId) {
 
                 ProductDetailResponse response = service.getDetailByAttributes(productId, colorId, sizeId);
 

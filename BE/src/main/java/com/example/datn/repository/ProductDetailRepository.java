@@ -37,6 +37,8 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail,Int
             @Param("sizeId") Integer sizeId
     );
 
+    Optional<ProductDetail> findByProduct_IdAndColor_IdAndSize_Id(Integer pId, Integer colorId, Integer sizeId);
+
     List<ProductDetail> findByStatusNot(Integer status);
 
     List<ProductDetail> findByStatus(Integer status);

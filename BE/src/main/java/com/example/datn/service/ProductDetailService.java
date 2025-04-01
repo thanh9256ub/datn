@@ -208,7 +208,7 @@ public class ProductDetailService {
         return sizes;
     }
     public ProductDetailResponse getDetailByAttributes(Integer productId, Integer colorId, Integer sizeId) {
-        ProductDetail productDetail = repository.findByProductColorAndSize(productId, colorId, sizeId)
+        ProductDetail productDetail = repository.findByProduct_IdAndColor_IdAndSize_Id(productId, colorId, sizeId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         String.format("Product detail not found with productId: %d, colorId: %d, sizeId: %d",
                                 productId, colorId, sizeId)
