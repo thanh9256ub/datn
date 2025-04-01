@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import { Card, Table, Button, Row, Col, Toast, Modal, Form } from 'react-bootstrap';
+import { Card, Table, Button, Row, Col, Toast, Modal, Form, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faClock, faBoxOpen, faTruck, faHome, faCheckCircle, faTimesCircle, faPrint, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { fetchOrderDetailsByOrderId, updateOrderStatus, updateCustomerInfo } from '../OrderService/orderService';
@@ -11,35 +11,43 @@ const OrderDetail = () => {
     const { orderId } = useParams();
     const [orderDetails, setOrderDetails] = useState([]);
     const [order, setOrder] = useState(location.state?.order);
-    console.log("===order===", order);
-
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [showCancelModal, setShowCancelModal] = useState(false);
 
     useEffect(() => {
+        let isMounted = true;
+
         const getOrderDetails = async () => {
             try {
                 const response = await fetchOrderDetailsByOrderId(orderId);
-                console.log('API response:', response); // Log toàn bộ dữ liệu trả về
+                console.log('Raw API Response:', response);
+
+                if (!isMounted) return;
 
                 if (response) {
-                    // Trường hợp response là mảng
                     if (Array.isArray(response) && response.length > 0) {
-                        const orderData = response[0].order;
-                        console.log('Order data:', orderData);
-                        console.log('Order details:', response);
-
-                        setOrder(orderData);
-                        setOrderDetails(response);
-                    }
-                    // Trường hợp response là object
-                    else if (!Array.isArray(response) && response.order) {
-                        console.log('Order data (object):', response.order);
-                        console.log('Order details (object):', response.orderDetails || []);
-
+                        const validOrderDetails = response.filter(item => {
+                            const isValid = item && item.price != null && item.totalPrice != null;
+                            if (!isValid) {
+                                console.warn('Invalid order detail item:', item);
+                            }
+                            return isValid;
+                        });
+                        console.log('Filtered order details:', validOrderDetails);
+                        setOrder(response[0].order);
+                        setOrderDetails(validOrderDetails);
+                    } else if (!Array.isArray(response) && response.order) {
+                        const validOrderDetails = (response.orderDetails || []).filter(item => {
+                            const isValid = item && item.price != null && item.totalPrice != null;
+                            if (!isValid) {
+                                console.warn('Invalid order detail item:', item);
+                            }
+                            return isValid;
+                        });
+                        console.log('Filtered order details (object):', validOrderDetails);
                         setOrder(response.order);
-                        setOrderDetails(response.orderDetails || []);
+                        setOrderDetails(validOrderDetails);
                     } else {
                         console.error('Dữ liệu không hợp lệ từ API:', response);
                         setOrderDetails([]);
@@ -49,12 +57,17 @@ const OrderDetail = () => {
                     setOrderDetails([]);
                 }
             } catch (error) {
+                if (!isMounted) return;
                 console.error('Lỗi khi lấy chi tiết đơn hàng:', error);
                 setOrderDetails([]);
             }
         };
 
         getOrderDetails();
+
+        return () => {
+            isMounted = false;
+        };
     }, [orderId]);
 
     if (!order) {
@@ -65,26 +78,21 @@ const OrderDetail = () => {
         );
     }
     const handleCustomerUpdate = async (updatedCustomer) => {
+        let isMounted = true;
         try {
-            console.log('Data being sent:', updatedCustomer);
-
             const response = await updateCustomerInfo(orderId, {
                 customerName: updatedCustomer.customerName,
                 phone: updatedCustomer.phone,
                 address: updatedCustomer.address
             });
+            if (!isMounted) return;
 
-            console.log('Raw response from server:', response);
-
-            // Cập nhật state mà không cần reload
             setOrder(prev => ({
                 ...prev,
                 customerName: updatedCustomer.customerName,
                 phone: updatedCustomer.phone,
                 address: updatedCustomer.address
             }));
-
-            // Cập nhật orderDetails nếu cần
             setOrderDetails(prev => prev.map(item => ({
                 ...item,
                 order: {
@@ -94,18 +102,21 @@ const OrderDetail = () => {
                     address: updatedCustomer.address
                 }
             })));
-
             showNotification("Cập nhật thông tin thành công!");
             return response;
         } catch (error) {
+            if (!isMounted) return;
             console.error('Update failed:', {
                 error: error.response?.data || error.message,
                 request: { orderId, updatedCustomer }
             });
             showNotification(`Lỗi cập nhật: ${error.message}`);
             throw error;
+        } finally {
+            isMounted = false;
         }
     };
+
     const showNotification = (message) => {
         setToastMessage(message);
         setShowToast(true);
@@ -204,14 +215,18 @@ const OrderDetail = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${orderDetails.length > 0 ? orderDetails.map(item => `
-                                    <tr>
-                                        <td>${item.productDetail.product.productName}</td>
-                                        <td>${item.quantity}</td>
-                                        <td>${item.price.toLocaleString()} VNĐ</td>
-                                        <td>${item.totalPrice.toLocaleString()} VNĐ</td>
-                                    </tr>
-                                `).join('') : 'Không có sản phẩm'}
+                                ${orderDetails.length > 0 ? orderDetails.map(item => {
+            const price = item?.price ?? 0;
+            const totalPrice = item?.totalPrice ?? 0;
+            return `
+                                        <tr>
+                                            <td>${item?.productDetail?.product?.productName || 'N/A'}</td>
+                                            <td>${item?.quantity || 0}</td>
+                                            <td>${price.toLocaleString()} VNĐ</td>
+                                            <td>${totalPrice.toLocaleString()} VNĐ</td>
+                                        </tr>
+                                    `;
+        }).join('') : '<tr><td colspan="4">Không có sản phẩm</td></tr>'}
                             </tbody>
                         </table>
                     </div>
@@ -447,29 +462,68 @@ const OrderDetail = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {orderDetails.map((item, index) => (
-                                            <tr key={item.id}>
-                                                <td>{index + 1}</td>
-                                                <td>
-                                                    <Image
-                                                        src={item.productDetail.product.mainImage}
-                                                        alt={item.productName}
-                                                        thumbnail
-                                                        style={{ width: "80px", height: "80px", objectFit: "cover" }}
-                                                    />
-                                                </td>
-                                                <td>{item.productDetail.product.productName}</td>
-                                                <td>{item.productDetail.color.colorName}</td>
-                                                <td>{item.productDetail.size.sizeName}</td>
-                                                <td>{item.quantity}</td>
-                                                <td>{item.price.toLocaleString()} VNĐ</td>
-                                                <td>{item.totalPrice.toLocaleString()} VNĐ</td>
-                                            </tr>
-                                        ))}
+                                        {orderDetails.map((item, index) => {
+                                            // Xử lý dữ liệu an toàn
+                                            const product = item.productDetail?.product || {};
+                                            const color = item.productDetail?.color || {};
+                                            const size = item.productDetail?.size || {};
+                                            const price = item.price || 0;
+                                            const quantity = item.quantity || 0;
+                                            const totalPrice = item.totalPrice || price * quantity;
+
+                                            return (
+                                                <tr key={item.id || index}>
+                                                    <td>{index + 1}</td>
+                                                    <td>
+                                                        <Image
+                                                            src={product.mainImage || '/default-product.png'}
+                                                            alt={product.productName || 'N/A'}
+                                                            thumbnail
+                                                            style={{ width: "80px", height: "80px", objectFit: "cover" }}
+                                                            onError={(e) => {
+                                                                e.target.src = '/default-product.png';
+                                                            }}
+                                                        />
+                                                    </td>
+                                                    <td>{product.productName || 'N/A'}</td>
+                                                    <td>{color.colorName || 'N/A'}</td>
+                                                    <td>{size.sizeName || 'N/A'}</td>
+                                                    <td>{quantity}</td>
+                                                    <td>{price.toLocaleString()} VNĐ</td>
+                                                    <td>{totalPrice.toLocaleString()} VNĐ</td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </Table>
                             ) : (
-                                <p className="text-muted">Không có sản phẩm trong đơn hàng này.</p>
+                                <div className="text-center py-5">
+                                    <Alert variant="warning">
+                                        <h5>Không tìm thấy sản phẩm nào trong đơn hàng</h5>
+                                        <p className="mb-3">Mã đơn hàng: #{order?.orderCode || 'N/A'}</p>
+
+                                        <div className="text-start bg-light p-3 rounded">
+                                            <h6>Thông tin debug:</h6>
+                                            <p><strong>Order ID:</strong> {orderId}</p>
+                                            <p><strong>API Endpoint:</strong> /order-detail/order/{orderId}</p>
+                                            <Button
+                                                variant="outline-primary"
+                                                size="sm"
+                                                onClick={() => console.log('Debug info:', { orderId, order, orderDetails })}
+                                            >
+                                                Xem thông tin debug
+                                            </Button>
+                                        </div>
+                                    </Alert>
+
+                                    <Button
+                                        variant="primary"
+                                        className="mt-3"
+                                        onClick={() => window.location.reload()}
+                                    >
+                                        Tải lại trang
+                                    </Button>
+                                </div>
                             )}
                         </Card.Body>
                     </Card>

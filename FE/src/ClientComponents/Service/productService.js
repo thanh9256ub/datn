@@ -155,17 +155,13 @@ export const fetchProductDetailByAttributes = async (productId, colorId, sizeId)
 
         const response = await api.get(`/product-detail/find-by-attributes?productId=${productId}&colorId=${colorId}&sizeId=${sizeId}`)
 
-        if (!response.data.data) {
-            throw new Error('Không tìm thấy thông tin sản phẩm');
-        }
-
-        return response.data.data;
+        console.log('API res (product detail by attributes):', response.data);
+        return response.data.data || null; // Trả về null nếu không có dữ liệu
     } catch (error) {
         console.error('Error in fetchProductDetailByAttributes:', error);
-        throw new Error(error.response?.data?.message || 'Lỗi khi lấy thông tin sản phẩm');
+        return null; // Trả về null thay vì ném lỗi
     }
 };
-
 export const apiAddToCart = async (cartData) => {
     try {
         console.log("Sending cart data:", cartData);

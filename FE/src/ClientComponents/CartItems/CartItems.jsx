@@ -8,7 +8,7 @@ import {
     UserOutlined, CreditCardOutlined, MoneyCollectOutlined
 } from '@ant-design/icons';
 import { ShopContext } from '../Context/ShopContext';
-import { fetchProvinces, fetchDistricts, fetchWards, fetchShippingFee, createOrder, createGuestOrder } from '../Service/productService';
+import { fetchProvinces, fetchDistricts, fetchWards, fetchShippingFee, createOrder, createGuestOrder, fetchCustomerProfile } from '../Service/productService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -17,6 +17,7 @@ const { TextArea } = Input;
 const CartItems = () => {
     const {
         cartItems,
+        setCartItems,
         removeFromCart,
         getTotalCartItems,
         getTotalCartAmount,
@@ -26,9 +27,11 @@ const CartItems = () => {
         selectedItems,
         isGuest,
         customerId,
-        handleLogout,
         loadCartItems,
         cartId,
+        setCartId,
+        tokenClient,
+        getOrCreateCart,
     } = useContext(ShopContext);
 
     const [loading, setLoading] = useState(false);
@@ -47,24 +50,65 @@ const CartItems = () => {
     const paymentCheckInterval = useRef();
     const [cartLoading, setCartLoading] = useState(false);
     const hasLoadedCart = useRef(false);
+    const [customerProfile, setCustomerProfile] = useState(null);
 
+    // Khởi tạo giỏ hàng
     useEffect(() => {
+        console.log('CartItems mounted with:', { isGuest, cartId, tokenClient, cartItems });
         const initializeCart = async () => {
-            if (!isGuest && cartId && !hasLoadedCart.current) {
-                setCartLoading(true);
-                try {
-                    await loadCartItems(cartId);
-                    hasLoadedCart.current = true;
-                } catch (error) {
-                    console.error('Không thể khởi tạo giỏ hàng:', error);
-                    message.error('Không thể tải giỏ hàng, vui lòng thử lại sau.');
-                } finally {
-                    setCartLoading(false);
+            setCartLoading(true);
+            try {
+                if (!isGuest && tokenClient) {
+                    let currentCartId = cartId;
+                    if (!currentCartId) {
+                        const cartData = await getOrCreateCart(customerId);
+                        currentCartId = cartData.id;
+                        setCartId(currentCartId);
+                    }
+                    console.log('Loading cart from server with cartId:', currentCartId);
+                    await loadCartItems(currentCartId);
+                } else if (isGuest) {
+                    const savedCart = localStorage.getItem('cartItems');
+                    if (savedCart && cartItems.length === 0) {
+                        setCartItems(JSON.parse(savedCart));
+                    }
                 }
+                hasLoadedCart.current = true;
+            } catch (error) {
+                console.error('Không thể khởi tạo giỏ hàng:', error);
+                message.error('Không thể tải giỏ hàng, vui lòng thử lại sau.');
+            } finally {
+                setCartLoading(false);
             }
         };
-        initializeCart();
-    }, [isGuest, cartId, loadCartItems]);
+        if (!hasLoadedCart.current) {
+            initializeCart();
+        }
+    }, [isGuest, cartId, tokenClient, customerId, loadCartItems, cartItems, getOrCreateCart, setCartId, setCartItems]);
+
+    // Lấy thông tin khách hàng
+    useEffect(() => {
+        const loadCustomerProfile = async () => {
+            if (!isGuest && tokenClient) {
+                try {
+                    const profile = await fetchCustomerProfile(tokenClient);
+                    console.log('Customer profile:', profile);
+                    setCustomerProfile(profile);
+                    form.setFieldsValue({
+                        name: profile.fullName || '',
+                        phone: profile.phone || '',
+                    });
+                } catch (error) {
+                    console.error('Không thể tải thông tin khách hàng:', error);
+                    message.error('Không thể tải thông tin khách hàng.');
+                }
+            } else {
+                setCustomerProfile(null);
+                form.resetFields(['name', 'phone']);
+            }
+        };
+        loadCustomerProfile();
+    }, [isGuest, tokenClient, form]);
 
     const generateVietQrUrl = () => {
         const totalAmount = getTotalCartAmount() + shippingFee;
@@ -203,7 +247,9 @@ const CartItems = () => {
             setLoading(true);
 
             const formValues = form.getFieldsValue();
-            const address = `${formValues.address}, ${wards.find(w => w.WARDS_ID === selectedWard)?.WARDS_NAME || ''}, ${districts.find(d => d.DISTRICT_ID === selectedDistrict)?.DISTRICT_NAME || ''}, ${provinces.find(p => p.PROVINCE_ID === selectedProvince)?.PROVINCE_NAME || ''}`;
+            const address = `${formValues.address}, ${wards.find(w => w.WARDS_ID === selectedWard)?.WARDS_NAME || ''}, 
+            ${districts.find(d => d.DISTRICT_ID === selectedDistrict)?.DISTRICT_NAME || ''}, 
+            ${provinces.find(p => p.PROVINCE_ID === selectedProvince)?.PROVINCE_NAME || ''}`;
 
             const selectedCartItems = cartItems
                 .filter(item => selectedItems.includes(item.id || item.productDetailId))
@@ -230,7 +276,7 @@ const CartItems = () => {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 cartItems: selectedCartItems,
-                customerId: isGuest ? null : customerId // Thêm customerId cho người dùng đăng nhập
+                customerId: isGuest ? null : customerId
             };
 
             console.log('Order data to send:', JSON.stringify(orderData, null, 2));
@@ -238,19 +284,36 @@ const CartItems = () => {
             let response;
             if (isGuest) {
                 response = await createGuestOrder(orderData);
+                // Kiểm tra phản hồi từ API
+                if (response.status === 201) {
+                    message.success('Đặt hàng thành công!');
+                    clearCart(); // Xóa giỏ hàng trên frontend
+                    localStorage.removeItem('cartItems'); // Xóa giỏ hàng trong localStorage
+                } else {
+                    throw new Error('Tạo đơn hàng khách vãng lai thất bại');
+                }
             } else {
                 if (!cartId) {
-                    throw new Error('Giỏ hàng chưa được khởi tạo trên server');
+                    console.log('CartId not found, attempting to initialize cart...');
+                    setCartLoading(true);
+                    try {
+                        const cartData = await getOrCreateCart(customerId);
+                        setCartId(cartData.id);
+                        await loadCartItems(cartData.id);
+                    } catch (error) {
+                        throw new Error('Không thể khởi tạo giỏ hàng: ' + error.message);
+                    } finally {
+                        setCartLoading(false);
+                    }
                 }
                 response = await createOrder(cartId, orderData);
-            }
-
-            if (response.status === 201) {
-                message.success('Đặt hàng thành công!');
-                clearCart();
-                stopPaymentCheck();
-            } else {
-                throw new Error('Phản hồi không mong đợi từ server');
+                if (response.status === 201) {
+                    message.success('Đặt hàng thành công!');
+                    clearCart(); // Xóa giỏ hàng trên frontend
+                    await loadCartItems(cartId); // Tải lại giỏ hàng từ server để đảm bảo đồng bộ
+                } else {
+                    throw new Error('Tạo đơn hàng thất bại');
+                }
             }
         } catch (error) {
             console.error('Lỗi khi đặt hàng:', error);
@@ -272,13 +335,6 @@ const CartItems = () => {
                     Giỏ hàng của bạn
                     <Badge count={getTotalCartItems()} style={{ marginLeft: 16 }} />
                 </Title>
-                {!isGuest && (
-                    <Space>
-                        <Button type="default" onClick={handleLogout}>
-                            Đăng xuất
-                        </Button>
-                    </Space>
-                )}
             </Space>
 
             <Row gutter={[24, 24]}>
@@ -354,11 +410,25 @@ const CartItems = () => {
                 <Col xs={24} md={8}>
                     <Card title={<Text strong>Thông tin thanh toán</Text>} headStyle={{ backgroundColor: '#fafafa' }}>
                         <Form form={form} layout="vertical" initialValues={{ remember: true }}>
-                            <Form.Item name="name" label="Họ và tên" rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}>
-                                <Input prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />} placeholder="Nguyễn Văn A" />
+                            <Form.Item
+                                name="name"
+                                label="Họ và tên"
+                                rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
+                            >
+                                <Input
+                                    prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+                                    placeholder="Nguyễn Văn A"
+                                />
                             </Form.Item>
-                            <Form.Item name="phone" label="Số điện thoại" rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}>
-                                <Input prefix={<PhoneOutlined style={{ color: 'rgba(0,0,0,.25)' }} />} placeholder="0987654321" />
+                            <Form.Item
+                                name="phone"
+                                label="Số điện thoại"
+                                rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
+                            >
+                                <Input
+                                    prefix={<PhoneOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+                                    placeholder="0987654321"
+                                />
                             </Form.Item>
                             <Form.Item name="province" label="Tỉnh/Thành phố" rules={[{ required: true, message: 'Vui lòng chọn tỉnh/thành phố' }]}>
                                 <Select placeholder="Chọn tỉnh/thành phố" onChange={value => setSelectedProvince(value)} loading={!provinces.length} suffixIcon={<EnvironmentOutlined />}>

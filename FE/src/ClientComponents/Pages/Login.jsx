@@ -142,7 +142,7 @@
 // export default Login;
 import React, { useState, useContext } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import { ShopContext } from '../Context/ShopContext'; // Đảm bảo đường dẫn đúng
+import { ShopContext } from '../Context/ShopContext';
 import { Typography, Input, Button, Spin, Space, Alert } from 'antd';
 
 const { Title, Text } = Typography;
@@ -168,7 +168,7 @@ const Login = () => {
             await login({ email, password });
             setSuccessMessage('Đăng nhập thành công!');
             localStorage.setItem('email', email);
-            setTimeout(() => history.push('/'), 1000); // Chuyển hướng sau 1 giây để người dùng thấy thông báo
+            setTimeout(() => history.push('/'), 1000);
         } catch (error) {
             setError(error.message || 'Đăng nhập thất bại, vui lòng thử lại.');
         } finally {
