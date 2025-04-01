@@ -29,7 +29,7 @@ public class Cart {
     Integer id;
 
     @OneToOne
-    @JoinColumn(name = "customer_id")
+    @JoinColumn(name = "customer_id", unique = true)
     Customer customer;
 
     @Column(name = "total_price")

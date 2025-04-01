@@ -8,7 +8,7 @@ import {
     UserOutlined, CreditCardOutlined, MoneyCollectOutlined
 } from '@ant-design/icons';
 import { ShopContext } from '../Context/ShopContext';
-import { fetchProvinces, fetchDistricts, fetchWards, fetchShippingFee, createOrder, createGuestOrder, fetchCustomerProfile } from '../Service/productService';
+import { fetchProvinces, fetchDistricts, fetchWards, fetchShippingFee, createOrder, createGuestOrder, fetchCustomerProfile, clearCartOnServer, getCartDetails } from '../Service/productService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -230,6 +230,98 @@ const CartItems = () => {
         calculateShippingFee();
     }, [selectedProvince, selectedDistrict, cartItems]);
 
+    // const handleCheckout = async () => {
+    //     try {
+    //         await form.validateFields();
+
+    //         if (selectedItems.length === 0) {
+    //             message.warning('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+    //             return;
+    //         }
+
+    //         if (paymentMethod === 2 && paymentStatus !== 'success') {
+    //             message.warning('Vui lòng hoàn thành thanh toán qua VietQR trước');
+    //             return;
+    //         }
+
+    //         setLoading(true);
+
+    //         const formValues = form.getFieldsValue();
+    //         const address = `${formValues.address}, ${wards.find(w => w.WARDS_ID === selectedWard)?.WARDS_NAME || ''}, 
+    //         ${districts.find(d => d.DISTRICT_ID === selectedDistrict)?.DISTRICT_NAME || ''}, 
+    //         ${provinces.find(p => p.PROVINCE_ID === selectedProvince)?.PROVINCE_NAME || ''}`;
+
+    //         const selectedCartItems = cartItems
+    //             .filter(item => selectedItems.includes(item.id || item.productDetailId))
+    //             .map(item => ({
+    //                 productDetailId: item.productDetailId || item.id,
+    //                 quantity: item.quantity,
+    //                 price: item.price,
+    //                 total_price: item.total_price || item.price * item.quantity
+    //             }));
+
+    //         const orderData = {
+    //             customerName: formValues.name,
+    //             phone: formValues.phone,
+    //             address: address,
+    //             note: formValues.note || '',
+    //             shippingFee: shippingFee,
+    //             discountValue: 0.0,
+    //             totalPrice: getTotalCartAmount(),
+    //             totalPayment: getTotalCartAmount() + shippingFee,
+    //             paymentMethodId: paymentMethod === 1 ? 3 : 2,
+    //             paymentTypeId: 2,
+    //             orderType: 1,
+    //             status: paymentMethod === 1 ? 1 : 2,
+    //             createdAt: new Date().toISOString(),
+    //             updatedAt: new Date().toISOString(),
+    //             cartItems: selectedCartItems,
+    //             customerId: isGuest ? null : customerId
+    //         };
+
+    //         console.log('Order data to send:', JSON.stringify(orderData, null, 2));
+
+    //         let response;
+    //         if (isGuest) {
+    //             response = await createGuestOrder(orderData);
+    //             // Kiểm tra phản hồi từ API
+    //             if (response.status === 201) {
+    //                 message.success('Đặt hàng thành công!');
+    //                 clearCart(); // Xóa giỏ hàng trên frontend
+    //                 localStorage.removeItem('cartItems'); // Xóa giỏ hàng trong localStorage
+    //             } else {
+    //                 throw new Error('Tạo đơn hàng khách vãng lai thất bại');
+    //             }
+    //         } else {
+    //             if (!cartId) {
+    //                 console.log('CartId not found, attempting to initialize cart...');
+    //                 setCartLoading(true);
+    //                 try {
+    //                     const cartData = await getOrCreateCart(customerId);
+    //                     setCartId(cartData.id);
+    //                     await loadCartItems(cartData.id);
+    //                 } catch (error) {
+    //                     throw new Error('Không thể khởi tạo giỏ hàng: ' + error.message);
+    //                 } finally {
+    //                     setCartLoading(false);
+    //                 }
+    //             }
+    //             response = await createOrder(cartId, orderData);
+    //             if (response.status === 201) {
+    //                 message.success('Đặt hàng thành công!');
+    //                 clearCart(); // Xóa giỏ hàng trên frontend
+    //                 await loadCartItems(cartId); // Tải lại giỏ hàng từ server để đảm bảo đồng bộ
+    //             } else {
+    //                 throw new Error('Tạo đơn hàng thất bại');
+    //             }
+    //         }
+    //     } catch (error) {
+    //         console.error('Lỗi khi đặt hàng:', error);
+    //         message.error(error.message || 'Đã có lỗi xảy ra khi đặt hàng');
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
     const handleCheckout = async () => {
         try {
             await form.validateFields();
@@ -280,37 +372,40 @@ const CartItems = () => {
             };
 
             console.log('Order data to send:', JSON.stringify(orderData, null, 2));
-
             let response;
             if (isGuest) {
                 response = await createGuestOrder(orderData);
-                // Kiểm tra phản hồi từ API
                 if (response.status === 201) {
                     message.success('Đặt hàng thành công!');
-                    clearCart(); // Xóa giỏ hàng trên frontend
-                    localStorage.removeItem('cartItems'); // Xóa giỏ hàng trong localStorage
+                    clearCart();
+                    localStorage.removeItem('cartItems');
                 } else {
                     throw new Error('Tạo đơn hàng khách vãng lai thất bại');
                 }
             } else {
                 if (!cartId) {
-                    console.log('CartId not found, attempting to initialize cart...');
-                    setCartLoading(true);
-                    try {
+                    console.log('CartId not found, creating new cart...');
+                    const cartData = await getOrCreateCart(customerId);
+                    setCartId(cartData.id);
+                    await loadCartItems(cartData.id);
+                } else {
+                    // Kiểm tra giỏ hàng trước khi đặt
+                    const cartDetails = await getCartDetails(cartId);
+                    if (!cartDetails.data.length || cartDetails.data[0]?.cart?.customerId !== customerId) {
+                        console.log('Cart does not match customer, creating new cart...');
                         const cartData = await getOrCreateCart(customerId);
                         setCartId(cartData.id);
                         await loadCartItems(cartData.id);
-                    } catch (error) {
-                        throw new Error('Không thể khởi tạo giỏ hàng: ' + error.message);
-                    } finally {
-                        setCartLoading(false);
                     }
                 }
+
                 response = await createOrder(cartId, orderData);
+                console.log('Authenticated Order Response:', response.data); // Log phản hồi
                 if (response.status === 201) {
                     message.success('Đặt hàng thành công!');
-                    clearCart(); // Xóa giỏ hàng trên frontend
-                    await loadCartItems(cartId); // Tải lại giỏ hàng từ server để đảm bảo đồng bộ
+                    await clearCartOnServer(cartId); // Nếu có
+                    clearCart();
+                    setCartId(null);
                 } else {
                     throw new Error('Tạo đơn hàng thất bại');
                 }
@@ -322,7 +417,6 @@ const CartItems = () => {
             setLoading(false);
         }
     };
-
     useEffect(() => {
         return () => clearInterval(paymentCheckInterval.current);
     }, []);

@@ -14,7 +14,9 @@ import com.example.datn.repository.CartRepository;
 import com.example.datn.repository.CustomerRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -69,28 +71,33 @@ public class CartService {
         repository.deleteById(id);
     }
 
-    @Transactional // Đảm bảo giao dịch được thực thi đầy đủ
+    @Transactional
     public Cart getOrCreateCart(Integer customerId) {
-        // Kiểm tra customer tồn tại
+        // 1. Kiểm tra customer tồn tại
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + customerId));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khách hàng"));
 
-        // Tìm giỏ hàng hiện tại
+        // 2. Tìm giỏ hàng đang hoạt động (status = 1)
         Optional<Cart> existingCart = repository.findByCustomerId(customerId);
 
+        // 3. Nếu đã có thì trả về
         if (existingCart.isPresent()) {
-            System.out.println("Found existing cart with ID: " + existingCart.get().getId());
             return existingCart.get();
-        } else {
-            // Tạo giỏ hàng mới
-            Cart newCart = new Cart();
-            newCart.setCustomer(customer);
-            newCart.setCreated_at(LocalDateTime.now());
+        }
 
-            // Lưu giỏ hàng và đảm bảo có ID
-            Cart savedCart = repository.save(newCart);
-            System.out.println("Created new cart with ID: " + savedCart.getId());
-            return savedCart;
+        // 4. Nếu chưa có thì tạo mới
+        Cart newCart = new Cart();
+        newCart.setCustomer(customer);
+        newCart.setCreated_at(LocalDateTime.now());
+        newCart.setTotal_price(0.0);
+
+        // 5. Bắt exception khi save
+        try {
+            return repository.save(newCart);
+        } catch (Exception e) {
+            // Nếu lỗi thì thử lấy lại giỏ hàng (phòng trường hợp đã được tạo bởi request khác)
+            return repository.findByCustomerId(customerId)
+                    .orElseThrow(() -> new RuntimeException("Không thể tạo giỏ hàng"));
         }
     }
 }

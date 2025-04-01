@@ -233,11 +233,14 @@ export const fetchCustomerProfile = async (token) => {
 // Lấy hoặc tạo giỏ hàng theo customerId
 export const getOrCreateCart = async (customerId) => {
     try {
-        const response = await api.get(`/carts/get-or-create/${customerId}`); // customerId là Integer
-        console.log('API res (get or create cart):', response.data);
+        const response = await api.get(`/carts/get-or-create/${customerId}`);
         return response.data.data;
     } catch (error) {
-        console.error('Error fetching or creating cart:', error);
+        console.error('Error in getOrCreateCart:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data
+        });
         throw error;
     }
 };
@@ -291,5 +294,15 @@ export const createGuestOrder = async (orderData) => {
             errorData: error.response?.data,
         });
         throw new Error(error.response?.data?.message || 'Lỗi khi tạo đơn hàng cho khách vãng lai');
+    }
+};
+export const clearCartOnServer = async (cartId) => {
+    try {
+        const response = await api.delete(`/carts/${cartId}`);
+        console.log('API res (clear cart):', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error clearing cart on server:', error);
+        throw error;
     }
 };
