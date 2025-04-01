@@ -314,13 +314,11 @@ const Products = () => {
         <div>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
                 <h2>Danh sách sản phẩm</h2>
-                <div>
-                    {localStorage.getItem("role") === "ADMIN" && (
-                        <button type="button" className="btn btn-gradient-primary btn-sm" onClick={handleAddProduct}>
-                            <i className='mdi mdi-plus'></i> Thêm mới
-                        </button>
-                    )}
-                </div>
+                {localStorage.getItem("role") === "ADMIN" && (
+                    <button type="button" className="btn btn-gradient-primary btn-sm" onClick={handleAddProduct}>
+                        <i className='mdi mdi-plus'></i> Thêm mới
+                    </button>
+                )}
             </div>
             {localStorage.getItem("role") === "ADMIN" && (
                 <div style={{ display: "flex", gap: 8, justifyContent: "flex-start" }}>

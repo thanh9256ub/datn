@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { getImagesByProductColor } from '../service/ProductService';
 import { Button, Form, Modal } from 'react-bootstrap';
 import ReactSelect from 'react-select';
 import { updateProductDetail } from '../service/ProductDetailService';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import ColorContainer from './ColorContainer';
-import SizeContainer from './SizeContainer';
 
 const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVariant, colors, sizes, handleVariantClick, refreshProductDetail }) => {
 
@@ -143,7 +140,6 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
                                                 </Button>
                                                 <Button variant="link"
                                                     style={{ padding: '0px' }}
-
                                                     onClick={() => handleShowModalUpdate(productDetail)}
                                                 >
                                                     <i className='mdi mdi-backspace'></i>
