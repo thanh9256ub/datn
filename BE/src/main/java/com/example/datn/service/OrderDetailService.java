@@ -87,7 +87,6 @@ public class OrderDetailService {
         productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
 
     }
-
     public void updateProductDetail(Integer orderid, Integer productId, Integer quantity) {
         ProductDetail productDetail = productDetailRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
         productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
