@@ -114,7 +114,7 @@ const BanHang = () => {
     console.log(localStorage.getItem("id"));
     axios.post('http://localhost:8080/order/add', newInvoice)
       .then(response => {
-        toast.success("Tạo hóa đơn thành công thành công 🥰", toastOptions);
+        toast.success("Tạo hóa đơn thành công thành công ", toastOptions);
         const createdInvoice = response.data.data;
         setInvoices([createdInvoice, ...invoices]); // Add the new invoice to the top of the list
         setSelectedInvoiceId(createdInvoice.id); // Select the newly created invoice
@@ -156,7 +156,7 @@ const BanHang = () => {
   //         })
   //         .catch(error => {
   //           console.error('Error removing item:', error);
-  //           toast.error("Xóa sản phẩm khỏi giỏ hàng thất bại 🥲", toastOptions);
+  //           toast.error("Xóa sản phẩm khỏi giỏ hàng thất bại ", toastOptions);
   //         });
 
   // };
@@ -168,7 +168,7 @@ const BanHang = () => {
         const itemToRemove = orderDetails.find(item => item.id === orderDetailID && item.productDetail.id === productDetailID);
 
         if (!itemToRemove) {
-          toast.error("Sản phẩm không tồn tại trong giỏ hàng 🥲", toastOptions);
+          toast.error("Sản phẩm không tồn tại trong giỏ hàng ", toastOptions);
           return;
         }
 
@@ -176,26 +176,26 @@ const BanHang = () => {
           .then(() => {
             fetchProducts();
             fetchOrderItems();
-            toast.success("Xóa sản phẩm khỏi giỏ hàng thành công 🥰", toastOptions);
+            toast.success("Xóa sản phẩm khỏi giỏ hàng thành công ", toastOptions);
             clearInterval(qrIntervalRef.current);
             qrIntervalRef.current = null;
             setQrImageUrl(null);
           })
           .catch(error => {
             console.error('Error removing item:', error);
-            toast.error("Xóa sản phẩm khỏi giỏ hàng thất bại 🥲", toastOptions);
+            toast.error("Xóa sản phẩm khỏi giỏ hàng thất bại ", toastOptions);
           });
       })
       .catch(error => {
         console.error('Error fetching order items:', error);
-        toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm trong giỏ hàng 🥲", toastOptions);
+        toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm trong giỏ hàng ", toastOptions);
       });
   };
 
   const handleSelectProduct = (product) => {
 
     if (selectedInvoiceId === null) {
-      toast.warn("Vui lòng chọn hóa đơn trước khi thêm sản phẩm 🥰", toastOptions);
+      toast.warn("Vui lòng chọn hóa đơn trước khi thêm sản phẩm ", toastOptions);
       return
     }
 
@@ -228,14 +228,14 @@ const BanHang = () => {
             fetchProducts();
             fetchOrderItems(); // Đảm bảo gọi lại để cập nhật giỏ hàng
             handleCloseModal();
-            toast.success("Thêm sản phẩm vào giỏ hàng thành công 🥰", toastOptions);
+            toast.success("Thêm sản phẩm vào giỏ hàng thành công ", toastOptions);
             clearInterval(qrIntervalRef.current);
             qrIntervalRef.current = null;
             setQrImageUrl(null);
           })
           .catch(error => {
             console.error('Error adding to cart:', error);
-            toast.error("Thêm sản phẩm vào giỏ hàng thất bại 🥲", toastOptions);
+            toast.error("Thêm sản phẩm vào giỏ hàng thất bại ", toastOptions);
           });
       })
       .catch(error => {
@@ -254,14 +254,14 @@ const BanHang = () => {
         const itemToRemove = orderDetails.find(items => items.id === item.id && items.productDetail.id === item.productDetail.id);
 
         if (!itemToRemove) {
-          toast.error("Sản phẩm không tồn tại trong giỏ hàng 🥲", toastOptions);
+          toast.error("Sản phẩm không tồn tại trong giỏ hàng ", toastOptions);
           return;
         }
 
         if (newQuantity < 0 || itemToRemove.productDetail.quantity + itemToRemove.quantity < newQuantity) return;
         axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
           .then(response => {
-            toast.success("Cập nhật số lượng thành công 🥰", toastOptions);
+            toast.success("Cập nhật số lượng thành công ", toastOptions);
             fetchProducts();
             fetchOrderItems();
             clearInterval(qrIntervalRef.current);
@@ -272,7 +272,7 @@ const BanHang = () => {
       })
       .catch(error => {
         console.error('Error fetching order items:', error);
-        toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm trong giỏ hàng 🥲", toastOptions);
+        toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm trong giỏ hàng ", toastOptions);
       });
   };
   const handleQuantityChangeInput = (item, newQuantity) => {
@@ -285,7 +285,7 @@ const BanHang = () => {
         const itemToRemove = orderDetails.find(items => items.id === item.id && items.productDetail.id === item.productDetail.id);
 
         if (!itemToRemove) {
-          toast.error("Sản phẩm không tồn tại trong giỏ hàng 🥲", toastOptions);
+          toast.error("Sản phẩm không tồn tại trong giỏ hàng ", toastOptions);
           fetchOrderItems();
           fetchProducts();
           return;
@@ -301,7 +301,7 @@ const BanHang = () => {
       })
       .catch(error => {
         console.error('Error fetching order items:', error);
-        toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm trong giỏ hàng 🥲", toastOptions);
+        toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm trong giỏ hàng ", toastOptions);
       });
   };
   const handleScan = (data) => {
@@ -325,7 +325,7 @@ const BanHang = () => {
           // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
           fetchProducts();
           fetchOrderItems();
-          toast.success("Thêm sản phẩm thành công 🥰", toastOptions);
+          toast.success("Thêm sản phẩm thành công ", toastOptions);
           clearInterval(qrIntervalRef.current);
           qrIntervalRef.current = null;
           setQrImageUrl(null);

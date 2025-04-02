@@ -12,7 +12,8 @@ import com.example.datn.repository.ProductDetailRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -161,5 +162,10 @@ public class OrderDetailService {
             }
         }
 
+    }
+    public List<?> getTopSellingProducts() {
+        // Tạo Pageable để giới hạn số lượng kết quả trả về là 5
+        Pageable pageable = PageRequest.of(0, 5); // Lấy 5 sản phẩm đầu tiên
+        return repository.getTop5BestSellingProducts(pageable);
     }
 }

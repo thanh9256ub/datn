@@ -28,7 +28,7 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder,setQrImageUrl,qrInter
   const handleShowPromoModal = () => {
     setQrImageUrl(null);
     if (!idOrder||totalAmount===0) {
-      toast.warn("Vui lòng chọn hóa đơn trước khi chọn mã giảm giá 🥰", toastOptions);
+      toast.warn("Vui lòng chọn hóa đơn trước khi chọn mã giảm giá ", toastOptions);
       return;
     }
     setIsPromoModalVisible(true);
@@ -40,7 +40,7 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder,setQrImageUrl,qrInter
     setPromo(promo);
     
     setIsPromoModalVisible(false);
-    toast.success("Chọn mã giảm giá thành công 🥰", toastOptions);
+    toast.success("Chọn mã giảm giá thành công ", toastOptions);
     clearInterval(qrIntervalRef.current);
         qrIntervalRef.current = null;
         setQrImageUrl(null);

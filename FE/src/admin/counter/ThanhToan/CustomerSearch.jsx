@@ -10,6 +10,12 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, to
   const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
 
   const handleSearchCustomer = async () => {
+    // Validate phone number length
+    if (phoneNumber.length !== 10) {
+      toast.error("Số điện thoại phải có đúng 10 chữ số ", toastOptions);
+      return;
+    }
+
     try {
       const response = await fetchCustomers();
       const customer = response.data.data.find(c => c.phone === phoneNumber);
@@ -18,27 +24,32 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, to
         toast.error("Không tìm thấy khách hàng", toastOptions);
         return;
       }
-setQrImageUrl(null);
+      setQrImageUrl(null);
       setCustomer(customer);
-      toast.success("Tìm thấy khách hàng 🥰", toastOptions);
+      toast.success("Tìm thấy khách hàng ", toastOptions);
       clearInterval(qrIntervalRef.current);
       qrIntervalRef.current = null;
       setQrImageUrl(null);
     } catch (error) {
       console.error('Lỗi tìm kiếm khách hàng:', error);
-      toast.error("Lỗi khi tìm kiếm khách hàng 🥲", toastOptions);
+      toast.error("Lỗi khi tìm kiếm khách hàng ", toastOptions);
     }
   };
 
   const handleAddCustomer = async () => {
     // Validation
     if (!newCustomer.fullName.trim()) {
-      toast.error("Họ tên không được để trống 🥰", toastOptions);
+      toast.error("Họ tên không được để trống ", toastOptions);
       return;
     }
   
     if (!newCustomer.phone.trim() || !/^\d+$/.test(newCustomer.phone)) {
-      toast.error("Số điện thoại không hợp lệ 🥰", toastOptions);
+      toast.error("Số điện thoại không hợp lệ ", toastOptions);
+      return;
+    }
+
+    if (newCustomer.phone.length !== 10) {
+      toast.error("Số điện thoại phải có đúng 10 chữ số ", toastOptions);
       return;
     }
   
@@ -113,7 +124,7 @@ setQrImageUrl(null);
                 setPhoneNumber('');
                 setDelivery(false); 
                 setShippingFee(0); 
-                toast.info("Đã xóa thông tin khách hàng 🥰", toastOptions);
+                toast.info("Đã xóa thông tin khách hàng ", toastOptions);
                 clearInterval(qrIntervalRef.current);
       qrIntervalRef.current = null;
       setQrImageUrl(null);

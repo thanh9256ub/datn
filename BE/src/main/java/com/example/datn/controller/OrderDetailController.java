@@ -70,5 +70,9 @@ public class OrderDetailController {
         List<OrderDetailResponse> orderDetails = service.getOrderDetailsByOrderId(orderId);
         return ResponseEntity.ok(orderDetails);
     }
-
+    @GetMapping("/top5")// top5
+    public List<?> getTopSellingProducts() {
+        System.out.println(service.getTopSellingProducts());
+        return service.getTopSellingProducts();
+    }
 }

@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { List, Card } from 'antd';
 import axios from 'axios';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, defs, linearGradient, stop } from 'recharts';
 
 const TopProducts = () => {
-  const [topProducts, setTopProducts] = useState([]);
+  const [data, setData] = useState([]);
 
   useEffect(() => {
     const fetchTopProducts = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/products/top'); // Replace with your API endpoint
-        const products = response.data.data;
-
-        // Sort products by sales and take the top 5
-        const sortedProducts = products.sort((a, b) => b.sales - a.sales).slice(0, 5);
-        setTopProducts(sortedProducts);
+        const response = await axios.get('http://localhost:8080/order-detail/top5');
+        const apiData = response.data.map(item => ({
+          name: item[0], // Product name
+          sales: item[1], // Sales count
+        }));
+        setData(apiData);
       } catch (error) {
-        console.error('Failed to fetch top products:', error);
+        console.error('Error fetching top products:', error);
       }
     };
 
@@ -23,20 +23,33 @@ const TopProducts = () => {
   }, []);
 
   return (
-    <Card title="Top 5 Sản phẩm bán chạy" style={{ marginTop: '20px' }}>
-      <List
-        itemLayout="horizontal"
-        dataSource={topProducts}
-        renderItem={(product) => (
-          <List.Item>
-            <List.Item.Meta
-              title={product.name}
-              description={`Số lượng bán: ${product.sales}`}
-            />
-          </List.Item>
-        )}
-      />
-    </Card>
+    <div>
+      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>5 sản phẩm bán chạy nhất</h2>
+      <ResponsiveContainer width="100%" height={400}>
+        <BarChart
+          data={data}
+          margin={{
+            top: 20, right: 30, left: 20, bottom: 5,
+          }}
+        >
+          <defs>
+            <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#8884d8" stopOpacity={0.2} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
+          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+          <YAxis tick={{ fontSize: 12 }} />
+          <Tooltip
+            contentStyle={{ backgroundColor: '#f5f5f5', border: '1px solid #ccc' }}
+            itemStyle={{ color: '#8884d8' }}
+          />
+          <Legend />
+          <Bar dataKey="sales" fill="url(#colorSales)" barSize={30} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
 
