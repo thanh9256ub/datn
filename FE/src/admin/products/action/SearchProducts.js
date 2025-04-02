@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
 import MaterialSelect from '../select/MaterialSelect';
 import BrandSelect from '../select/BrandSelect';
 import CategorySelect from '../select/CategorySelect';
 import ReactSelect from 'react-select';
 
-const SearchProducts = ({ filters, setFilters, onSearch }) => {
+const SearchProducts = ({ filters, setFilters, fetchFilteredProducts }) => {
 
     const statusOptions = [
-        { value: '', label: 'Trạng thái' },
         { value: '1', label: 'Đang bán' },
         { value: '0', label: 'Hết hàng' },
         { value: '2', label: 'Ngừng bán' }
@@ -22,14 +21,15 @@ const SearchProducts = ({ filters, setFilters, onSearch }) => {
         }));
     };
 
+    useEffect(() => {
+        fetchFilteredProducts();
+    }, [filters]);
+
     return (
         <div className="row"
             style={{
-                margin: '0px 5px',
-                // border: '1px solid #ccc',
-                padding: '10px',
-                borderRadius: '5px',
-                fontSize: '13px'
+                fontSize: '13px',
+                marginBottom: "20px"
             }}>
             <div className="col-md-3" style={{ padding: "0px 10px" }}>
                 <input
@@ -41,6 +41,7 @@ const SearchProducts = ({ filters, setFilters, onSearch }) => {
                     onChange={handleFilterChange}
                 />
             </div>
+            <div className='col-md-1'></div>
             <div className="col-md-2" style={{ padding: "0px 10px" }}>
                 <BrandSelect
                     brandId={filters.brandId}
@@ -73,11 +74,11 @@ const SearchProducts = ({ filters, setFilters, onSearch }) => {
                     placeholder="Trạng thái..."
                 />
             </div>
-            <div className="col-md-1" style={{ padding: "0px 10px" }}>
+            {/* <div className="col-md-1" style={{ padding: "0px 10px" }}>
                 <button type="button" className="btn btn-inverse-primary btn-rounded btn-icon" onClick={onSearch}>
                     <i className="mdi mdi-magnify"></i>
                 </button>
-            </div>
+            </div> */}
         </div>
     );
 };

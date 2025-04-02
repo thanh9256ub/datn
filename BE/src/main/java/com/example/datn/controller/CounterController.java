@@ -4,6 +4,10 @@ import com.example.datn.dto.request.OrderRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.OrderDetailResponse;
 import com.example.datn.dto.response.OrderResponse;
+import com.example.datn.entity.OrderDetail;
+import com.example.datn.entity.ProductDetail;
+import com.example.datn.repository.OrderRepository;
+import com.example.datn.repository.ProductDetailRepository;
 import com.example.datn.service.OrderDetailService;
 import com.example.datn.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +51,10 @@ public class CounterController {
     OrderService orderService;
     @Autowired
     OrderDetailService orderDetailService;
+    @Autowired
+    OrderRepository orderRepository;
+    @Autowired
+    ProductDetailRepository productDetailRepository;
 
     @GetMapping("/add-to-cart")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> addToCart(@RequestParam Integer orderID,
@@ -59,7 +67,38 @@ public class CounterController {
                 HttpStatus.OK.value(), "Order detail updated successfully", orderDetailResponse);
         return ResponseEntity.ok(apiResponse);
     }
-
+//@GetMapping("/add-to-cart")
+//public ResponseEntity<ApiResponse<OrderDetailResponse>> addToCart(
+//        @RequestParam("orderID") Integer orderID,
+//        @RequestParam("productID") Integer productID,
+//        @RequestParam("purchaseQuantity") Integer purchaseQuantity) {
+//    try {
+//        // Kiểm tra orderID tồn tại
+//        if (!orderRepository.existsById(orderID)) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                    .body(new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), "Order not found with ID: " + orderID, null));
+//        }
+//
+//        // Kiểm tra productID và số lượng
+//        ProductDetail productDetail = productDetailRepository.findById(productID).orElse(null);
+//        if (productDetail == null) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                    .body(new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), "Product not found with ID: " + productID, null));
+//        }
+//        if (productDetail.getQuantity() < purchaseQuantity) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                    .body(new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), "Insufficient quantity for product ID: " + productID, null));
+//        }
+//
+//        // Cập nhật số lượng sản phẩm và thêm vào giỏ
+//        orderDetailService.updateProductQuantity(productID, purchaseQuantity);
+//        OrderDetailResponse orderDetailResponse = orderDetailService.updateOrAddOrderDetail(orderID, productID, purchaseQuantity);
+//        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Order detail updated successfully", orderDetailResponse));
+//    } catch (Exception e) {
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error adding to cart: " + e.getMessage(), null));
+//    }
+//}
     @GetMapping("/update-quantity")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> updateQuantity(@RequestParam Integer orderDetailID,
                                                                            @RequestParam Integer productDetailID,
@@ -170,17 +209,43 @@ public class CounterController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching wards");
         }
     }
+//
+//    @DeleteMapping("/delete-order/{id}")
+//    public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id") Integer id) {
+//        orderDetailService.updateOrderDetail(id);
+//        orderDetailService.deteleOrderDetailByIdOrder(id);
+//        orderService.detele(id);
+//        ApiResponse<OrderDetailResponse> apiResponse = new ApiResponse<>(
+//                HttpStatus.OK.value(), "PaymentMethod deleted successfully", null);
+//        return ResponseEntity.ok(apiResponse);
+//    }
+@DeleteMapping("/delete-order/{id}")
+public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id") Integer id) {
+    try {
+        // Kiểm tra order tồn tại
+        if (!orderRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>(HttpStatus.NOT_FOUND.value(), "Order not found with ID: " + id, null));
+        }
 
-    @DeleteMapping("/delete-order/{id}")
-    public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id") Integer id) {
-        orderDetailService.updateOrderDetail(id);
-        orderDetailService.deteleOrderDetailByIdOrder(id);
+        // Lấy danh sách chi tiết đơn hàng và hoàn lại số lượng sản phẩm
+        List<OrderDetailResponse> orderDetails = orderDetailService.getOrderDetailsByOrderId(id);
+        for (OrderDetailResponse detail : orderDetails) {
+            ProductDetail productDetail = detail.getProductDetail();
+            productDetail.setQuantity(productDetail.getQuantity() + detail.getQuantity());
+            productDetailRepository.save(productDetail);
+            orderDetailService.detele(detail.getId());
+        }
+
+        // Xóa đơn hàng
         orderService.detele(id);
-        ApiResponse<OrderDetailResponse> apiResponse = new ApiResponse<>(
-                HttpStatus.OK.value(), "PaymentMethod deleted successfully", null);
-        return ResponseEntity.ok(apiResponse);
-    }
 
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Order deleted successfully", null));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error deleting order: " + e.getMessage(), null));
+    }
+}
     @PostMapping("/zalopay/payment")
     public ResponseEntity<?> generateZaloPayPayment(@RequestBody Map<String, Object> payload) {
         try {

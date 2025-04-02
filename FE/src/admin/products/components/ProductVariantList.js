@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { getImagesByProductColor } from '../service/ProductService';
 import { Button, Form, Modal } from 'react-bootstrap';
 import ReactSelect from 'react-select';
 import { updateProductDetail } from '../service/ProductDetailService';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import ColorContainer from './ColorContainer';
-import SizeContainer from './SizeContainer';
 
 const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVariant, colors, sizes, handleVariantClick, refreshProductDetail }) => {
 
@@ -77,7 +74,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
         const updateData = {
             quantity: selectedVariant.quantity,
             price: selectedVariant.price,
-            status: selectedVariant.status,
+            status: selectedVariant.quantity > 0 ? 1 : 0,
             colorId: selectedVariant.color?.id,
             sizeId: selectedVariant.size?.id
         };
@@ -101,13 +98,15 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
 
     return (
         <div>
-            <div className='table-responsive' style={{ maxHeight: '200px', overflowY: 'auto' }}>
+            <div className='table-responsive' style={{ height: '225px', overflowY: 'auto' }}>
                 <table className='table'>
                     <thead>
                         <tr>
                             <th>Danh sách biến thể:</th>
                             <th></th>
-                            <th style={{ width: '20px' }}></th>
+                            {localStorage.getItem("role") === "ADMIN" &&
+                                <th style={{ width: '80px' }}></th>
+                            }
                         </tr>
                     </thead>
                     <tbody>
@@ -131,13 +130,22 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
                                             Kích cỡ: <b>{productDetail.size.sizeName}</b><br />
                                             <small> </small>
                                         </td>
-                                        <td>
-                                            <Button variant="link"
-                                                onClick={() => handleShowModalUpdate(productDetail)}
-                                            >
-                                                <i className='mdi mdi-pencil'></i>
-                                            </Button>
-                                        </td>
+                                        {localStorage.getItem("role") === "ADMIN" &&
+                                            <td style={{ display: 'flex', alignItems: 'center', verticalAlign: 'center', height: '60px' }}>
+                                                <Button variant="link"
+                                                    style={{ padding: '0px', marginRight: "10px" }}
+                                                    onClick={() => handleShowModalUpdate(productDetail)}
+                                                >
+                                                    <i className='mdi mdi-pencil'></i>
+                                                </Button>
+                                                <Button variant="link"
+                                                    style={{ padding: '0px' }}
+                                                    onClick={() => handleShowModalUpdate(productDetail)}
+                                                >
+                                                    <i className='mdi mdi-backspace'></i>
+                                                </Button>
+                                            </td>
+                                        }
                                     </tr>
                                 )
                                 )
@@ -207,6 +215,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
                                         value: size.id,
                                         label: size.sizeName,
                                     }))}
+                                    isDisabled={!!selectedVariant?.size?.id}
                                 />
                             </Form.Group>
                             <Form.Group>
@@ -219,6 +228,10 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
                                     value={selectedVariant.quantity}
                                     onChange={(e) => {
                                         const newValue = e.target.value === "" ? "" : Number(e.target.value);
+                                        if (newValue > 1000000000) {
+                                            toast.error("Số lượng quá lớn, vui lòng nhập lại giá trị");
+                                            return;
+                                        }
                                         setSelectedVariant({ ...selectedVariant, quantity: newValue });
                                     }}
                                 />
@@ -233,6 +246,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
                                     onChange={(e) =>
                                         setSelectedVariant({ ...selectedVariant, price: e.target.value })
                                     }
+                                    disabled
                                 />
                             </Form.Group>
                         </Form>
@@ -248,7 +262,7 @@ const ProductVariantList = ({ productDetails, selectedVariant, setSelectedVarian
                         {isSaving ? "Đang lưu..." : "Sửa"}</Button>
                 </Modal.Footer>
             </Modal>
-        </div>
+        </div >
     )
 }
 

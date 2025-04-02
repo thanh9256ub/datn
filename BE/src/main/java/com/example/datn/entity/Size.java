@@ -22,6 +22,9 @@ public class Size {
     @NotBlank(message = "Size name id required")
     String sizeName;
 
+    @Column(name = "status")
+    Integer status;
+
     @Column(name = "description")
     String description;
 }

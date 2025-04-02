@@ -40,30 +40,38 @@ const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colorImages
                 )}
             </div>
             <hr />
-            {colorImages.length > 0 && (
-                <div style={{
-                    marginBottom: "20px"
-                }}
-                >
-                    <div className="image-gallery">
-                        {colorImages.map((image, index) => (
-                            <img
-                                key={index}
-                                src={image.image}
-                                alt={image.name}
-                                style={{
-                                    marginRight: '10px',
-                                    width: '100px',
-                                    height: '100px',
-                                    objectFit: 'cover',
-                                    objectPosition: 'center',
-                                    margin: "5px"
-                                }}
-                            />
-                        ))}
+            <div style={{ height: "125px" }}>
+                {colorImages.length > 0 && (
+                    <div style={{
+                        marginBottom: "20px",
+                        display: "flex",
+                        gap: "10px",
+                        overflowX: "auto", // Hiển thị thanh cuộn ngang nếu ảnh quá nhiều
+                        whiteSpace: "nowrap", // Ngăn ảnh bị xuống dòng
+                        paddingBottom: "10px"
+                    }}
+                    >
+                        <div className="image-gallery">
+                            {colorImages.map((image, index) => (
+                                <img
+                                    key={index}
+                                    src={image.image}
+                                    alt={image.name}
+                                    style={{
+                                        marginRight: '10px',
+                                        width: '100px',
+                                        height: '100px',
+                                        objectFit: 'cover',
+                                        objectPosition: 'center',
+                                        // margin: "5px",
+                                        flexShrink: 0
+                                    }}
+                                />
+                            ))}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
             <hr />
             <h4><strong>Thông tin chi tiết biến thể:</strong></h4>
             <hr style={{ marginBottom: "50px" }} />
@@ -97,7 +105,9 @@ const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colorImages
                         <div className='row d-flex align-items-center'>
                             <label className="col-sm-4 col-form-label"><strong>Trạng thái:</strong></label>
                             <div className='col-md-8'>
-                                {selectedVariant.status == 1 ? "Đang hoạt động" : "Không hoạt động"}
+                                <span className={`badge ${selectedVariant.status === 1 ? 'badge-success' : (selectedVariant.status === 0 ? 'badge-danger' : 'badge-dark')}`} style={{ padding: '7px' }}>
+                                    {selectedVariant.status === 1 ? "Đang bán" : (selectedVariant.status === 0 ? "Hết hàng" : "Ngừng bán")}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -107,8 +117,9 @@ const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colorImages
                             <QRCodeCanvas value={selectedVariant?.qr ? selectedVariant.qr.toString() : "N/A"} size={100} />
                         </div>
                         <button
-                            className="btn btn-link mt-2"
+                            className="btn btn-link mt-2 btn-sm"
                             onClick={handleDownloadQR}
+                            style={{ padding: "0px !important" }}
                         >
                             <i className='mdi mdi-download'></i>Tải xuống
                         </button>

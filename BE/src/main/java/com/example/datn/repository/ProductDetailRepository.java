@@ -16,6 +16,8 @@ import java.util.Optional;
 public interface ProductDetailRepository extends JpaRepository<ProductDetail,Integer> {
     List<ProductDetail> findByProductId(Integer productId);
 
+    List<ProductDetail> findByProductIdAndColorId(Integer productId, Integer colorId);
+     
     @Query("SELECT COALESCE(SUM(pd.quantity), 0) FROM ProductDetail pd WHERE pd.product.id = :productId")
     Integer sumQuantityByProductId(@Param("productId") Integer productId);
 
@@ -23,6 +25,22 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail,Int
 
     List<ProductDetail> findByProduct(Product product);
 
+    List<ProductDetail> findByProductIdIn(List<Integer> productIds);
+
     @Query("SELECT SUM(pd.quantity) FROM ProductDetail pd WHERE pd.product.id = :productId")
     Optional<Integer> sumQuantityByProduct(@Param("productId") Integer productId);
+
+    @Query("SELECT pd FROM ProductDetail pd WHERE pd.product.id = :productId AND pd.color.id = :colorId AND pd.size.id = :sizeId")
+    Optional<ProductDetail> findByProductColorAndSize(
+            @Param("productId") Integer productId,
+            @Param("colorId") Integer colorId,
+            @Param("sizeId") Integer sizeId
+    );
+
+    Optional<ProductDetail> findByProduct_IdAndColor_IdAndSize_Id(Integer pId, Integer colorId, Integer sizeId);
+
+    List<ProductDetail> findByStatusNot(Integer status);
+
+    List<ProductDetail> findByStatus(Integer status);
+
 }

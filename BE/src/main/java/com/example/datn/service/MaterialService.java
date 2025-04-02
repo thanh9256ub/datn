@@ -1,6 +1,7 @@
 package com.example.datn.service;
 
 import com.example.datn.dto.request.MaterialRequest;
+import com.example.datn.dto.response.BrandResponse;
 import com.example.datn.dto.response.MaterialResponse;
 import com.example.datn.entity.Material;
 import com.example.datn.exception.ResourceNotFoundException;
@@ -23,6 +24,11 @@ public class MaterialService {
     public List<MaterialResponse> getAll() {
         return mapper.toListResponse(repository.findAll());
     }
+
+    public List<MaterialResponse> getActive(){
+        return mapper.toListResponse(repository.findByStatus(1));
+    }
+
 
     public MaterialResponse createMaterial(MaterialRequest request) {
 
@@ -51,11 +57,12 @@ public class MaterialService {
         return mapper.toMaterialResponse(repository.save(brand));
     }
 
-    public void deleteMaterial(Integer id) {
+    public MaterialResponse updateStatus(Integer id){
+        Material brand = repository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Brand id is not exists with given id: " + id));
 
-        repository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Material id is not exists with given id: " + id));
+        brand.setStatus(brand.getStatus() == 1 ? 0 : 1);
 
-        repository.deleteById(id);
+        return mapper.toMaterialResponse(repository.save(brand));
     }
 }

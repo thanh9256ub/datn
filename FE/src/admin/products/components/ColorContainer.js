@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { getColors, createColor } from '../service/ColorService';
+import { getColors, createColor, getActive } from '../service/ColorService';
 import Select from 'react-select';
 import { Button, Form, Modal } from 'react-bootstrap';
+import { toast } from 'react-toastify';
 
 const ColorContainer = ({ colorIds, setColorIds }) => {
     const [colorOptions, setColorOptions] = useState([]);
@@ -13,7 +14,7 @@ const ColorContainer = ({ colorIds, setColorIds }) => {
     }, []);
 
     const fetchColors = async () => {
-        getColors()
+        getActive()
             .then(response => {
                 const formattedColors = response.data.data.map(color => ({
                     value: color.id,
@@ -33,8 +34,16 @@ const ColorContainer = ({ colorIds, setColorIds }) => {
         }
 
         try {
+            const colorResp = await getColors();
+            const colors = colorResp.data.data;
+            const colorExists = colors.some(color => color.colorName.toLowerCase() === newColorName.toLowerCase());
+
+            if (colorExists) {
+                toast.error("Màu sắc đã tồn tại!");
+                return;
+            }
             const response = await createColor({ colorName: newColorName });
-            alert("Thêm màu sắc thành công!");
+            toast.success("Thêm màu sắc thành công!");
             setShowModal(false);
             setNewColorName("");
             fetchColors();

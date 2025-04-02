@@ -12,7 +12,7 @@ public class DatnBackendApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(DatnBackendApplication.class, args);
-        System.out.println(getPassword("123456"));
+//        System.out.println(getPassword("123456"));
     }
 
     public static String getPassword(String password){

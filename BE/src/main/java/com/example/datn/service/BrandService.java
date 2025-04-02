@@ -26,6 +26,10 @@ public class BrandService {
         return mapper.toListResponse(repository.findAll());
     }
 
+    public List<BrandResponse> getActive(){
+        return mapper.toListResponse(repository.findByStatus(1));
+    }
+
     public BrandResponse createBrand(BrandRequest request){
 
         Brand brand = mapper.toBrand(request);
@@ -51,11 +55,13 @@ public class BrandService {
         return mapper.toBrandResponse(repository.save(brand));
     }
 
-    public void deleteBrand(Integer id){
-
-        repository.findById(id).orElseThrow(
+    public BrandResponse updateStatus(Integer id){
+        Brand brand = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Brand id is not exists with given id: " + id));
 
-        repository.deleteById(id);
+        brand.setStatus(brand.getStatus() == 1 ? 0 : 1);
+
+        return mapper.toBrandResponse(repository.save(brand));
     }
+
 }

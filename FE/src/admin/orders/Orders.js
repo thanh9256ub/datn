@@ -136,7 +136,7 @@ const Orders = () => {
         } else { // Đơn online
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
-                { id: 2, name: "Chờ lấy hàng", color: "#ffd700" },
+                { id: 2, name: "Đã xác nhận", color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
                 { id: 5, name: "Đã giao", color: "#4caf50" },
@@ -164,7 +164,7 @@ const Orders = () => {
             // Timeline cho đơn online
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
-                { id: 2, name: "Chờ lấy hàng", icon: faBoxOpen, color: "#ffd700" },
+                { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 5, name: "Đã giao", icon: faHome, color: "#4caf50" },
@@ -309,7 +309,7 @@ const Orders = () => {
                                 >
                                     <option value="">Tất cả</option>
                                     <option value="1">Chờ tiếp nhận</option>
-                                    <option value="2">Chờ lấy hàng/Đã tiếp nhận</option>
+                                    <option value="2">Đã tiếp nhận</option>
                                     <option value="3">Chờ vận chuyển</option>
                                     <option value="4">Đang vận chuyển</option>
                                     <option value="5">Đã giao</option>
