@@ -65,5 +65,9 @@ public class OrderDetailController {
     public List<OrderDetailResponse> getOrderDetailsByOrderId(@PathVariable Integer orderId) {
         return service.getOrderDetailsByOrderId(orderId);
     }
-
+    @GetMapping("/top5")// top5
+    public List<?> getTopSellingProducts() {
+        System.out.println(service.getTopSellingProducts());
+        return service.getTopSellingProducts();
+    }
 }

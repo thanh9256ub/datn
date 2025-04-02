@@ -31,4 +31,29 @@ public interface OrderRepository extends JpaRepository<Order,Integer> {
                              @Param("startDate") LocalDateTime startDate,
                              @Param("endDate") LocalDateTime endDate,
                              @Param("status") Integer status);
+
+    @Query("SELECT " +
+            "(SELECT COUNT(o) FROM Order o WHERE o.orderType = 0 AND o.paymentType.id = 1 AND o.status = 5), " +
+            "(SELECT COUNT(o) FROM Order o WHERE o.orderType = 0 AND o.paymentType.id = 2 AND o.status = 5), " +
+            "(SELECT COUNT(o) FROM Order o WHERE o.orderType = 1 AND o.status = 5)" +
+            "FROM Order o")
+    Object[] getOrderSellCounts();
+
+    @Query("SELECT " +
+            "(SELECT COUNT(o) FROM Order o WHERE o.status = 5) AS completedOrders, " +  // Đếm đơn hàng đã hoàn thành
+            "(SELECT COUNT(o) FROM Order o WHERE o.status = 6) AS canceledOrders " +    // Đếm đơn hàng đã hủy
+            "FROM Order o")
+    Object[] getOrderCounts();
+
+    @Query(value = "SELECT MONTH(updated_at) AS month, COUNT(*) AS order_count " +
+            "FROM [order] WHERE status = 5 AND YEAR(updated_at) = :year " +
+            "GROUP BY MONTH(updated_at) ORDER BY month", nativeQuery = true)
+    List<Object[]> findOrdersByMonthInNative(Integer year);
+
+    @Query(value = "SELECT DAY(updated_at) AS day, COUNT(*) AS order_count " +
+            "FROM [order] WHERE status = 5 AND YEAR(updated_at) = YEAR(GETDATE()) " +
+            "AND MONTH(updated_at) = :month " +
+            "GROUP BY DAY(updated_at) ORDER BY day", nativeQuery = true)
+    List<Object[]> findOrdersByDayInJanuaryNative(Integer month);
+
 }

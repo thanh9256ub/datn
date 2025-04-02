@@ -1,6 +1,7 @@
 package com.example.datn.repository;
 
 import com.example.datn.entity.OrderDetail;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,4 +15,13 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail,Integer
     //Optional<OrderDetail> findByOrderId(Integer orderId);
     @Query("SELECT od FROM OrderDetail od WHERE od.order.id = :orderId")
     List<OrderDetail> findByOrderId(@Param("orderId") int orderId);
+    @Query("SELECT p.productName, SUM(od.quantity) " +
+            "FROM OrderDetail od " +
+            "JOIN od.order o " +
+            "JOIN od.productDetail pd " +
+            "JOIN pd.product p " +
+            "WHERE o.status = 5 " +
+            "GROUP BY p.productName " +
+            "ORDER BY SUM(od.quantity) DESC")
+    List<Object[]> getTop5BestSellingProducts(Pageable pageable);
 }

@@ -107,7 +107,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     const qrUrl = `https://img.vietqr.io/image/MB-02062004666-compact2.jpg?amount=${finalAmount + shippingFee}&addInfo=thanh%20toan%20hoa%20don%20ID${idOrder}HD&accountName=HOANG%20VAN%20TUAN`;
     setQrImageUrl(qrUrl);
     setPaymen(2);
-    toast.info("Đã chọn phương thức thanh toán QR 🥰", toastOptions);
+    toast.info("Đã chọn phương thức thanh toán QR ", toastOptions);
 
  
       qrIntervalRef.current = setInterval(async () => {
@@ -123,8 +123,9 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
           if (matchingRecord) {
             clearInterval(qrIntervalRef.current);
             qrIntervalRef.current = null;
+            setQrImageUrl("");
             setIsPaymentSuccessful(true);
-            toast.success("Thanh toán thành công 🥰", toastOptions);
+            toast.success("Thanh toán thành công ", toastOptions);
           }
         } catch (error) {
           console.error("Error checking payment status:", error);
@@ -144,7 +145,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     setIsCashPayment(true);
     setChange(0); // Reset change to avoid validation errors
     setCashPaid(''); // Reset cashPaid input
-    toast.info("Đã chọn phương thức thanh toán Tiền mặt 🥰", toastOptions);
+    toast.info("Đã chọn phương thức thanh toán Tiền mặt ", toastOptions);
   };
 
 
@@ -279,7 +280,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       const response = await confirmPayment(idOrder, requestBody);
 
       if (response.status === 200) {
-        toast.success("Thanh toán thành công 🥰", toastOptions);
+        toast.success("Thanh toán thành công ", toastOptions);
 
         if (promo.voucherCode) {
           await updatePromoCode(promo.id, { ...promo, quantity: promo.quantity - 1 });
@@ -289,6 +290,10 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         if (shouldPrint) {
           handlePrintInvoice();
         }
+        setTimeout(() => {
+          window.location.reload(); 
+        }
+        , 2500); 
       } else {
         toast.error("Thanh toán thất bại. Vui lòng thử lại!", toastOptions);
       }
@@ -316,16 +321,16 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Tiền thừa không được nhỏ hơn 0 ", toastOptions);
       return;
     }
-
+  if (!isPaymentEnabled) {
+      toast.warn("Vui lòng thực hiện đủ các bước ", toastOptions);
+      return;
+    }
     if (paymen === 2 && !isPaymentSuccessful) {
       toast.warn("Khách hàng chưa chuyển khoản thành công. Vui lòng kiểm tra lại!", toastOptions);
       return;
     }
 
-    if (!isPaymentEnabled) {
-      toast.warn("Vui lòng thực hiện đủ các bước ", toastOptions);
-      return;
-    }
+  
     setShowPrintModal(true);
   };
 

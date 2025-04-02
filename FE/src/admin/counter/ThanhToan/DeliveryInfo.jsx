@@ -6,7 +6,7 @@ import { fetchProvinces, fetchDistricts, fetchWards, fetchCustomerAddresses, add
 import { toastOptions } from '../constants'; // Import constants
 
 import { addCustomer } from '../api';
-const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, customerInfo, setCustomerInfo, idOrder, totalAmount, setSelectedProvince, selectedProvince, setSelectedDistrict, selectedDistrict, setSelectedWard, selectedWard,qrIntervalRef,setQrImageUrl }) => {
+const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, customerInfo, setCustomerInfo, idOrder, totalAmount, setSelectedProvince, selectedProvince, setSelectedDistrict, selectedDistrict, setSelectedWard, selectedWard, qrIntervalRef, setQrImageUrl }) => {
   const [tempDelivery, setTempDelivery] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [provinces, setProvinces] = useState([]);
@@ -147,7 +147,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
       }
     } else {
       setDelivery(false);
-      toast.info("Chuyển sang không giao hàng 🥰", toastOptions);
+      toast.info("Chuyển sang không giao hàng ", toastOptions);
       clearInterval(qrIntervalRef.current);
       qrIntervalRef.current = null;
       setQrImageUrl(null);
@@ -163,32 +163,32 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
   const handleSaveModal = async () => {
     // Validation
     if (!customerInfo.name.trim()) {
-      toast.error("Họ tên không được để trống 🥰", toastOptions);
+      toast.error("Họ tên không được để trống ", toastOptions);
       return;
     }
 
-    if (!customerInfo.phone.trim() || !/^\d+$/.test(customerInfo.phone)) {
-      toast.error("Số điện thoại không hợp lệ 🥰", toastOptions);
+    if (!customerInfo.phone.trim() || !/^\d{10}$/.test(customerInfo.phone)) {
+      toast.error("Số điện thoại phải gồm 10 chữ số ", toastOptions);
       return;
     }
 
     if (!selectedProvince) {
-      toast.error("Vui lòng chọn tỉnh/thành phố 🥰", toastOptions);
+      toast.error("Vui lòng chọn tỉnh/thành phố ", toastOptions);
       return;
     }
 
     if (!selectedDistrict) {
-      toast.error("Vui lòng chọn quận/huyện 🥰", toastOptions);
+      toast.error("Vui lòng chọn quận/huyện ", toastOptions);
       return;
     }
 
     if (!selectedWard) {
-      toast.error("Vui lòng chọn phường/xã 🥰", toastOptions);
+      toast.error("Vui lòng chọn phường/xã ", toastOptions);
       return;
     }
 
     if (!customerInfo.address.trim()) {
-      toast.error("Địa chỉ cụ thể không được để trống 🥰", toastOptions);
+      toast.error("Địa chỉ cụ thể không được để trống ", toastOptions);
       return;
     }
     clearInterval(qrIntervalRef.current);
@@ -230,19 +230,19 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
         }
 
         await addCustomerAddress(addressPayload);
-        toast.success("Địa chỉ đã được lưu thành công 🥰", toastOptions);
+        toast.success("Địa chỉ đã được lưu thành công ", toastOptions);
       }
 
-      toast.success("Chuyển sang giao hàng thành công 🥰", toastOptions);
+      toast.success("Chuyển sang giao hàng thành công ", toastOptions);
       setDelivery(true);
       setShowModal(false);
       //if (onSave) {
-        onSave(updatedCustomerInfo);
-    //  }
-     
+      onSave(updatedCustomerInfo);
+      //  }
+
     } catch (error) {
       console.error("Lỗi khi lưu địa chỉ hoặc khách hàng:", error);
-      toast.error("Lỗi khi lưu địa chỉ hoặc khách hàng 🥲", toastOptions);
+      toast.error("Lỗi khi lưu địa chỉ hoặc khách hàng ", toastOptions);
     }
   };
 
@@ -311,12 +311,12 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
               </Col>
               <Col sm={8}>
                 <Form.Control as="select" value={selectedProvince} onChange={handleProvinceChange}
-                 style={{
-                 
-                  fontWeight: "bold",
-                  color: "black", // Ensure text color is always visible
-                  backgroundColor: "white", // Ensure background color is not faint
-                }}
+                  style={{
+
+                    fontWeight: "bold",
+                    color: "black", // Ensure text color is always visible
+                    backgroundColor: "white", // Ensure background color is not faint
+                  }}
                 >
                   <option value="">Chọn tỉnh/thành phố</option>
                   {provinces.map(province => (
@@ -333,11 +333,11 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
               </Col>
               <Col sm={8}>
                 <Form.Control as="select" value={selectedDistrict} onChange={handleDistrictChange} disabled={!selectedProvince} style={{
-                 
-                 fontWeight: "bold",
-                 color: "black", // Ensure text color is always visible
-                 backgroundColor: "white", // Ensure background color is not faint
-               }}>
+
+                  fontWeight: "bold",
+                  color: "black", // Ensure text color is always visible
+                  backgroundColor: "white", // Ensure background color is not faint
+                }}>
                   <option value="">Chọn quận/huyện</option>
                   {districts.map(district => (
                     <option key={district.DISTRICT_ID} value={district.DISTRICT_ID} style={{ fontWeight: 'bold' }}>{district.DISTRICT_NAME}</option>
@@ -352,11 +352,11 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
               </Col>
               <Col sm={8}>
                 <Form.Control as="select" value={selectedWard} onChange={handleWardChange} disabled={!selectedDistrict} style={{
-                 
-                 fontWeight: "bold",
-                 color: "black", // Ensure text color is always visible
-                 backgroundColor: "white", // Ensure background color is not faint
-               }}>
+
+                  fontWeight: "bold",
+                  color: "black", // Ensure text color is always visible
+                  backgroundColor: "white", // Ensure background color is not faint
+                }}>
                   <option value="">Chọn phường/xã</option>
                   {wards.map(ward => (
                     <option key={ward.WARDS_ID} value={ward.WARDS_ID} style={{ fontWeight: 'bold' }}>{ward.WARDS_NAME}</option>

@@ -23,7 +23,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+
 
 @Service
 public class OrderService {
@@ -50,6 +50,7 @@ public class OrderService {
         order.setOrderCode("HD" + sdf.format(new Date()));
 
         order.setEmployee(employeeRepository.findById(request.getEmployeeId()).get());
+        order.setUpdatedAt(LocalDateTime.now().withNano(0));
         Order created = repository.save(order);
         return mapper.toOrderResponse(created);
     }
@@ -95,11 +96,12 @@ public class OrderService {
         if (orderRequest.getPaymentTypeId().equals(2)) {
             order.setStatus(2);
         } else {
-            order.setStatus(3);
+            order.setStatus(5);
         }
 
         return mapper.toOrderResponse(repository.save(order));
     }
+
     public List<OrderResponse> filterOrders(
             String orderCode,
             Double minPrice,
@@ -129,6 +131,7 @@ public class OrderService {
             throw e;
         }
     }
+
     public OrderResponse updateCustomerInfo(Integer orderId, CustomerInfoRequest request) {
         System.out.println("Updating customer info for order: " + orderId);
         System.out.println("New customer info: " + request.toString());
@@ -150,5 +153,22 @@ public class OrderService {
         repository.deleteById(id);
     }
 
+
+    public Object[] getOrderSellCounts() {
+        return repository.getOrderSellCounts();
+    }
+
+    public Object[] getOrderCounts() {
+        return repository.getOrderCounts();
+
+    }
+
+    public List<Object[]> getOrdersByMonthIn( Integer year) {
+        return repository.findOrdersByMonthInNative(year);
+    }
+
+    public List<Object[]> getOrdersByDayInJanuary(Integer month) {
+        return repository.findOrdersByDayInJanuaryNative(month);
+    }
 
 }

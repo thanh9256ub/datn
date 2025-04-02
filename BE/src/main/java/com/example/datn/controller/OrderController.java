@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -107,5 +108,27 @@ public class OrderController {
             @RequestParam(required = false) LocalDateTime endDate,
             @RequestParam(required = false) Integer status) { // Thêm status
         return service.filterOrders(orderCode, minPrice, maxPrice, startDate, endDate, status);
+    }
+
+    @GetMapping("/order-sell-counts")
+    public Object[] getOrderSellCounts() {
+        return service.getOrderSellCounts();
+        //ti le chon mua hang
+    }
+    @GetMapping("/order-counts")
+    public Object[] getOrderCounts() {
+        return service.getOrderCounts();
+        //ti le thanh tong
+    }
+    @GetMapping("/orders-by-month/{year}")
+    public List<Object[]> getOrdersByMonthIn(@PathVariable Integer year) {
+        return service.getOrdersByMonthIn(year);
+        //dh theo nam
+    }
+
+    @GetMapping("/orders-by-day-january/{month}")
+    public List<Object[]> getOrdersByDayInJanuary(@PathVariable Integer month) {
+        return service.getOrdersByDayInJanuary(month);
+        //hd theo thang
     }
 }
