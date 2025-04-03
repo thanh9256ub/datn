@@ -133,7 +133,8 @@ public class OrderController {
     public List<Object[]> getOrdersByDayInJanuary(@PathVariable Integer month) {
         return service.getOrdersByDayInJanuary(month);
         //hd theo thang
-
+    }
+    
     @PostMapping("/checkout/{cartId}")
     public ResponseEntity<ApiResponse<OrderResponse>> checkout(
             @PathVariable("cartId") Integer cartId,
