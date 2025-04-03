@@ -495,7 +495,7 @@ const BanHang = () => {
                     <tbody>
                       {currentCartItems.map(item => (
                         <tr key={item.id}>
-                          <td style={{ fontWeight: 'bold' }}>{item.productDetail.product.productName} - {item.productDetail.product.productCode} - {item.productDetail.color.colorName} - {item.productDetail.size.sizeName}</td>
+                          <td style={{ fontWeight: 'bold' }}>{item.productDetail.product.productName} - {item.productDetail.color.colorName} - {item.productDetail.size.sizeName}</td>
 
 
                           <td style={{ whiteSpace: 'nowrap', width: '1%', fontWeight: 'bold' }}>{item.price.toLocaleString()} </td>
@@ -739,7 +739,7 @@ const BanHang = () => {
                           ) : (
                             <span>No Image</span>
                           )}</td>
-                          <td style={{ fontWeight: 'bold' }}>{product.product.productName} - {product.product.productCode} - {product.color.colorName} - {product.size.sizeName}</td>
+                          <td style={{ fontWeight: 'bold' }}>{product.product.productName} - {product.color.colorName} - {product.size.sizeName}</td>
                           <td style={{ fontWeight: 'bold' }}>{product.price ? product.price.toLocaleString() : 'N/A'} </td>
                           <td style={{ fontWeight: 'bold' }} >{product.quantity}</td>
                         </tr>

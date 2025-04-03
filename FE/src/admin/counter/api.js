@@ -37,7 +37,7 @@ export const confirmPayment = (orderId, body) =>
   axios.post(`${API_BASE_URL}/counter/comfirm/${orderId}`, body, { headers: defaultHeaders });
 
 export const updatePromoCode = (promoId, promo) =>
-  axios.put(`${API_BASE_URL}/voucher/edit/${promoId}`, promo);
+  axios.put(`${API_BASE_URL}/vouchers/edit/${promoId}`, promo);
 
 export const addOrderVoucher = (orderId, voucherId) =>
   axios.post(`${API_BASE_URL}/order-voucher/add`, { orderId, voucherId, status: 1 });

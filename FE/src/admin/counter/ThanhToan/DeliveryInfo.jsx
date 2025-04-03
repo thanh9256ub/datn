@@ -71,7 +71,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
             const address = response.data.data.find(item => item.customerId === customer.id);
             if (address) {
               setCustomerInfo({
-                name: customer.fullName,
+                fullName: customer.fullName,
                 phone: customer.phone,
                 province: address.city,
                 district: address.district,
@@ -162,7 +162,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
 
   const handleSaveModal = async () => {
     // Validation
-    if (!customerInfo.name.trim()) {
+    if (!customerInfo.fullName.trim()) { // Changed from customerInfo.name to customerInfo.fullName
       toast.error("Họ tên không được để trống ", toastOptions);
       return;
     }
@@ -196,6 +196,8 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
     setQrImageUrl(null);
     const updatedCustomerInfo = {
       ...customerInfo,
+      fullName: newCustomer.fullName,
+      phone: newCustomer.phone,
       province: selectedProvince,
       district: selectedDistrict,
       ward: selectedWard,
@@ -233,7 +235,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
         toast.success("Địa chỉ đã được lưu thành công ", toastOptions);
       }
 
-      toast.success("Chuyển sang giao hàng thành công ", toastOptions);
+      toast.success("Đã chuyển qua hình thức giao hàng", toastOptions);
       setDelivery(true);
       setShowModal(false);
       //if (onSave) {
@@ -279,10 +281,10 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
                 <Form.Control
                   type="text"
                   style={{ fontWeight: 'bold' }}
-                  value={customerInfo.name ? customerInfo.name : ""}
+                  value={customerInfo.fullName ? customerInfo.fullName : ""}
                   onChange={(e) => {
                     setNewCustomer({ ...newCustomer, fullName: e.target.value });
-                    setCustomerInfo({ ...customerInfo, name: e.target.value })
+                    setCustomerInfo({ ...customerInfo, fullName: e.target.value })
                   }}
                 />
               </Col>

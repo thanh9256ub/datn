@@ -4,7 +4,9 @@ import { toast } from "react-toastify";
 import { fetchCustomers, addCustomer } from '../api'; // Correct the relative path
 import { toastOptions } from '../constants'; // Import constants
 
-const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, totalAmount, setFinalAmount,phoneNumber,setPhoneNumber,setQrImageUrl,qrIntervalRef }) => {
+const CustomerSearch = ({ customer, setCustomer, setDelivery,
+   setShippingFee, totalAmount, setFinalAmount,phoneNumber,
+   setPhoneNumber,setQrImageUrl,qrIntervalRef,customerInfo,setCustomerInfo }) => {
   
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
@@ -27,6 +29,8 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, to
       setQrImageUrl(null);
       setCustomer(customer);
       toast.success("Tìm thấy khách hàng ", toastOptions);
+      //console.log("Khách hàng:", customer.fullName);
+      setCustomerInfo({ ...customerInfo, fullName: customer.fullName, phone: customer.phone });
       clearInterval(qrIntervalRef.current);
       qrIntervalRef.current = null;
       setQrImageUrl(null);
@@ -120,6 +124,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery, setShippingFee, to
             <h5
               style={{ cursor: "pointer", color: "red" }}
               onClick={() => {if (!customer) return;
+                setCustomerInfo({ ...customerInfo, fullName: '', phone: '' });
                 setCustomer(null);
                 setPhoneNumber('');
                 setDelivery(false); 
