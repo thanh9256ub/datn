@@ -211,9 +211,9 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       <div class="invoice-info">
       <p><strong>Tên nhân viên:</strong> Hoàng Văn Tuấn</p>
       <p><strong>Mã hóa đơn:</strong> ${selectedOrderDetail[0]?.order?.orderCode || ''}</p>
-      <p><strong>Ngày tạo:</strong> ${selectedOrderDetail[0]?.order?.createdAt || ''}</p>
-      <p><strong>Tên khách hàng:</strong> ${customerInfo.name || 'Khách lẻ'}</p>
-      <p><strong>Số điện thoại:</strong> ${customerInfo.phone || 'N/A'}</p>
+      <p><strong>Ngày tạo:</strong> ${selectedOrderDetail[0]?.order?.createdAt ? new Date(selectedOrderDetail[0]?.order?.createdAt).toLocaleString('vi-VN') : ''}</p>
+      <p><strong>Tên khách hàng:</strong> ${customerInfo.fullName || 'Khách lẻ'}</p>
+      <p><strong>Số điện thoại:</strong> ${customerInfo.phone || ''}</p>
       </div>
       <table class="invoice-table">
         <thead>
@@ -230,7 +230,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
           .filter(item => item.quantity > 0)
           .map(item => `
             <tr>
-              <td>${item.productDetail.product.productName} - ${item.productDetail.product.productCode} - ${item.productDetail.color.colorName} - ${item.productDetail.size.sizeName}</td>
+              <td>${item.productDetail.product.productName} - ${item.productDetail.color.colorName} - ${item.productDetail.size.sizeName}</td>
               <td>${item.quantity}</td>
               <td>${item.price.toLocaleString()} VNĐ</td>
               <td>${(item.quantity * item.price).toLocaleString()} VNĐ</td>
@@ -261,12 +261,12 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
 
   const handlePaymentConfirmation = async (shouldPrint) => {
 
-    const addressDetails = `${customerInfo.address}, ${customerInfo.ward}, ${customerInfo.district}, ${customerInfo.province}`;
     const requestBody = {
+      
       customerId: customer?.id || null,
-      customerName: customerInfo.name,
-      phone: customerInfo.phone,
-      address: addressDetails || "",
+      customerName: customerInfo.fullName|| "Khách lẻ",
+      phone: customerInfo.phone|| "",
+      address: customerInfo.ward ? `${customerInfo.address}, ${customerInfo.ward}, ${customerInfo.district}, ${customerInfo.province}`:"" ,
       note: customerInfo.note || "",
       shippingFee: shippingFee,
       discountValue: totalAmount - finalAmount,
@@ -304,6 +304,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   };
 
   const handleConfirmPayment = () => {
+    console.log("Khách hàng:", customerInfo.fullName);
     if (!idOrder) {
       toast.warn("Vui lòng chọn hóa đơn trước khi thanh toán ", toastOptions);
       return;
@@ -335,6 +336,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   };
 
   const handlePrintModalClose = (shouldPrint) => {
+  
+
     setShowPrintModal(false);
     handlePaymentConfirmation(shouldPrint);
   };
@@ -362,6 +365,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         setPhoneNumber={setPhoneNumber}
         setQrImageUrl={setQrImageUrl}
         qrIntervalRef={qrIntervalRef}
+        customerInfo={customerInfo}
+        setCustomerInfo={setCustomerInfo}
       />
 
       <DeliveryInfo delivery={delivery}
