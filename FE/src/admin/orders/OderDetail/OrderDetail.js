@@ -121,7 +121,7 @@ const OrderDetail = () => {
             const statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận" },
                 { id: 2, name: "Đã tiếp nhận" },
-                { id: 3, name: "Hoàn tất" },
+                { id: 5, name: "Hoàn tất" },
             ];
             const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
             // Nếu đã ở trạng thái cuối (Hoàn tất), không chuyển nữa
@@ -239,7 +239,7 @@ const OrderDetail = () => {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
-                { id: 3, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
                 { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         } else {
@@ -290,7 +290,7 @@ const OrderDetail = () => {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
-                { id: 3, name: "Hoàn tất", color: "#4caf50" },
+                { id: 5, name: "Hoàn tất", color: "#4caf50" },
                 { id: 6, name: "Đã hủy", color: "#ef476f" }, // Đồng bộ với StatusTimeline
             ];
         } else { // Đơn online

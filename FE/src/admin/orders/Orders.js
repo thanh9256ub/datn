@@ -130,7 +130,7 @@ const Orders = () => {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
-                { id: 3, name: "Hoàn tất", color: "#4caf50" },
+                { id: 5, name: "Hoàn tất", color: "#4caf50" },
                 { id: 7, name: "Đã hủy", color: "#ef476f" },
             ];
         } else { // Đơn online
@@ -156,7 +156,7 @@ const Orders = () => {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
-                { id: 3, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
                 { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         } else {
@@ -310,9 +310,8 @@ const Orders = () => {
                                     <option value="2">Đã tiếp nhận</option>
                                     <option value="3">Chờ vận chuyển</option>
                                     <option value="4">Đang vận chuyển</option>
-                                    <option value="5">Đã giao</option>
-                                    <option value="6">Hoàn tất</option>
-                                    <option value="7">Đã hủy</option>
+                                    <option value="5">Hoàn tất</option>
+                                    <option value="6">Đã hủy</option>
                                 </Form.Control>
                             </div>
                         </div>
