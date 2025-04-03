@@ -232,7 +232,7 @@ class Sidebar extends Component {
               </ul>
             </Collapse>
           </li>
-          
+
           {/* <li className={this.isPathActive('/admin/charts') ? 'nav-item active' : 'nav-item'}>
             <div className={this.state.chartsMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('chartsMenuOpen')} data-toggle="collapse">
               <span className="menu-title"><Trans>Charts</Trans></span>
