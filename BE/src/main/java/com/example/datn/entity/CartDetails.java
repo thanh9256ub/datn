@@ -1,12 +1,7 @@
 package com.example.datn.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,31 +16,40 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "chi_tiet_gio_hang")
+@Table(name = "cart_detail")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
 public class CartDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Integer id;
+    @Column(name = "id")
+    Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id_gio_hang")
-    Cart gioHang;
+    @JoinColumn(name = "cart_id")
+    @JsonBackReference // Ngăn serialize ngược về Cart
+    Cart cart;
 
     @ManyToOne
-    @JoinColumn(name = "id_chi_tiet_san_pham")
+    @JoinColumn(name = "product_detail_id")
     ProductDetail productDetail;
 
-    Integer so_luong;
+    @Column(name = "quantity")
+    Integer quantity;
 
-    Double gia;
+    @Column(name = "price")
+    Double price;
 
-    Double tong_tien;
+    @Column(name = "total_price")
+    Double total_price;
 
-    LocalDateTime ngay_tao;
+    @Column(name = "created_at")
+    LocalDateTime created_at;
 
-    LocalDateTime ngay_cap_nhat;
+    @Column(name = "updated_at")
+    LocalDateTime updated_at;
+
+
 
 }

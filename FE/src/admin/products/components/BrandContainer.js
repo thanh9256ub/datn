@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { createBrand } from '../service/BrandService';
+import { toast } from 'react-toastify';
+import { getBrands, createBrand } from '../service/BrandService';
 import { Button, Form, Modal } from 'react-bootstrap';
 import BrandSelect from '../select/BrandSelect';
 
@@ -15,8 +16,17 @@ const BrandContainer = ({ brandId, setBrandId }) => {
         }
 
         try {
+            const brandResp = await getBrands();
+            const brands = brandResp.data.data;
+            const brandExists = brands.some(brand => brand.brandName.toLowerCase() === newBrandName.toLowerCase());
+
+            if (brandExists) {
+                toast.error("Thương hiệu đã tồn tại!");
+                return;
+            }
+
             const response = await createBrand({ brandName: newBrandName });
-            alert("Thêm thương hiệu thành công!");
+            toast.success("Thêm thương hiệu thành công")
             setShowModal(false);
             setNewBrandName("");
             setRefresh(prev => !prev);

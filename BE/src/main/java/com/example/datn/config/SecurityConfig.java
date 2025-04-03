@@ -37,14 +37,33 @@ public class SecurityConfig {
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(request -> request
-                            .requestMatchers("/ws/**").permitAll()
-                            .requestMatchers("/auth/token",
+                            .requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
+                            .requestMatchers(
+                                    "/auth/token",
                                     "auth/introspect",
                                     "authCustomer/token",
+                                    "authCustomer/profile",
                                     "authCustomer/register",
                                     "products/**",
+                                    "product/**",
                                     "employee/forgot-password",
-                                    "product-detail")
+                                    "product-detail/**",
+                                    "/brand",
+                                    "/category",
+                                    "/material",
+                                    "color",
+                                    "size",
+                                    "product-color/**",
+                                    "vouchers/**",
+                                    "/counter/provinces",
+                                    "/counter/districts",
+                                    "/counter/wards",
+                                    "/counter/get-price",
+                                    "/cart-details/**",
+                                    "/carts/**",
+                                    "/order/checkout/{cartId}",
+                                    "/order/checkout/guest"
+                            )
                             .permitAll()
                             .requestMatchers("/address/**", "/role/**")
                             .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")

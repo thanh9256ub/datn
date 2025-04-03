@@ -203,25 +203,20 @@ const CreateProduct = () => {
             let updatedVariants = [...prevVariants];
             const removedVariant = updatedVariants[index];
 
-            // Tìm tất cả biến thể cùng màu
             const sameColorVariants = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
 
-            // Nếu xóa biến thể đầu tiên của nhóm màu, chuyển ảnh cho biến thể tiếp theo
             if (sameColorVariants.length > 1 && sameColorVariants[0] === removedVariant) {
                 sameColorVariants[1].imageUrls = removedVariant.imageUrls;
                 sameColorVariants[1].images = removedVariant.images;
             }
 
-            // Xóa biến thể khỏi danh sách
             updatedVariants.splice(index, 1);
 
-            // Nếu không còn biến thể nào có cùng màu, xóa ảnh
             if (!updatedVariants.some(v => v.colorId === removedVariant.colorId)) {
                 updatedVariants = updatedVariants.map(v =>
                     v.colorId === removedVariant.colorId ? { ...v, imageUrls: [] } : v
                 );
             }
-
 
             const remainingVariantsWithColor = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
             if (remainingVariantsWithColor.length === 0) {
@@ -464,10 +459,26 @@ const CreateProduct = () => {
         }
     };
 
+    const isEmpty = (value) => value.trim() === "";
+
+    const isExceedLimit = (value, limit = 1000000000) => {
+        const num = parseFloat(value);
+        return isNaN(num) || num < 0 || num > limit;
+    };
 
     const updateAllVariants = () => {
-        if (commonQuantity.trim() === "" && commonPrice.trim() === "") {
-            alert("Vui lòng nhập ít nhất một giá trị!");
+        if (isEmpty(commonQuantity) && isEmpty(commonPrice)) {
+            toast.error("Vui lòng nhập ít nhất một giá trị!");
+            return;
+        }
+
+        if (!isEmpty(commonQuantity) && isExceedLimit(commonQuantity)) {
+            toast.error("Số lượng quá lớn! Vui lòng nhập đúng giá trị.");
+            return;
+        }
+
+        if (!isEmpty(commonPrice) && isExceedLimit(commonPrice)) {
+            toast.error("Giá quá lớn! Vui lòng nhập đúng giá trị.");
             return;
         }
 
@@ -558,7 +569,18 @@ const CreateProduct = () => {
                 <div className="col-12 grid-margin">
                     <div className="card">
                         <div className="card-body">
-                            <h3 className="card-title">Thêm mới sản phẩm</h3>
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <h3 className="card-title">Thêm mới sản phẩm</h3>
+                                <button
+                                    type="button"
+                                    className="btn btn-link"
+                                    style={{ padding: "0px", marginBottom: "10px" }}
+                                    onClick={() => history.push('/admin/products')}
+                                >
+                                    <i className="mdi mdi-subdirectory-arrow-left"></i>
+                                    Quay lại
+                                </button>
+                            </div>
                             <hr />
                             <div style={{ marginBottom: '50px' }}></div>
                             <form className="form-sample">
@@ -656,17 +678,10 @@ const CreateProduct = () => {
                             </div>
                             <hr />
                             <div className="d-flex justify-content-end mt-4">
+
                                 <button
                                     type="button"
-                                    className="btn btn-secondary btn-icon-text"
-                                    onClick={() => history.push('/admin/products')}
-                                >
-                                    <i className="mdi mdi-subdirectory-arrow-left"></i>
-                                    Quay lại
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-gradient-primary btn-icon-text"
+                                    className="btn btn-primary btn-icon-text"
                                     onClick={handleSaveClick}
                                     disabled={isSaving}
                                 >
@@ -678,6 +693,7 @@ const CreateProduct = () => {
                     </div>
                 </div>
             </div>
+
             <Modal show={showModal} onHide={handleCloseModal} centered>
                 <Modal.Header closeButton>
                     <Modal.Title>Thêm thuộc tính chung</Modal.Title>

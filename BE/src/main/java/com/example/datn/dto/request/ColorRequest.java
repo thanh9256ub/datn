@@ -18,5 +18,7 @@ public class ColorRequest {
     @NotBlank(message = "Color name is required")
     String colorName;
 
+    Integer status = 1;
+
     String description;
 }

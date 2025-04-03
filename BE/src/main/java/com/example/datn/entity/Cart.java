@@ -1,12 +1,7 @@
 package com.example.datn.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,29 +10,46 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "gio_hang")
+@Table(name = "cart")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
 public class Cart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "id_khach_hang")
+    @OneToOne
+    @JoinColumn(name = "customer_id", unique = true)
     Customer customer;
 
-    Double tong_tien;
+    @Column(name = "total_price")
+    Double total_price;
 
-    LocalDateTime ngay_tao;
+    @Column(name = "created_at")
+    LocalDateTime created_at;
 
-    Integer trang_thai;
+    @Column(name = "status")
+    Integer status;
 
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // Quản lý phía "chính" của mối quan hệ
+    private List<CartDetails> items = new ArrayList<>();
+
+    @PrePersist
+    @PreUpdate
+    public void calculateTotal() {
+        this.total_price = items.stream()
+                .mapToDouble(CartDetails::getTotal_price)
+                .sum();
+    }
 }

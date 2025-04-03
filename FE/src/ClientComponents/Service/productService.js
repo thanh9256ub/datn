@@ -72,3 +72,237 @@ export const fetchImagesByProductColor = async (productColorId) => {
         return [];
     }
 };
+export const fetchSizesByColor = async (productId, colorId) => {
+    try {
+        const response = await api.get(`/product-detail/sizes-by-color/${productId}/${colorId}`); // Gọi API với colorId
+        console.log("API res (sizes by color):", response.data);
+        return Array.isArray(response.data.data) ? response.data.data : [];
+    } catch (error) {
+        console.error('Error fetching sizes by color:', error);
+        return []; // Trả về mảng rỗng nếu có lỗi
+    }
+};
+export const fetchProvinces = async () => {
+    try {
+        const response = await axios.get('/counter/provinces');
+        console.log('Provinces data:', response.data);
+        return response.data.data;
+    } catch (error) {
+        console.error('Error fetching provinces:', error);
+        // Trả về mảng rỗng nếu có lỗi để không làm crash ứng dụng
+        return [];
+    }
+};
+
+// Lấy danh sách quận/huyện theo tỉnh
+export const fetchDistricts = async (provinceId) => {
+    try {
+        const response = await api.get(`/counter/districts?provinceId=${provinceId}`);
+        console.log('Districts data:', response.data);
+        return response.data.data;
+    } catch (error) {
+        console.error('Error fetching districts:', error);
+        throw error;
+    }
+};
+
+// Lấy danh sách phường/xã theo quận
+export const fetchWards = async (districtId) => {
+    try {
+        const response = await api.get(`/counter/wards?districtId=${districtId}`);
+        console.log('Wards data:', response.data);
+        return response.data.data;
+    } catch (error) {
+        console.error('Error fetching wards:', error);
+        throw error;
+    }
+};
+export const fetchShippingFee = async (shippingData) => {
+    try {
+        const response = await api.post('/counter/get-price', shippingData);
+
+        // Đảm bảo response có cấu trúc hợp lệ
+        if (!response) {
+            throw new Error('Không có response từ API');
+        }
+
+        console.log('API Response:', {
+            status: response.status,
+            data: response.data,
+            config: response.config
+        });
+
+        return {
+            status: response.status,
+            data: response.data || {}, // Luôn trả về object
+            headers: response.headers
+        };
+    } catch (error) {
+        console.error('API Error Details:', {
+            url: error.config?.url,
+            method: error.config?.method,
+            status: error.response?.status,
+            errorData: error.response?.data
+        });
+        throw new Error(`Lỗi API: ${error.message}`);
+    }
+};
+export const fetchProductDetailByAttributes = async (productId, colorId, sizeId) => {
+    try {
+        if (!productId || !colorId || !sizeId) {
+            throw new Error('Thiếu thông tin bắt buộc: productId, colorId, sizeId');
+        }
+
+        const response = await api.get(`/product-detail/find-by-attributes?productId=${productId}&colorId=${colorId}&sizeId=${sizeId}`)
+
+        console.log('API res (product detail by attributes):', response.data);
+        return response.data.data || null; // Trả về null nếu không có dữ liệu
+    } catch (error) {
+        console.error('Error in fetchProductDetailByAttributes:', error);
+        return null; // Trả về null thay vì ném lỗi
+    }
+};
+export const apiAddToCart = async (cartData) => {
+    try {
+        console.log("Sending cart data:", cartData);
+        const response = await api.post('/cart-details/add', cartData);
+        return response.data;
+    } catch (error) {
+        console.error("API Error Details:", {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data
+        });
+        throw error;
+    }
+};
+
+// export const getCartDetails = async (customerId) => {
+//     try {
+//         const response = await api.get(`/cart-details/cart/${customerId}`);
+//         return response.data.data || [];
+//     } catch (error) {
+//         console.error("Error fetching cart details:", error);
+//         return [];
+//     }
+// };
+export const getCartDetails = async (cartId) => {
+    try {
+        const response = await api.get(`/cart-details/cart/${cartId}`);
+        console.log("API res (cart details):", response.data);
+        // Đảm bảo luôn trả về object hoặc mảng hợp lệ
+        return response.data || { data: [] };
+    } catch (error) {
+        console.error("Error fetching cart details:", error);
+        return { data: [] }; // Trả về mặc định nếu lỗi
+    }
+};
+export const removeFromCartApi = async (cartDetailId) => {
+    try {
+        const response = await api.delete(`/cart-details/${cartDetailId}`);
+        console.log("API res (remove from cart):", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error removing from cart:", error);
+        throw error;
+    }
+};
+
+
+
+export const updateCartQuantity = async (cartDetailId, quantity) => {
+    try {
+        const response = await api.put(`/cart-details/update-quantity/${cartDetailId}`, { quantity });
+        console.log("API res (update cart quantity):", response.data);
+        return response.data.data || response.data;
+    } catch (error) {
+        console.error("Error updating cart quantity:", error);
+        throw error;
+    }
+};
+export const fetchCustomerProfile = async (token) => {
+    try {
+        const response = await api.get('/authCustomer/profile');
+        console.log('API res (customer profile):', response.data);
+        return response.data.data; // customerId là Integer
+    } catch (error) {
+        console.error('Error fetching customer profile:', error);
+        throw error;
+    }
+};
+// Lấy hoặc tạo giỏ hàng theo customerId
+export const getOrCreateCart = async (customerId) => {
+    try {
+        const response = await api.get(`/carts/get-or-create/${customerId}`);
+        return response.data.data;
+    } catch (error) {
+        console.error('Error in getOrCreateCart:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data
+        });
+        throw error;
+    }
+};
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('tokenClient');
+    console.log('Sending request with token:', token); // Log token
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+// Các hàm API hiện có giữ nguyên, chỉ bổ sung những hàm cần thiết
+export const getTokenCustomer = async (email, password) => {
+    const body = { email, password };
+    try {
+        const response = await axios.post(`${API_BASE_URL}/authCustomer/token`, body);
+        console.log('API res (customer token):', response);
+
+        // Kiểm tra mã trạng thái HTTP thay vì response.data.status
+        if (response.status !== 200) {
+            throw new Error(response.data.message || 'Đăng nhập thất bại từ server');
+        }
+
+        return response.data; // Trả về toàn bộ response.data
+    } catch (error) {
+        console.error('Error fetching customer token:', error.response?.data || error.message);
+        throw error.response?.data?.message || error.message || 'Lỗi không xác định';
+    }
+};
+export const createOrder = async (cartId, orderData) => {
+    try {
+        const response = await api.post(`/order/checkout/${cartId}`, orderData);
+        console.log('Create Order Response:', response.data);
+        return response;
+    } catch (error) {
+        console.error('Error creating order:', error.response?.data || error.message);
+        throw error;
+    }
+};
+export const createGuestOrder = async (orderData) => {
+    try {
+        const response = await api.post('/order/checkout/guest', orderData);
+        console.log('API res (create guest order):', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating guest order:', {
+            url: error.config?.url,
+            method: error.config?.method,
+            status: error.response?.status,
+            errorData: error.response?.data,
+        });
+        throw new Error(error.response?.data?.message || 'Lỗi khi tạo đơn hàng cho khách vãng lai');
+    }
+};
+export const clearCartOnServer = async (cartId) => {
+    try {
+        const response = await api.delete(`/carts/${cartId}`);
+        console.log('API res (clear cart):', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error clearing cart on server:', error);
+        throw error;
+    }
+};

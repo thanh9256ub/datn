@@ -16,6 +16,8 @@ public class ColorResponse {
 
     String colorName;
 
+    Integer status;
+
     String description;
 
 }

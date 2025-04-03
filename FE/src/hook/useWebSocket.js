@@ -19,7 +19,7 @@ const useWebSocket = (topic) => {
             onConnect: () => {
                 setIsConnected(true);
                 stompClient.subscribe(topic, (message) => {
-                    // Message giờ là chuỗi, không cần JSON.parse
+                    console.log("📩 Nhận được tin nhắn từ WebSocket:", message.body);
                     setMessages(prev => [...prev, message.body]);
                 });
             },

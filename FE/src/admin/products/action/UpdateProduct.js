@@ -44,7 +44,7 @@ const UpdateProduct = () => {
                 setCategoryId(product.category.id);
                 setMaterialId(product.material.id);
                 setDescription(product.description);
-                setMainImage(product.mainImage);
+                setMainImage(product.mainImage === "image.png" ? null : product.mainImage);
 
                 const variantResponse = await getProductDetailByProductId(id);
                 const variants = variantResponse.data.data || [];
@@ -227,20 +227,24 @@ const UpdateProduct = () => {
         if (!categoryId) newErrors.categoryId = "Vui lòng chọn danh mục";
         if (!materialId) newErrors.materialId = "Vui lòng chọn chất liệu";
         if (!description.trim()) newErrors.description = "Mô tả không được để trống";
-        if (!mainImage) newErrors.mainImage = "Vui lòng chọn ảnh chính";
+        if (!mainImage || (mainImage instanceof File && mainImage.size === 0)) {
+            newErrors.mainImage = "Vui lòng chọn ảnh chính";
+        }
 
         if (!variantList.length) {
             newErrors.variantList = "Vui lòng thêm ít nhất một biến thể";
         } else {
+            let colorImageMap = {};
+
             variantList.forEach((variant, index) => {
+                const colorId = variant.color?.id || variant.color;
                 const variantInfo = `Biến thể (Màu: ${variant.color.colorName}, Size: ${variant.size.sizeName})`;
 
-
-                if (!variant.price) {
-                    newErrors[`price_${index}`] = `${variantInfo}: Chưa nhập giá`;
-                } else if (variant.price <= 0) {
-                    newErrors[`price_${index}`] = `${variantInfo}: Giá phải lớn hơn 0`;
-                }
+                // if (!variant.price) {
+                //     newErrors[`price_${index}`] = `${variantInfo}: Chưa nhập giá`;
+                // } else if (variant.price <= 0) {
+                //     newErrors[`price_${index}`] = `${variantInfo}: Giá phải lớn hơn 0`;
+                // }
 
                 if (!variant.quantity) {
                     newErrors[`quantity_${index}`] = `${variantInfo}: Chưa nhập số lượng`;
@@ -248,11 +252,23 @@ const UpdateProduct = () => {
                     newErrors[`quantity_${index}`] = `${variantInfo}: Số lượng phải lớn hơn 0`;
                 }
 
-                if (!variant.imageUrls || variant.imageUrls.length === 0) {
-                    newErrors[`image_${index}`] = `${variantInfo}: Cần ít nhất một ảnh`;
+                if (!colorImageMap[colorId]) {
+                    colorImageMap[colorId] = [];
+                }
+                if (variant.imageUrls && variant.imageUrls.length > 0) {
+                    colorImageMap[colorId].push(...variant.imageUrls);
+                }
+            });
+
+            Object.keys(colorImageMap).forEach((colorId) => {
+                const colorName = variantList.find(v => v.color.id === parseInt(colorId))?.color.colorName || "Không xác định";
+                if (colorImageMap[colorId].length === 0) {
+                    newErrors[`image_color_${colorId}`] = `Màu ${colorName} cần ít nhất một ảnh`;
                 }
             });
         }
+
+
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -281,7 +297,18 @@ const UpdateProduct = () => {
                 <div className="col-12 grid-margin">
                     <div className="card">
                         <div className="card-body">
-                            <h3 className="card-title">Chỉnh sửa sản phẩm</h3>
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <h3 className="card-title">Chỉnh sửa sản phẩm</h3>
+                                <button
+                                    type="button"
+                                    className="btn btn-link"
+                                    style={{ padding: "0px", marginBottom: "10px" }}
+                                    onClick={() => history.push(`/admin/products/${id}/detail`)}
+                                >
+                                    <i className="mdi mdi-subdirectory-arrow-left"></i>
+                                    Quay lại
+                                </button>
+                            </div>
                             <hr />
                             <div style={{ marginBottom: '50px' }}></div>
                             <form className="form-sample">
@@ -351,7 +378,7 @@ const UpdateProduct = () => {
                             <hr />
                             <button
                                 type="button"
-                                className="btn btn-gradient-primary btn-icon-text"
+                                className="btn btn-gradient-primary btn-icon-text float-right"
                                 onClick={handleSaveClick}
                                 disabled={isSaving}
                             >

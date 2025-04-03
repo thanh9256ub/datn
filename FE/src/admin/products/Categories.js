@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Form } from 'react-bootstrap'
-import { createCategory, getCategories, updateCategory } from './service/CategoryService'
+import { Form, Spinner } from 'react-bootstrap'
+import { createCategory, getCategories, updateCategory, updateStatus } from './service/CategoryService'
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Switch from 'react-switch';
 
 const Categories = () => {
 
@@ -10,9 +13,11 @@ const Categories = () => {
     const [categoryName, setCategoryName] = useState("")
     const [desc, setDesc] = useState("")
     const [categoryId, setCategoryId] = useState(null)
+    const [submitLoading, setSubmitLoading] = useState(false);
 
     const fetchCategories = async () => {
         try {
+            setLoading(true);
             const response = await getCategories();
             setCategories(response.data.data);
         } catch (err) {
@@ -29,18 +34,20 @@ const Categories = () => {
     const handleAddCategory = async (e) => {
         e.preventDefault();
         if (!categoryName.trim()) {
-            alert("Vui lòng nhập tên danh mục!");
+            toast.error("Vui lòng nhập tên danh mục!");
             return;
         }
+
+        setSubmitLoading(true);
 
         try {
             if (categoryId) {
                 console.log("Đang cập nhật danh mục:", categoryId, categoryName, desc);
                 await updateCategory(categoryId, { categoryName, description: desc })
-                alert("Sửa danh mục thành công!");
+                toast.success("Sửa danh mục thành công!");
             } else {
                 await createCategory({ categoryName, description: desc });
-                alert("Thêm danh mục thành công!");
+                toast.success("Thêm danh mục thành công!");
             }
 
             setCategoryName("");
@@ -50,6 +57,8 @@ const Categories = () => {
         } catch (error) {
             console.error("Lỗi khi thêm danh mục:", error);
             alert("Lỗi khi thêm danh mục!");
+        } finally {
+            setSubmitLoading(false);
         }
     };
 
@@ -58,6 +67,26 @@ const Categories = () => {
         setDesc(category.description);
         setCategoryId(category.id);
     };
+
+    const handleToggleStatus = async (categoryId, currentStatus) => {
+        try {
+            await updateStatus(categoryId);
+
+            setCategories(prevCategories =>
+                prevCategories.map(category =>
+                    category.id === categoryId ? { ...category, status: currentStatus === 1 ? 0 : 1 } : category
+                )
+            );
+
+            fetchCategories()
+
+            toast.success("Cập nhật trạng thái thành công!");
+        } catch (error) {
+            console.error("Lỗi khi cập nhật trạng thái danh mục:", error);
+            toast.error("Cập nhật trạng thái thất bại!");
+        }
+    };
+
 
     return (
         <div>
@@ -83,8 +112,10 @@ const Categories = () => {
                                         onChange={(e) => setDesc(e.target.value)}
                                     />
                                 </Form.Group>
-                                <button type="submit" className="btn btn-gradient-primary mr-2">
-                                    {categoryId ? "Edit" : "Submit"}
+                                <button type="submit" className="btn btn-gradient-primary mr-2" disabled={submitLoading}>
+                                    {submitLoading ? (
+                                        <Spinner animation="border" size="sm" />
+                                    ) : categoryId ? "Edit" : "Submit"}
                                 </button>
                                 <button type='button' className="btn btn-light"
                                     onClick={() => {
@@ -101,7 +132,10 @@ const Categories = () => {
                         <div className="card-body">
                             <h4 className="card-title">Danh sách danh mục</h4>
                             {loading ? (
-                                <div>Đang tải sản phẩm...</div>
+                                <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
+                                    <Spinner animation="border" variant="primary" />
+                                    <span className="ml-2">Đang tải dữ liệu...</span>
+                                </div>
                             ) : error ? (
                                 <div className="text-danger">{error}</div>
                             ) : (
@@ -112,22 +146,43 @@ const Categories = () => {
                                                 <th>#</th>
                                                 <th>Tên danh mục</th>
                                                 <th>Mô tả</th>
+                                                <th>Trạng thái</th>
                                                 <th>Hành động</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {categorys.length > 0 ? (
                                                 categorys.map((category, index) => (
-                                                    <tr key={category.id}>
+                                                    <tr key={category.id}
+                                                        onClick={() => handleEditCategory(category)}
+                                                        style={{ cursor: "pointer" }}
+                                                    >
                                                         <td>{index + 1}</td>
                                                         <td>{category.categoryName}</td>
                                                         <td>{category.description}</td>
-                                                        <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                                            <button className="btn btn-danger btn-sm ml-2"
+                                                        <td>
+                                                            <span className={`badge ${category.status === 1 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '7px' }}>
+                                                                {category.status === 1 ? "Hoạt động" : "Không hoạt động"}
+                                                            </span>
+                                                        </td>
+                                                        <td
+                                                            onClick={(event) => event.stopPropagation()}
+                                                            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                            {/* <Button variant="link"
                                                                 onClick={() => handleEditCategory(category)}
                                                             >
-                                                                <i className='mdi mdi-border-color'></i>
-                                                            </button>
+                                                                <i className='mdi mdi-pencil'></i>
+                                                            </Button> */}
+                                                            <Switch
+                                                                checked={category.status == 1}
+                                                                onChange={() => handleToggleStatus(category.id)}
+                                                                offColor="#888"
+                                                                onColor="#ca51f0"
+                                                                uncheckedIcon={false}
+                                                                checkedIcon={false}
+                                                                height={20}
+                                                                width={40}
+                                                            />
                                                         </td>
                                                     </tr>
                                                 ))
@@ -144,6 +199,7 @@ const Categories = () => {
                     </div>
                 </div>
             </div>
+            <ToastContainer />
         </div >
     )
 }

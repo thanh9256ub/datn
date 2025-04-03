@@ -3,24 +3,19 @@ import { Switch, Route, Redirect } from 'react-router-dom';
 import Spinner from '../admin/shared/Spinner';
 
 import { useAuth } from '../context/AuthContext';
+import Colors from './products/Colors';
+import Sizes from './products/Sizes';
 
 const Dashboard = lazy(() => import('./dashboard/Dashboard'));
 const Buttons = lazy(() => import('./basic-ui/Buttons'));
-
 const Dropdowns = lazy(() => import('./basic-ui/Dropdowns'));
 const Typography = lazy(() => import('./basic-ui/Typography'));
-
 const BasicElements = lazy(() => import('./form-elements/BasicElements'));
-
 const BasicTable = lazy(() => import('./tables/BasicTable'));
-
 const Mdi = lazy(() => import('./icons/Mdi'));
-
 const ChartJs = lazy(() => import('./charts/ChartJs'));
-
 const Error404 = lazy(() => import('./error-pages/Error404'));
 const Error500 = lazy(() => import('./error-pages/Error500'));
-
 const Login = lazy(() => import('./user-pages/Login'));
 const Register1 = lazy(() => import('./user-pages/Register'));
 const Lockscreen = lazy(() => import('./user-pages/Lockscreen'));
@@ -28,7 +23,7 @@ const Lockscreen = lazy(() => import('./user-pages/Lockscreen'));
 const BanHang = lazy(() => import('./counter/BanHang'));
 const Products = lazy(() => import('./products/Products'));
 const ProductDetail = lazy(() => import('./products/ProductDetail'));
-const InactiveProducts = lazy(() => import('./products/InactiveProducts'));
+const Bin = lazy(() => import('./products/Bin'));
 const Employees = lazy(() => import('./employees/Employees'));
 const Customers = lazy(() => import('./customers/Customers'));
 const Orders = lazy(() => import('./orders/Orders'));
@@ -45,7 +40,11 @@ const UpdateCustomer = lazy(() => import('./customers/action/UpdateCustomer'));
 const CreateEmployee = lazy(() => import('./employees/action/CreateEmployee'));
 const UpdateEmployee = lazy(() => import('./employees/action/UpdateEmployee'));
 
-const Statistics  = lazy(() => import('./statistics/Statistics'));
+const CreateVoucher = lazy(() => import('./vouchers/actions/CreateVoucher'));
+const UpdateVoucher = lazy(() => import('./vouchers/actions/UpdateVoucher'));
+
+const Statistics = lazy(() => import('./statistics/Statistics'));
+
 // Component bảo vệ route (AuthGuard)
 const ProtectedRoute = ({ component: Component, ...rest }) => {
   const { token } = useAuth();
@@ -93,10 +92,12 @@ class AdminRoutes extends Component {
           <ProtectedRoute exact path="/admin/products/:id/detail" component={ProductDetail} />
           <ProtectedRoute exact path="/admin/products/add" component={CreateProduct} />
           <ProtectedRoute exact path="/admin/products/edit/:id" component={UpdateProduct} />
-          <ProtectedRoute exact path="/admin/products/inactive" component={InactiveProducts} />
+          <ProtectedRoute exact path="/admin/products/bin" component={Bin} />
           <ProtectedRoute exact path="/admin/brands" component={Brands} />
           <ProtectedRoute exact path="/admin/categories" component={Categories} />
           <ProtectedRoute exact path="/admin/materials" component={Materials} />
+          <ProtectedRoute exact path="/admin/colors" component={Colors} />
+          <ProtectedRoute exact path="/admin/sizes" component={Sizes} />
 
           <ProtectedRoute exact path="/admin/employees" component={Employees} />
           <ProtectedRoute exact path="/admin/employees/add" component={CreateEmployee} />
@@ -108,10 +109,13 @@ class AdminRoutes extends Component {
 
           <ProtectedRoute exact path="/admin/orders" component={Orders} />
           <Route exact path="/admin/order-detail/orders/:orderId" component={OrderDetail} />
-          <Route exact path="/admin/vouchers" component={Vouchers} />
+
+          <ProtectedRoute exact path="/admin/vouchers" component={Vouchers} />
+          <ProtectedRoute exact path="/admin/vouchers/add" component={CreateVoucher} />
+          <ProtectedRoute exact path="/admin/vouchers/edit/:id" component={UpdateVoucher} />
 
           <ProtectedRoute exact path="/admin/statistics" component={Statistics} />
-          
+
           <Redirect to="/admin/dashboard" />
         </Switch>
       </Suspense>

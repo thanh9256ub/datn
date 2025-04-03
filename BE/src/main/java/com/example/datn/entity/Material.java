@@ -27,6 +27,9 @@ public class Material {
     @NotBlank(message = "Material name is required")
     String materialName;
 
+    @Column(name = "status")
+    Integer status;
+
     @Column(name = "description")
     String description;
 

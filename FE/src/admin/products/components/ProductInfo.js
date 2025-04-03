@@ -25,7 +25,7 @@ const ProductInfo = ({ product }) => {
                 </div>
                 <div className='col-md-4' style={{ textAlign: 'center' }}>
                     <img
-                        src={product.mainImage}
+                        src={product.mainImage === "image.png" ? "" : product.mainImage}
                         style={{
                             width: '100px',
                             height: '100px',
