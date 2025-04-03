@@ -139,9 +139,8 @@ const Orders = () => {
                 { id: 2, name: "Đã xác nhận", color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
-                { id: 5, name: "Đã giao", color: "#4caf50" },
-                { id: 6, name: "Hoàn tất", color: "#4caf50" },
-                { id: 7, name: "Đã hủy", color: "#ef476f" },
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         }
 
@@ -167,9 +166,8 @@ const Orders = () => {
                 { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
-                { id: 5, name: "Đã giao", icon: faHome, color: "#4caf50" },
-                { id: 6, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
-                { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         }
 

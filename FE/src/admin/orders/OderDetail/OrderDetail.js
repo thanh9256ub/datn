@@ -27,47 +27,29 @@ const OrderDetail = () => {
 
                 if (response) {
                     if (Array.isArray(response) && response.length > 0) {
-                        const validOrderDetails = response.filter(item => {
-                            const isValid = item && item.price != null && item.totalPrice != null;
-                            if (!isValid) {
-                                console.warn('Invalid order detail item:', item);
-                            }
-                            return isValid;
-                        });
-                        console.log('Filtered order details:', validOrderDetails);
+                        const validOrderDetails = response.filter(item => item && item.price != null && item.totalPrice != null);
+                        console.log('Order Status:', response[0].order.status); // Kiểm tra status
                         setOrder(response[0].order);
                         setOrderDetails(validOrderDetails);
                     } else if (!Array.isArray(response) && response.order) {
-                        const validOrderDetails = (response.orderDetails || []).filter(item => {
-                            const isValid = item && item.price != null && item.totalPrice != null;
-                            if (!isValid) {
-                                console.warn('Invalid order detail item:', item);
-                            }
-                            return isValid;
-                        });
-                        console.log('Filtered order details (object):', validOrderDetails);
+                        const validOrderDetails = (response.orderDetails || []).filter(item => item && item.price != null && item.totalPrice != null);
+                        console.log('Order Status:', response.order.status); // Kiểm tra status
                         setOrder(response.order);
                         setOrderDetails(validOrderDetails);
                     } else {
-                        console.error('Dữ liệu không hợp lệ từ API:', response);
                         setOrderDetails([]);
                     }
                 } else {
-                    console.error('Không nhận được dữ liệu từ API');
                     setOrderDetails([]);
                 }
             } catch (error) {
                 if (!isMounted) return;
-                console.error('Lỗi khi lấy chi tiết đơn hàng:', error);
                 setOrderDetails([]);
             }
         };
 
         getOrderDetails();
-
-        return () => {
-            isMounted = false;
-        };
+        return () => { isMounted = false; };
     }, [orderId]);
 
     if (!order) {
@@ -77,7 +59,14 @@ const OrderDetail = () => {
             </div>
         );
     }
+    const canUpdateOrder = () => {
+        return order.status !== 4;
+    };
     const handleCustomerUpdate = async (updatedCustomer) => {
+        if (!canUpdateOrder()) {
+            showNotification("Không thể cập nhật thông tin khi đơn hàng đang giao hàng!");
+            return;
+        }
         let isMounted = true;
         try {
             const response = await updateCustomerInfo(orderId, {
@@ -144,8 +133,8 @@ const OrderDetail = () => {
                 { id: 2, name: "Đã xác nhận" },
                 { id: 3, name: "Chờ vận chuyển" },
                 { id: 4, name: "Đang vận chuyển" },
-                { id: 5, name: "Đã giao" },
-                { id: 6, name: "Hoàn tất" },
+                { id: 5, name: "Hoàn tất" },
+                //  { id: 6, name: "Hoàn tất" },
             ];
             const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
             // Nếu đã ở trạng thái cuối (Hoàn tất), không chuyển nữa
@@ -251,7 +240,7 @@ const OrderDetail = () => {
                 { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
                 { id: 3, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
-                { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         } else {
             // Timeline cho các loại đơn khác
@@ -260,9 +249,8 @@ const OrderDetail = () => {
                 { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
-                { id: 5, name: "Đã giao", icon: faHome, color: "#4caf50" },
-                { id: 6, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
-                { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         }
 
@@ -303,7 +291,7 @@ const OrderDetail = () => {
                 { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
                 { id: 3, name: "Hoàn tất", color: "#4caf50" },
-                { id: 7, name: "Đã hủy", color: "#ef476f" }, // Đổi id từ 4 thành 7 để đồng bộ với timeline
+                { id: 6, name: "Đã hủy", color: "#ef476f" }, // Đồng bộ với StatusTimeline
             ];
         } else { // Đơn online
             statusFlow = [
@@ -311,9 +299,8 @@ const OrderDetail = () => {
                 { id: 2, name: "Đã xác nhận", color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
-                { id: 5, name: "Đã giao", color: "#4caf50" },
-                { id: 6, name: "Hoàn tất", color: "#4caf50" },
-                { id: 7, name: "Đã hủy", color: "#ef476f" },
+                { id: 5, name: "Hoàn tất", color: "#4caf50" }, // Đồng bộ với getNextStatus
+                { id: 6, name: "Đã hủy", color: "#ef476f" },
             ];
         }
 
@@ -360,7 +347,7 @@ const OrderDetail = () => {
                         <Card.Body>
                             <StatusTimeline status={order.status} />
                             <div className="d-flex gap-2 mt-3">
-                                {order.status !== 6 && order.status !== 7 && (
+                                {order.status !== 5 && order.status !== 6 && (
                                     <Button variant="primary" onClick={handleConfirm}>
                                         Xác nhận
                                     </Button>
