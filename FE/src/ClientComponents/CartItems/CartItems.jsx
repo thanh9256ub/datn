@@ -430,7 +430,9 @@ const CartItems = () => {
                     <Badge count={getTotalCartItems()} style={{ marginLeft: 16 }} />
                 </Title>
             </Space>
-
+            <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+                Lưu ý: Khách hàng chỉ được đặt tối đa 10 sản phẩm, nếu bạn có nhu cầu đặt thêm xin vui lòng liên hệ đến cửa hàng.
+            </Text>
             <Row gutter={[24, 24]}>
                 <Col xs={24} md={16}>
                     <Card title={<Text strong>Sản phẩm trong giỏ hàng</Text>} headStyle={{ backgroundColor: '#fafafa' }} bodyStyle={{ padding: 0 }}>
@@ -477,6 +479,7 @@ const CartItems = () => {
                                                             <Text>Số lượng:</Text>
                                                             <InputNumber
                                                                 min={1}
+                                                                max={10}
                                                                 value={item.quantity}
                                                                 onChange={(value) => updateQuantity(itemId, value)}
                                                                 style={{ width: 60 }}
