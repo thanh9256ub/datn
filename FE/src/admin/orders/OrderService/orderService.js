@@ -76,6 +76,17 @@ export const fetchOrderDetailsByOrderId = async (orderId) => {
         throw error;
     }
 };
+// Hàm cập nhật toàn bộ danh sách OrderDetail cho một orderId
+export const updateOrderDetails = async (orderId, items) => {
+    try {
+        const response = await api.put(`/counter/update-order-details/${orderId}`, items);
+        console.log('Update Order Details Response:', response.data);
+        return response.data.data; // Trả về danh sách OrderDetailResponse từ ApiResponse
+    } catch (error) {
+        console.error('Error updating order details:', error.response?.data || error.message);
+        throw error;
+    }
+};
 export const updateOrder = async (id, orderData) => {
     try {
         const response = await api.put(`/edit/${id}`, orderData);

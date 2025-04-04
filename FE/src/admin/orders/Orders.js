@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Form, InputGroup, Button, Pagination } from 'react-bootstrap';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import eyeIcon from './icons8-eyes-64.png';
 import { fetchOrders, filterOrders } from './OrderService/orderService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -23,6 +23,7 @@ const Orders = () => {
         status: ''
     });
     const history = useHistory();
+    const location = useLocation();
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -41,6 +42,7 @@ const Orders = () => {
         try {
             const response = await filterOrders(filterParams);
             if (Array.isArray(response)) {
+                console.log('Dữ liệu từ API:', response); // Debug dữ liệu
                 setData(response);
             } else {
                 console.error('Dữ liệu không hợp lệ:', response);
@@ -51,6 +53,7 @@ const Orders = () => {
             setData([]);
         }
     };
+
     useEffect(() => {
         let mounted = true;
         fetchData();
@@ -58,6 +61,15 @@ const Orders = () => {
             mounted = false;
         };
     }, []);
+
+    // Làm mới dữ liệu khi quay lại từ OrderDetail
+    useEffect(() => {
+        if (location.state?.shouldRefresh) {
+            console.log('Làm mới dữ liệu từ OrderDetail');
+            fetchData();
+            history.replace({ ...location, state: { ...location.state, shouldRefresh: false } });
+        }
+    }, [location, history]);
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
@@ -70,32 +82,30 @@ const Orders = () => {
     const handleFilterSubmit = (e) => {
         e.preventDefault();
         setCurrentPage(1);
-
-        // Convert dates to proper format if they exist
         const formattedFilters = {
             ...filters,
             startDate: filters.startDate || undefined,
             endDate: filters.endDate || undefined
         };
-
         fetchData(formattedFilters);
     };
 
     const calculateTotalPayment = (order) => {
         if (!order) return 0;
-
-        // Ưu tiên tính từ orderDetails nếu có
+        // Đồng bộ logic với OrderDetail
         if (order.orderDetails?.length > 0) {
             const productsTotal = order.orderDetails.reduce(
                 (total, item) => total + (item.totalPrice || 0),
                 0
             );
-            return productsTotal + (order.shippingFee || 0) - (order.discountValue || 0);
+            const shippingFee = order.shippingFee || 0;
+            const discountValue = order.discountValue || 0;
+            console.log('Tính toán tổng tiền:', { productsTotal, shippingFee, discountValue }); // Debug
+            return productsTotal + shippingFee - discountValue;
         }
-
-        // Fallback: dùng totalPrice + shippingFee - discountValue
         return (order.totalPrice || 0) + (order.shippingFee || 0) - (order.discountValue || 0);
     };
+
     const handleResetFilters = () => {
         setFilters({
             orderCode: '',
@@ -122,45 +132,38 @@ const Orders = () => {
         setSelectedOrder(order);
     };
 
-    // Đồng bộ hàm getStatusName từ OrderDetail
     const getStatusName = (statusId, orderType) => {
         let statusFlow;
-
-        if (orderType === 0) { // Đơn tại quầy
+        if (orderType === 0) {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
                 { id: 5, name: "Hoàn tất", color: "#4caf50" },
                 { id: 7, name: "Đã hủy", color: "#ef476f" },
             ];
-        } else { // Đơn online
+        } else {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
-                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
-                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+                { id: 5, name: "Hoàn tất", color: "#4caf50" },
+                { id: 6, name: "Đã hủy", color: "#ef476f" },
             ];
         }
-
         const status = statusFlow.find(s => s.id === statusId);
         return status ? { name: status.name, color: status.color } : { name: "Không xác định", color: "#6c757d" };
     };
 
     const StatusTimeline = ({ status, orderType }) => {
         let statusFlow;
-
         if (orderType === 0) {
-            // Timeline cho đơn tại quầy
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
                 { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
-                { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         } else {
-            // Timeline cho đơn online
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
@@ -195,9 +198,8 @@ const Orders = () => {
         <div className="container-fluid py-3">
             <div className="card shadow-sm" style={{ borderRadius: '15px', overflow: 'hidden' }}>
                 <div className="card-header bg-white border-bottom-0">
-                    <h2 className="mb-0 fw-bold text-primary">Customer's Orders</h2>
+                    <h2 className="mb-0 fw-bold text-primary">Đơn hàng</h2>
                 </div>
-
                 <div className="card-body border-bottom">
                     <div className="row mb-4">
                         <div className="col-12">
@@ -213,7 +215,6 @@ const Orders = () => {
                         </div>
                     </div>
                 </div>
-
                 <div className="card-body border-bottom">
                     <Form onSubmit={handleFilterSubmit}>
                         <div className="row g-3 mb-4 align-items-center">
@@ -317,7 +318,6 @@ const Orders = () => {
                         </div>
                     </Form>
                 </div>
-
                 <div className="card-body">
                     <Table
                         hover
@@ -339,7 +339,7 @@ const Orders = () => {
                         </thead>
                         <tbody>
                             {currentItems.map((order, index) => {
-                                const statusInfo = getStatusName(order.status, order.orderType); // Sử dụng hàm đồng bộ từ OrderDetail
+                                const statusInfo = getStatusName(order.status, order.orderType);
                                 return (
                                     <tr
                                         key={order.id}
@@ -372,7 +372,7 @@ const Orders = () => {
                                             <span
                                                 className="badge"
                                                 style={{
-                                                    backgroundColor: getStatusName(order.status, order.orderType).color,
+                                                    backgroundColor: statusInfo.color,
                                                     color: '#fff',
                                                     fontFamily: '"Roboto", sans-serif',
                                                     fontWeight: '500',
@@ -385,7 +385,7 @@ const Orders = () => {
                                                     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
                                                 }}
                                             >
-                                                {getStatusName(order.status, order.orderType).name}
+                                                {statusInfo.name}
                                             </span>
                                         </td>
                                         <td className="py-3 px-4">
@@ -418,7 +418,6 @@ const Orders = () => {
                             })}
                         </tbody>
                     </Table>
-
                     <Pagination className="justify-content-center">
                         <Pagination.Prev disabled={currentPage === 1} onClick={prevPage} />
                         {[...Array(totalPages).keys()].map(number => (
@@ -435,7 +434,6 @@ const Orders = () => {
                     </Pagination>
                 </div>
             </div>
-
             <style>{`
                 .table th, .table td {
                     vertical-align: middle;

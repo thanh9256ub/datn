@@ -168,4 +168,54 @@ public class OrderDetailService {
         Pageable pageable = PageRequest.of(0, 5); // Lấy 5 sản phẩm đầu tiên
         return repository.getTop5BestSellingProducts(pageable);
     }
+    @Transactional
+    public List<OrderDetailResponse> updateOrderDetails(Integer orderId, List<OrderDetailRequest> items) {
+        // Kiểm tra xem order có tồn tại không
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+
+        // Lấy danh sách chi tiết đơn hàng hiện tại để hoàn lại số lượng sản phẩm
+        List<OrderDetail> currentDetails = repository.findByOrderId(orderId);
+        for (OrderDetail detail : currentDetails) {
+            ProductDetail productDetail = detail.getProductDetail();
+            productDetail.setQuantity(productDetail.getQuantity() + detail.getQuantity());
+            productDetailRepository.save(productDetail);
+            productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
+        }
+
+        // Xóa toàn bộ chi tiết đơn hàng hiện tại của orderId
+        repository.deleteByOrderId(orderId);
+
+        // Thêm các chi tiết đơn hàng mới từ request
+        List<OrderDetail> newDetails = items.stream().map(item -> {
+            ProductDetail productDetail = productDetailRepository.findById(item.getProductDetailId())
+                    .orElseThrow(() -> new RuntimeException("ProductDetail not found with id: " + item.getProductDetailId()));
+
+            // Kiểm tra số lượng tồn kho
+            if (productDetail.getQuantity() < item.getQuantity()) {
+                throw new RuntimeException("Insufficient stock for product: " + productDetail.getProduct().getProductName());
+            }
+
+            // Trừ số lượng trong kho
+            productDetail.setQuantity(productDetail.getQuantity() - item.getQuantity());
+            productDetailRepository.save(productDetail);
+            productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
+
+            // Tạo OrderDetail mới
+            OrderDetail orderDetail = new OrderDetail();
+            orderDetail.setOrder(order);
+            orderDetail.setProductDetail(productDetail);
+            orderDetail.setQuantity(item.getQuantity());
+            orderDetail.setPrice(item.getPrice() != null ? item.getPrice() : productDetail.getPrice());
+            orderDetail.setTotalPrice(item.getTotalPrice() != null ? item.getTotalPrice() : item.getPrice() * item.getQuantity());
+            orderDetail.setStatus(item.getStatus() != null ? item.getStatus() : 0);
+            orderDetail.setProductStatus(item.getProductStatus() != null ? item.getProductStatus() : 1);
+
+            return orderDetail;
+        }).collect(Collectors.toList());
+
+        // Lưu tất cả chi tiết đơn hàng mới
+        List<OrderDetail> savedDetails = repository.saveAll(newDetails);
+        return mapper.toListResponses(savedDetails);
+    }
 }

@@ -8,7 +8,7 @@ import {
     UserOutlined, CreditCardOutlined, MoneyCollectOutlined
 } from '@ant-design/icons';
 import { ShopContext } from '../Context/ShopContext';
-import { fetchProvinces, fetchDistricts, fetchWards, fetchShippingFee, createOrder, createGuestOrder, fetchCustomerProfile, clearCartOnServer, getCartDetails } from '../Service/productService';
+import { fetchProvinces, fetchDistricts, fetchWards, fetchShippingFee, createOrder, createGuestOrder, fetchCustomerProfile, clearCartOnServer, getCartDetails, checkStockAvailability } from '../Service/productService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -51,6 +51,7 @@ const CartItems = () => {
     const [cartLoading, setCartLoading] = useState(false);
     const hasLoadedCart = useRef(false);
     const [customerProfile, setCustomerProfile] = useState(null);
+    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     // Khởi tạo giỏ hàng
     useEffect(() => {
@@ -95,7 +96,6 @@ const CartItems = () => {
                     console.log('Customer profile:', profile);
                     setCustomerProfile(profile);
                     if (profile) {
-                        setCustomerProfile(profile);
                         form.setFieldsValue({
                             name: profile.fullName || profile.name || '',
                             phone: profile.phone || profile.phoneNumber || profile.mobile || '',
@@ -116,6 +116,10 @@ const CartItems = () => {
     const generateVietQrUrl = () => {
         const totalAmount = getTotalCartAmount() + shippingFee;
         return `https://img.vietqr.io/image/MB-0835520298-compact.png?amount=${totalAmount}`;
+    };
+
+    const handleCheckoutConfirm = () => {
+        setIsConfirmModalVisible(true);
     };
 
     const checkPaymentStatus = async () => {
@@ -233,98 +237,34 @@ const CartItems = () => {
         calculateShippingFee();
     }, [selectedProvince, selectedDistrict, cartItems]);
 
-    // const handleCheckout = async () => {
-    //     try {
-    //         await form.validateFields();
+    const checkStockAvailabilityFrontend = async (itemsToCheck) => {
+        const insufficientItems = [];
+        const stockCheckRequest = itemsToCheck.map(item => ({
+            productDetailId: item.productDetailId
+        }));
 
-    //         if (selectedItems.length === 0) {
-    //             message.warning('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
-    //             return;
-    //         }
+        try {
+            const stockAvailability = await checkStockAvailability(stockCheckRequest);
+            itemsToCheck.forEach(item => {
+                const availableStock = stockAvailability[item.productDetailId] || 0;
+                if (availableStock < item.quantity) {
+                    insufficientItems.push({
+                        name: item.productDetail?.product?.productName || 'Sản phẩm',
+                        color: item.productDetail?.color?.colorName || 'N/A',
+                        size: item.productDetail?.size?.sizeName || 'N/A',
+                        requested: item.quantity,
+                        available: availableStock
+                    });
+                }
+            });
+            return insufficientItems;
+        } catch (error) {
+            console.error('Lỗi khi kiểm tra tồn kho:', error);
+            message.error('Không thể kiểm tra tồn kho, vui lòng thử lại sau.');
+            return null;
+        }
+    };
 
-    //         if (paymentMethod === 2 && paymentStatus !== 'success') {
-    //             message.warning('Vui lòng hoàn thành thanh toán qua VietQR trước');
-    //             return;
-    //         }
-
-    //         setLoading(true);
-
-    //         const formValues = form.getFieldsValue();
-    //         const address = `${formValues.address}, ${wards.find(w => w.WARDS_ID === selectedWard)?.WARDS_NAME || ''}, 
-    //         ${districts.find(d => d.DISTRICT_ID === selectedDistrict)?.DISTRICT_NAME || ''}, 
-    //         ${provinces.find(p => p.PROVINCE_ID === selectedProvince)?.PROVINCE_NAME || ''}`;
-
-    //         const selectedCartItems = cartItems
-    //             .filter(item => selectedItems.includes(item.id || item.productDetailId))
-    //             .map(item => ({
-    //                 productDetailId: item.productDetailId || item.id,
-    //                 quantity: item.quantity,
-    //                 price: item.price,
-    //                 total_price: item.total_price || item.price * item.quantity
-    //             }));
-
-    //         const orderData = {
-    //             customerName: formValues.name,
-    //             phone: formValues.phone,
-    //             address: address,
-    //             note: formValues.note || '',
-    //             shippingFee: shippingFee,
-    //             discountValue: 0.0,
-    //             totalPrice: getTotalCartAmount(),
-    //             totalPayment: getTotalCartAmount() + shippingFee,
-    //             paymentMethodId: paymentMethod === 1 ? 3 : 2,
-    //             paymentTypeId: 2,
-    //             orderType: 1,
-    //             status: paymentMethod === 1 ? 1 : 2,
-    //             createdAt: new Date().toISOString(),
-    //             updatedAt: new Date().toISOString(),
-    //             cartItems: selectedCartItems,
-    //             customerId: isGuest ? null : customerId
-    //         };
-
-    //         console.log('Order data to send:', JSON.stringify(orderData, null, 2));
-
-    //         let response;
-    //         if (isGuest) {
-    //             response = await createGuestOrder(orderData);
-    //             // Kiểm tra phản hồi từ API
-    //             if (response.status === 201) {
-    //                 message.success('Đặt hàng thành công!');
-    //                 clearCart(); // Xóa giỏ hàng trên frontend
-    //                 localStorage.removeItem('cartItems'); // Xóa giỏ hàng trong localStorage
-    //             } else {
-    //                 throw new Error('Tạo đơn hàng khách vãng lai thất bại');
-    //             }
-    //         } else {
-    //             if (!cartId) {
-    //                 console.log('CartId not found, attempting to initialize cart...');
-    //                 setCartLoading(true);
-    //                 try {
-    //                     const cartData = await getOrCreateCart(customerId);
-    //                     setCartId(cartData.id);
-    //                     await loadCartItems(cartData.id);
-    //                 } catch (error) {
-    //                     throw new Error('Không thể khởi tạo giỏ hàng: ' + error.message);
-    //                 } finally {
-    //                     setCartLoading(false);
-    //                 }
-    //             }
-    //             response = await createOrder(cartId, orderData);
-    //             if (response.status === 201) {
-    //                 message.success('Đặt hàng thành công!');
-    //                 clearCart(); // Xóa giỏ hàng trên frontend
-    //                 await loadCartItems(cartId); // Tải lại giỏ hàng từ server để đảm bảo đồng bộ
-    //             } else {
-    //                 throw new Error('Tạo đơn hàng thất bại');
-    //             }
-    //         }
-    //     } catch (error) {
-    //         console.error('Lỗi khi đặt hàng:', error);
-    //         message.error(error.message || 'Đã có lỗi xảy ra khi đặt hàng');
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
     const handleCheckout = async () => {
         try {
             await form.validateFields();
@@ -354,6 +294,21 @@ const CartItems = () => {
                     price: item.price,
                     total_price: item.total_price || item.price * item.quantity
                 }));
+
+            // Kiểm tra tồn kho
+            const insufficientItems = await checkStockAvailabilityFrontend(selectedCartItems);
+            if (insufficientItems === null) {
+                setLoading(false);
+                return;
+            }
+            if (insufficientItems.length > 0) {
+                const errorMessage = insufficientItems.map(item =>
+                    ` Yêu cầu ${item.requested}, chỉ còn ${item.available}`
+                ).join('\n');
+                message.error(`Không đủ sản phẩm trong kho:\n${errorMessage}`, 5);
+                setLoading(false);
+                return;
+            }
 
             const orderData = {
                 customerName: formValues.name,
@@ -392,7 +347,6 @@ const CartItems = () => {
                     setCartId(cartData.id);
                     await loadCartItems(cartData.id);
                 } else {
-                    // Kiểm tra giỏ hàng trước khi đặt
                     const cartDetails = await getCartDetails(cartId);
                     if (!cartDetails.data.length || cartDetails.data[0]?.cart?.customerId !== customerId) {
                         console.log('Cart does not match customer, creating new cart...');
@@ -403,10 +357,10 @@ const CartItems = () => {
                 }
 
                 response = await createOrder(cartId, orderData);
-                console.log('Authenticated Order Response:', response.data); // Log phản hồi
+                console.log('Authenticated Order Response:', response.data);
                 if (response.status === 201) {
                     message.success('Đặt hàng thành công!');
-                    await clearCartOnServer(cartId); // Nếu có
+                    await clearCartOnServer(cartId);
                     clearCart();
                     setCartId(null);
                 } else {
@@ -418,8 +372,18 @@ const CartItems = () => {
             message.error(error.message || 'Đã có lỗi xảy ra khi đặt hàng');
         } finally {
             setLoading(false);
+            setIsConfirmModalVisible(false);
         }
     };
+
+    const handleConfirmOk = () => {
+        handleCheckout();
+    };
+
+    const handleConfirmCancel = () => {
+        setIsConfirmModalVisible(false);
+    };
+
     useEffect(() => {
         return () => clearInterval(paymentCheckInterval.current);
     }, []);
@@ -582,7 +546,7 @@ const CartItems = () => {
                                     size="large"
                                     block
                                     loading={loading}
-                                    onClick={handleCheckout}
+                                    onClick={handleCheckoutConfirm}
                                     icon={<ShoppingCartOutlined />}
                                     disabled={cartItems.length === 0 || selectedItems.length === 0}
                                 >
@@ -592,7 +556,33 @@ const CartItems = () => {
                         </Form>
                     </Card>
                 </Col>
+                <Modal
+                    title="Xác nhận đặt hàng"
+                    visible={isConfirmModalVisible}
+                    onOk={handleConfirmOk}
+                    onCancel={handleConfirmCancel}
+                    okText="Xác nhận"
+                    cancelText="Hủy"
+                >
+                    <Text>Bạn có chắc chắn muốn đặt đơn hàng này không?</Text>
+                    <Divider />
+                    <Row justify="space-between">
+                        <Text>Tổng tiền hàng:</Text>
+                        <Text strong>{getTotalCartAmount().toLocaleString('vi-VN')}₫</Text>
+                    </Row>
+                    <Row justify="space-between">
+                        <Text>Phí vận chuyển:</Text>
+                        <Text strong>{shippingFee.toLocaleString('vi-VN')}₫</Text>
+                    </Row>
+                    <Row justify="space-between">
+                        <Text strong>Tổng thanh toán:</Text>
+                        <Text strong style={{ color: '#1890ff' }}>
+                            {(getTotalCartAmount() + shippingFee).toLocaleString('vi-VN')}₫
+                        </Text>
+                    </Row>
+                </Modal>
             </Row>
+
             <Modal
                 title="Thanh toán qua VietQR"
                 visible={qrModalVisible}

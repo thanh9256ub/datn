@@ -78,6 +78,11 @@ const ProductDisplay = ({ product, productColors }) => {
             return;
         }
 
+        if (currentDetail && currentDetail.quantity === 0) {
+            message.warning('Sản phẩm đã hết hàng');
+            return;
+        }
+
         const selectedColor = productColors.find(pc => pc.color.id === selectedColorId);
         const selectedSizeObj = sizes.find(s => s.id === selectedSize);
 
@@ -113,12 +118,11 @@ const ProductDisplay = ({ product, productColors }) => {
 
                     setSizes(sizeResponse || []);
                     if (sizeResponse?.length > 0) {
-                        // Chỉ đặt selectedSize nếu hiện tại không hợp lệ
                         if (!selectedSize || !sizeResponse.some(s => s.id === selectedSize)) {
                             setSelectedSize(sizeResponse[0].id);
                         }
                     } else {
-                        setSelectedSize(null); // Reset nếu không có size
+                        setSelectedSize(null);
                         message.warning('Không có kích thước nào khả dụng cho màu này');
                     }
                 } catch (error) {
@@ -136,6 +140,11 @@ const ProductDisplay = ({ product, productColors }) => {
         try {
             if (!selectedColorId || !selectedSize || !product?.id) {
                 message.warning('Vui lòng chọn đầy đủ thông tin sản phẩm');
+                return;
+            }
+
+            if (currentDetail && currentDetail.quantity === 0) {
+                message.warning('Sản phẩm đã hết hàng');
                 return;
             }
 
@@ -161,7 +170,6 @@ const ProductDisplay = ({ product, productColors }) => {
         setSelectedProductColorId(productColorId);
         setMainImage(newImage || product.image || '');
 
-        // Reset size khi đổi màu
         setSizes([]);
         setSelectedSize(null);
 
@@ -170,22 +178,23 @@ const ProductDisplay = ({ product, productColors }) => {
             setSizes(sizeResponse || []);
 
             if (sizeResponse.length > 0) {
-                setSelectedSize(sizeResponse[0].id); // Chọn size đầu tiên của màu mới
+                setSelectedSize(sizeResponse[0].id);
             }
         } catch (error) {
             message.error('Lỗi tải danh sách size');
         }
     };
 
+    const isOutOfStock = currentDetail && currentDetail.quantity === 0;
 
     return (
-        <App >
+        <App>
             <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 16px' }}>
                 <Row gutter={[32, 32]} align="middle">
                     <Col xs={24} md={12}>
                         <Card bordered={false} bodyStyle={{ padding: 0 }} style={{ borderRadius: 8, overflow: 'hidden' }}>
                             <div style={{ position: 'relative', paddingTop: '100%', backgroundColor: '#f8f8f8' }}>
-                                {mainImage && mainImage != "image.png" ? (
+                                {mainImage && mainImage !== "image.png" ? (
                                     <img src={mainImage} alt={product.name} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', padding: 16 }} />
                                 ) : (
                                     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
@@ -255,14 +264,31 @@ const ProductDisplay = ({ product, productColors }) => {
                                 icon={<ShoppingCartOutlined />}
                                 onClick={handleAddToCart}
                                 block
-                                style={{ height: 48, fontSize: 16, fontWeight: 500, marginBottom: 24, backgroundColor: primaryColor, borderColor: borderColor }}
+                                disabled={isOutOfStock}
+                                style={{
+                                    height: 48,
+                                    fontSize: 16,
+                                    fontWeight: 500,
+                                    marginBottom: 24,
+                                    backgroundColor: isOutOfStock ? '#d9d9d9' : primaryColor,
+                                    borderColor: isOutOfStock ? '#d9d9d9' : borderColor
+                                }}
                             >
-                                THÊM VÀO GIỎ HÀNG
+                                {isOutOfStock ? 'SẢN PHẨM ĐÃ HẾT HÀNG' : 'THÊM VÀO GIỎ HÀNG'}
                             </Button>
-                            <Modal title="Xác nhận thêm vào giỏ hàng" visible={confirmModalVisible} onOk={handleConfirmAddToCart} onCancel={() => setConfirmModalVisible(false)} okText="Xác nhận" cancelText="Hủy" width={600} footer={[
-                                <Button key="back" onClick={() => setConfirmModalVisible(false)} icon={<CloseOutlined />}>Hủy</Button>,
-                                <Button key="submit" type="primary" onClick={handleConfirmAddToCart} icon={<CheckOutlined />}>Xác nhận thêm vào giỏ</Button>,
-                            ]}>
+                            <Modal
+                                title="Xác nhận thêm vào giỏ hàng"
+                                visible={confirmModalVisible}
+                                onOk={handleConfirmAddToCart}
+                                onCancel={() => setConfirmModalVisible(false)}
+                                okText="Xác nhận"
+                                cancelText="Hủy"
+                                width={600}
+                                footer={[
+                                    <Button key="back" onClick={() => setConfirmModalVisible(false)} icon={<CloseOutlined />}>Hủy</Button>,
+                                    <Button key="submit" type="primary" onClick={handleConfirmAddToCart} icon={<CheckOutlined />}>Xác nhận thêm vào giỏ</Button>,
+                                ]}
+                            >
                                 {selectedProductDetails && (
                                     <div style={{ padding: '16px 0' }}>
                                         <Row gutter={16}>
@@ -296,7 +322,7 @@ const ProductDisplay = ({ product, productColors }) => {
                     </Col>
                 </Row>
             </div>
-        </App >
+        </App>
     );
 };
 

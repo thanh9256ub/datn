@@ -1,5 +1,6 @@
 package com.example.datn.controller;
 
+import com.example.datn.dto.request.OrderDetailRequest;
 import com.example.datn.dto.request.OrderRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.OrderDetailResponse;
@@ -17,15 +18,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,38 +60,6 @@ public class CounterController {
                 HttpStatus.OK.value(), "Order detail updated successfully", orderDetailResponse);
         return ResponseEntity.ok(apiResponse);
     }
-//@GetMapping("/add-to-cart")
-//public ResponseEntity<ApiResponse<OrderDetailResponse>> addToCart(
-//        @RequestParam("orderID") Integer orderID,
-//        @RequestParam("productID") Integer productID,
-//        @RequestParam("purchaseQuantity") Integer purchaseQuantity) {
-//    try {
-//        // Kiểm tra orderID tồn tại
-//        if (!orderRepository.existsById(orderID)) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                    .body(new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), "Order not found with ID: " + orderID, null));
-//        }
-//
-//        // Kiểm tra productID và số lượng
-//        ProductDetail productDetail = productDetailRepository.findById(productID).orElse(null);
-//        if (productDetail == null) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                    .body(new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), "Product not found with ID: " + productID, null));
-//        }
-//        if (productDetail.getQuantity() < purchaseQuantity) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                    .body(new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), "Insufficient quantity for product ID: " + productID, null));
-//        }
-//
-//        // Cập nhật số lượng sản phẩm và thêm vào giỏ
-//        orderDetailService.updateProductQuantity(productID, purchaseQuantity);
-//        OrderDetailResponse orderDetailResponse = orderDetailService.updateOrAddOrderDetail(orderID, productID, purchaseQuantity);
-//        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Order detail updated successfully", orderDetailResponse));
-//    } catch (Exception e) {
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error adding to cart: " + e.getMessage(), null));
-//    }
-//}
     @GetMapping("/update-quantity")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> updateQuantity(@RequestParam Integer orderDetailID,
                                                                            @RequestParam Integer productDetailID,
@@ -372,6 +333,26 @@ public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching transactions from Casso.vn: " + e.getMessage());
         }
     }
-
+    @PutMapping("/update-order-details/{orderId}")
+    public ResponseEntity<ApiResponse<List<OrderDetailResponse>>> updateOrderDetails(
+            @PathVariable("orderId") Integer orderId,
+            @RequestBody List<OrderDetailRequest> items) {
+        try {
+            List<OrderDetailResponse> updatedDetails = orderDetailService.updateOrderDetails(orderId, items);
+            ApiResponse<List<OrderDetailResponse>> apiResponse = new ApiResponse<>(
+                    HttpStatus.OK.value(),
+                    "Order details updated successfully",
+                    updatedDetails
+            );
+            return ResponseEntity.ok(apiResponse);
+        } catch (Exception e) {
+            ApiResponse<List<OrderDetailResponse>> apiResponse = new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "Error updating order details: " + e.getMessage(),
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
+        }
+    }
 }
 

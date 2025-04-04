@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -88,22 +89,23 @@ public class ProductDetailService {
         return mapper.toListProductDetail(productDetailList);
     }
 
-    // public ProductDetailResponse updateQR(Integer pdId) {
-    // ProductDetail productDetail = repository.findById(pdId)
-    // .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found
-    // with ID: " + pdId));
-    //
-    // try {
-    // String qrCodeData = "" + pdId;
-    // String qrCodeBase64 = QRCodeUtil.generateQRCode(qrCodeData);
-    // productDetail.setQr(qrCodeBase64);
-    // repository.save(productDetail);
-    // } catch (Exception e) {
-    // e.printStackTrace();
-    // }
-    //
-    // return mapper.toProductDetailResponse(productDetail);
-    // }
+    public Map<Integer, Integer> checkStockAvailability(List<Map<String, Integer>> checkStockRequests) {
+        // Lấy danh sách productDetailId từ request
+        List<Integer> productDetailIds = checkStockRequests.stream()
+                .map(request -> request.get("productDetailId"))
+                .collect(Collectors.toList());
+
+        // Truy vấn cơ sở dữ liệu để lấy tất cả ProductDetail theo danh sách ID
+        List<ProductDetail> productDetails = repository.findAllById(productDetailIds);
+
+        // Tạo map chứa productDetailId và số lượng tồn kho
+        return productDetails.stream()
+                .collect(Collectors.toMap(
+                        ProductDetail::getId,
+                        ProductDetail::getQuantity,
+                        (existing, replacement) -> existing // Nếu trùng lặp, giữ giá trị đầu tiên
+                ));
+    }
     public ProductDetailResponse updateQR(Integer pdId) {
         ProductDetail productDetail = repository.findById(pdId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + pdId));

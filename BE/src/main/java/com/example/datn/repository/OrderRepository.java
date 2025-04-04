@@ -25,7 +25,7 @@ public interface OrderRepository extends JpaRepository<Order,Integer> {
             "AND (:endDate IS NULL OR o.createdAt <= :endDate) " +
             "AND (:status IS NULL OR o.status = :status) " +
             "AND o.status <> 0 " +
-            "ORDER BY o.createdAt DESC")
+            "ORDER BY o.updatedAt DESC")
     List<Order> filterOrders(@Param("orderCode") String orderCode,
                              @Param("minPrice") Double minPrice,
                              @Param("maxPrice") Double maxPrice,
