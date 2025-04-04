@@ -296,20 +296,26 @@ public class OrderService {
         order.setUpdatedAt(LocalDateTime.now().withNano(0));
 
         order = repository.save(order);
-
         for (GuestOrderRequest.CartItemDTO item : request.getCartItems()) {
+            ProductDetail productDetail=productDetailRepository.findById(item.getProductDetailId()).orElseThrow(
+                    () -> new ResourceNotFoundException("getProductDetailId not found")
+            );
+
             OrderDetailRequest orderDetailRequest = new OrderDetailRequest(
                     order.getId(),
                     item.getProductDetailId(),
+                    productDetail.getProduct().getProductName()+" - "+productDetail.getColor()+" - "+productDetail.getSize(),
                     item.getQuantity(),
                     item.getPrice(),
                     item.getTotal_price(),
                     1,
                     1
             );
+
             orderDetailService.create(orderDetailRequest); // Thay create bằng createV2
             orderDetailService.updateProductQuantity(item.getProductDetailId(), item.getQuantity());
         }
+
    return mapper.toOrderResponse(order);
     }
 

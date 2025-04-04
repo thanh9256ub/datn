@@ -24,7 +24,7 @@ const TopProducts = () => {
 
   return (
     <div>
-      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>5 sản phẩm bán chạy nhất</h2>
+      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>5 sản phẩm bán nhiều nhất</h2>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart
           data={data}

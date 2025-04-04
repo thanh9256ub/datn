@@ -23,6 +23,8 @@ public class OrderDetailResponse {
 
     ProductDetail productDetail;
 
+    String productDetailName;
+
 
     Integer quantity;
 
