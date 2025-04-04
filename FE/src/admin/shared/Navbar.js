@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext'; // Sử dụng AuthContext 
 import { ShopContext } from '../../ClientComponents/Context/ShopContext';
 import logo from '../../assets/images/logo_h2tl.png';
 import logoMini from '../../assets/images/logo_mini_h2tl.png';
-import userImage from '../../assets/images/faces/face1.jpg';
+import avt from '../../assets/images/faces/avt.jpg';
 
 const Navbar = () => {
   const history = useHistory();
@@ -128,7 +128,7 @@ const Navbar = () => {
               <Dropdown alignRight>
                 <Dropdown.Toggle className="nav-link">
                   <div className="nav-profile-img">
-                    <img src={userImage} alt="user" />
+                    <img src={avt} alt="user" />
                     <span className="availability-status online"></span>
                   </div>
                   <div className="nav-profile-text">
