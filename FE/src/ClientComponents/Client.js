@@ -4,12 +4,11 @@ import { Switch, Route } from 'react-router-dom';
 import Footer from './Footer/Footer';
 import Navbar from '../admin/shared/Navbar.js';
 // import Navbar from './Navbar/Navbar.jsx';
-import Signup from './Pages/Signup';
-import Login from './Pages/Login';
 import Shop from './Pages/Shop';
 import Cart from './Pages/Cart';
 import all_banner from './Assets/shoes_banner4.png'
 import ShopAllProduct from './Pages/ShopAllProduct.jsx';
+import Product from './Pages/Product';
 
 const Client = () => {
 
@@ -21,8 +20,8 @@ const Client = () => {
                 <Route exact path="/" component={Shop} />
                 <Route path="/all" component={() => <ShopAllProduct banner={all_banner} />} />
                 <Route path="/cart" component={Cart} />
-                <Route path="/signup" component={Signup} />
-                <Route path="/login" component={Login} />
+                <Route exact path="/product/:productID" component={Product} />
+                <Route path="/cart" component={Cart} />
             </Switch>
             <Footer />
         </div>

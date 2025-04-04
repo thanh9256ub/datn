@@ -181,7 +181,7 @@ class Sidebar extends Component {
               </ul>
             </Collapse>
           </li>
-          <hr />
+          {/* <hr />
           <li className={this.isPathActive('/admin/basic-ui') ? 'nav-item active' : 'nav-item'}>
             <div className={this.state.basicUiMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('basicUiMenuOpen')} data-toggle="collapse">
               <span className="menu-title"><Trans>Basic UI Elements</Trans></span>
@@ -231,7 +231,7 @@ class Sidebar extends Component {
                 <li className="nav-item"> <Link className={this.isPathActive('/admin/icons/mdi') ? 'nav-link active' : 'nav-link'} to="/admin/icons/mdi"><Trans>Material</Trans></Link></li>
               </ul>
             </Collapse>
-          </li>
+          </li> */}
 
           {/* <li className={this.isPathActive('/admin/charts') ? 'nav-item active' : 'nav-item'}>
             <div className={this.state.chartsMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('chartsMenuOpen')} data-toggle="collapse">

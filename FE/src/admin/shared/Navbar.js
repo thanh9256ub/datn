@@ -1,38 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Dropdown } from 'react-bootstrap';
 import { Link, useHistory, useLocation } from 'react-router-dom';
 import { Trans } from 'react-i18next';
+import { Badge, Avatar } from 'antd';
+import { ShoppingCartOutlined } from '@ant-design/icons';
+import { useAuth } from '../../context/AuthContext'; // Sử dụng AuthContext thay vì localStorage
+import { ShopContext } from '../../ClientComponents/Context/ShopContext';
 import logo from '../../assets/images/logo_h2tl.png';
 import logoMini from '../../assets/images/logo_mini_h2tl.png';
 import userImage from '../../assets/images/faces/face1.jpg';
-import { Menu, Button, Badge, Drawer, Avatar, Space, ConfigProvider } from 'antd';
 
 const Navbar = () => {
   const history = useHistory();
-  const location = useLocation(); // Để theo dõi sự thay đổi đường dẫn
-  const [fullName, setFullName] = useState('');
-  const token = localStorage.getItem("token");
-  const tokenClient = localStorage.getItem("tokenClient");
-  const [menu, setMenu] = useState('shop');
+  const location = useLocation();
+  const {
+    isAuthenticated,
+    role,
+    fullName,
+    email,
+    logout
+  } = useAuth(); // Sử dụng useAuth để lấy thông tin
 
-  useEffect(() => {
-    setFullName(localStorage.getItem('fullName') || 'Khách hàng');
-  }, []);
+  const { getTotalCartItems } = useContext(ShopContext);
+  const [activeMenu, setActiveMenu] = useState('shop');
 
+  // Xác định menu active dựa trên URL
   useEffect(() => {
-    // Cập nhật menu khi đường dẫn thay đổi
-    if (location.pathname === '/') setMenu('shop');
-    if (location.pathname === '/all') setMenu('all');
-    if (location.pathname === '/policy') setMenu('policy');
-    if (location.pathname === '/lookup') setMenu('lookup');
-  }, [location]); // Theo dõi sự thay đổi của location
+    const path = location.pathname;
+    if (path === '/') setActiveMenu('shop');
+    else if (path === '/all') setActiveMenu('all');
+    else if (path === '/policy') setActiveMenu('policy');
+    else if (path === '/lookup') setActiveMenu('lookup');
+  }, [location]);
 
   const handleLogout = (e) => {
     e.preventDefault();
-    localStorage.removeItem('token');
-    localStorage.removeItem('fullName');
-    localStorage.removeItem('role');
-    history.push('/login-nhan-vien');
+    logout(); // Sử dụng hàm logout từ AuthContext
+    history.push('/login');
   };
 
   const handleChangePassword = (e) => {
@@ -40,25 +44,57 @@ const Navbar = () => {
     history.push('/doi-mat-khau');
   };
 
+  const displayName = fullName || email || 'Khách hàng';
+  const isAdmin = role === 'ADMIN';
+  const isEmployee = role === 'EMPLOYEE';
+  const isCustomer = role === 'CUSTOMER';
+
   const menuItems = [
-    { key: 'shop', label: <Link to="/">Trang chủ</Link> },
-    { key: 'all', label: <Link to="/all">Sản phẩm</Link> },
-    { key: 'policy', label: <Link to="/policy">Chính sách</Link> },
-    { key: 'lookup', label: <Link to="/lookup" >Tra cứu</Link> },
+    { key: 'shop', label: <Trans>Trang chủ</Trans>, path: '/' },
+    { key: 'all', label: <Trans>Sản phẩm</Trans>, path: '/all' },
+    { key: 'policy', label: <Trans>Chính sách</Trans>, path: '/policy' },
+    { key: 'lookup', label: <Trans>Tra cứu</Trans>, path: '/lookup' },
   ];
+
+  const renderUserRole = () => {
+    // if (isAdmin) return <Trans>Quản trị viên</Trans>;
+    // if (isEmployee) return <Trans>Nhân viên</Trans>;
+    return <Trans>Khách hàng</Trans>;
+  };
 
   return (
     <nav className="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
       <div className="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-        <Link className="navbar-brand brand-logo" to="/admin/dashboard">
+        <Link className="navbar-brand brand-logo" to={isAdmin || isEmployee ? "/admin/dashboard" : "/"}>
           <img src={logo} alt="logo" />
         </Link>
-        <Link className="navbar-brand brand-logo-mini" to="/admin/dashboard">
+        <Link className="navbar-brand brand-logo-mini" to={isAdmin || isEmployee ? "/admin/dashboard" : "/"}>
           <img src={logoMini} alt="logo" />
         </Link>
       </div>
+
       <div className="navbar-menu-wrapper d-flex align-items-stretch">
-        {token && localStorage.getItem("role") === "ADMIN" ? (
+        {/* Menu chính */}
+        {!(isAdmin || isEmployee) && (
+          <div className="navbar-menu d-flex flex-grow-1 justify-content-left">
+            <ul className="nav-menu d-flex align-items-center justify-content-center gap-4">
+              {menuItems.map(item => (
+                <li key={item.key} className={`nav-item ${activeMenu === item.key ? 'active' : ''}`}>
+                  <Link
+                    to={item.path}
+                    onClick={() => setActiveMenu(item.key)}
+                    className="nav-link"
+                  >
+                    <span className="menu-title">{item.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Thanh tìm kiếm (chỉ admin/employee) */}
+        {(isAdmin || isEmployee) && (
           <>
             <button
               className="navbar-toggler navbar-toggler align-self-center"
@@ -83,61 +119,79 @@ const Navbar = () => {
               </form>
             </div>
           </>
-        ) : (
-          <div className="navbar-menu d-flex flex-grow-1 justify-content-left">
-            <ul className="nav-menu d-flex align-items-center justify-content-center gap-4">
-              <li className={`nav-item ${menu === 'shop' ? 'active' : ''}`}>
-                <Link to="/" onClick={() => setMenu('shop')} className="nav-link">
-                  <span className="menu-title"><Trans>Trang chủ</Trans></span>
-                </Link>
-              </li>
-              <li className={`nav-item ${menu === 'all' ? 'active' : ''}`}>
-                <Link to="/all" onClick={() => setMenu('all')} className="nav-link">
-                  <span className="menu-title"><Trans>Sản phẩm</Trans></span>
-                </Link>
-              </li>
-              <li className={`nav-item ${menu === 'policy' ? 'active' : ''}`}>
-                <Link to="/policy" onClick={() => setMenu('policy')} className="nav-link">
-                  <span className="menu-title"><Trans>Chính sách</Trans></span>
-                </Link>
-              </li>
-              <li className={`nav-item ${menu === 'lookup' ? 'active' : ''}`}>
-                <Link to="/lookup" onClick={() => setMenu('lookup')} className="nav-link">
-                  <span className="menu-title"><Trans>Tra cứu</Trans></span>
-                </Link>
-              </li>
-            </ul>
-          </div>
         )}
+
+        {/* Phần bên phải navbar */}
         <ul className="navbar-nav navbar-nav-right">
-          <li className="nav-item nav-profile">
-            <Dropdown alignRight>
-              <Dropdown.Toggle className="nav-link">
-                <div className="nav-profile-img">
-                  <img src={userImage} alt="user" />
-                  <span className="availability-status online"></span>
-                </div>
-                <div className="nav-profile-text">
-                  <p className="mb-1 text-black"><Trans>{fullName}</Trans></p>
-                </div>
-              </Dropdown.Toggle>
-              <Dropdown.Menu className="navbar-dropdown">
-                <Dropdown.Item onClick={handleChangePassword}>
-                  <i className="mdi mdi-cached mr-2 text-success"></i>
-                  <Trans>Đổi mật khẩu</Trans>
-                </Dropdown.Item>
-                <Dropdown.Item onClick={handleLogout}>
-                  <i className="mdi mdi-logout mr-2 text-primary"></i>
-                  <Trans>Đăng xuất</Trans>
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-          </li>
-          <li className="nav-item nav-logout d-none d-lg-block">
-            <a className="nav-link" href="!#" onClick={(e) => e.preventDefault()}>
-              <i className="mdi mdi-power"></i>
-            </a>
-          </li>
+          {isAuthenticated ? (
+            <li className="nav-item nav-profile">
+              <Dropdown alignRight>
+                <Dropdown.Toggle className="nav-link">
+                  <div className="nav-profile-img">
+                    <img src={userImage} alt="user" />
+                    <span className="availability-status online"></span>
+                  </div>
+                  <div className="nav-profile-text">
+                    <p className="mb-1 text-black">{displayName}</p>
+                    {isCustomer &&
+                      <small className="text-muted">{renderUserRole()}</small>
+                    }
+                  </div>
+                </Dropdown.Toggle>
+                <Dropdown.Menu className="navbar-dropdown">
+                  <Dropdown.Item onClick={handleChangePassword}>
+                    <i className="mdi mdi-cached mr-2 text-success"></i>
+                    <Trans>Đổi mật khẩu</Trans>
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={handleLogout}>
+                    <i className="mdi mdi-logout mr-2 text-primary"></i>
+                    <Trans>Đăng xuất</Trans>
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </li>
+          ) : (
+            <li className="nav-item">
+              <Link to="/login" className="nav-link">
+                <i className="mdi mdi-login mr-2 text-primary"></i>
+                <Trans>Đăng nhập</Trans>
+              </Link>
+            </li>
+          )}
+
+          {/* Giỏ hàng (chỉ hiển thị cho khách hàng) */}
+          {!isAdmin && !isEmployee && (
+            <li className="nav-item nav-logout d-none d-lg-block">
+              <Link to="/cart">
+                <Badge
+                  count={getTotalCartItems()}
+                  showZero
+                  offset={[3, 3]}
+                  style={{
+                    backgroundColor: '#ff6b81',
+                    boxShadow: 'none',
+                    fontSize: '10px',
+                    lineHeight: '16px',
+                    minWidth: '16px',
+                    height: '16px',
+                    padding: '0 4px'
+                  }}
+                >
+                  <ShoppingCartOutlined
+                    style={{
+                      marginTop: '8px',
+                      fontSize: '24px',
+                      color: '#9d4edd',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseEnter={(e) => (e.target.style.transform = 'scale(1.1)')}
+                    onMouseLeave={(e) => (e.target.style.transform = 'scale(1)')}
+                  />
+                </Badge>
+              </Link>
+            </li>
+          )}
         </ul>
       </div>
     </nav>

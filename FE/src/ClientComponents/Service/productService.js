@@ -8,6 +8,29 @@ const api = axios.create({
         'Content-Type': 'application/json',
     },
 });
+
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token'); // Sửa từ 'tokenClient' -> 'token'
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+}, (error) => {
+    return Promise.reject(error);
+});
+
+// Interceptor response
+api.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response?.status === 401) {
+            // Xử lý khi token hết hạn
+            localStorage.removeItem('token');
+            window.location.href = '/login'; // Redirect về trang login
+        }
+        return Promise.reject(error);
+    }
+);
 export const fetchProducts = async () => {
     try {
         const response = await api.get('/products/list'); // Thay thế endpoint tương ứng
@@ -222,36 +245,59 @@ export const updateCartQuantity = async (cartDetailId, quantity) => {
 };
 export const fetchCustomerProfile = async (token) => {
     try {
-        const response = await api.get('/authCustomer/profile');
-        console.log('API res (customer profile):', response.data);
-        return response.data.data; // customerId là Integer
+        const response = await axios.get('http://localhost:8080/authCustomer/profile', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        console.log('Profile API response:', response.data);
+
+        // Kiểm tra cấu trúc response
+        if (response.data?.customerId || response.data?.data?.customerId) {
+            return response.data.data || response.data;
+        }
+        throw new Error('Invalid profile response structure');
     } catch (error) {
-        console.error('Error fetching customer profile:', error);
+        console.error('Error fetching profile:', error);
         throw error;
     }
 };
 // Lấy hoặc tạo giỏ hàng theo customerId
 export const getOrCreateCart = async (customerId) => {
     try {
-        const response = await api.get(`/carts/get-or-create/${customerId}`);
-        return response.data.data;
+        const response = await api.get(`carts/get-or-create/${customerId}`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Authorization header sẽ được tự động thêm bởi interceptor từ AuthContext
+                }
+            }
+        );
+
+        // Xử lý response theo cấu trúc API của bạn
+        if (response.data?.status === 200) {
+            return response.data.data; // Trả về cartResponse
+        }
+
+        // Xử lý các trường hợp lỗi từ API
+        if (response.data?.status === 401) {
+            throw new Error('Unauthorized: Please login again');
+        }
+        if (response.data?.status === 403) {
+            throw new Error(response.data.message || 'Token expired or invalid');
+        }
+
+        throw new Error(response.data?.message || 'Failed to get cart');
     } catch (error) {
-        console.error('Error in getOrCreateCart:', {
+        console.error('Cart API Error:', {
             url: error.config?.url,
             status: error.response?.status,
-            errorData: error.response?.data
+            data: error.response?.data
         });
         throw error;
     }
 };
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('tokenClient');
-    console.log('Sending request with token:', token); // Log token
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-});
 
 // Các hàm API hiện có giữ nguyên, chỉ bổ sung những hàm cần thiết
 export const getTokenCustomer = async (email, password) => {

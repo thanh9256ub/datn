@@ -30,7 +30,7 @@ const CartItems = () => {
         loadCartItems,
         cartId,
         setCartId,
-        tokenClient,
+        token,
         getOrCreateCart,
     } = useContext(ShopContext);
 
@@ -54,11 +54,11 @@ const CartItems = () => {
 
     // Khởi tạo giỏ hàng
     useEffect(() => {
-        console.log('CartItems mounted with:', { isGuest, cartId, tokenClient, cartItems });
+        console.log('CartItems mounted with:', { isGuest, cartId, token, cartItems });
         const initializeCart = async () => {
             setCartLoading(true);
             try {
-                if (!isGuest && tokenClient) {
+                if (!isGuest && token) {
                     let currentCartId = cartId;
                     if (!currentCartId) {
                         const cartData = await getOrCreateCart(customerId);
@@ -84,20 +84,23 @@ const CartItems = () => {
         if (!hasLoadedCart.current) {
             initializeCart();
         }
-    }, [isGuest, cartId, tokenClient, customerId, loadCartItems, cartItems, getOrCreateCart, setCartId, setCartItems]);
+    }, [isGuest, cartId, token, customerId, loadCartItems, cartItems, getOrCreateCart, setCartId, setCartItems]);
 
     // Lấy thông tin khách hàng
     useEffect(() => {
         const loadCustomerProfile = async () => {
-            if (!isGuest && tokenClient) {
+            if (!isGuest && token) {
                 try {
-                    const profile = await fetchCustomerProfile(tokenClient);
+                    const profile = await fetchCustomerProfile(token);
                     console.log('Customer profile:', profile);
                     setCustomerProfile(profile);
-                    form.setFieldsValue({
-                        name: profile.fullName || '',
-                        phone: profile.phone || '',
-                    });
+                    if (profile) {
+                        setCustomerProfile(profile);
+                        form.setFieldsValue({
+                            name: profile.fullName || profile.name || '',
+                            phone: profile.phone || profile.phoneNumber || profile.mobile || '',
+                        });
+                    }
                 } catch (error) {
                     console.error('Không thể tải thông tin khách hàng:', error);
                     message.error('Không thể tải thông tin khách hàng.');
@@ -108,7 +111,7 @@ const CartItems = () => {
             }
         };
         loadCustomerProfile();
-    }, [isGuest, tokenClient, form]);
+    }, [isGuest, token, form]);
 
     const generateVietQrUrl = () => {
         const totalAmount = getTotalCartAmount() + shippingFee;
