@@ -101,41 +101,6 @@ const ProductDisplay = ({ product, productColors }) => {
         setConfirmModalVisible(true);
     };
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         if (selectedProductColorId && product?.id) {
-    //             setLoadingImages(true);
-    //             try {
-    //                 const [imageResponse, sizeResponse] = await Promise.all([
-    //                     fetchImagesByProductColor(selectedProductColorId),
-    //                     fetchSizesByColor(product.id, selectedColorId)
-    //                 ]);
-
-    //                 setImages(imageResponse || []);
-    //                 if (imageResponse?.length > 0) {
-    //                     setMainImage(imageResponse[0].image);
-    //                 }
-
-    //                 setSizes(sizeResponse || []);
-    //                 if (sizeResponse?.length > 0) {
-    //                     // Chỉ đặt selectedSize nếu hiện tại không hợp lệ
-    //                     if (!selectedSize || !sizeResponse.some(s => s.id === selectedSize)) {
-    //                         setSelectedSize(sizeResponse[0].id);
-    //                     }
-    //                 } else {
-    //                     setSelectedSize(null); // Reset nếu không có size
-    //                     message.warning('Không có kích thước nào khả dụng cho màu này');
-    //                 }
-    //             } catch (error) {
-    //                 console.error('Error loading data:', error);
-    //                 message.error('Lỗi tải dữ liệu sản phẩm');
-    //             } finally {
-    //                 setLoadingImages(false);
-    //             }
-    //         }
-    //     };
-    //     fetchData();
-    // }, [selectedProductColorId, selectedColorId, product?.id]);
     useEffect(() => {
         const fetchData = async () => {
             if (selectedProductColorId && product?.id) {
@@ -151,19 +116,15 @@ const ProductDisplay = ({ product, productColors }) => {
                         setMainImage(imageResponse[0].image);
                     }
 
-                    // Xử lý sizes
-                    const availableSizes = sizeResponse || [];
-                    setSizes(availableSizes);
-
-                    // Chỉ hiển thị cảnh báo nếu không có size và đã chọn màu
-                    if (availableSizes.length === 0 && selectedColorId) {
-                        // Chỉ hiển thị cảnh báo nếu đây không phải là lần đầu load
-                        if (sizes.length > 0) {
-                            message.warning('Không có kích thước nào khả dụng cho màu này');
+                    setSizes(sizeResponse || []);
+                    if (sizeResponse?.length > 0) {
+                        // Chỉ đặt selectedSize nếu hiện tại không hợp lệ
+                        if (!selectedSize || !sizeResponse.some(s => s.id === selectedSize)) {
+                            setSelectedSize(sizeResponse[0].id);
                         }
-                    } else if (availableSizes.length > 0) {
-                        // Tự động chọn size đầu tiên nếu có
-                        setSelectedSize(availableSizes[0].id);
+                    } else {
+                        setSelectedSize(null); // Reset nếu không có size
+                        message.warning('Không có kích thước nào khả dụng cho màu này');
                     }
                 } catch (error) {
                     console.error('Error loading data:', error);
@@ -200,54 +161,28 @@ const ProductDisplay = ({ product, productColors }) => {
 
     if (!product) return <Card>Sản phẩm không tồn tại</Card>;
 
-    // const handleColorChange = async (colorId, productColorId, newImage) => {
-    //     setSelectedColorId(colorId);
-    //     setSelectedProductColorId(productColorId);
-    //     setMainImage(newImage || product.image || '');
-
-    //     // Reset size khi đổi màu
-    //     setSizes([]);
-    //     setSelectedSize(null);
-
-    //     try {
-    //         const sizeResponse = await fetchSizesByColor(product.id, colorId);
-    //         setSizes(sizeResponse || []);
-
-    //         if (sizeResponse.length > 0) {
-    //             setSelectedSize(sizeResponse[0].id); // Chọn size đầu tiên của màu mới
-    //         }
-    //     } catch (error) {
-    //         message.error('Lỗi tải danh sách size');
-    //     }
-    // };
     const handleColorChange = async (colorId, productColorId, newImage) => {
         setSelectedColorId(colorId);
         setSelectedProductColorId(productColorId);
         setMainImage(newImage || product.image || '');
-        setSizes([]); // Reset sizes
-        setSelectedSize(null); // Reset selected size
+
+        // Reset size khi đổi màu
+        setSizes([]);
+        setSelectedSize(null);
 
         try {
             const sizeResponse = await fetchSizesByColor(product.id, colorId);
-            const availableSizes = sizeResponse || [];
-            setSizes(availableSizes);
+            setSizes(sizeResponse || []);
 
-            if (availableSizes.length > 0) {
-                setSelectedSize(availableSizes[0].id); // Chọn size đầu tiên
-            } else {
-                // Chỉ hiển thị cảnh báo nếu đã có màu được chọn trước đó
-                if (selectedColorId) {
-                    message.warning('Không có kích thước nào khả dụng cho màu này');
-                }
+            if (sizeResponse.length > 0) {
+                setSelectedSize(sizeResponse[0].id); // Chọn size đầu tiên của màu mới
             }
         } catch (error) {
-            console.error('Error loading sizes:', error);
-            message.error('Lỗi khi tải danh sách kích thước');
+            message.error('Lỗi tải danh sách size');
         }
     };
 
     if (!product) return <Skeleton active paragraph={{ rows: 10 }} />;
-
 
     return (
         <App>
@@ -350,7 +285,7 @@ const ProductDisplay = ({ product, productColors }) => {
                                                         left: 0,
                                                         right: 0,
                                                         height: 4,
-                                                        // backgroundColor: primaryColor
+                                                        backgroundColor: primaryColor
                                                     }} />
                                                 )}
                                             </div>
@@ -377,7 +312,7 @@ const ProductDisplay = ({ product, productColors }) => {
                                 >
                                     {product.name}
                                 </Title>
-                                {/* <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                     <Rate
                                         disabled
                                         defaultValue={4.5}
@@ -394,7 +329,7 @@ const ProductDisplay = ({ product, productColors }) => {
                                     }}>
                                         Bán chạy
                                     </Tag>
-                                </div> */}
+                                </div>
                             </div>
 
                             {/* Price Section */}

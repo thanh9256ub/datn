@@ -137,7 +137,7 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                                         handleInputChange(originalIndex, 'price', e.target.value);
                                                     }}
                                                     style={{ width: '150px' }}
-                                                    disabled={variant.price}
+                                                    disabled={id}
                                                 />
                                             </td>
                                             <td>
