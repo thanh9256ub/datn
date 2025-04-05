@@ -7,101 +7,80 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 const RevenueFilter = () => {
-  const [orders, setOrders] = useState([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [counterRevenue, setCounterRevenue] = useState(0);
+  const [onlineRevenue, setOnlineRevenue] = useState(0);
   const [dateRange, setDateRange] = useState(null);
   const [month, setMonth] = useState(null);
   const [year, setYear] = useState(null);
+  const [selectedYearForMonth, setSelectedYearForMonth] = useState(null);
 
   useEffect(() => {
     const fetchRevenue = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/order');
-        const orders = response.data.data;
+        let response;
 
-        setOrders(orders);
-
-        let filteredOrders = orders;
-
-        // Apply date range filter
         if (dateRange && dateRange[0] && dateRange[1]) {
-          console.log('Date Range Start:', dateRange[0].format('YYYY-MM-DD')); // Debug log for start date
-          console.log('Date Range End:', dateRange[1].format('YYYY-MM-DD')); // Debug log for end date
-          filteredOrders = filteredOrders.filter(order => {
-            const orderDate = moment(order.updatedAt); // Parse updatedAt as a moment object
-            if (!orderDate.isValid()) {
-              console.error('Invalid Order Date:', order.updatedAt); // Log invalid dates
-              return false;
-            }
-            const isInRange = orderDate.isBetween(dateRange[0], dateRange[1], 'days', '[]');
-            console.log('Order Date:', orderDate.format('YYYY-MM-DD'), 'Is In Range:', isInRange); // Debug log
-            return order.status === 5 && isInRange;
+          response = await axios.get('http://localhost:8080/order/revenue-year-month', {
+            params: {
+              startDate: dateRange[0].format('YYYY-MM-DD'),
+              endDate: dateRange[1].format('YYYY-MM-DD'),
+            },
+          });
+        } else if (month && selectedYearForMonth) {
+          response = await axios.get('http://localhost:8080/order/revenue-month', {
+            params: { year: selectedYearForMonth, month },
+          });
+        } else if (year) {
+          response = await axios.get('http://localhost:8080/order/revenue-year', {
+            params: { year },
           });
         } else {
-          console.warn('Invalid Date Range:', dateRange); // Log invalid date range
+          return;
         }
 
-        // Apply month filter
-        if (month) {
-          filteredOrders = filteredOrders.filter(order => {
-            const orderMonth = moment(order.date).month() + 1;
-            return order.status === 5 && orderMonth === month;
-          });
-        }
-
-        // Apply year filter
-        if (year) {
-          filteredOrders = filteredOrders.filter(order => {
-            const orderYear = moment(order.date).year();
-            return order.status === 5 && orderYear === year;
-          });
-        }
-
-        // Calculate total revenue
-        const revenue = filteredOrders
-          .filter(order => order.status === 5)
-          .reduce((sum, order) => sum + (order.totalPayment - order.shippingFee), 0);
-
-        setTotalRevenue(revenue);
-
-        // Calculate counter revenue
-        const counterRev = filteredOrders
-          .filter(order => order.status === 5 && order.orderType === 0)
-          .reduce((sum, order) => sum + (order.totalPayment - order.shippingFee), 0);
-
-        setCounterRevenue(counterRev);
+        const [total = 0, counter = 0, online = 0] = response.data[0] || [];
+        setTotalRevenue(total);
+        setCounterRevenue(counter);
+        setOnlineRevenue(online);
       } catch (error) {
         console.error('Failed to fetch revenue data:', error);
+        setTotalRevenue(0);
+        setCounterRevenue(0);
+        setOnlineRevenue(0);
       }
     };
 
     fetchRevenue();
-  }, [dateRange, month, year]); // Ensure useEffect listens to dateRange changes
+  }, [dateRange, month, year, selectedYearForMonth]);
 
   const handleDateChange = (dates) => {
-    console.log('Raw Selected Dates:', dates); // Debug log for raw dates
-    if (dates && dates[0] && dates[1]) {
-      setDateRange([moment(dates[0]), moment(dates[1])]); // Ensure both dates are valid moment objects
-      console.log('Valid Date Range Set:', [moment(dates[0]).format('YYYY-MM-DD'), moment(dates[1]).format('YYYY-MM-DD')]); // Debug log for valid date range
+    if (dates && dates.length === 2) {
+      setDateRange([dates[0], dates[1]]);
     } else {
-      setDateRange(null); // Reset dateRange if dates are invalid
-      console.warn('Invalid Dates Selected:', dates); // Log invalid dates
+      setDateRange(null);
     }
     setMonth(null);
     setYear(null);
+    setSelectedYearForMonth(null);
+  };
+
+  const handleYearForMonthChange = (value) => {
+    setSelectedYearForMonth(value);
+    setMonth(null);
   };
 
   const handleMonthChange = (value) => {
-    setMonth(value);
-    setDateRange(null);
-    setYear(null);
+    if (selectedYearForMonth) {
+      setMonth(value);
+    }
   };
 
   const handleYearChange = (value) => {
     setYear(value);
     setDateRange(null);
     setMonth(null);
+    setSelectedYearForMonth(null);
   };
 
   const currentYear = moment().year();
@@ -109,18 +88,30 @@ const RevenueFilter = () => {
 
   return (
     <>
+      {/* Phần 1, 2, 3: Cùng trên một hàng */}
       <Row gutter={16} style={{ marginBottom: '20px' }}>
         <Col span={8}>
-          <RangePicker
-            onChange={(dates) => handleDateChange(dates)} // Use onChange to set the selected date range
-          />
+          <RangePicker onChange={handleDateChange} style={{ width: '100%' }} />
         </Col>
         <Col span={8}>
           <Select
-            placeholder="Chọn tháng"
+            placeholder="Chọn năm"
             style={{ width: '100%' }}
+            onChange={handleYearForMonthChange}
+            value={selectedYearForMonth}
+          >
+            {years.map(y => (
+              <Option key={y} value={y}>
+                Năm {y}
+              </Option>
+            ))}
+          </Select>
+          <Select
+            placeholder="Chọn tháng"
+            style={{ width: '100%', marginTop: '10px' }}
             onChange={handleMonthChange}
             value={month}
+            disabled={!selectedYearForMonth}
           >
             {[...Array(12).keys()].map(i => (
               <Option key={i + 1} value={i + 1}>
@@ -144,12 +135,14 @@ const RevenueFilter = () => {
           </Select>
         </Col>
       </Row>
+
+      {/* Hiển thị kết quả */}
       <Row gutter={16} style={{ marginBottom: '20px' }}>
         <Col span={8}>
           <Card style={{ textAlign: 'center', backgroundColor: '#f6ffed', borderColor: '#b7eb8f' }}>
             <Statistic
               title="Doanh thu tổng"
-              value={totalRevenue}
+              value={totalRevenue || ""}
               valueStyle={{ color: '#3f8600', fontWeight: 'bold' }}
             />
           </Card>
@@ -158,7 +151,7 @@ const RevenueFilter = () => {
           <Card style={{ textAlign: 'center', backgroundColor: '#e6f7ff', borderColor: '#91d5ff' }}>
             <Statistic
               title="Doanh thu tại quầy"
-              value={counterRevenue}
+              value={counterRevenue || ""}
               valueStyle={{ color: '#1890ff', fontWeight: 'bold' }}
             />
           </Card>
@@ -167,7 +160,7 @@ const RevenueFilter = () => {
           <Card style={{ textAlign: 'center', backgroundColor: '#fff1f0', borderColor: '#ffa39e' }}>
             <Statistic
               title="Doanh thu trực tuyến"
-              value={totalRevenue - counterRevenue}
+              value={onlineRevenue || ""}
               valueStyle={{ color: '#cf1322', fontWeight: 'bold' }}
             />
           </Card>

@@ -12,11 +12,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order,Integer> {
+public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("SELECT o FROM Order o LEFT JOIN FETCH o.paymentType LEFT JOIN FETCH o.paymentMethod")
     List<Order> findAllWithPaymentDetails();
+
     @Query("SELECT o FROM Order o  ORDER BY o.createdAt DESC")
     List<Order> getAll();
+
     @Query("SELECT o FROM Order o WHERE " +
             "(:orderCode IS NULL OR LOWER(o.orderCode) LIKE LOWER(CONCAT('%', :orderCode, '%'))) " +
             "AND (:minPrice IS NULL OR o.totalPrice >= :minPrice) " +
@@ -51,9 +53,53 @@ public interface OrderRepository extends JpaRepository<Order,Integer> {
     List<Object[]> findOrdersByMonthInNative(Integer year);
 
     @Query(value = "SELECT DAY(updated_at) AS day, COUNT(*) AS order_count " +
-            "FROM [order] WHERE status = 5 AND YEAR(updated_at) = YEAR(GETDATE()) " +
+            "FROM [order] WHERE status = 5 AND YEAR(updated_at) = :year " +
             "AND MONTH(updated_at) = :month " +
             "GROUP BY DAY(updated_at) ORDER BY day", nativeQuery = true)
-    List<Object[]> findOrdersByDayInJanuaryNative(Integer month);
+    List<Object[]> findOrdersByDayInJanuaryNative(Integer month,Integer year);
 
+
+    @Query(value = "SELECT DAY(updated_at) AS day, SUM(total_price) AS revenue " +
+            "FROM [order] " +
+            "WHERE status = 5 " +
+            "AND YEAR(updated_at) = :year " +
+            "AND MONTH(updated_at) = :month " +
+            "GROUP BY DAY(updated_at) " +
+            "ORDER BY day", nativeQuery = true)
+    List<Object[]> findRevenueByDayInMarch(Integer month,Integer year);
+
+    @Query(value = "SELECT MONTH(updated_at) AS month, SUM(total_price) AS revenue " +
+            "FROM [order] " +
+            "WHERE status = 5 " +
+            "AND YEAR(updated_at) = :year " +
+            "GROUP BY MONTH(updated_at) " +
+            "ORDER BY month", nativeQuery = true)
+    List<Object[]> findRevenueByMonthIn2025(Integer year);
+
+    @Query(value = "SELECT " +
+            "SUM(total_payment - discount_value) AS total_revenue, " +
+            "SUM(CASE WHEN order_type = 0 THEN total_payment - discount_value ELSE 0 END) AS off_revenue, " +
+            "SUM(CASE WHEN order_type = 1 THEN total_payment - discount_value ELSE 0 END) AS on_revenue " +
+            "FROM [order] " +
+            "WHERE status = 5 " +
+            "AND YEAR(updated_at) = :year", nativeQuery = true)
+    Object[] findRevenueByYear(@Param("year") Integer year);
+    @Query(value = "SELECT " +
+            "SUM(total_payment - discount_value) AS total_revenue, " +
+            "SUM(CASE WHEN order_type = 0 THEN total_payment - discount_value ELSE 0 END) AS off_revenue, " +
+            "SUM(CASE WHEN order_type = 1 THEN total_payment - discount_value ELSE 0 END) AS on_revenue " +
+            "FROM [order] " +
+            "WHERE status = 5 " +
+            "AND YEAR(updated_at) = :year " +
+            "AND MONTH(updated_at) = :month", nativeQuery = true)
+    Object[] findRevenueByMonth(@Param("year") Integer year, @Param("month") Integer month);
+    @Query(value = "SELECT " +
+            "SUM(total_payment - discount_value) AS total_revenue, " +
+            "SUM(CASE WHEN order_type = 0 THEN total_payment - discount_value ELSE 0 END) AS off_revenue, " +
+            "SUM(CASE WHEN order_type = 1 THEN total_payment - discount_value ELSE 0 END) AS on_revenue " +
+            "FROM [order] " +
+            "WHERE status = 5 " +
+            "AND updated_at BETWEEN :startDate AND :endDate", nativeQuery = true)
+    Object[] findRevenueBetweenDates(@Param("startDate") String startDate,
+                                     @Param("endDate") String endDate);
 }

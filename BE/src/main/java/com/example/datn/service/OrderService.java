@@ -332,9 +332,26 @@ public class OrderService {
         return repository.findOrdersByMonthInNative(year);
     }
 
-    public List<Object[]> getOrdersByDayInJanuary(Integer month) {
-        return repository.findOrdersByDayInJanuaryNative(month);
+    public List<Object[]> getOrdersByDayInJanuary(Integer month,Integer year) {
+        return repository.findOrdersByDayInJanuaryNative(month,year);
     }
 
+    public List<Object[]> findRevenueByMonthIn2025(Integer year) {
+        return repository.findRevenueByMonthIn2025(year);
+    }
+    public List<Object[]> findRevenueByDayInMarch(Integer month,Integer year) {
+        return repository.findRevenueByDayInMarch(month,year);
+    }
+    public Object[] getRevenueByYear(Integer year) {
+         return repository.findRevenueByYear(year);
 
+    }
+    public Object[] getRevenueByMonth(Integer year, Integer month) {
+         return repository.findRevenueByMonth(year, month);
+
+    }
+    public  Object[] getRevenueBetweenDates(String startDate, String endDate) {
+        return repository.findRevenueBetweenDates(startDate, endDate);
+
+    }
 }

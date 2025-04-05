@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@google/genai": "^0.7.0",
     "@mdi/font": "^4.2.95",
     "@stomp/stompjs": "^6.1.2",
     "ajv": "^8.17.1",
