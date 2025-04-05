@@ -39,12 +39,11 @@ public class AuthencaticationCustomerController {
                     .build();
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (AuthenticationException e) {
-            ApiResponse<AuthenticationCustomerResponse> errorResponse = ApiResponse.<AuthenticationCustomerResponse>builder()
-                    .status(HttpStatus.UNAUTHORIZED.value()) // 401
-                    .message(e.getMessage()) // "Customer not existed" hoặc "Unauthenticated"
+            return ResponseEntity.ok(ApiResponse.<AuthenticationCustomerResponse>builder()
+                    .status(HttpStatus.OK.value())
+                    .message("NOT_CUSTOMER") // Flag đặc biệt
                     .data(null)
-                    .build();
-            return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+                    .build());
         }
     }
 
@@ -53,6 +52,7 @@ public class AuthencaticationCustomerController {
 
         return authenticationCustomerService.register(registerCustomerRequest);
     }
+
     @GetMapping("profile")
     public ApiResponse<CustomerProfileResponse> getProfile(@RequestHeader("Authorization") String authorizationHeader) throws AuthenticationException {
         String token = authorizationHeader.replace("Bearer ", ""); // Loại bỏ "Bearer " từ header

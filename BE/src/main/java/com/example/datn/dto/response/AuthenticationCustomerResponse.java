@@ -16,5 +16,9 @@ public class AuthenticationCustomerResponse {
 
     String email;
 
+    Integer customerId;
+
+    String fullName;
+
     String role;
 }

@@ -135,6 +135,7 @@ public class OrderController {
         //hd theo thang
     }
 
+
     @GetMapping("/orders-revenue-year/{year}")
     public List<Object[]> findRevenueByMonthIn2025(@PathVariable Integer year) {
         return service.findRevenueByMonthIn2025(year);
@@ -160,6 +161,7 @@ public class OrderController {
         return service.getRevenueBetweenDates(startDate, endDate  );
         //ngay
     }
+
     @PostMapping("/checkout/{cartId}")
     public ResponseEntity<ApiResponse<OrderResponse>> checkout(
             @PathVariable("cartId") Integer cartId,

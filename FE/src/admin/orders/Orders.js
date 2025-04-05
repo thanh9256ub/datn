@@ -130,7 +130,7 @@ const Orders = () => {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
-                { id: 3, name: "Hoàn tất", color: "#4caf50" },
+                { id: 5, name: "Hoàn tất", color: "#4caf50" },
                 { id: 7, name: "Đã hủy", color: "#ef476f" },
             ];
         } else { // Đơn online
@@ -139,9 +139,8 @@ const Orders = () => {
                 { id: 2, name: "Đã xác nhận", color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
-                { id: 5, name: "Đã giao", color: "#4caf50" },
-                { id: 6, name: "Hoàn tất", color: "#4caf50" },
-                { id: 7, name: "Đã hủy", color: "#ef476f" },
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         }
 
@@ -157,7 +156,7 @@ const Orders = () => {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
-                { id: 3, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
                 { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         } else {
@@ -167,9 +166,8 @@ const Orders = () => {
                 { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
-                { id: 5, name: "Đã giao", icon: faHome, color: "#4caf50" },
-                { id: 6, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
-                { id: 7, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         }
 
@@ -312,9 +310,8 @@ const Orders = () => {
                                     <option value="2">Đã tiếp nhận</option>
                                     <option value="3">Chờ vận chuyển</option>
                                     <option value="4">Đang vận chuyển</option>
-                                    <option value="5">Đã giao</option>
-                                    <option value="6">Hoàn tất</option>
-                                    <option value="7">Đã hủy</option>
+                                    <option value="5">Hoàn tất</option>
+                                    <option value="6">Đã hủy</option>
                                 </Form.Control>
                             </div>
                         </div>
