@@ -716,7 +716,7 @@ const BanHang = () => {
               <hr />
               {/* Bảng chọn sản phẩm */}
               <div className="table-responsive">
-                <div style={{ height: '250px', overflowY: 'auto' }}>
+                <div style={{ height: '430px', overflowY: 'auto' }}>
                   <Table hover>
                     <thead>
                       <tr>

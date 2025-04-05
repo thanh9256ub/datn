@@ -37,6 +37,9 @@ public class OrderDetail {
     @JoinColumn(name = "product_detail_id")
     ProductDetail productDetail;
 
+    @Column(name = "product_detail_name")
+    String productDetailName;
+
     @Column(name = "quantity")
     Integer quantity;
 

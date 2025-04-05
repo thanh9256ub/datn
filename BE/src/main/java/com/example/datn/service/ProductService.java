@@ -541,5 +541,8 @@ public class ProductService {
 
         return ResponseEntity.ok(Map.of());
     }
+    public  List<Object[]> getTop5ProductsWithLowestQuantity() {
+     return repository.findTop5ProductsWithLowestQuantity();
 
+        }
 }

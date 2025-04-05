@@ -208,5 +208,9 @@ public class ProductController {
                 @RequestBody List<Integer> productIds) {
                 return ResponseEntity.ok(service.updateMultipleStatuses(productIds));
         }
-
+        @GetMapping("/top5")
+        public List<Object[]> getTop5ProductsWithLowestQuantity() {
+                return service.getTop5ProductsWithLowestQuantity();
+                //top5 sp sap het
+        }
 }

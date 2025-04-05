@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const COLORS = ['rgba(153,102,255,1)', '#00C49F', '#FFBB28', '#FF8042'];
 
 // Child component for rendering a pie chart
 const PieChartChild = ({ title, apiUrl, categoryNames, colors }) => {
@@ -39,9 +39,15 @@ const PieChartChild = ({ title, apiUrl, categoryNames, colors }) => {
             outerRadius={150}
             fill="#8884d8"
             label
+            isAnimationActive={true} // Enable animation
           >
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+              <Cell
+                key={`cell-${index}`}
+                fill={colors[index % colors.length]}
+                stroke="#fff" // Add stroke for better visual separation
+                strokeWidth={2} // Define stroke width
+              />
             ))}
           </Pie>
           <Tooltip />
