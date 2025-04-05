@@ -129,11 +129,39 @@ public class OrderController {
         //dh theo nam
     }
 
-    @GetMapping("/orders-by-day-january/{month}")
-    public List<Object[]> getOrdersByDayInJanuary(@PathVariable Integer month) {
-        return service.getOrdersByDayInJanuary(month);
+    @GetMapping("/orders-by-day-january")
+    public List<Object[]> getOrdersByDayInJanuary(@RequestParam Integer month,@RequestParam Integer year) {
+        return service.getOrdersByDayInJanuary(month,year);
         //hd theo thang
     }
+
+
+    @GetMapping("/orders-revenue-year/{year}")
+    public List<Object[]> findRevenueByMonthIn2025(@PathVariable Integer year) {
+        return service.findRevenueByMonthIn2025(year);
+        //dt  theo nam
+    }
+    @GetMapping("/orders-revenue-month")
+    public List<Object[]> findRevenueByDayInMarch(@RequestParam Integer month,@RequestParam Integer year ) {
+        return service.findRevenueByDayInMarch(month,year );
+        //dt  theo thang
+    }
+    @GetMapping("/revenue-year")
+    public Object[] getRevenueByYear(@RequestParam Integer year ) {
+        return service.getRevenueByYear(year);
+        //nam
+    }
+    @GetMapping("/revenue-month")
+    public Object[] getRevenueByMonth(@RequestParam Integer year, @RequestParam Integer month ) {
+        return service.getRevenueByMonth(year,month  );
+        //thang
+    }
+    @GetMapping("/revenue-year-month")
+    public Object[] getRevenueBetweenDates(@RequestParam String startDate,@RequestParam String endDate ) {
+        return service.getRevenueBetweenDates(startDate, endDate  );
+        //ngay
+    }
+
     @PostMapping("/checkout/{cartId}")
     public ResponseEntity<ApiResponse<OrderResponse>> checkout(
             @PathVariable("cartId") Integer cartId,

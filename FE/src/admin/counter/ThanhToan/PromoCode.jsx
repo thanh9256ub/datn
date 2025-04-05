@@ -27,7 +27,11 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder,setQrImageUrl,qrInter
 
   const handleShowPromoModal = () => {
     setQrImageUrl(null);
-    if (!idOrder||totalAmount===0) {
+    if (!idOrder) {
+      toast.warn("Vui lòng chọn hóa đơn trước khi chọn mã giảm giá ", toastOptions);
+      return;
+    }
+    if (totalAmount===0) {
       toast.warn("Vui lòng chọn hóa đơn trước khi chọn mã giảm giá ", toastOptions);
       return;
     }

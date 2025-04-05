@@ -67,38 +67,7 @@ public class CounterController {
                 HttpStatus.OK.value(), "Order detail updated successfully", orderDetailResponse);
         return ResponseEntity.ok(apiResponse);
     }
-//@GetMapping("/add-to-cart")
-//public ResponseEntity<ApiResponse<OrderDetailResponse>> addToCart(
-//        @RequestParam("orderID") Integer orderID,
-//        @RequestParam("productID") Integer productID,
-//        @RequestParam("purchaseQuantity") Integer purchaseQuantity) {
-//    try {
-//        // Kiểm tra orderID tồn tại
-//        if (!orderRepository.existsById(orderID)) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                    .body(new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), "Order not found with ID: " + orderID, null));
-//        }
-//
-//        // Kiểm tra productID và số lượng
-//        ProductDetail productDetail = productDetailRepository.findById(productID).orElse(null);
-//        if (productDetail == null) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                    .body(new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), "Product not found with ID: " + productID, null));
-//        }
-//        if (productDetail.getQuantity() < purchaseQuantity) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                    .body(new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), "Insufficient quantity for product ID: " + productID, null));
-//        }
-//
-//        // Cập nhật số lượng sản phẩm và thêm vào giỏ
-//        orderDetailService.updateProductQuantity(productID, purchaseQuantity);
-//        OrderDetailResponse orderDetailResponse = orderDetailService.updateOrAddOrderDetail(orderID, productID, purchaseQuantity);
-//        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Order detail updated successfully", orderDetailResponse));
-//    } catch (Exception e) {
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error adding to cart: " + e.getMessage(), null));
-//    }
-//}
+
     @GetMapping("/update-quantity")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> updateQuantity(@RequestParam Integer orderDetailID,
                                                                            @RequestParam Integer productDetailID,
