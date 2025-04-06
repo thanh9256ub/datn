@@ -1,75 +1,32 @@
 import React, { useState } from 'react';
 import { Input, Button } from 'antd';
 import { MessageOutlined, CloseOutlined } from '@ant-design/icons';
-import { GoogleGenAI, Type } from '@google/genai';
-
-// Configure the Google GenAI client
-const GOOGLE_API_KEY  = 'AIzaSyBJy-DswHgXLYZvyXhh3p49aZzdXTeCl-s';
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { GoogleGenAI } from "@google/genai";
+import axios from 'axios';
 
 const ChatBot = () => {
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [chatMessage, setChatMessage] = useState('');
     const [chatHistory, setChatHistory] = useState([]);
+    const ai = new GoogleGenAI({ apiKey: "AIzaSyBJy-DswHgXLYZvyXhh3p49aZzdXTeCl-s" });
 
     const handleSendMessage = async () => {
         if (chatMessage.trim()) {
             setChatHistory([...chatHistory, { sender: 'user', message: chatMessage }]);
             setChatMessage('');
             try {
-                // Define the function declaration for scheduling meetings
-                const scheduleMeetingFunctionDeclaration = {
-                    name: 'schedule_meeting',
-                    description: 'Schedules a meeting with specified attendees at a given time and date.',
-                    parameters: {
-                        type: Type.OBJECT,
-                        properties: {
-                            attendees: {
-                                type: Type.ARRAY,
-                                items: { type: Type.STRING },
-                                description: 'List of people attending the meeting.',
-                            },
-                            date: {
-                                type: Type.STRING,
-                                description: 'Date of the meeting (e.g., "2024-07-29")',
-                            },
-                            time: {
-                                type: Type.STRING,
-                                description: 'Time of the meeting (e.g., "15:00")',
-                            },
-                            topic: {
-                                type: Type.STRING,
-                                description: 'The subject or topic of the meeting.',
-                            },
-                        },
-                        required: ['attendees', 'date', 'time', 'topic'],
-                    },
-                };
-
-                // Send request to Google GenAI
-                const aiResponse = await ai.models.generateContent({
-                    model: 'gemini-2.0-flash',
+                const response = await ai.models.generateContent({
+                    model: "gemini-2.0-flash",
                     contents: chatMessage,
-                    config: {
-                        tools: [{
-                            functionDeclarations: [scheduleMeetingFunctionDeclaration]
-                        }],
-                    },
                 });
-
-                // Check for function calls in the response
-                if (aiResponse.functionCalls && aiResponse.functionCalls.length > 0) {
-                    const functionCall = aiResponse.functionCalls[0];
-                    setChatHistory(prev => [...prev, { sender: 'ai', message: `Scheduled meeting: ${JSON.stringify(functionCall.args)}` }]);
-                } else {
-                    setChatHistory(prev => [...prev, { sender: 'ai', message: aiResponse.text }]);
-                }
+                setChatHistory(prev => [...prev, { sender: 'ai', message: response.text }]);
             } catch (error) {
-                console.error("Error processing message:", error);
+                console.error("Error generating AI response:", error);
                 setChatHistory(prev => [...prev, { sender: 'ai', message: "Xin lỗi, không thể trả lời ngay bây giờ." }]);
             }
         }
     };
+
 
     return (
         <div>
@@ -147,7 +104,7 @@ const ChatBot = () => {
                                     maxWidth: '80%',
                                 }}
                             >
-                                <strong>{chat.sender === 'ai' ? 'AI' : 'Người dùng'}:</strong> {chat.message}
+                                {chat.message}
                             </div>
                         ))}
                     </div>
@@ -172,6 +129,7 @@ const ChatBot = () => {
                     </div>
                 </div>
             )}
+
         </div>
     );
 };
