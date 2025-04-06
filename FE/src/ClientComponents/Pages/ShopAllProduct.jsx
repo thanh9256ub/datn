@@ -20,6 +20,7 @@ const ShopAllProduct = (props) => {
     const [sortOption, setSortOption] = useState('default');
     const [inputValues, setInputValues] = useState([0, 5000000]);
     const [loading, setLoading] = useState(true);
+    const [visibleProducts, setVisibleProducts] = useState(8);
 
     // Color palette
     const primaryColor = '#6C5CE7';
@@ -146,6 +147,10 @@ const ShopAllProduct = (props) => {
         setPriceRange([0, 5000000]);
         setInputValues([0, 5000000]);
         setSortOption('default');
+    };
+
+    const loadMoreProducts = () => {
+        setVisibleProducts(prev => prev + 8);
     };
 
     return (
@@ -281,9 +286,11 @@ const ShopAllProduct = (props) => {
                             alignItems: 'center',
                             marginBottom: 24
                         }}>
-                            <Text>
+                            {/* <Text>
                                 <span style={{ fontWeight: '600' }}>Hiển thị 1-{filteredProducts.length}</span> trong tổng số {filteredProducts.length} sản phẩm
-                            </Text>
+                            </Text> */}
+
+                            <span style={{ fontWeight: '600' }}>Hiển thị 1-{visibleProducts}</span> trong tổng số {filteredProducts.length} sản phẩm
 
                             <Select
                                 style={{ width: '200px' }}
@@ -298,8 +305,7 @@ const ShopAllProduct = (props) => {
                             </Select>
                         </div>
 
-                        {/* Products Grid */}
-                        <Row gutter={[24, 48]}>
+                        <Row gutter={[24, 48]} style={{ marginBottom: "20px" }}>
                             {loading ? (
                                 Array.from({ length: 8 }).map((_, index) => (
                                     <Col key={index} xs={12} sm={12} md={8} lg={6}>
@@ -307,7 +313,7 @@ const ShopAllProduct = (props) => {
                                     </Col>
                                 ))
                             ) : filteredProducts.length > 0 ? (
-                                filteredProducts.map((product, index) => (
+                                filteredProducts.slice(0, visibleProducts).map((product, index) => (
                                     <Col xs={12} sm={12} md={8} lg={6} key={index}>
                                         <Card
                                             hoverable
@@ -436,8 +442,7 @@ const ShopAllProduct = (props) => {
                             )}
                         </Row>
 
-                        {/* Load More Button */}
-                        {filteredProducts.length > 0 && (
+                        {filteredProducts.length > visibleProducts && (
                             <div style={{ textAlign: 'center', margin: '48px 0' }}>
                                 <Button
                                     type="primary"
@@ -451,6 +456,7 @@ const ShopAllProduct = (props) => {
                                         border: 'none',
                                         fontWeight: '500'
                                     }}
+                                    onClick={loadMoreProducts}
                                 >
                                     Xem thêm
                                 </Button>

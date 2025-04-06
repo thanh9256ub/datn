@@ -114,14 +114,41 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                                     />
                                                 </td>
                                             )}
-                                            {/* {index === 0 && <td rowSpan={variants.length}>{colorName}</td>} */}
-                                            <td>{colorName}</td>
+                                            {index === 0 &&
+                                                <td rowSpan={variants.length}>
+                                                    <div
+                                                        style={{
+                                                            width: 'auto',
+                                                            height: '15px',
+                                                            backgroundColor: variant.color?.colorCode,
+                                                            borderRadius: '3px',
+                                                            marginRight: '10px',
+                                                            border: '1px solid #ccc'
+                                                        }}
+                                                    ></div>
+                                                    {colorName}
+                                                </td>
+                                            }
+                                            {/* <td>
+                                                <div
+                                                    style={{
+                                                        width: '15px',
+                                                        height: '15px',
+                                                        backgroundColor: variant.color?.colorCode,
+                                                        borderRadius: '3px',
+                                                        marginRight: '10px',
+                                                        border: '1px solid #ccc'
+                                                    }}
+                                                ></div>
+                                                {colorName}
+                                            </td> */}
                                             <td>{variant.size?.sizeName || variant.size}</td>
                                             <td>
                                                 <Form.Control
                                                     type="number"
                                                     value={variant.quantity ?? ''}
                                                     min={0}
+                                                    max={10000}
                                                     onChange={(e) => {
                                                         handleInputChange(originalIndex, 'quantity', e.target.value);
                                                     }}

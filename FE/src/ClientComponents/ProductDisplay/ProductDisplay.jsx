@@ -252,7 +252,7 @@ const ProductDisplay = ({ product, productColors }) => {
     return (
         <App>
             <div style={{
-                maxWidth: 1400,
+                maxWidth: 1600,
                 margin: '0 auto',
                 padding: '40px 24px',
                 backgroundColor: '#fff'

@@ -10,7 +10,7 @@ import 'swiper/swiper-bundle.min.css';
 import slide1 from '../../assets/images/slide-show/slide1.jpg';
 import slide2 from '../../assets/images/slide-show/slide2.jpg';
 import slide3 from '../../assets/images/slide-show/slide3.jpg';
-import { fetchProductDetail } from '../Service/productService';
+import { fetchProductColorsByProduct, fetchProductDetail } from '../Service/productService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 
 const { Title, Text } = Typography;
@@ -19,6 +19,7 @@ const Shop = () => {
     const history = useHistory();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [productColors, setProductColors] = useState({});
 
     // Modern color palette
     const primaryColor = '#6C5CE7';
@@ -42,7 +43,20 @@ const Shop = () => {
                     }
                 });
 
+                const colorPromises = products.map(async (item) => {
+                    const colors = await fetchProductColorsByProduct(item.product.id);
+                    return { productId: item.product.id, colors };
+                });
+
+                // Lấy tất cả màu sắc của các sản phẩm
+                const colorData = await Promise.all(colorPromises);
+                const colorMap = colorData.reduce((acc, { productId, colors }) => {
+                    acc[productId] = colors;
+                    return acc;
+                }, {});
+
                 setProducts(Array.from(uniqueProductsMap.values()));
+                setProductColors(colorMap);
             } catch (error) {
                 console.error("Error fetching products:", error);
                 setProducts([]);
@@ -53,6 +67,8 @@ const Shop = () => {
 
         loadProducts();
     }, []);
+
+    const limitedProducts = products.slice(0, 8);
 
     return (
         <div style={{ backgroundColor: '#fff', minHeight: '100vh' }}>
@@ -133,7 +149,7 @@ const Shop = () => {
                             </Col>
                         ))
                     ) : (
-                        products.map((product, index) => (
+                        limitedProducts.map((product, index) => (
                             <Col xs={24} sm={12} md={8} lg={6} key={product.id}>
                                 <Card
                                     hoverable
@@ -242,6 +258,28 @@ const Shop = () => {
                                             </Text>
                                         )}
                                     </div>
+
+                                    {productColors[product.product.id] && productColors[product.product.id].length > 0 && (
+                                        <div style={{ display: 'flex', marginTop: 8 }}>
+                                            {productColors[product.product.id].map((color, index) => (
+                                                <Tag
+                                                    key={index}
+                                                    style={{
+                                                        backgroundColor: color.color.colorCode,
+                                                        color: '#fff',
+                                                        marginRight: 8,
+                                                        borderRadius: '50%',
+                                                        width: 20,
+                                                        height: 20,
+                                                        textAlign: 'center',
+                                                        lineHeight: '20px',
+                                                    }}
+                                                >
+                                                    {/* Chỉ hiển thị màu sắc, có thể thêm icon hoặc text nếu cần */}
+                                                </Tag>
+                                            ))}
+                                        </div>
+                                    )}
 
                                     {/* <Button
                                         type="primary"

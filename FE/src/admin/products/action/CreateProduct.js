@@ -113,9 +113,16 @@ const CreateProduct = () => {
         colors.forEach(color => {
             sizes.forEach(size => {
                 newVariants.push({
-                    color: color.label,
+                    color: {
+                        colorName: color.label,
+                        colorCode: color.colorCode,
+                        id: color.value
+                    },
                     colorId: color.value,
-                    size: size.label,
+                    size: {
+                        sizeName: size.label,
+                        id: size.value
+                    },
                     sizeId: size.value,
                     quantity: '',
                     price: '',
@@ -129,6 +136,33 @@ const CreateProduct = () => {
     };
 
     const handleInputChange = (index, field, value) => {
+        const maxQuantity = 10000;
+        const maxPrice = 10000000;
+
+        if (value === '') {
+            const updatedVariants = [...variantList];
+            updatedVariants[index] = { ...updatedVariants[index], [field]: '' };
+            setVariantList(updatedVariants);
+            return;
+        }
+        const numericValue = parseFloat(value);
+        if (isNaN(numericValue)) {
+            return;
+        }
+
+        if (field === 'quantity') {
+            if (numericValue > maxQuantity) {
+                value = maxQuantity.toString();
+            } else if (numericValue < 0) {
+                value = "0";
+            }
+        } else if (field === 'price') {
+            if (numericValue > maxPrice) {
+                value = maxPrice.toString();
+            } else if (numericValue < 0) {
+                value = "0";
+            }
+        }
         const updatedVariants = [...variantList];
         updatedVariants[index] = { ...updatedVariants[index], [field]: value };
         setVariantList(updatedVariants);
@@ -461,7 +495,7 @@ const CreateProduct = () => {
 
     const isEmpty = (value) => value.trim() === "";
 
-    const isExceedLimit = (value, limit = 1000000000) => {
+    const isExceedLimit = (value, limit) => {
         const num = parseFloat(value);
         return isNaN(num) || num < 0 || num > limit;
     };
@@ -472,14 +506,18 @@ const CreateProduct = () => {
             return;
         }
 
-        if (!isEmpty(commonQuantity) && isExceedLimit(commonQuantity)) {
-            toast.error("Số lượng quá lớn! Vui lòng nhập đúng giá trị.");
-            return;
+        if (!isEmpty(commonQuantity)) {
+            if (isExceedLimit(commonQuantity, 10000)) {
+                toast.error("Số lượng quá lớn! Vui lòng nhập giá trị từ 0 đến 1000.");
+                return;
+            }
         }
 
-        if (!isEmpty(commonPrice) && isExceedLimit(commonPrice)) {
-            toast.error("Giá quá lớn! Vui lòng nhập đúng giá trị.");
-            return;
+        if (!isEmpty(commonPrice)) {
+            if (isExceedLimit(commonPrice, 10000000)) {
+                toast.error("Giá quá lớn! Vui lòng nhập giá trị từ 0 đến 10 triệu.");
+                return;
+            }
         }
 
         const updatedVariants = variantList.map(variant => ({
@@ -488,10 +526,9 @@ const CreateProduct = () => {
             price: commonPrice.trim() !== "" ? parseFloat(commonPrice) : variant.price
         }));
 
-        setVariantList(updatedVariants);
-        handleCloseModal();
+        setVariantList(updatedVariants);  // Cập nhật state
+        handleCloseModal();  // Đóng modal
     };
-
 
     const handleSaveClick = async () => {
         if (isSaving) return;
@@ -656,7 +693,7 @@ const CreateProduct = () => {
                                 <div className='col-md-9'></div>
                                 <div className='col-md-3'>
                                     {variantList.length > 0 && (
-                                        <button type="button" className="btn btn-primary float-right" onClick={handleOpenModal}>
+                                        <button type="button" className="btn btn-primary btn-sm float-right" onClick={handleOpenModal}>
                                             + Thêm thuộc tính chung
                                         </button>
                                     )}

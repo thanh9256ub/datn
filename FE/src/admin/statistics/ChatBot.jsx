@@ -1,74 +1,191 @@
-import React, { useState } from 'react';
-import { Input, Button } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Input, Button, Spin } from 'antd';
 import { MessageOutlined, CloseOutlined } from '@ant-design/icons';
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenAI } from "@google/genai";
+import axios from 'axios';
 
-// Configure the Google GenAI client
-const GOOGLE_API_KEY  = 'AIzaSyBJy-DswHgXLYZvyXhh3p49aZzdXTeCl-s';
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const BASE_URL = 'http://localhost:8080';
 
 const ChatBot = () => {
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [chatMessage, setChatMessage] = useState('');
     const [chatHistory, setChatHistory] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const ai = new GoogleGenAI({ apiKey: "AIzaSyBJy-DswHgXLYZvyXhh3p49aZzdXTeCl-s" });
+
+    const storeInfo = {
+        name: "H2TL",
+        address: "123 Đường ABC, Quận 1, TP.HCM",
+        phone: "0123 456 789",
+        hours: "8:00 - 22:00 hàng ngày",
+        email: "contact@shoestore.com"
+    };
+
+    const searchBrands = async () => {
+        try {
+            const response = await axios.get(`${BASE_URL}/brand/active`);
+            return response.data?.data || []; // Giả sử API trả về data.data
+        } catch (error) {
+            console.error("Error searching shoes:", error);
+            return [];
+        }
+    };
+
+    // Hàm kiểm tra câu hỏi liên quan đến giày
+    const shoeKeywords = ['cổ cao', 'cổ thấp'];
+    const brandKeywords = [searchBrands];
+    const storeKeywords = ['địa chỉ', 'giờ mở cửa', 'số điện thoại', 'liên hệ', 'email'];
+
+    useEffect(() => {
+        if (isChatOpen && chatHistory.length === 0) {
+            setChatHistory([{
+                sender: 'ai',
+                message: `Xin chào! Tôi là trợ lý ảo của shop giày ${storeInfo.name}. Tôi có thể giúp gì cho bạn? 
+                \n- Tìm sản phẩm giày
+                \n- Thông tin cửa hàng
+                \n- Hỗ trợ khác`
+            }]);
+        }
+    }, [isChatOpen]);
+
+    // Hàm trích xuất từ khóa tìm kiếm từ câu hỏi
+    const extractSearchQuery = (message) => {
+        const lowerMessage = message.toLowerCase();
+
+        // Kiểm tra câu hỏi về cửa hàng
+        if (storeKeywords.some(keyword => lowerMessage.includes(keyword))) {
+            return 'store_info';
+        }
+
+        // Tìm thương hiệu trong câu hỏi
+        const foundBrand = brandKeywords.find(brand => lowerMessage.includes(brand));
+
+        // Nếu có từ khóa giày và thương hiệu
+        if (shoeKeywords.some(shoe => lowerMessage.includes(shoe))) {
+            return foundBrand || shoeKeywords.find(shoe => lowerMessage.includes(shoe));
+        }
+
+        return foundBrand || null;
+    };
+
+    // Hàm trả lời thông tin cửa hàng
+    const getStoreInfoResponse = (question) => {
+        const lowerQuestion = question.toLowerCase();
+
+        if (lowerQuestion.includes('địa chỉ') || lowerQuestion.includes('ở đâu')) {
+            return `🏠 ${storeInfo.name} nằm tại: ${storeInfo.address}`;
+        }
+        else if (lowerQuestion.includes('giờ') || lowerQuestion.includes('mở cửa')) {
+            return `⏰ Cửa hàng mở cửa: ${storeInfo.hours}`;
+        }
+        else if (lowerQuestion.includes('điện thoại') || lowerQuestion.includes('liên hệ')) {
+            return `📞 Số điện thoại: ${storeInfo.phone}`;
+        }
+        else if (lowerQuestion.includes('email')) {
+            return `📧 Email: ${storeInfo.email}`;
+        }
+        else {
+            return `Thông tin cửa hàng:
+            \n🏠 Địa chỉ: ${storeInfo.address}
+            \n⏰ Giờ mở cửa: ${storeInfo.hours}
+            \n📞 Điện thoại: ${storeInfo.phone}
+            \n📧 Email: ${storeInfo.email}`;
+        }
+    };
+
+    // Hàm tìm kiếm giày
+    const searchShoes = async (query) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/products/search-ai?name=${encodeURIComponent(query)}`);
+            return response.data?.data || []; // Giả sử API trả về data.data
+        } catch (error) {
+            console.error("Error searching shoes:", error);
+            return [];
+        }
+    };
 
     const handleSendMessage = async () => {
-        if (chatMessage.trim()) {
-            setChatHistory([...chatHistory, { sender: 'user', message: chatMessage }]);
-            setChatMessage('');
-            try {
-                // Define the function declaration for scheduling meetings
-                const scheduleMeetingFunctionDeclaration = {
-                    name: 'schedule_meeting',
-                    description: 'Schedules a meeting with specified attendees at a given time and date.',
-                    parameters: {
-                        type: Type.OBJECT,
-                        properties: {
-                            attendees: {
-                                type: Type.ARRAY,
-                                items: { type: Type.STRING },
-                                description: 'List of people attending the meeting.',
-                            },
-                            date: {
-                                type: Type.STRING,
-                                description: 'Date of the meeting (e.g., "2024-07-29")',
-                            },
-                            time: {
-                                type: Type.STRING,
-                                description: 'Time of the meeting (e.g., "15:00")',
-                            },
-                            topic: {
-                                type: Type.STRING,
-                                description: 'The subject or topic of the meeting.',
-                            },
-                        },
-                        required: ['attendees', 'date', 'time', 'topic'],
-                    },
-                };
+        if (!chatMessage.trim()) return;
 
-                // Send request to Google GenAI
-                const aiResponse = await ai.models.generateContent({
-                    model: 'gemini-2.0-flash',
-                    contents: chatMessage,
-                    config: {
-                        tools: [{
-                            functionDeclarations: [scheduleMeetingFunctionDeclaration]
-                        }],
-                    },
-                });
+        // Thêm câu hỏi vào lịch sử
+        setChatHistory([...chatHistory, { sender: 'user', message: chatMessage }]);
+        setChatMessage('');
+        setLoading(true);
 
-                // Check for function calls in the response
-                if (aiResponse.functionCalls && aiResponse.functionCalls.length > 0) {
-                    const functionCall = aiResponse.functionCalls[0];
-                    setChatHistory(prev => [...prev, { sender: 'ai', message: `Scheduled meeting: ${JSON.stringify(functionCall.args)}` }]);
-                } else {
-                    setChatHistory(prev => [...prev, { sender: 'ai', message: aiResponse.text }]);
-                }
-            } catch (error) {
-                console.error("Error processing message:", error);
-                setChatHistory(prev => [...prev, { sender: 'ai', message: "Xin lỗi, không thể trả lời ngay bây giờ." }]);
-            }
+        // Trích xuất từ khóa tìm kiếm
+        const searchQuery = extractSearchQuery(chatMessage);
+
+        if (searchQuery === 'store_info') {
+            const storeResponse = getStoreInfoResponse(chatMessage);
+            setChatHistory(prev => [...prev, {
+                sender: 'ai',
+                message: storeResponse
+            }]);
+            setLoading(false);
+            return;
         }
+
+        if (searchQuery) {
+            const shoes = await searchShoes(searchQuery);
+
+            if (shoes.length > 0) {
+                // Hiển thị tối đa 3 sản phẩm
+                const topProducts = shoes.slice(0, 3);
+                setChatHistory(prev => [...prev, {
+                    sender: 'ai',
+                    message: (
+                        <div>
+                            <p>Tìm thấy {shoes.length} sản phẩm phù hợp:</p>
+                            {topProducts.map(product => (
+                                <div key={product.id} style={{ marginBottom: '10px' }}>
+                                    <a
+                                        href={`/product/${product.id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{ color: '#1890ff', textDecoration: 'underline' }}
+                                    >
+                                        <img
+                                            src={product.mainImage || 'https://via.placeholder.com/150?text=Ảnh+phụ'}
+                                            // alt={product.productName}
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                                padding: 4
+                                            }}
+                                        />
+                                        {product.productName} - {product.material.materialName}
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                    )
+                }]);
+            } else {
+                setChatHistory(prev => [...prev, {
+                    sender: 'ai',
+                    message: `Hiện không có sản phẩm "${searchQuery}" trong cửa hàng. Bạn muốn xem các sản phẩm khác không?`
+                }]);
+            }
+            setLoading(false);
+            return;
+        }
+
+        // Nếu không phải câu hỏi về sản phẩm, dùng Gemini
+        try {
+            const response = await ai.models.generateContent({
+                model: "gemini-2.0-flash",
+                contents: `Bạn là trợ lý cửa hàng giày. Hãy trả lời ngắn gọn: ${chatMessage}`,
+            });
+            setChatHistory(prev => [...prev, { sender: 'ai', message: response.text }]);
+        } catch (error) {
+            console.error("Error generating AI response:", error);
+            setChatHistory(prev => [...prev, {
+                sender: 'ai',
+                message: "Xin lỗi, không thể trả lời ngay bây giờ."
+            }]);
+        }
+        setLoading(false);
     };
 
     return (
@@ -100,14 +217,15 @@ const ChatBot = () => {
                         position: 'fixed',
                         bottom: '20px',
                         right: '20px',
-                        width: '300px',
-                        height: '400px',
+                        width: '350px',
+                        height: '500px',
                         backgroundColor: 'white',
                         borderRadius: '10px',
                         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
                         display: 'flex',
                         flexDirection: 'column',
                         overflow: 'hidden',
+                        zIndex: 1000,
                     }}
                 >
                     <div
@@ -120,7 +238,7 @@ const ChatBot = () => {
                             alignItems: 'center',
                         }}
                     >
-                        <span>Chat tư vấn khách hàng</span>
+                        <span>Chat tư vấn giày</span>
                         <CloseOutlined
                             style={{ cursor: 'pointer' }}
                             onClick={() => setIsChatOpen(false)}
@@ -144,12 +262,17 @@ const ChatBot = () => {
                                     backgroundColor: chat.sender === 'user' ? '#e6f7ff' : '#f5f5f5',
                                     padding: '8px 12px',
                                     borderRadius: '10px',
-                                    maxWidth: '80%',
+                                    maxWidth: '90%',
                                 }}
                             >
-                                <strong>{chat.sender === 'ai' ? 'AI' : 'Người dùng'}:</strong> {chat.message}
+                                {chat.message}
                             </div>
                         ))}
+                        {loading && (
+                            <div style={{ alignSelf: 'center' }}>
+                                <Spin size="small" />
+                            </div>
+                        )}
                     </div>
                     <div
                         style={{
@@ -162,11 +285,15 @@ const ChatBot = () => {
                         <Input
                             value={chatMessage}
                             onChange={e => setChatMessage(e.target.value)}
-                            placeholder="Nhập tin nhắn..."
+                            placeholder="Nhập tên giày bạn muốn tìm..."
                             onPressEnter={handleSendMessage}
                             style={{ flex: 1 }}
                         />
-                        <Button type="primary" onClick={handleSendMessage}>
+                        <Button
+                            type="primary"
+                            onClick={handleSendMessage}
+                            loading={loading}
+                        >
                             Gửi
                         </Button>
                     </div>

@@ -36,6 +36,7 @@ const Product = () => {
                     id: Number(productID),
                     name: detailResponse[0].product.productName || "Unnamed Product",
                     image: detailResponse[0].product.mainImage || "",
+                    description: detailResponse[0].product.description || "",
                     price: detailResponse[0].price || 0 // Lấy price từ product-detail
                 } : null;
 
