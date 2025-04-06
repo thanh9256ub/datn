@@ -9,6 +9,8 @@ import {
 import { ShopContext } from '../Context/ShopContext';
 import { fetchSizesByColor, fetchImagesByProductColor, fetchProductDetailByAttributes } from '../Service/productService';
 
+import chooseSize from '../../assets/images/choose-size/size-shoe.jpeg';
+
 const { Text, Title } = Typography;
 
 const ProductDisplay = ({ product, productColors }) => {
@@ -24,6 +26,7 @@ const ProductDisplay = ({ product, productColors }) => {
     const [confirmModalVisible, setConfirmModalVisible] = useState(false);
     const [selectedProductDetails, setSelectedProductDetails] = useState(null);
     const [isWishlisted, setIsWishlisted] = useState(false);
+    const [sizeGuideVisible, setSizeGuideVisible] = useState(false);
 
     const selectedColorName = productColors.find(c => c.color.id === selectedColorId)?.color.colorName;
     const selectedSizeName = sizes.find(s => s.id === selectedSize)?.sizeName;
@@ -248,6 +251,13 @@ const ProductDisplay = ({ product, productColors }) => {
 
     if (!product) return <Skeleton active paragraph={{ rows: 10 }} />;
 
+    const handleSizeGuideClick = () => {
+        setSizeGuideVisible(true);
+    };
+
+    const handleSizeGuideCancel = () => {
+        setSizeGuideVisible(false);
+    };
 
     return (
         <App>
@@ -498,6 +508,7 @@ const ProductDisplay = ({ product, productColors }) => {
                                             color: primaryColor,
                                             padding: '0 4px'
                                         }}
+                                        onClick={handleSizeGuideClick}
                                     >
                                         Hướng dẫn chọn size
                                     </Button>
@@ -803,6 +814,36 @@ const ProductDisplay = ({ product, productColors }) => {
                                 </Row>
                             </div>
                         )}
+                    </div>
+                </Modal>
+
+                <Modal
+                    title="Hướng dẫn chọn size"
+                    visible={sizeGuideVisible}
+                    onCancel={handleSizeGuideCancel}
+                    footer={null}
+                    width={800}
+                >
+                    <div style={{ textAlign: 'center' }}>
+                        <img
+                            src={chooseSize}// Thay bằng đường dẫn ảnh thực tế
+                            alt="Bảng size giày"
+                            style={{
+                                maxWidth: '100%',
+                                height: '500px',
+                                border: '1px solid #f0f0f0',
+                                borderRadius: 8
+                            }}
+                        />
+                        <div style={{ marginTop: 16 }}>
+                            <Button
+                                type="primary"
+                                onClick={handleSizeGuideCancel}
+                                style={{ marginTop: 16 }}
+                            >
+                                Đã hiểu
+                            </Button>
+                        </div>
                     </div>
                 </Modal>
             </div>

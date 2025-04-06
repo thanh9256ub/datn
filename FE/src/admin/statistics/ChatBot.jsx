@@ -33,7 +33,7 @@ const ChatBot = () => {
 
     // Hàm kiểm tra câu hỏi liên quan đến giày
     const shoeKeywords = ['cổ cao', 'cổ thấp'];
-    const brandKeywords = [searchBrands];
+    const brandKeywords = ['adidas', 'nike', 'mlb', 'ny', 'boston', 'la', 'puma'];
     const storeKeywords = ['địa chỉ', 'giờ mở cửa', 'số điện thoại', 'liên hệ', 'email'];
 
     useEffect(() => {
