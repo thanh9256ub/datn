@@ -171,11 +171,9 @@ public class OrderDetailService {
     }
     @Transactional
     public List<OrderDetailResponse> updateOrderDetails(Integer orderId, List<OrderDetailRequest> items) {
-        // Kiểm tra xem order có tồn tại không
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
 
-        // Lấy danh sách chi tiết đơn hàng hiện tại để hoàn lại số lượng sản phẩm
         List<OrderDetail> currentDetails = repository.findByOrderId(orderId);
         for (OrderDetail detail : currentDetails) {
             ProductDetail productDetail = detail.getProductDetail();
@@ -184,25 +182,20 @@ public class OrderDetailService {
             productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
         }
 
-        // Xóa toàn bộ chi tiết đơn hàng hiện tại của orderId
         repository.deleteByOrderId(orderId);
 
-        // Thêm các chi tiết đơn hàng mới từ request
         List<OrderDetail> newDetails = items.stream().map(item -> {
             ProductDetail productDetail = productDetailRepository.findById(item.getProductDetailId())
                     .orElseThrow(() -> new RuntimeException("ProductDetail not found with id: " + item.getProductDetailId()));
 
-            // Kiểm tra số lượng tồn kho
             if (productDetail.getQuantity() < item.getQuantity()) {
                 throw new RuntimeException("Insufficient stock for product: " + productDetail.getProduct().getProductName());
             }
 
-            // Trừ số lượng trong kho
             productDetail.setQuantity(productDetail.getQuantity() - item.getQuantity());
             productDetailRepository.save(productDetail);
             productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
 
-            // Tạo OrderDetail mới
             OrderDetail orderDetail = new OrderDetail();
             orderDetail.setOrder(order);
             orderDetail.setProductDetail(productDetail);
@@ -215,8 +208,15 @@ public class OrderDetailService {
             return orderDetail;
         }).collect(Collectors.toList());
 
-        // Lưu tất cả chi tiết đơn hàng mới
         List<OrderDetail> savedDetails = repository.saveAll(newDetails);
+
+        double orderTotalPrice = savedDetails.stream()
+                .mapToDouble(OrderDetail::getTotalPrice)
+                .sum();
+
+        order.setTotalPrice(orderTotalPrice);
+        orderRepository.save(order);
+
         return mapper.toListResponses(savedDetails);
     }
 }

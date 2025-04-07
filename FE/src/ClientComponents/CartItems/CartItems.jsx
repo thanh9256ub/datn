@@ -5,7 +5,7 @@ import {
 } from 'antd';
 import {
     DeleteOutlined, ShoppingCartOutlined, EnvironmentOutlined, PhoneOutlined,
-    UserOutlined, CreditCardOutlined, MoneyCollectOutlined
+    UserOutlined, CreditCardOutlined, MoneyCollectOutlined,CheckCircleOutlined
 } from '@ant-design/icons';
 import { ShopContext } from '../Context/ShopContext';
 import { fetchProvinces, fetchDistricts, fetchWards, fetchShippingFee, createOrder, createGuestOrder, fetchCustomerProfile, clearCartOnServer, getCartDetails, checkStockAvailability } from '../Service/productService';
@@ -52,7 +52,8 @@ const CartItems = () => {
     const hasLoadedCart = useRef(false);
     const [customerProfile, setCustomerProfile] = useState(null);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
-
+    const [thankYouModalVisible, setThankYouModalVisible] = useState(false);
+    const [orderCode, setOrderCode] = useState('');
     // Khởi tạo giỏ hàng
     useEffect(() => {
         console.log('CartItems mounted with:', { isGuest, cartId, token, cartItems });
@@ -313,6 +314,7 @@ const CartItems = () => {
             const orderData = {
                 customerName: formValues.name,
                 phone: formValues.phone,
+                email: formValues.email,
                 address: address,
                 note: formValues.note || '',
                 shippingFee: shippingFee,
@@ -334,6 +336,11 @@ const CartItems = () => {
             if (isGuest) {
                 response = await createGuestOrder(orderData);
                 if (response.status === 201) {
+                    const orderCode = response.data?.orderCode || `DH-${Date.now()}`;
+                    console.log("===orderCode==="+orderCode);
+                    
+                    setOrderCode(orderCode);
+                    setThankYouModalVisible(true);
                     message.success('Đặt hàng thành công!');
                     clearCart();
                     localStorage.removeItem('cartItems');
@@ -359,6 +366,11 @@ const CartItems = () => {
                 response = await createOrder(cartId, orderData);
                 console.log('Authenticated Order Response:', response.data);
                 if (response.status === 201) {
+                    const orderCode = response.data?.orderCode || `DH-${Date.now()}`;
+                    console.log("===orderCode==="+orderCode);
+                    
+                    setOrderCode(orderCode);
+                    setThankYouModalVisible(true);
                     message.success('Đặt hàng thành công!');
                     await clearCartOnServer(cartId);
                     clearCart();
@@ -494,6 +506,19 @@ const CartItems = () => {
                                     placeholder="0987654321"
                                 />
                             </Form.Item>
+                            <Form.Item
+                                name="email"
+                                label="Email"
+                                rules={[
+                                    { required: true, message: 'Vui lòng nhập email' },
+                                    { type: 'email', message: 'Email không hợp lệ' }
+                                ]}
+                            >
+                                <Input 
+                                    placeholder="example@email.com" 
+                                    type="email"
+                                />
+                            </Form.Item>
                             <Form.Item name="province" label="Tỉnh/Thành phố" rules={[{ required: true, message: 'Vui lòng chọn tỉnh/thành phố' }]}>
                                 <Select placeholder="Chọn tỉnh/thành phố" onChange={value => setSelectedProvince(value)} loading={!provinces.length} suffixIcon={<EnvironmentOutlined />}>
                                     {provinces.map(province => (
@@ -614,6 +639,38 @@ const CartItems = () => {
                         </>
                     )}
                 </Space>
+            </Modal>
+            <Modal
+                title="Cảm ơn bạn đã đặt hàng"
+                visible={thankYouModalVisible}
+                onOk={() => setThankYouModalVisible(false)}
+                onCancel={() => setThankYouModalVisible(false)}
+                footer={[
+                    <Button 
+                        key="submit" 
+                        type="primary" 
+                        onClick={() => setThankYouModalVisible(false)}
+                    >
+                        Đóng
+                    </Button>
+                ]}
+                centered
+            >
+                <div style={{ textAlign: 'center' }}>
+                    <CheckCircleOutlined style={{ fontSize: 48, color: '#52c41a', marginBottom: 16 }} />
+                    <Title level={4} style={{ marginBottom: 8 }}>Đơn hàng của bạn đã được tiếp nhận!</Title>
+                    <Text style={{ display: 'block', marginBottom: 16 }}>
+                        Mã đơn hàng của bạn: <Text strong>{orderCode}</Text>
+                    </Text>
+                    <Text>
+                        Bạn có thể tra cứu đơn hàng <a href="/lookup" onClick={(e) => {
+                            e.preventDefault();
+                            // Điều hướng đến trang tra cứu
+                            window.location.href = `/lookup`;
+                            setThankYouModalVisible(false);
+                        }}>tại đây</a>
+                    </Text>
+                </div>
             </Modal>
         </div>
     );

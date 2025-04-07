@@ -368,4 +368,9 @@ public OrderResponse updateStatus(Integer id, int newStatus) {
         return repository.findRevenueBetweenDates(startDate, endDate);
 
     }
+    public OrderResponse getOrderByCode(String orderCode) {
+        Order order = repository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with code: " + orderCode));
+        return mapper.toOrderResponse(order);
+    }
 }

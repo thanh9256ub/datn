@@ -157,6 +157,7 @@ public class ProductDetailController {
                         "Stock availability checked successfully",
                         stockAvailability
                 );
+                return ResponseEntity.ok(response);}
         @GetMapping("{id}/related")
         public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getRelatedProducts(
                 @PathVariable("id") Integer productId) {

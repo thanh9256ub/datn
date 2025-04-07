@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams,useHistory } from 'react-router-dom';
 import { Card, Table, Button, Row, Col, Toast, Modal, Form, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faClock, faBoxOpen, faTruck, faHome, faCheckCircle, faTimesCircle, faPrint, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -19,7 +19,7 @@ const OrderDetail = () => {
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [availableProducts, setAvailableProducts] = useState([]);
     const [updatedCart, setUpdatedCart] = useState([]);
-
+    const history = useHistory();
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedColor, setSelectedColor] = useState("");
     const [selectedSize, setSelectedSize] = useState("");
@@ -283,6 +283,7 @@ const OrderDetail = () => {
             setUpdatedCart(updatedDetails);
             setShowUpdateModal(false);
             showNotification("Cập nhật danh sách sản phẩm thành công!");
+            history.replace(location.pathname, { ...location.state, shouldRefresh: true });
         } catch (error) {
             showNotification("Lỗi khi cập nhật danh sách sản phẩm: " + error.message);
         }

@@ -92,7 +92,8 @@ const Orders = () => {
 
     const calculateTotalPayment = (order) => {
         if (!order) return 0;
-        // Đồng bộ logic với OrderDetail
+        
+        // Logic đồng bộ với OrderDetail
         if (order.orderDetails?.length > 0) {
             const productsTotal = order.orderDetails.reduce(
                 (total, item) => total + (item.totalPrice || 0),
@@ -100,9 +101,10 @@ const Orders = () => {
             );
             const shippingFee = order.shippingFee || 0;
             const discountValue = order.discountValue || 0;
-            console.log('Tính toán tổng tiền:', { productsTotal, shippingFee, discountValue }); // Debug
             return productsTotal + shippingFee - discountValue;
         }
+        
+        // Fallback nếu không có orderDetails
         return (order.totalPrice || 0) + (order.shippingFee || 0) - (order.discountValue || 0);
     };
 

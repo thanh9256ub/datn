@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.awt.print.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
@@ -103,4 +104,5 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             "AND updated_at BETWEEN :startDate AND :endDate", nativeQuery = true)
     Object[] findRevenueBetweenDates(@Param("startDate") String startDate,
                                      @Param("endDate") String endDate);
+    Optional<Order> findByOrderCode(String orderCode);
 }
