@@ -11,32 +11,52 @@ const ChatBot = () => {
     const [chatMessage, setChatMessage] = useState('');
     const [chatHistory, setChatHistory] = useState([]);
     const [loading, setLoading] = useState(false);
+
+    const [shoeKeywords, setShoeKeywords] = useState([]);
+    const [brandKeywords, setBrandKeywords] = useState([]);
     const ai = new GoogleGenAI({ apiKey: "AIzaSyBJy-DswHgXLYZvyXhh3p49aZzdXTeCl-s" });
 
     const storeInfo = {
         name: "H2TL",
-        address: "123 Đường ABC, Quận 1, TP.HCM",
+        address: "Trịnh Văn Bô, Nam Từ Liêm  , Hà Nội",
         phone: "0123 456 789",
         hours: "8:00 - 22:00 hàng ngày",
-        email: "contact@shoestore.com"
+        email: "H2TL@fpt.edu.vn"
     };
 
-    const searchBrands = async () => {
-        try {
-            const response = await axios.get(`${BASE_URL}/brand/active`);
-            return response.data?.data || []; // Giả sử API trả về data.data
-        } catch (error) {
-            console.error("Error searching shoes:", error);
-            return [];
-        }
-    };
-
-    // Hàm kiểm tra câu hỏi liên quan đến giày
-    const shoeKeywords = ['cổ cao', 'cổ thấp'];
-    const brandKeywords = ['adidas', 'nike', 'mlb', 'ny', 'boston', 'la', 'puma'];
     const storeKeywords = ['địa chỉ', 'giờ mở cửa', 'số điện thoại', 'liên hệ', 'email'];
 
     useEffect(() => {
+        const fetchShoeKeywords = async () => {
+            try {
+                const response = await axios.get(`${BASE_URL}/products/list`);
+                const productNames = response.data.data.map(item => item.productName);
+                setShoeKeywords(productNames);
+               
+            } catch (error) {
+                console.error("Error fetching shoe keywords:", error);
+            }
+        };
+
+        fetchShoeKeywords();
+    }, []);
+
+    useEffect(() => {
+        const fetchBrandKeywords = async () => {
+            try {
+                const response = await axios.get(`${BASE_URL}/products/list`);
+                const brandNames = response.data.data.map(item => item.brand.brandName);
+                setBrandKeywords(brandNames);
+           
+            } catch (error) {
+                console.error("Error fetching brand keywords:", error);
+            }
+        };
+
+        fetchBrandKeywords();
+    }, []);
+
+    useEffect(async () => {
         if (isChatOpen && chatHistory.length === 0) {
             setChatHistory([{
                 sender: 'ai',
@@ -46,6 +66,7 @@ const ChatBot = () => {
                 \n- Hỗ trợ khác`
             }]);
         }
+        
     }, [isChatOpen]);
 
     // Hàm trích xuất từ khóa tìm kiếm từ câu hỏi
@@ -97,7 +118,9 @@ const ChatBot = () => {
     const searchShoes = async (query) => {
         try {
             const response = await axios.get(`${BASE_URL}/products/search-ai?name=${encodeURIComponent(query)}`);
+            console.log(response.data.data );
             return response.data?.data || []; // Giả sử API trả về data.data
+
         } catch (error) {
             console.error("Error searching shoes:", error);
             return [];
@@ -127,7 +150,7 @@ const ChatBot = () => {
 
         if (searchQuery) {
             const shoes = await searchShoes(searchQuery);
-
+console.log(shoes);
             if (shoes.length > 0) {
                 // Hiển thị tối đa 3 sản phẩm
                 const topProducts = shoes.slice(0, 3);
@@ -175,7 +198,7 @@ const ChatBot = () => {
         try {
             const response = await ai.models.generateContent({
                 model: "gemini-2.0-flash",
-                contents: `Bạn là trợ lý cửa hàng giày. Hãy trả lời ngắn gọn: ${chatMessage}`,
+                contents: `Bạn là trợ lý cửa hàng giày tên H2TL. Hãy trả lời ngắn gọn: ${chatMessage}`,
             });
             setChatHistory(prev => [...prev, { sender: 'ai', message: response.text }]);
         } catch (error) {
@@ -185,6 +208,7 @@ const ChatBot = () => {
                 message: "Xin lỗi, không thể trả lời ngay bây giờ."
             }]);
         }
+
         setLoading(false);
     };
 
