@@ -46,7 +46,7 @@ public class SecurityConfig {
                                     "products/**",
                                     "product/**",
                                     "employee/forgot-password",
-                                    "product-detail/**",
+                                    "/product-detail/**",
                                     "/brand",
                                     "/category",
                                     "/material",
@@ -58,10 +58,12 @@ public class SecurityConfig {
                                     "/counter/districts",
                                     "/counter/wards",
                                     "/counter/get-price",
+                                    "/counter/update-order-details/{orderId}",
                                     "/cart-details/**",
                                     "/carts/**",
                                     "/order/checkout/{cartId}",
-                                    "/order/checkout/guest"
+                                    "/order/checkout/guest",
+                                    "/order/code/{orderCode}","/order-detail/order/{orderId}"
                             )
                             .permitAll()
                             .requestMatchers("/address/**", "/role/**")

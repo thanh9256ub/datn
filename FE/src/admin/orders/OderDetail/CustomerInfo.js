@@ -1,4 +1,3 @@
-// CustomerInfo.js
 import React, { useState, useEffect } from 'react';
 import {
     Card,
@@ -17,7 +16,7 @@ import {
     fetchWards
 } from '../OrderService/orderService';
 
-const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
+const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [provinces, setProvinces] = useState([]);
@@ -29,11 +28,11 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
         phone: customer.phone || '',
         addressDetail: '',
         province: '',
-        provinceId: '', // Thêm trường này
+        provinceId: '',
         district: '',
-        districtId: '', // Thêm trường này
+        districtId: '',
         ward: '',
-        wardId: '' // Thêm trường này
+        wardId: ''
     });
 
     useEffect(() => {
@@ -45,7 +44,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
                 }
             } catch (error) {
                 console.error('Error loading provinces:', error);
-                setProvinces([]); // Đảm bảo không bị undefined
+                setProvinces([]);
             }
         };
 
@@ -59,7 +58,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
     const parseAddress = (fullAddress) => {
         if (!fullAddress) return;
 
-        const parts = fullAddress.split(/,\s*/); // Sử dụng regex để split chính xác hơn
+        const parts = fullAddress.split(/,\s*/);
         if (parts.length >= 4) {
             setFormData(prev => ({
                 ...prev,
@@ -70,6 +69,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
             }));
         }
     };
+
     const handleWardChange = (wardName) => {
         const selectedWard = wards.find(w => w.WARDS_NAME === wardName);
         setFormData(prev => ({
@@ -78,21 +78,18 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
             wardId: selectedWard?.WARDS_ID || ''
         }));
     };
+
     const handleProvinceChange = async (provinceName) => {
         setIsLoading(true);
         try {
-            // Tìm province object từ tên được chọn
             const province = provinces.find(p => p.PROVINCE_NAME === provinceName);
-
             if (province) {
-                // Truyền PROVINCE_ID vào fetchDistricts
                 const districtsData = await fetchDistricts(province.PROVINCE_ID);
-
                 setDistricts(districtsData);
                 setFormData(prev => ({
                     ...prev,
                     province: provinceName,
-                    provinceId: province.PROVINCE_ID, // Lưu cả ID để sử dụng sau này
+                    provinceId: province.PROVINCE_ID,
                     district: '',
                     districtId: '',
                     ward: '',
@@ -105,6 +102,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
             setIsLoading(false);
         }
     };
+
     const handleDistrictChange = async (districtName) => {
         setIsLoading(true);
         try {
@@ -128,9 +126,13 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
     };
 
     const handleSubmit = async () => {
+        if (!canUpdate) {
+            showNotification("Không thể cập nhật thông tin khi đơn hàng đang giao hàng hoặc đã hoàn tất!");
+            return;
+        }
+
         setIsLoading(true);
         try {
-            // Validate dữ liệu
             if (!formData.customerName?.trim()) {
                 throw new Error("Vui lòng nhập tên khách hàng");
             }
@@ -146,31 +148,24 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
                 formData.province
             ].filter(Boolean).join(', ');
 
-            // Gọi API cập nhật
             const result = await onUpdate({
                 customerName: formData.customerName.trim(),
                 phone: formData.phone.trim(),
                 address: fullAddress
             });
-            await onUpdate({
-                customerName: formData.customerName.trim(),
-                phone: formData.phone.trim(),
-                address: fullAddress
-            });
-            console.log('Update result:', result);
-            setShowModal(false);
 
-            // Hiển thị thông báo thành công
+            setShowModal(false);
             if (result) {
                 showNotification("Cập nhật thành công!");
             }
         } catch (error) {
             console.error('Submit error:', error);
-            alert(error.message); // Hiển thị lỗi cụ thể cho người dùng
+            showNotification(error.message);
         } finally {
             setIsLoading(false);
         }
     };
+
     return (
         <>
             <Card className="shadow-sm h-100">
@@ -180,6 +175,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
                         variant="outline-primary"
                         size="sm"
                         onClick={() => setShowModal(true)}
+                        disabled={!canUpdate} // Vô hiệu hóa nút nếu không được phép cập nhật
                     >
                         Cập nhật
                     </Button>
@@ -188,7 +184,6 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
                     <p><strong>Tên:</strong> {customer.customerName}</p>
                     <p><strong>Số điện thoại:</strong> {customer.phone}</p>
                     <p><strong>Địa chỉ:</strong> {customer.address}</p>
-                    <p><strong>Email:</strong> {customer.customer?.email || 'N/A'}</p>
                 </Card.Body>
             </Card>
 
@@ -210,6 +205,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
                                             customerName: e.target.value
                                         })}
                                         required
+                                        disabled={!canUpdate}
                                     />
                                 </FormGroup>
                             </Col>
@@ -224,6 +220,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
                                             phone: e.target.value
                                         })}
                                         required
+                                        disabled={!canUpdate}
                                     />
                                 </FormGroup>
                             </Col>
@@ -237,14 +234,15 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
                                         as="select"
                                         value={formData.province}
                                         onChange={(e) => handleProvinceChange(e.target.value)}
+                                        disabled={!canUpdate}
                                     >
                                         <option value="">Chọn tỉnh/thành</option>
                                         {provinces.map(province => (
                                             <option
                                                 key={province.PROVINCE_ID}
-                                                value={province.PROVINCE_NAME} // Sửa thành PROVINCE_NAME
+                                                value={province.PROVINCE_NAME}
                                             >
-                                                {province.PROVINCE_NAME} {/* Sửa thành PROVINCE_NAME */}
+                                                {province.PROVINCE_NAME}
                                             </option>
                                         ))}
                                     </FormControl>
@@ -256,18 +254,14 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
                                     <FormControl
                                         as="select"
                                         value={formData.district}
-                                        onChange={(e) => {
-                                            const selectedIndex = e.target.selectedIndex;
-                                            const districtId = e.target.options[selectedIndex].getAttribute('data-id');
-                                            handleDistrictChange(e.target.value, districtId);
-                                        }}
+                                        onChange={(e) => handleDistrictChange(e.target.value)}
+                                        disabled={!canUpdate || !formData.province || isLoading}
                                     >
                                         <option value="">Chọn quận/huyện</option>
                                         {districts.map(district => (
                                             <option
                                                 key={district.DISTRICT_ID}
                                                 value={district.DISTRICT_NAME}
-                                                data-id={district.DISTRICT_ID} // Thêm data attribute
                                             >
                                                 {district.DISTRICT_NAME}
                                             </option>
@@ -282,7 +276,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
                                         as="select"
                                         value={formData.ward}
                                         onChange={(e) => handleWardChange(e.target.value)}
-                                        disabled={!formData.district || isLoading || wards.length === 0}
+                                        disabled={!canUpdate || !formData.district || isLoading || wards.length === 0}
                                         required
                                     >
                                         <option value="">Chọn phường/xã</option>
@@ -310,6 +304,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
                                 })}
                                 placeholder="Số nhà, đường..."
                                 required
+                                disabled={!canUpdate}
                             />
                         </FormGroup>
                     </Form>
@@ -325,7 +320,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification }) => {
                     <Button
                         variant="primary"
                         onClick={handleSubmit}
-                        disabled={isLoading}
+                        disabled={isLoading || !canUpdate}
                     >
                         {isLoading ? (
                             <>
