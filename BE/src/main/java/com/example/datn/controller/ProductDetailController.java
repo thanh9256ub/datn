@@ -7,6 +7,7 @@ import com.example.datn.dto.response.ProductResponse;
 import com.example.datn.entity.Size;
 import com.example.datn.service.ProductDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -146,4 +147,17 @@ public class ProductDetailController {
                 return ResponseEntity.ok(productDetailResponse);
         }
 
+        @GetMapping("{id}/related")
+        public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getRelatedProducts(
+                @PathVariable("id") Integer productId) {
+
+                List<ProductDetailResponse> productDetails = service.getRelatedProducts(productId);
+
+                ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                        200,
+                        "List product detail related by id: " + productId,
+                        productDetails);
+
+                return ResponseEntity.ok(response);
+        }
 }

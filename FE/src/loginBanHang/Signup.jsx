@@ -18,14 +18,12 @@ const Signup = () => {
     const [loading, setLoading] = useState(false);
 
     const handleSignup = (e) => {
-        if (!window.confirm('Bạn có chắc chắn muốn đăng ký?')) return;
         setLoading(true);
-        e.preventDefault();
 
-        registerCustomer(email, phone, fullName, gender, birthDate)
+        registerCustomer({ email, phone, fullName, gender, birthDate })
             .then((response) => {
                 console.log(response);
-                if (response.data.status === 200) {
+                if (response.status === 200) {
                     notification.success({
                         message: 'Đăng ký thành công',
                         description: 'Tài khoản của bạn đã được tạo. Vui lòng đăng nhập!',

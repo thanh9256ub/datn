@@ -6,6 +6,7 @@ import Client from './ClientComponents/Client.js';
 import Login from './loginBanHang/Login.jsx';
 import DoiMatKhau from './loginBanHang/DoiMatKhau.js';
 import QuenMatKhau from './loginBanHang/QuenMatKhau.js';
+import Signup from './loginBanHang/Signup.jsx'
 import { useAuth } from './context/AuthContext.js';
 
 function App() {
@@ -59,6 +60,7 @@ function App() {
       <BrowserRouter>
         <Switch>
           <LoginRoute path="/login" component={Login} />
+          <LoginRoute path="/signup" component={Signup} />
           <AdminRoute path="/admin" component={Admin} />
           <ClientRoute path="/" component={Client} />
 
