@@ -197,7 +197,7 @@ console.log(shoes);
         try {
             const response = await ai.models.generateContent({
                 model: "gemini-2.0-flash",
-                contents: `Bạn là trợ lý cửa hàng giày. Hãy trả lời ngắn gọn: ${chatMessage}`,
+                contents: `Bạn là trợ lý cửa hàng giày tên H2TL. Hãy trả lời ngắn gọn: ${chatMessage}`,
             });
             setChatHistory(prev => [...prev, { sender: 'ai', message: response.text }]);
         } catch (error) {

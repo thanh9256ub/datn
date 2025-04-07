@@ -170,6 +170,20 @@ public class ProductController {
                 return ResponseEntity.ok(response);
         }
 
+        @GetMapping("/search-ai")
+        public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProductAI(
+                @RequestParam(value = "name", required = false) String name) {
+
+                List<ProductResponse> list = service.searchProductAI(name);
+
+                ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
+                        200,
+                        "Products retrieved successfully",
+                        list);
+
+                return ResponseEntity.ok(response);
+        }
+
         @PostMapping("/export-excel")
         public void exportToExcel(
                 @RequestBody ExportExcelRequest request,

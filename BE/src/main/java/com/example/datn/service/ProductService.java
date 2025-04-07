@@ -149,6 +149,14 @@ public class ProductService {
         return repository.findAll(spec, sortedByIdDesc).map(mapper::toProductResponse);
     }
 
+    public List<ProductResponse> searchProductAI(String name) {
+        Specification<Product> spec = Specification
+                .where(ProductSpecification.hasName(name))
+                .or(ProductSpecification.hasBrandName(name))
+                .and(ProductSpecification.statusNotTwo());
+        return mapper.toListProductResponse(repository.findAll(spec));
+    }
+
     public Page<ProductResponse> getBin(Pageable pageable) {
         Specification<Product> spec = Specification.where(ProductSpecification.hasStatusTwo());
 
