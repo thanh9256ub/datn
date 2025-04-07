@@ -161,7 +161,11 @@ public class OrderController {
         return service.getRevenueBetweenDates(startDate, endDate  );
         //ngay
     }
-
+    @GetMapping("/revenue-total")
+    public Object[] getRevenueTotal() {
+        return service.getRevenueTotal();
+        //tong
+    }
     @PostMapping("/checkout/{cartId}")
     public ResponseEntity<ApiResponse<OrderResponse>> checkout(
             @PathVariable("cartId") Integer cartId,

@@ -354,4 +354,8 @@ public class OrderService {
         return repository.findRevenueBetweenDates(startDate, endDate);
 
     }
+    public  Object[] getRevenueTotal() {
+        return repository.findRevenueTotal();
+
+    }
 }
