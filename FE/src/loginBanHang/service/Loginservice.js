@@ -1,50 +1,67 @@
-import axios from "axios"
+import axios from "axios";
 
+// Tạo instance axios để tái sử dụng
+const api = axios.create({
+    baseURL: "http://localhost:8080",
+});
+
+// Hàm đăng nhập nhân viên
 export const getToken = async (username, password) => {
-    const body = {
-        username: username,
-        password: password
+    try {
+        const response = await api.post("/auth/token", {
+            username,
+            password
+        });
+        return response;
+    } catch (error) {
+        console.error("Login error:", error);
+        throw error;
     }
-    const response = await axios.post("http://localhost:8080/auth/token", body,
-        {
-            headers: {
-                Authorization: ""
-            }
-        }
-    )
-    return response
-}
+};
 
+// Hàm đăng nhập khách hàng
 export const getTokenCustomer = async (email, password) => {
-    const body = {
-        email: email,
-        password: password
-    }
-    const response = await axios.post("http://localhost:8080/authCustomer/token", body,
-        {
-            headers: {
-                Authorization: ""
-            }
-        }
-    )
-    return response
-}
+    try {
+        const response = await api.post("/authCustomer/token", {
+            email,
+            password
+        });
 
-export const registerCustomer = async (email, phone, fullName, gender, birthDate) => {
-    const body = {
-        email: email,
-        phone: phone,
-        fullName: fullName,
-        gender: gender,
-        birthDate: birthDate
+        console.log('Login response:', response.data);
 
-    }
-    const response = await axios.post("http://localhost:8080/authCustomer/register", body,
-        {
-            headers: {
-                Authorization: ""
-            }
+        if (response.data?.message === "NOT_CUSTOMER") {
+            return { data: null }; // Không phải khách hàng
         }
-    )
-    return response
-}
+
+        return response;
+    } catch (error) {
+        console.error("Customer login error:", error);
+        throw error;
+    }
+};
+
+// Hàm đăng ký khách hàng
+export const registerCustomer = async (customerData) => {
+    try {
+        const response = await api.post("/authCustomer/register", customerData);
+        return response;
+    } catch (error) {
+        console.error("Registration error:", error);
+        throw error;
+    }
+};
+
+// Hàm lấy thông tin profile (thêm vào)
+export const fetchCustomerProfile = async (token) => {
+    try {
+        const response = await api.get("/authCustomer/profile", {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Fetch profile error:", error);
+        throw error;
+    }
+};

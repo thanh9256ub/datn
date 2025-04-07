@@ -71,7 +71,178 @@
       padding-left: 15px;
       padding-right: 15px;
     }
-
+    
+    // .navbar-menu {
+    //   .nav-menu {
+    //     display: flex;
+    //     align-items: center;
+    //     justify-content: center;
+    //     gap: 1.5rem; /* khoảng cách giữa các mục */
+    //     list-style: none;
+    //     padding: 0;
+    //     margin-bottom: 0;
+    //   }
+    
+    //   .nav-item {
+    //     @include transition-duration(0.25s);
+    //     transition-property: background;
+    
+    //     .nav-link {
+    //       font-size: 1rem;
+    //       color: #000000;
+    //       padding: 10px 20px;
+    //       border-radius: 30px;
+    //       font-weight: 400;
+    //       font-family: 'Helvetica', 'Arial', sans-serif;
+    //       transition: color 0.3s ease, background 0.3s ease;
+    //       text-decoration: none;
+    //       display: inline-flex;
+    //       align-items: center;
+    //       justify-content: center;
+    //     }
+        
+    //     &:hover {
+    //       background: $sidebar-light-menu-hover-bg; /* Tạo hiệu ứng hover giống sidebar */
+    //     }
+  
+    //     &.active {
+    //       .menu-title {
+    //         color: $sidebar-light-menu-active-color;
+    //         font-weight: $font-weight-medium;
+    //       }
+    //     }
+    //   }
+    
+    //   // Media query cho responsive
+    //   @media (max-width: 768px) {
+    //     .nav-menu {
+    //       flex-direction: column;
+    //       gap: 1rem;
+    //     }
+    
+    //     .nav-item {
+    //       width: 100%;
+    //       text-align: center;
+    
+    //       .nav-link {
+    //         padding: 12px 20px;
+    //         font-size: 1rem;
+    //       }
+    //     }
+    //   }
+    // }
+    .navbar-menu {
+      .nav-menu {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.25rem; /* Giảm khoảng cách một chút */
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+    
+      .nav-item {
+        transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+        position: relative;
+        
+        .nav-link {
+          font-size: 0.9375rem; /* 15px */
+          color: rgba(0, 0, 0, 0.85); /* Màu chữ tiêu chuẩn của AntD */
+          padding: 0.5rem 1.25rem;
+          border-radius: 8px; /* Border radius nhẹ */
+          font-weight: 450; /* Độ đậm vừa phải */
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Font hệ thống giống AntD */
+          transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          letter-spacing: 0.2px; /* Giãn cách chữ nhẹ */
+          line-height: 1.5;
+          
+          &:hover {
+            color: #1890ff; /* Màu primary của AntD */
+            background: rgba(215, 226, 237, 0.1); /* Màu nền hover nhẹ */
+          }
+          
+          .menu-title {
+            position: relative;
+            &::after {
+              content: '';
+              position: absolute;
+              bottom: -4px;
+              left: 0;
+              width: 0;
+              height: 1.5px;
+              background: $sidebar-light-menu-active-color;
+              transition: width 0.3s ease;
+            }
+          }
+        }
+        
+        &:hover {
+          .menu-title::after {
+            width: 100%;
+          }
+        }
+    
+        &.active {
+          .nav-link {
+            color: $sidebar-light-menu-active-color;
+            font-weight: 600;
+            
+            .menu-title::after {
+              width: 100%;
+            }
+          }
+        }
+      }
+    
+      // Hiệu ứng khi scroll
+      &.scrolled {
+        .nav-item {
+          .nav-link {
+            color: rgba(0, 0, 0, 0.65);
+            
+            &:hover {
+              color: #1890ff;
+            }
+          }
+        }
+      }
+    
+      // Responsive
+      @media (max-width: 768px) {
+        .nav-menu {
+          flex-direction: column;
+          gap: 0.5rem;
+          padding: 0.5rem 0;
+        }
+    
+        .nav-item {
+          width: 100%;
+          
+          .nav-link {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9375rem;
+            justify-content: flex-start;
+            border-radius: 0;
+            
+            &:hover {
+              background: rgba(24, 144, 255, 0.1);
+            }
+          }
+          
+          &.active {
+            .nav-link {
+              background: rgba(24, 144, 255, 0.1);
+            }
+          }
+        }
+      }
+    }
+    
     .navbar-toggler {
       border: 0;
       color: inherit;

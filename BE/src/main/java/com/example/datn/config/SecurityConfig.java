@@ -38,12 +38,11 @@ public class SecurityConfig {
                     .csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(request -> request
                             .requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
+                            .requestMatchers("authCustomer/**").permitAll()
                             .requestMatchers(
                                     "/auth/token",
-                                    "auth/introspect",
-                                    "authCustomer/token",
-                                    "authCustomer/profile",
-                                    "authCustomer/register",
+                                    "auth/introspect").permitAll()
+                            .requestMatchers(
                                     "products/**",
                                     "product/**",
                                     "employee/forgot-password",

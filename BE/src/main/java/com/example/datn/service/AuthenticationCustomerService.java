@@ -75,6 +75,8 @@ public class AuthenticationCustomerService {
                 .token(token)
                 .authenticated(true)
                 .email(customer.getEmail())
+                .customerId(customer.getId())
+                .fullName(customer.getFullName())
                 .role(customer.getRole().getRoleName())
                 .build();
     }
