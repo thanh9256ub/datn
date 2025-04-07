@@ -3,11 +3,13 @@ import { getColors, createColor, getActive } from '../service/ColorService';
 import Select from 'react-select';
 import { Button, Form, Modal } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import chroma from 'chroma-js';
 
 const ColorContainer = ({ colorIds, setColorIds }) => {
     const [colorOptions, setColorOptions] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [newColorName, setNewColorName] = useState("");
+    const [newColorCode, setNewColorCode] = useState("#000000");
 
     useEffect(() => {
         fetchColors();
@@ -18,7 +20,8 @@ const ColorContainer = ({ colorIds, setColorIds }) => {
             .then(response => {
                 const formattedColors = response.data.data.map(color => ({
                     value: color.id,
-                    label: color.colorName
+                    label: color.colorName,
+                    colorCode: color.colorCode
                 }));
                 setColorOptions(formattedColors);
             })
@@ -33,16 +36,30 @@ const ColorContainer = ({ colorIds, setColorIds }) => {
             return;
         }
 
+        if (!newColorCode || newColorCode === "#000000") {
+            toast.warning("Vui lòng chọn mã màu!");
+            return;
+        }
+
         try {
             const colorResp = await getColors();
             const colors = colorResp.data.data;
+
+            const codeExists = colors.some(
+                color => color.colorCode.toLowerCase() === newColorCode.toLowerCase()
+            );
             const colorExists = colors.some(color => color.colorName.toLowerCase() === newColorName.toLowerCase());
+
+            if (codeExists) {
+                toast.error("Mã màu đã tồn tại!");
+                return;
+            }
 
             if (colorExists) {
                 toast.error("Màu sắc đã tồn tại!");
                 return;
             }
-            const response = await createColor({ colorName: newColorName });
+            const response = await createColor({ colorCode: newColorCode, colorName: newColorName });
             toast.success("Thêm màu sắc thành công!");
             setShowModal(false);
             setNewColorName("");
@@ -64,6 +81,64 @@ const ColorContainer = ({ colorIds, setColorIds }) => {
                         value={colorIds || []}
                         onChange={(selected) => setColorIds(selected || [])}
                         classNamePrefix="react-select"
+                        // getOptionLabel={(e) => e.label}
+                        // getOptionValue={(e) => e.value}
+                        // styles={{
+                        //     option: (provided, state) => {
+                        //         const color = state.data.colorCode || '#fff';
+                        //         const textColor = chroma(color).luminance() < 0.5 ? 'white' : 'black';
+                        //         return {
+                        //             ...provided,
+                        //             backgroundColor: color,
+                        //             color: textColor,
+                        //         };
+                        //     },
+                        //     multiValue: (provided, state) => {
+                        //         const color = state.data.colorCode || '#ccc';
+                        //         const textColor = chroma(color).luminance() < 0.5 ? 'white' : 'black';
+                        //         return {
+                        //             ...provided,
+                        //             backgroundColor: color,
+                        //             color: textColor,
+                        //         };
+                        //     },
+                        //     multiValueLabel: (provided, state) => {
+                        //         const color = state.data.colorCode || '#ccc';
+                        //         const textColor = chroma(color).luminance() < 0.5 ? 'white' : 'black';
+                        //         return {
+                        //             ...provided,
+                        //             color: textColor,
+                        //         };
+                        //     },
+                        //     multiValueRemove: (provided, state) => {
+                        //         const color = state.data.colorCode || '#ccc';
+                        //         const textColor = chroma(color).luminance() < 0.5 ? 'white' : 'black';
+                        //         return {
+                        //             ...provided,
+                        //             color: textColor,
+                        //             ':hover': {
+                        //                 backgroundColor: color,
+                        //                 color: textColor,
+                        //             },
+                        //         };
+                        //     },
+                        // }}
+                        getOptionLabel={(e) => (
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <div
+                                    style={{
+                                        width: '15px',
+                                        height: '15px',
+                                        backgroundColor: e.colorCode,
+                                        borderRadius: '3px',
+                                        marginRight: '10px',
+                                        border: '1px solid #ccc'
+                                    }}
+                                ></div>
+                                {e.label}
+                            </div>
+                        )}
+                        getOptionValue={(e) => e.value}
                     />
                 </div>
                 <div className="col-sm-2">
@@ -78,6 +153,15 @@ const ColorContainer = ({ colorIds, setColorIds }) => {
                     <Modal.Title>Thêm màu sắc</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
+                    <Form.Group>
+                        <label>Mã màu</label>
+                        <Form.Control
+                            type="color"
+                            className="form-control"
+                            value={newColorCode}
+                            onChange={(e) => setNewColorCode(e.target.value)}
+                        />
+                    </Form.Group>
                     <Form.Group>
                         <Form.Label>Tên màu sắc</Form.Label>
                         <Form.Control

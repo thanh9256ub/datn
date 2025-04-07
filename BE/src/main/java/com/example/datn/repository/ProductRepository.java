@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -26,4 +27,10 @@ public interface ProductRepository extends JpaRepository<Product, Integer>, JpaS
     Page<Product> findAll(Pageable pageable);
 
     Optional<Product> findByProductNameAndBrandAndCategoryAndMaterial(String productName, Brand brand, Category category, Material material);
+    @Query(value = "SELECT TOP 5 " +
+            "product_name, total_quantity " +
+            "FROM product " +
+            "WHERE [status] != 2 " +
+            "ORDER BY total_quantity ASC", nativeQuery = true)
+    List<Object[]> findTop5ProductsWithLowestQuantity();
 }

@@ -126,6 +126,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
             setQrImageUrl("");
             setIsPaymentSuccessful(true);
             toast.success("Thanh toán thành công ", toastOptions);
+            setShowPrintModal(true);
           }
         } catch (error) {
           console.error("Error checking payment status:", error);
@@ -136,6 +137,16 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   };
 
   const handleCashPayment = () => {
+    
+    if (!idOrder) {
+      toast.warn("Vui lòng chọn hóa đơn trước khi chọn QR ", toastOptions);
+      return;
+    }
+    if (totalAmount === 0) {
+      toast.warn("Vui lòng thêm sản phẩm trước khi chọn QR  ", toastOptions);
+      return;
+    }
+
     setQrImageUrl("");
     if (qrIntervalRef.current) {
       clearInterval(qrIntervalRef.current); // Clear the interval
@@ -274,7 +285,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       totalPayment: finalAmount + shippingFee,
       paymentTypeId: delivery ? 2 : 1,
       paymentMethodId: paymen,
-    };
+    }; 
 
     try {
       const response = await confirmPayment(idOrder, requestBody);

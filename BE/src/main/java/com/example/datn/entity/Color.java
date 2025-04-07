@@ -18,6 +18,9 @@ public class Color {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
+    @Column(name = "color_code")
+    String colorCode;
+
     @Column(name = "color_name")
     @NotBlank(message = "Color name is required")
     String colorName;

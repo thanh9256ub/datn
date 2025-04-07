@@ -163,7 +163,7 @@
           
           &:hover {
             color: #1890ff; /* Màu primary của AntD */
-            background: rgba(24, 144, 255, 0.1); /* Màu nền hover nhẹ */
+            background: rgba(215, 226, 237, 0.1); /* Màu nền hover nhẹ */
           }
           
           .menu-title {
@@ -174,10 +174,9 @@
               bottom: -4px;
               left: 0;
               width: 0;
-              height: 1px;
+              height: 1.5px;
               background: $sidebar-light-menu-active-color;
               transition: width 0.3s ease;
-              // opacity: 0; 
             }
           }
         }

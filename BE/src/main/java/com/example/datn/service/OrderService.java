@@ -312,11 +312,15 @@ public OrderResponse updateStatus(Integer id, int newStatus) {
         order.setUpdatedAt(LocalDateTime.now().withNano(0));
 
         order = repository.save(order);
-
         for (GuestOrderRequest.CartItemDTO item : request.getCartItems()) {
+            ProductDetail productDetail=productDetailRepository.findById(item.getProductDetailId()).orElseThrow(
+                    () -> new ResourceNotFoundException("getProductDetailId not found")
+            );
+
             OrderDetailRequest orderDetailRequest = new OrderDetailRequest(
                     order.getId(),
                     item.getProductDetailId(),
+                    productDetail.getProduct().getProductName()+" - "+productDetail.getColor()+" - "+productDetail.getSize(),
                     item.getQuantity(),
                     item.getPrice(),
                     item.getTotal_price(),
@@ -342,9 +346,26 @@ public OrderResponse updateStatus(Integer id, int newStatus) {
         return repository.findOrdersByMonthInNative(year);
     }
 
-    public List<Object[]> getOrdersByDayInJanuary(Integer month) {
-        return repository.findOrdersByDayInJanuaryNative(month);
+    public List<Object[]> getOrdersByDayInJanuary(Integer month,Integer year) {
+        return repository.findOrdersByDayInJanuaryNative(month,year);
     }
 
+    public List<Object[]> findRevenueByMonthIn2025(Integer year) {
+        return repository.findRevenueByMonthIn2025(year);
+    }
+    public List<Object[]> findRevenueByDayInMarch(Integer month,Integer year) {
+        return repository.findRevenueByDayInMarch(month,year);
+    }
+    public Object[] getRevenueByYear(Integer year) {
+         return repository.findRevenueByYear(year);
 
+    }
+    public Object[] getRevenueByMonth(Integer year, Integer month) {
+         return repository.findRevenueByMonth(year, month);
+
+    }
+    public  Object[] getRevenueBetweenDates(String startDate, String endDate) {
+        return repository.findRevenueBetweenDates(startDate, endDate);
+
+    }
 }

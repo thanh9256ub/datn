@@ -232,4 +232,8 @@ public class ProductDetailService {
         return mapper.toProductDetailResponse(repository.save(productDetail));
     }
 
+    public List<ProductDetailResponse> getRelatedProducts(Integer pId){
+        return mapper.toListProductDetail(repository.findAllExceptId(pId));
+    }
+
 }

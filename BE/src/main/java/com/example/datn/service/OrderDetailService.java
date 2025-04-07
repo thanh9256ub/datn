@@ -112,8 +112,9 @@ public class OrderDetailService {
         OrderDetail orderDetail = new OrderDetail();
 
         orderDetail.setOrder(orderRepository.findById(orderId).get());
-
-        orderDetail.setProductDetail(productDetailRepository.findById(productId).get());
+        ProductDetail productDetail=productDetailRepository.findById(productId).get();
+        orderDetail.setProductDetail(productDetail);
+        orderDetail.setProductDetailName(productDetail.getProduct().getProductName()+" - "+productDetail.getColor()+" - "+productDetail.getSize());
         orderDetail.setPrice(productDetailRepository.findById(productId).get().getPrice());
         orderDetail.setQuantity(quantity);
         orderDetail.setTotalPrice(quantity * productDetailRepository

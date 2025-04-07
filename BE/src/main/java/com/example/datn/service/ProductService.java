@@ -149,6 +149,13 @@ public class ProductService {
         return repository.findAll(spec, sortedByIdDesc).map(mapper::toProductResponse);
     }
 
+    public List<ProductResponse> searchProductAI(String name) {
+        Specification<Product> spec = Specification
+                .where(ProductSpecification.hasName(name))
+                .and(ProductSpecification.statusNotTwo());
+        return mapper.toListProductResponse(repository.findAll(spec));
+    }
+
     public Page<ProductResponse> getBin(Pageable pageable) {
         Specification<Product> spec = Specification.where(ProductSpecification.hasStatusTwo());
 
@@ -541,5 +548,8 @@ public class ProductService {
 
         return ResponseEntity.ok(Map.of());
     }
+    public  List<Object[]> getTop5ProductsWithLowestQuantity() {
+     return repository.findTop5ProductsWithLowestQuantity();
 
+        }
 }

@@ -65,6 +65,44 @@ export const fetchProductDetail = async () => {
         throw error;
     }
 };
+export const fetchRelatedProducts = async (productId) => {
+    try {
+        const response = await api.get(`/product-detail/${productId}/related`);
+        const relatedData = response.data.data;
+
+        // Lọc bỏ các bản chi tiết trùng id sản phẩm
+        const uniqueRelatedProducts = [];
+        const seenProductIds = new Set();
+
+        // Duyệt qua dữ liệu và chỉ lấy một bản chi tiết cho mỗi sản phẩm
+        relatedData.forEach(item => {
+            const productId = item.product.id;
+            if (!seenProductIds.has(productId)) {
+                uniqueRelatedProducts.push({
+                    id: item.id,
+                    product: {
+                        id: item.product.id,
+                        productName: item.product.productName,
+                        mainImage: item.product.mainImage,
+                        brand: {
+                            brandName: item.product.brand?.brandName || 'Unknown'
+                        }
+                    },
+                    price: item.price,
+                    originalPrice: item.originalPrice
+                });
+                seenProductIds.add(productId);  // Đánh dấu rằng đã lấy chi tiết của sản phẩm này
+            }
+        });
+
+        // Chỉ lấy 4 sản phẩm đầu tiên sau khi đã lọc
+        return uniqueRelatedProducts.slice(0, 4);
+    } catch (error) {
+        console.error("Error fetching related products:", error);
+        return [];
+    }
+};
+
 export const fetchProductById = async (productId) => {
     try {
         const response = await api.get(`/products/${productId}`);

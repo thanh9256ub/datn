@@ -95,7 +95,6 @@ export const AuthProvider = ({ children }) => {
       isAuthenticated: false
     });
 
-    // Xóa localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("id");
@@ -103,7 +102,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("fullName");
     localStorage.removeItem("customerId");
 
-    history.push("/login")
+    // history.push("/login")
   };
 
   return (
