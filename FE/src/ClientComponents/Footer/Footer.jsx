@@ -1,106 +1,182 @@
 import React from 'react';
-import { Typography, Divider, Row, Col, Space } from 'antd';
-import footer_logo from '../Assets/H2TL(1).png'; // Logo từ Navbar
+import { Typography, Divider, Row, Col, Space, Grid, Button } from 'antd';
+import footer_logo from '../Assets/H2TL(1).png';
 import instagram_icon from '../Assets/instagram_icon.png';
 import pincester_icon from '../Assets/pintester_icon.png';
 import whatsapp_icon from '../Assets/whatsapp_icon.png';
+import { FacebookOutlined, InstagramOutlined, TwitterOutlined, YoutubeOutlined } from '@ant-design/icons';
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
+const { useBreakpoint } = Grid;
 
 const Footer = () => {
-    return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: window.innerWidth > 800 ? 50 : 20,
-                padding: '20px 0',
-                background: '#f5e6ff', // Nền tím nhạt
-            }}
-        >
-            {/* Footer Logo */}
-            <Space align="center" size={window.innerWidth > 800 ? 20 : 10}>
-                <img
-                    src={footer_logo}
-                    alt="logo"
-                    style={{ width: window.innerWidth > 800 ? 210 : 80 }} // Tăng kích thước logo
-                />
-            </Space>
+    const screens = useBreakpoint();
+    const isMobile = !screens.md;
 
-            {/* Footer Links */}
-            <Row
-                justify="center"
-                style={{
-                    display: 'flex',
-                    gap: window.innerWidth > 800 ? 50 : 14,
-                }}
-            >
-                {['Company', 'Product', 'Offices', 'About', 'Contact Us'].map((link, index) => (
-                    <Col key={index}>
-                        <Text
-                            style={{
-                                color: '#252525',
-                                fontSize: window.innerWidth > 800 ? 20 : 14,
-                                cursor: 'pointer',
-                            }}
-                        >
-                            {link}
+    // Color palette consistent with your design
+    const primaryColor = '#6C5CE7';
+    const lightBg = '#F8F9FA';
+    const darkText = '#2D3436';
+    const lightPurple = '#f9f0ff';
+
+    return (
+        <div style={{
+            backgroundColor: lightPurple,
+            padding: isMobile ? '40px 16px' : '64px 24px',
+            borderTop: `1px solid ${primaryColor}20`
+        }}>
+            <div style={{
+                maxWidth: 1400,
+                margin: '0 auto'
+            }}>
+                {/* Main Footer Content */}
+                <Row gutter={[48, 48]} justify="space-between">
+                    {/* Logo and Description */}
+                    <Col xs={24} md={8}>
+                        <div style={{ marginBottom: 24 }}>
+                            <img
+                                src={footer_logo}
+                                alt="logo"
+                                style={{
+                                    width: isMobile ? 120 : 160,
+                                    marginBottom: 16
+                                }}
+                            />
+                            <Text style={{
+                                display: 'block',
+                                color: darkText,
+                                fontSize: isMobile ? 14 : 16
+                            }}>
+                                Chúng tôi mang đến những sản phẩm chất lượng cao với thiết kế hiện đại, phù hợp với mọi phong cách.
+                            </Text>
+                        </div>
+                        <Space size={16}>
+                            {[
+                                <FacebookOutlined style={{ fontSize: 20, color: primaryColor }} />,
+                                <InstagramOutlined style={{ fontSize: 20, color: primaryColor }} />,
+                                <TwitterOutlined style={{ fontSize: 20, color: primaryColor }} />,
+                                <YoutubeOutlined style={{ fontSize: 20, color: primaryColor }} />
+                            ].map((Icon, index) => (
+                                <Button
+                                    key={index}
+                                    type="text"
+                                    shape="circle"
+                                    icon={Icon}
+                                    style={{
+                                        width: 40,
+                                        height: 40,
+                                        border: `1px solid ${primaryColor}30`,
+                                        backgroundColor: '#fff'
+                                    }}
+                                />
+                            ))}
+                        </Space>
+                    </Col>
+
+                    {/* Quick Links */}
+                    <Col xs={12} md={5}>
+                        <Title level={5} style={{
+                            color: darkText,
+                            marginBottom: 24,
+                            fontWeight: 600
+                        }}>
+                            LIÊN KẾT NHANH
+                        </Title>
+                        {['Trang chủ', 'Sản phẩm', 'Bộ sưu tập', 'Về chúng tôi', 'Liên hệ'].map((link, index) => (
+                            <div key={index} style={{ marginBottom: 12 }}>
+                                <Text style={{
+                                    color: darkText,
+                                    fontSize: isMobile ? 14 : 16,
+                                    cursor: 'pointer',
+                                    '&:hover': { color: primaryColor }
+                                }}>
+                                    {link}
+                                </Text>
+                            </div>
+                        ))}
+                    </Col>
+
+                    {/* Customer Service */}
+                    <Col xs={12} md={5}>
+                        <Title level={5} style={{
+                            color: darkText,
+                            marginBottom: 24,
+                            fontWeight: 600
+                        }}>
+                            HỖ TRỢ KHÁCH HÀNG
+                        </Title>
+                        {['Trung tâm trợ giúp', 'Theo dõi đơn hàng', 'Chính sách đổi trả', 'Hướng dẫn chọn size', 'Câu hỏi thường gặp'].map((link, index) => (
+                            <div key={index} style={{ marginBottom: 12 }}>
+                                <Text style={{
+                                    color: darkText,
+                                    fontSize: isMobile ? 14 : 16,
+                                    cursor: 'pointer'
+                                }}>
+                                    {link}
+                                </Text>
+                            </div>
+                        ))}
+                    </Col>
+
+                    {/* Contact Info */}
+                    <Col xs={24} md={6}>
+                        <Title level={5} style={{
+                            color: darkText,
+                            marginBottom: 24,
+                            fontWeight: 600
+                        }}>
+                            LIÊN HỆ
+                        </Title>
+                        <div style={{ marginBottom: 16 }}>
+                            <Text strong style={{ display: 'block', color: darkText }}>Địa chỉ:</Text>
+                            <Text style={{ color: darkText }}>123 Đường ABC, Quận 1, TP.HCM</Text>
+                        </div>
+                        <div style={{ marginBottom: 16 }}>
+                            <Text strong style={{ display: 'block', color: darkText }}>Email:</Text>
+                            <Text style={{ color: darkText }}>contact@h2tl.com</Text>
+                        </div>
+                        <div>
+                            <Text strong style={{ display: 'block', color: darkText }}>Điện thoại:</Text>
+                            <Text style={{ color: darkText }}>+84 123 456 789</Text>
+                        </div>
+                    </Col>
+                </Row>
+
+                {/* Divider */}
+                <Divider style={{
+                    borderColor: `${primaryColor}20`,
+                    margin: '40px 0'
+                }} />
+
+                {/* Copyright Section */}
+                <Row justify="space-between" align="middle">
+                    <Col>
+                        <Text style={{
+                            color: darkText,
+                            fontSize: isMobile ? 12 : 14
+                        }}>
+                            © 2025 H2TL. All rights reserved.
                         </Text>
                     </Col>
-                ))}
-            </Row>
-
-            {/* Footer Social Icons */}
-            <Space size={window.innerWidth > 800 ? 20 : 10}>
-                {[instagram_icon, pincester_icon, whatsapp_icon].map((icon, index) => (
-                    <div
-                        key={index}
-                        style={{
-                            padding: window.innerWidth > 800 ? '10px 10px 6px 10px' : '5px 5px 3px 5px',
-                            background: '#fff',
-                            border: '1px solid #ebebeb',
-                        }}
-                    >
-                        <img
-                            src={icon}
-                            alt="social icon"
-                            style={{ width: window.innerWidth > 800 ? 'auto' : 22 }}
-                        />
-                    </div>
-                ))}
-            </Space>
-
-            {/* Footer Copyright */}
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 30,
-                    width: '100%',
-                    marginBottom: 30,
-                }}
-            >
-                <Divider
-                    style={{
-                        width: '80%',
-                        borderRadius: 10,
-                        height: 3,
-                        background: '#c7c7c7',
-                        border: 'none',
-                        margin: 0,
-                    }}
-                />
-                <Text
-                    style={{
-                        color: '#1a1a1a',
-                        fontSize: window.innerWidth > 800 ? 20 : 14,
-                    }}
-                >
-                    Copyright @ 2025 - All Right Reserved.
-                </Text>
+                    <Col>
+                        <Space size={16}>
+                            <Text style={{
+                                color: darkText,
+                                fontSize: isMobile ? 12 : 14,
+                                cursor: 'pointer'
+                            }}>
+                                Điều khoản dịch vụ
+                            </Text>
+                            <Text style={{
+                                color: darkText,
+                                fontSize: isMobile ? 12 : 14,
+                                cursor: 'pointer'
+                            }}>
+                                Chính sách bảo mật
+                            </Text>
+                        </Space>
+                    </Col>
+                </Row>
             </div>
         </div>
     );

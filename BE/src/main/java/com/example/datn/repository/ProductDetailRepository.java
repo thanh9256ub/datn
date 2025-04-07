@@ -43,4 +43,7 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail,Int
 
     List<ProductDetail> findByStatus(Integer status);
 
+    @Query("SELECT p FROM ProductDetail p WHERE p.product.id <> :id AND p.product.status <> 2")
+    List<ProductDetail> findAllExceptId(@Param("id") Integer id);
+
 }

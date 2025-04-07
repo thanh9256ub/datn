@@ -10,6 +10,7 @@ const Colors = () => {
     const [colors, setColors] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [colorCode, setColorCode] = useState("#000000")
     const [colorName, setColorName] = useState("")
     const [desc, setDesc] = useState("")
     const [colorId, setColorId] = useState(null)
@@ -43,10 +44,10 @@ const Colors = () => {
         try {
             if (colorId) {
                 console.log("Đang cập nhật màu sắc:", colorId, colorName, desc);
-                await updateColor(colorId, { colorName, description: desc })
+                await updateColor(colorId, { colorCode, colorName, description: desc })
                 toast.success("Sửa màu sắc thành công!");
             } else {
-                await createColor({ colorName, description: desc });
+                await createColor({ colorCode, colorName, description: desc });
                 toast.success("Thêm màu sắc thành công!");
             }
 
@@ -63,6 +64,7 @@ const Colors = () => {
     };
 
     const handleEditColor = (color) => {
+        setColorCode(color.colorCode);
         setColorName(color.colorName);
         setDesc(color.description);
         setColorId(color.id);
@@ -98,6 +100,15 @@ const Colors = () => {
                             <div style={{ marginBottom: '20px' }}></div>
                             <hr />
                             <form className="forms-sample" onSubmit={handleAddColor}>
+                                <Form.Group>
+                                    <label>Mã màu</label>
+                                    <Form.Control
+                                        type="color"
+                                        className="form-control"
+                                        value={colorCode}
+                                        onChange={(e) => setColorCode(e.target.value)}
+                                    />
+                                </Form.Group>
                                 <Form.Group>
                                     <label htmlFor="exampleInputUsername1">Tên màu sắc</label>
                                     <Form.Control type="text" placeholder="Nhập tên màu sắc" size="lg"
@@ -144,6 +155,7 @@ const Colors = () => {
                                         <thead>
                                             <tr>
                                                 <th>#</th>
+                                                <th>Mã màu</th>
                                                 <th>Tên màu sắc</th>
                                                 <th>Mô tả</th>
                                                 <th>Trạng thái</th>
@@ -158,6 +170,17 @@ const Colors = () => {
                                                         style={{ cursor: "pointer" }}
                                                     >
                                                         <td>{index + 1}</td>
+                                                        <td>
+                                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                                <div style={{
+                                                                    width: '20px',
+                                                                    height: '20px',
+                                                                    backgroundColor: color.colorCode,
+                                                                    border: '1px solid #000',
+                                                                    marginRight: '10px'
+                                                                }} />
+                                                            </div>
+                                                        </td>
                                                         <td>{color.colorName}</td>
                                                         <td>{color.description}</td>
                                                         <td>

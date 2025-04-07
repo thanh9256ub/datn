@@ -11,6 +11,7 @@ const ChatBot = () => {
     const [chatMessage, setChatMessage] = useState('');
     const [chatHistory, setChatHistory] = useState([]);
     const [loading, setLoading] = useState(false);
+
     const [shoeKeywords, setShoeKeywords] = useState([]);
     const [brandKeywords, setBrandKeywords] = useState([]);
     const ai = new GoogleGenAI({ apiKey: "AIzaSyBJy-DswHgXLYZvyXhh3p49aZzdXTeCl-s" });
@@ -207,6 +208,7 @@ console.log(shoes);
                 message: "Xin lỗi, không thể trả lời ngay bây giờ."
             }]);
         }
+
         setLoading(false);
     };
 

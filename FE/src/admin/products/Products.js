@@ -315,7 +315,7 @@ const Products = () => {
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
                 <h2>Danh sách sản phẩm</h2>
                 {localStorage.getItem("role") === "ADMIN" && (
-                    <button type="button" className="btn btn-gradient-primary btn-sm" onClick={handleAddProduct}>
+                    <button type="button" className="btn btn-gradient-primary btn-sm" style={{ marginBottom: "10px" }} onClick={handleAddProduct}>
                         <i className='mdi mdi-plus'></i> Thêm mới
                     </button>
                 )}
