@@ -11,7 +11,8 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder,setQrImageUrl,qrInter
   useEffect(() => {
     fetchPromoCodes()
       .then(response => {
-        const sortedPromoCodes = response.data.data.sort((a, b) => {
+        const activePromoCodes = response.data.data.filter(promo => promo.status === 1); // Filter by status=1
+        const sortedPromoCodes = activePromoCodes.sort((a, b) => {
           const discountA = a.discountType === 1 
             ? Math.min((totalAmount * a.discountValue) / 100, a.maxDiscountValue) 
             : a.discountValue;
