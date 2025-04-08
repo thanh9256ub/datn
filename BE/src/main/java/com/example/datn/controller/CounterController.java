@@ -11,6 +11,7 @@ import com.example.datn.repository.OrderRepository;
 import com.example.datn.repository.ProductDetailRepository;
 import com.example.datn.service.OrderDetailService;
 import com.example.datn.service.OrderService;
+import com.example.datn.service.ProductDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -48,6 +49,8 @@ public class CounterController {
     OrderRepository orderRepository;
     @Autowired
     ProductDetailRepository productDetailRepository;
+    @Autowired
+    ProductDetailService productDetailService;
 
     @GetMapping("/add-to-cart")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> addToCart(@RequestParam Integer orderID,
@@ -101,6 +104,7 @@ public class CounterController {
     @PostMapping("/comfirm/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> confirm(@PathVariable Integer id, @RequestBody OrderRequest orderRequest) {
         OrderResponse orderResponse = orderService.update(id, orderRequest);
+        productDetailService.updateProductDetaiStatus0();
         ApiResponse<OrderResponse> apiResponse = new ApiResponse<>(
                 HttpStatus.OK.value(), "Order  successfully", orderResponse);
         return ResponseEntity.ok(apiResponse);

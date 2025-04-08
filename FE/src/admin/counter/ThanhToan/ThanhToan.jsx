@@ -5,7 +5,7 @@ import DeliveryInfo from './DeliveryInfo';
 import PromoCode from './PromoCode';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { fetchShippingFee, confirmPayment, updatePromoCode, addOrderVoucher, checkVNPayPaymentStatus, generateZaloPayPayment, checkZaloPayPaymentStatus, handleCassoWebhook, fetchCassoTransactions } from '../api'; // Updated import
+import { fetchShippingFee, confirmPayment, updatePromoCode, addOrderVoucher, checkVNPayPaymentStatus, generateZaloPayPayment, checkZaloPayPaymentStatus, handleCassoWebhook, fetchCassoTransactions, fetchPromoCodes } from '../api'; // Updated import
 import { toastOptions } from '../constants'; // Import constants from the new file
 import logo from '../../../assets/images/logo_h2tl.png';
 const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber, setPhoneNumber, setDelivery, promo, setPromo, customer, setCustomer, customerInfo, setCustomerInfo, qrImageUrl, setQrImageUrl, qrIntervalRef }) => {
@@ -96,6 +96,19 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng thêm sản phẩm trước khi chọn QR  ", toastOptions);
       return;
     }
+    fetchPromoCodes().then(response => {
+      const promoCodes = response.data.data || [];
+      const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
+      if (matchingPromo.quantity <= 0) {
+        toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
+        return;
+      }
+      if (matchingPromo.status === 0) {
+        toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
+        return;
+      }
+    })
+      .catch(error => console.error('Error fetching promo codes:', error));
     if (qrIntervalRef.current) {
       clearInterval(qrIntervalRef.current);
       qrIntervalRef.current = null;
@@ -108,8 +121,29 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     setQrImageUrl(qrUrl);
     setPaymen(2);
     toast.info("Đã chọn phương thức thanh toán QR ", toastOptions);
-
-
+    const checkVoucher = setInterval(() => {
+      fetchPromoCodes().then(response => {
+        const promoCodes = response.data.data || [];
+        const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
+        if (matchingPromo.quantity <= 0) {
+          toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
+          clearInterval(qrIntervalRef.current);
+          qrIntervalRef.current = null;
+          setQrImageUrl("");
+          clearInterval(checkVoucher);
+          return;
+        }
+        if (matchingPromo.status === 0) {
+          toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
+          clearInterval(qrIntervalRef.current);
+          qrIntervalRef.current = null;
+          setQrImageUrl("");
+          clearInterval(checkVoucher);
+          return;
+        }
+      })
+        .catch(error => console.error('Error fetching promo codes:', error));
+    }, 5000);
     qrIntervalRef.current = setInterval(async () => {
 
 
@@ -127,6 +161,10 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
           setIsPaymentSuccessful(true);
           toast.success("Thanh toán thành công ", toastOptions);
           setShowPrintModal(true);
+          if (promo.voucherCode) {
+            await updatePromoCode(promo.id, { ...promo, quantity: promo.quantity - 1 });
+            await addOrderVoucher(idOrder, promo.id);
+          }
         }
       } catch (error) {
         console.error("Error checking payment status:", error);
@@ -272,6 +310,19 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
 
   const handlePaymentConfirmation = async (shouldPrint) => {
 
+    fetchPromoCodes().then(response => {
+      const promoCodes = response.data.data || [];
+      const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
+      if (matchingPromo.quantity<=0 ) {
+        toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
+        return;
+      } 
+      if (matchingPromo.status===0 ) {
+        toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
+        return;
+      } 
+    })
+    .catch(error => console.error('Error fetching promo codes:', error));
     const requestBody = {
 
       customerId: customer?.id || null,
@@ -293,7 +344,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       if (response.status === 200) {
         toast.success("Thanh toán thành công ", toastOptions);
 
-        if (promo.voucherCode) {
+        if (promo.voucherCode&&paymen === 1) {
           await updatePromoCode(promo.id, { ...promo, quantity: promo.quantity - 1 });
           await addOrderVoucher(idOrder, promo.id);
         }
@@ -304,7 +355,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         setTimeout(() => {
           window.location.reload();
         }
-          , 2500);
+          , 1800);
       } else {
         toast.error("Thanh toán thất bại. Vui lòng thử lại!", toastOptions);
       }
@@ -337,6 +388,19 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng thực hiện đủ các bước ", toastOptions);
       return;
     }
+    fetchPromoCodes().then(response => {
+      const promoCodes = response.data.data || [];
+      const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
+      if (matchingPromo.quantity<=0 ) {
+        toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
+        return;
+      } 
+      if (matchingPromo.status===0 ) {
+        toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
+        return;
+      } 
+    })
+    .catch(error => console.error('Error fetching promo codes:', error));
     if (paymen === 2 && !isPaymentSuccessful) {
       toast.warn("Khách hàng chưa chuyển khoản thành công. Vui lòng kiểm tra lại!", toastOptions);
       return;
@@ -487,7 +551,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
 
       <Modal
         show={showPrintModal}
-        onHide={() => setShowPrintModal(false)}
+        onHide={() => handlePrintModalClose(false)}
         centered
       >
         <Modal.Header closeButton>
