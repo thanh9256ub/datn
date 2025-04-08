@@ -60,7 +60,8 @@ public class SecurityConfig {
                                     "/carts/**",
                                     "/order/**",
                                     "/order-detail/**",
-                                    "customer/**")
+                                    "customer/**",
+                                    "/mail/send-order-confirmation")
                             .permitAll()
                             .requestMatchers("/address/**", "/role/**")
                             .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")

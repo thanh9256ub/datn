@@ -54,36 +54,35 @@ const ShopContextProvider = (props) => {
 
     const loadCartItems = async (cartId) => {
         try {
-            console.log('Loading cart with cartId:', cartId);
-            const response = await getCartDetails(cartId);
-            console.log('API response:', response);
-    
-            const cartDetails = response && response.data ? response.data : [];
-            console.log('Cart details:', cartDetails);
-    
-            const items = cartDetails.length > 0 ? cartDetails[0]?.cart?.items || [] : [];
-            console.log('Extracted cart items:', items);
-    
-            setCartItems(items);
-    
-            if (cartDetails.length > 0 && cartDetails[0]?.cart?.id) {
-                setCartId(cartDetails[0].cart.id);
-                setSelectedItems(prevSelected => 
-                    prevSelected.filter(id => 
-                        items.some(item => (item.id || item.productDetailId) === id)
-                    )
-                );
-            } else {
-                setSelectedItems([]);
-                console.log('No cart data found for cartId:', cartId);
-            }
-        } catch (error) {
-            console.error('Tải giỏ hàng thất bại:', error);
-            setCartItems([]);
+          console.log('Đang tải giỏ hàng với cartId:', cartId);
+          const response = await getCartDetails(cartId);
+          console.log('Phản hồi API:', response);
+      
+          const cartDetails = response && response.data ? response.data : [];
+          console.log('Chi tiết giỏ hàng:', cartDetails);
+      
+          const items = cartDetails.length > 0 ? cartDetails[0]?.cart?.items || [] : [];
+          console.log('Các mục trong giỏ hàng đã trích xuất:', items);
+      
+          setCartItems(items);
+      
+          if (cartDetails.length > 0 && cartDetails[0]?.cart?.id) {
+            setCartId(cartDetails[0].cart.id);
+            setSelectedItems(prevSelected => 
+              prevSelected.filter(id => 
+                items.some(item => (item.id === id || item.productDetailId === id || item.productDetail?.id === id))
+              )
+            );
+          } else {
             setSelectedItems([]);
+            console.log('Không tìm thấy dữ liệu giỏ hàng cho cartId:', cartId);
+          }
+        } catch (error) {
+          console.error('Tải giỏ hàng thất bại:', error);
+          setCartItems([]);
+          setSelectedItems([]);
         }
-    };
-
+      };
     const addToCart = async ({ productId, colorId, sizeId, quantity = 1 }) => {
         try {
             const productDetail = await fetchProductDetailByAttributes(productId, colorId, sizeId);
@@ -165,7 +164,9 @@ const ShopContextProvider = (props) => {
 
     const toggleItemSelection = (cartDetailId) => {
         setSelectedItems((prev) =>
-            prev.includes(cartDetailId) ? prev.filter((id) => id !== cartDetailId) : [...prev, cartDetailId]
+            prev.includes(cartDetailId) 
+                ? prev.filter((id) => id !== cartDetailId) 
+                : [...prev, cartDetailId]
         );
     };
 
