@@ -19,9 +19,9 @@ import CustomerChangePassword from './component/CustomerChangePassword';
 import AddressBook from './component/AddressBook';
 import CustomerWall from './component/CustomerWall';
 
-// const { TabPane } = Tabs;
-// const { Title, Text } = Typography;
-// const { Option } = Select;
+const { TabPane } = Tabs;
+const { Title, Text } = Typography;
+const { Option } = Select;
 
 const CustomerProfile = () => {
     const { customerId } = useAuth();
@@ -109,7 +109,9 @@ const CustomerProfile = () => {
                 <Row gutter={24}>
                     <Col xs={24} md={8}>
                         <CustomerWall
-
+                            customer={customer}
+                            activeTab={activeTab}
+                            setActiveTab={setActiveTab}
                         />
                     </Col>
 

@@ -39,7 +39,7 @@ const CustomerWall = ({ customer, activeTab, setActiveTab }) => {
                 />
 
                 <Title level={4} style={{ marginBottom: 4 }}>
-                    {customer.fullname}
+                    {customer.fullName}
                 </Title>
                 <Text type="secondary" style={{ marginBottom: 8 }}>
                     <MailOutlined /> {customer.email}
