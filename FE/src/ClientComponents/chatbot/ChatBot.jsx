@@ -24,7 +24,7 @@ const ChatBot = () => {
         email: "H2TL@fpt.edu.vn"
     };
 
-    const storeKeywords = ['địa chỉ', 'giờ mở cửa', 'số điện thoại', 'liên hệ', 'email'];
+    const storeKeywords = ['địa chỉ', 'giờ mở cửa', 'số điện thoại', 'liên hệ', 'email', 'thông tin', 'cửa hàng', 'shop', 'h2tl'];
 
     useEffect(() => {
         const fetchShoeKeywords = async () => {
@@ -62,10 +62,16 @@ const ChatBot = () => {
         if (isChatOpen && chatHistory.length === 0) {
             setChatHistory([{
                 sender: 'ai',
-                message: `Xin chào! Tôi là trợ lý ảo của shop giày ${storeInfo.name}. Tôi có thể giúp gì cho bạn? 
-                \n- Tìm sản phẩm giày
-                \n- Thông tin cửa hàng
-                \n- Hỗ trợ khác`
+                message: (
+                    <div>
+                        <p>Xin chào! Tôi là trợ lý ảo của shop giày <strong>{storeInfo.name}</strong>. Tôi có thể giúp gì cho bạn?</p>
+                        <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                            <li>Tìm sản phẩm giày</li>
+                            <li>Thông tin cửa hàng</li>
+                            <li>Hỗ trợ khác</li>
+                        </ul>
+                    </div>
+                )
             }]);
         }
 
@@ -114,11 +120,15 @@ const ChatBot = () => {
             return `📧 Email: ${storeInfo.email}`;
         }
         else {
-            return `Thông tin cửa hàng:
-            \n🏠 Địa chỉ: ${storeInfo.address}
-            \n⏰ Giờ mở cửa: ${storeInfo.hours}
-            \n📞 Điện thoại: ${storeInfo.phone}
-            \n📧 Email: ${storeInfo.email}`;
+            return (
+                <div>
+                    <strong>Thông tin cửa hàng:</strong><br />
+                    🏠 <strong>Địa chỉ:</strong> {storeInfo.address}<br />
+                    ⏰ <strong>Giờ mở cửa:</strong> {storeInfo.hours}<br />
+                    📞 <strong>Điện thoại:</strong> {storeInfo.phone}<br />
+                    📧 <strong>Email:</strong> {storeInfo.email}
+                </div>
+            );
         }
     };
 

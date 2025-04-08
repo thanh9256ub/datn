@@ -44,6 +44,11 @@ const Navbar = () => {
     history.push('/doi-mat-khau');
   };
 
+  const handleShowProfileCustomer = (e) => {
+    e.preventDefault();
+    history.push('/profile')
+  }
+
   const displayName = fullName || email || 'Khách hàng';
   const isAdmin = role === 'ADMIN';
   const isEmployee = role === 'EMPLOYEE';
@@ -139,7 +144,7 @@ const Navbar = () => {
                   </div>
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="navbar-dropdown">
-                  <Dropdown.Item >
+                  <Dropdown.Item onClick={handleShowProfileCustomer}>
                     <i className="mdi mdi-account mr-2 text-success"></i>
                     <Trans>Thông tin</Trans>
                   </Dropdown.Item>
