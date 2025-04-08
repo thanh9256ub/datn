@@ -43,9 +43,10 @@ export const SearchOrder = () => {
     const statusMap = {
       1: { color: 'orange', text: 'Chờ xác nhận' },
       2: { color: 'blue', text: 'Đã xác nhận' },
-      3: { color: 'cyan', text: 'Đang giao hàng' },
-      4: { color: 'green', text: 'Đã giao hàng' },
-      5: { color: 'red', text: 'Đã hủy' },
+      3: { color: 'blue', text: 'Chờ giao hàng' },
+      4: { color: 'cyan', text: 'Đang giao hàng' },
+      5: { color: 'green', text: 'Hoàn tất' },
+      6: { color: 'red', text: 'Đã hủy' },
     };
     return <Tag color={statusMap[status]?.color || 'gray'}>
       {statusMap[status]?.text || 'Không xác định'}

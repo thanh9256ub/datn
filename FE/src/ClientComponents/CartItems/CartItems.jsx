@@ -18,7 +18,8 @@ import { fetchProvinces,
     clearCartOnServer, 
     getCartDetails, 
     checkStockAvailability,
-    sendOrderConfirmationEmail
+    sendOrderConfirmationEmail,
+    checkPaymentAndOrder
  } from '../Service/productService';
 
 const { Title, Text } = Typography;

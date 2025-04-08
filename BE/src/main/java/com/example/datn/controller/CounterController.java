@@ -1,5 +1,6 @@
 package com.example.datn.controller;
 
+import com.example.datn.dto.request.GuestOrderRequest;
 import com.example.datn.dto.request.OrderDetailRequest;
 import com.example.datn.dto.request.OrderRequest;
 import com.example.datn.dto.response.ApiResponse;
@@ -31,6 +32,7 @@ import java.util.UUID;
 import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -356,6 +358,120 @@ public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id
                     null
             );
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
+        }
+
+    }
+    @PostMapping("/casso/check-payment-and-order")
+    public ResponseEntity<ApiResponse<OrderResponse>> checkPaymentAndOrder(
+            @RequestParam String orderId, // Mã đơn hàng tạm thời từ client để khớp với giao dịch
+            @RequestBody OrderRequest orderRequest) { // Thông tin đơn hàng từ client
+        try {
+            // Bước 1: Gọi API Casso để lấy danh sách giao dịch
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "apikey AK_CS.0ad6d28e008b4534b42a399824148f91.RsEZaWKnMUKuYatpQeWdeG6sOIMu9u2Ttt8RAvxtnF5Yp9nYxWanV8oTAYiB1vW6"); // Đúng định dạng "apikey"
+
+            HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+            // Lấy thời điểm hiện tại làm fromDate
+            String fromDate = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE); // Ví dụ: "2025-04-08"
+            String cassoUrl = "https://oauth.casso.vn/v2/transactions?sort=DESC&sortBy=when&page=1&pageSize=10&fromDate=" + fromDate;
+
+            ResponseEntity<Map> cassoResponse;
+            try {
+                cassoResponse = restTemplate.exchange(cassoUrl, HttpMethod.GET, requestEntity, Map.class);
+            } catch (Exception e) {
+                logger.error("Lỗi khi gọi API Casso: {}", e.getMessage());
+                if (e.getMessage().contains("401")) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(new ApiResponse<>(401, "Xác thực với Casso thất bại, kiểm tra API key", null));
+                }
+                throw e; // Ném lỗi để xử lý tiếp
+            }
+
+            Map<String, Object> cassoResponseBody = cassoResponse.getBody();
+
+            if (cassoResponseBody == null || !cassoResponseBody.containsKey("data")) {
+                logger.error("Không thể lấy dữ liệu giao dịch từ Casso: {}", cassoResponseBody);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Không thể kiểm tra thanh toán từ Casso", null));
+            }
+
+            // Bước 2: Kiểm tra trạng thái thanh toán
+            Map<String, Object> data = (Map<String, Object>) cassoResponseBody.get("data");
+            List<Map<String, Object>> records = (List<Map<String, Object>>) data.get("records");
+
+            boolean paymentSuccess = false;
+            String transactionDescription = "Thanh toan don hang #" + orderId; // Mô tả giao dịch cần khớp
+
+            for (Map<String, Object> record : records) {
+                String description = (String) record.get("description");
+                Number amount = (Number) record.get("amount"); // Số tiền giao dịch từ Casso
+                double expectedAmount = orderRequest.getTotalPayment(); // Tổng tiền từ orderRequest
+
+                if (description != null && description.contains(transactionDescription) &&
+                    amount != null && Math.abs(amount.doubleValue() - expectedAmount) < 1) { // So sánh với sai số nhỏ
+                    paymentSuccess = true;
+                    break;
+                }
+            }
+
+            // Bước 3: Nếu thanh toán thành công, tiến hành đặt hàng
+            if (paymentSuccess) {
+                logger.info("Thanh toán VietQR thành công cho đơn hàng: {}", orderId);
+
+                // Điều chỉnh orderRequest để phù hợp với logic của OrderService
+                orderRequest.setStatus(2); // Đã thanh toán
+                orderRequest.setPaymentMethodId(2); // VietQR
+
+                OrderResponse orderResponse;
+                if (orderRequest.getCustomerId() != null) {
+                    // Đặt hàng từ giỏ hàng cho khách đã đăng nhập
+                    orderResponse = orderService.createOrderFromCart(orderRequest.getCustomerId(), orderRequest);
+                } else {
+                    // Đặt hàng cho khách vãng lai
+                    GuestOrderRequest guestOrderRequest = new GuestOrderRequest();
+                    guestOrderRequest.setCustomerName(orderRequest.getCustomerName());
+                    guestOrderRequest.setPhone(orderRequest.getPhone());
+                    guestOrderRequest.setAddress(orderRequest.getAddress());
+                    guestOrderRequest.setNote(orderRequest.getNote());
+                    guestOrderRequest.setShippingFee(orderRequest.getShippingFee());
+                    guestOrderRequest.setDiscountValue(orderRequest.getDiscountValue());
+                    guestOrderRequest.setTotalPrice(orderRequest.getTotalPrice());
+                    guestOrderRequest.setTotalPayment(orderRequest.getTotalPayment());
+                    guestOrderRequest.setPaymentTypeId(orderRequest.getPaymentTypeId());
+                    guestOrderRequest.setPaymentMethodId(orderRequest.getPaymentMethodId());
+                    guestOrderRequest.setOrderType(orderRequest.getOrderType());
+                    guestOrderRequest.setStatus(orderRequest.getStatus());
+                    guestOrderRequest.setCartItems(orderRequest.getCartItems().stream()
+                            .map(item -> new GuestOrderRequest.CartItemDTO(
+                                    item.getProductDetailId(),
+                                    item.getQuantity(),
+                                    item.getPrice(),
+                                    item.getTotalPrice()
+                            ))
+                            .collect(Collectors.toList()));
+
+                    orderResponse = orderService.createOrderForGuest(guestOrderRequest);
+                }
+
+                // Trả về phản hồi thành công
+                ApiResponse<OrderResponse> apiResponse = new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Thanh toán thành công qua VietQR và đơn hàng đã được đặt",
+                        orderResponse
+                );
+                return ResponseEntity.ok(apiResponse);
+            } else {
+                logger.warn("Không tìm thấy giao dịch thành công cho đơn hàng: {}", orderId);
+                return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED)
+                        .body(new ApiResponse<>(HttpStatus.PAYMENT_REQUIRED.value(), "Thanh toán chưa được xác nhận", null));
+            }
+
+        } catch (Exception e) {
+            logger.error("Lỗi khi kiểm tra thanh toán và đặt hàng: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Lỗi: " + e.getMessage(), null));
         }
     }
 }

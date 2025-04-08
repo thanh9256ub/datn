@@ -448,3 +448,18 @@ export const fetchOrderByCode = async (orderCode) => {
         throw new Error(error.response?.data?.message || 'Không thể gửi email xác nhận đơn hàng');
     }
 };
+export const checkPaymentAndOrder = async (orderId, orderData) => {
+    try {
+        const response = await api.post(`/counter/casso/check-payment-and-order?orderId=${orderId}`, orderData);
+        console.log('API res (check payment and order):', response.data);
+        return response.data; // Trả về dữ liệu từ API
+    } catch (error) {
+        console.error('Error checking payment and ordering:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data,
+            requestData: error.config?.data
+        });
+        throw new Error(error.response?.data?.message || 'Không thể kiểm tra thanh toán và đặt hàng');
+    }
+};
