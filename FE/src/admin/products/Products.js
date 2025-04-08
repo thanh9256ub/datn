@@ -275,33 +275,33 @@ const Products = () => {
                 </h3>
             </div>
             {localStorage.getItem("role") === "ADMIN" &&
-            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px" }}>
-                <div style={{ position: "relative", display: "inline-block" }}>
-                    <button type="button" className='btn btn-success' style={{ cursor: "pointer" }}>
-                        <i className='mdi mdi-file-import'></i>Nhập Excel
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px" }}>
+                    <div style={{ position: "relative", display: "inline-block" }}>
+                        <button type="button" className='btn btn-success' style={{ cursor: "pointer" }}>
+                            <i className='mdi mdi-file-import'></i>Nhập Excel
+                        </button>
+                        <input
+                            type="file"
+                            accept=".xlsx, .xls" 
+                            onChange={handleImportExcel}
+                            style={{
+                                position: "absolute",
+                                left: 0,
+                                top: 0,
+                                width: "100%",
+                                height: "100%",
+                                opacity: 0,
+                                cursor: "pointer"
+                            }}
+                        />
+                    </div>
+                    <button type="button" className='btn btn-success' onClick={handleExportExcel}>
+                        <i className='mdi mdi-file-export'></i>Xuất Excel
                     </button>
-                    <input
-                        type="file"
-                        accept=".xlsx, .xls"
-                        onChange={handleImportExcel}
-                        style={{
-                            position: "absolute",
-                            left: 0,
-                            top: 0,
-                            width: "100%",
-                            height: "100%",
-                            opacity: 0,
-                            cursor: "pointer"
-                        }}
-                    />
+                    <button type="button" className="btn btn-gradient-primary float-right" onClick={handleAddProduct}>
+                        <i className='mdi mdi-plus'></i> Thêm mới
+                    </button>
                 </div>
-                <button type="button" className='btn btn-success' onClick={handleExportExcel}>
-                    <i className='mdi mdi-file-export'></i>Xuất Excel
-                </button>
-                <button type="button" className="btn btn-gradient-primary float-right" onClick={handleAddProduct}>
-                    <i className='mdi mdi-plus'></i> Thêm mới
-                </button>
-            </div>
             }
             <div className="row">
                 <div className="col-lg-12 grid-margin stretch-card">
