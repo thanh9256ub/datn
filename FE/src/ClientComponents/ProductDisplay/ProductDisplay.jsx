@@ -431,11 +431,11 @@ const ProductDisplay = ({ product, productColors }) => {
                                         color: primaryColor,
                                         fontWeight: 700
                                     }}>
-                                        ${product.price?.toLocaleString() || 0}
+                                        {product.price?.toLocaleString() || 0} ₫
                                     </Text>
                                     {product.originalPrice && (
                                         <Text delete type="secondary" style={{ fontSize: 18 }}>
-                                            ${product.originalPrice.toLocaleString()}
+                                            {product.originalPrice.toLocaleString()} ₫
                                         </Text>
                                     )}
                                 </div>
