@@ -235,5 +235,18 @@ public class ProductDetailService {
     public List<ProductDetailResponse> getRelatedProducts(Integer pId){
         return mapper.toListProductDetail(repository.findAllExceptId(pId));
     }
-
+    public void  updateProductDetaiStatus0(){
+        for (ProductDetail productDetail: repository.findAll()) {
+            if (productDetail.getStatus()==1&&productDetail.getQuantity()==0){
+                productDetail.setStatus(0);
+                repository.save(productDetail);
+            }
+        }
+        for (Product product:productRepository.findAll()             ) {
+            if (product.getStatus()==1&&product.getTotalQuantity()==0){
+                product.setStatus(0);
+                productRepository.save(product);
+            }
+        }
+    }
 }

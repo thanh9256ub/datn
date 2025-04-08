@@ -124,5 +124,13 @@ public class VoucherService {
     }
 
 
+    public void updateVoucherStatus0() {
+        for ( Voucher voucher :voucherRepository.findAll()) {
+            if (voucher.getQuantity()==0&& voucher.getStatus()==1){
+                voucher.setStatus(3);
+                voucherRepository.save(voucher);
+            }
+        }
 
+    }
 }

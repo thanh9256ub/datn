@@ -159,7 +159,7 @@ const Vouchers = () => {
                             </td>
                             <td>
                               <span className={`badge ${voucher.status === 1 ? 'badge-success' : voucher.status === 0 ? 'badge-danger' : 'badge-info'}`}>
-                                {voucher.status === 1 ? "Đang hoạt động" : voucher.status === 0 ? "Đã hết hạn" : "Chưa kích hoạt"}
+                                {voucher.status === 1 ? "Đang hoạt động" : voucher.status === 0 ? "Đã hết hạn" :  voucher.status === 2?"Chưa kích hoạt":"Hết số lượng"}
                               </span>
                             </td>
                             <td>
