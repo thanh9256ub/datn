@@ -91,7 +91,7 @@ public class EmailService {
                "        </div>" +
                "        " +
                "        <div class=\"footer\">" +
-               "            <p>© 2023 Cửa hàng của chúng tôi. Tất cả các quyền được bảo lưu.</p>" +
+               "            <p>© 2025 Cửa hàng của chúng tôi. Tất cả các quyền được bảo lưu.</p>" +
                "        </div>" +
                "    </div>" +
                "</body>" +
