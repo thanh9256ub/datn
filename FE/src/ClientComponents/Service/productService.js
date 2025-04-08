@@ -33,14 +33,16 @@ api.interceptors.response.use(
 );
 export const checkStockAvailability = async (items) => {
     try {
+        console.log('Items being sent to check stock:', items);
         const response = await api.post('/product-detail/check-stock', items);
-        console.log('API res (check stock):', response.data);
-        return response.data.data || {}; // Trả về Map { productDetailId: quantity }
+        console.log('API response (check stock):', response.data);
+        return response.data.data || {}; 
     } catch (error) {
         console.error('Error checking stock availability:', {
             url: error.config?.url,
             status: error.response?.status,
             errorData: error.response?.data,
+            requestData: error.config?.data
         });
         throw new Error(error.response?.data?.message || 'Không thể kiểm tra tồn kho');
     }

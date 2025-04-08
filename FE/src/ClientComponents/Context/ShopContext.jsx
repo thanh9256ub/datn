@@ -57,18 +57,22 @@ const ShopContextProvider = (props) => {
             console.log('Loading cart with cartId:', cartId);
             const response = await getCartDetails(cartId);
             console.log('API response:', response);
-
+    
             const cartDetails = response && response.data ? response.data : [];
             console.log('Cart details:', cartDetails);
-
+    
             const items = cartDetails.length > 0 ? cartDetails[0]?.cart?.items || [] : [];
             console.log('Extracted cart items:', items);
-
+    
             setCartItems(items);
-
+    
             if (cartDetails.length > 0 && cartDetails[0]?.cart?.id) {
                 setCartId(cartDetails[0].cart.id);
-                setSelectedItems(items.map((item) => item.id || item.productDetailId));
+                setSelectedItems(prevSelected => 
+                    prevSelected.filter(id => 
+                        items.some(item => (item.id || item.productDetailId) === id)
+                    )
+                );
             } else {
                 setSelectedItems([]);
                 console.log('No cart data found for cartId:', cartId);
@@ -206,6 +210,7 @@ const ShopContextProvider = (props) => {
         cartId,
         setCartId,
         getOrCreateCart,
+        setSelectedItems
     };
 
     // useEffect(() => {

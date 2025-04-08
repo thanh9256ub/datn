@@ -90,20 +90,18 @@ public class ProductDetailService {
     }
 
     public Map<Integer, Integer> checkStockAvailability(List<Map<String, Integer>> checkStockRequests) {
-        // Lấy danh sách productDetailId từ request
         List<Integer> productDetailIds = checkStockRequests.stream()
                 .map(request -> request.get("productDetailId"))
                 .collect(Collectors.toList());
 
-        // Truy vấn cơ sở dữ liệu để lấy tất cả ProductDetail theo danh sách ID
-        List<ProductDetail> productDetails = repository.findAllById(productDetailIds);
+        // Thêm điều kiện kiểm tra status = 1 (còn hàng)
+        List<ProductDetail> productDetails = repository.findByIdInAndStatus(productDetailIds, 1);
 
-        // Tạo map chứa productDetailId và số lượng tồn kho
         return productDetails.stream()
                 .collect(Collectors.toMap(
                         ProductDetail::getId,
                         ProductDetail::getQuantity,
-                        (existing, replacement) -> existing // Nếu trùng lặp, giữ giá trị đầu tiên
+                        (existing, replacement) -> existing
                 ));
     }
     public ProductDetailResponse updateQR(Integer pdId) {

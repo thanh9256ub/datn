@@ -32,6 +32,7 @@ const CartItems = () => {
         setCartId,
         token,
         getOrCreateCart,
+        setSelectedItems
     } = useContext(ShopContext);
 
     const [loading, setLoading] = useState(false);
@@ -54,6 +55,7 @@ const CartItems = () => {
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const [thankYouModalVisible, setThankYouModalVisible] = useState(false);
     const [orderCode, setOrderCode] = useState('');
+    
     // Khởi tạo giỏ hàng
     useEffect(() => {
         console.log('CartItems mounted with:', { isGuest, cartId, token, cartItems });
@@ -243,11 +245,12 @@ const CartItems = () => {
         const stockCheckRequest = itemsToCheck.map(item => ({
             productDetailId: item.productDetailId
         }));
-
+        console.log('Full list of items to check stock:', stockCheckRequest);
         try {
             const stockAvailability = await checkStockAvailability(stockCheckRequest);
             itemsToCheck.forEach(item => {
                 const availableStock = stockAvailability[item.productDetailId] || 0;
+                console.log('Stock availability response:', stockAvailability);
                 if (availableStock < item.quantity) {
                     insufficientItems.push({
                         name: item.productDetail?.product?.productName || 'Sản phẩm',
@@ -267,35 +270,55 @@ const CartItems = () => {
     };
 
     const handleCheckout = async () => {
+        console.log('Current cartItems:', JSON.stringify(cartItems, null, 2));
+        console.log('Selected items:', selectedItems);
         try {
             await form.validateFields();
-
+    
             if (selectedItems.length === 0) {
                 message.warning('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
                 return;
             }
-
+    
             if (paymentMethod === 2 && paymentStatus !== 'success') {
                 message.warning('Vui lòng hoàn thành thanh toán qua VietQR trước');
                 return;
             }
-
+    
             setLoading(true);
-
+    
             const formValues = form.getFieldsValue();
             const address = `${formValues.address}, ${wards.find(w => w.WARDS_ID === selectedWard)?.WARDS_NAME || ''}, 
             ${districts.find(d => d.DISTRICT_ID === selectedDistrict)?.DISTRICT_NAME || ''}, 
             ${provinces.find(p => p.PROVINCE_ID === selectedProvince)?.PROVINCE_NAME || ''}`;
-
+    
+            // Đồng bộ selectedItems với cartItems, chỉ giữ lại ID hợp lệ
+            const validSelectedItems = selectedItems.filter(id => 
+                cartItems.some(item => (item.id || item.productDetailId) === id)
+            );
+    
+            if (validSelectedItems.length === 0) {
+                message.error('Không có sản phẩm hợp lệ nào được chọn để thanh toán');
+                setLoading(false);
+                return;
+            }
+    
             const selectedCartItems = cartItems
-                .filter(item => selectedItems.includes(item.id || item.productDetailId))
+                .filter(item => validSelectedItems.includes(isGuest ? item.productDetailId : item.id)) // Sử dụng productDetailId cho khách vãng lai
                 .map(item => ({
-                    productDetailId: item.productDetailId || item.id,
+                    productDetailId: item.productDetail.id,
                     quantity: item.quantity,
                     price: item.price,
-                    total_price: item.total_price || item.price * item.quantity
+                    totalPrice: item.total_price || item.price * item.quantity
                 }));
-
+            console.log('Selected cart items before stock check:', selectedCartItems);
+    
+            if (selectedCartItems.length === 0) {
+                message.error('Không có sản phẩm nào để kiểm tra tồn kho');
+                setLoading(false);
+                return;
+            }
+    
             // Kiểm tra tồn kho
             const insufficientItems = await checkStockAvailabilityFrontend(selectedCartItems);
             if (insufficientItems === null) {
@@ -310,7 +333,7 @@ const CartItems = () => {
                 setLoading(false);
                 return;
             }
-
+    
             const orderData = {
                 customerName: formValues.name,
                 phone: formValues.phone,
@@ -330,20 +353,23 @@ const CartItems = () => {
                 cartItems: selectedCartItems,
                 customerId: isGuest ? null : customerId
             };
-
+    
             console.log('Order data to send:', JSON.stringify(orderData, null, 2));
             let response;
             if (isGuest) {
                 response = await createGuestOrder(orderData);
                 if (response.status === 201) {
-                    const orderCode = response.data?.orderCode || `DH-${Date.now()}`;
+                    const orderCode = response.data?.orderCode|| response.data?.data?.orderCode;
                     console.log("===orderCode==="+orderCode);
-                    
                     setOrderCode(orderCode);
                     setThankYouModalVisible(true);
                     message.success('Đặt hàng thành công!');
-                    clearCart();
-                    localStorage.removeItem('cartItems');
+                    setCartItems(prev => prev.filter(item => 
+                        !validSelectedItems.includes(item.id || item.productDetailId)
+                    ));
+                    localStorage.setItem('cartItems', JSON.stringify(
+                        cartItems.filter(item => !validSelectedItems.includes(item.id || item.productDetailId))
+                    ));
                 } else {
                     throw new Error('Tạo đơn hàng khách vãng lai thất bại');
                 }
@@ -362,19 +388,18 @@ const CartItems = () => {
                         await loadCartItems(cartData.id);
                     }
                 }
-
+    
                 response = await createOrder(cartId, orderData);
                 console.log('Authenticated Order Response:', response.data);
                 if (response.status === 201) {
-                    const orderCode = response.data?.orderCode || `DH-${Date.now()}`;
+                    const orderCode = response.data?.orderCode|| response.data?.data?.orderCode;
                     console.log("===orderCode==="+orderCode);
-                    
                     setOrderCode(orderCode);
                     setThankYouModalVisible(true);
                     message.success('Đặt hàng thành công!');
-                    await clearCartOnServer(cartId);
-                    clearCart();
-                    setCartId(null);
+                    setCartItems(prev => prev.filter(item => 
+                        !validSelectedItems.includes(item.id || item.productDetailId)
+                    ));
                 } else {
                     throw new Error('Tạo đơn hàng thất bại');
                 }

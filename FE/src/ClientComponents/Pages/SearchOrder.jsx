@@ -113,7 +113,9 @@ export const SearchOrder = () => {
   return (
     <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
       <Title level={2}>Tra cứu đơn hàng</Title>
-      
+      <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+                Lưu ý: Khách hàng có nhu cầu đặt thêm sản phẩm, quý khách xin vui lòng liên hệ đến cửa hàng.
+            </Text>
       <Card style={{ marginBottom: 24 }}>
         <Form form={form} layout="inline" onFinish={onSearch}>
           <Form.Item

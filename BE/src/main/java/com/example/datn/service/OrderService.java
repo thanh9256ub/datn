@@ -190,53 +190,42 @@ public OrderResponse updateStatus(Integer id, int newStatus) {
 
     @Transactional
     public OrderResponse createOrderFromCart(Integer cartId, OrderRequest orderRequest) {
-        // 1. Validate và lấy thông tin giỏ hàng
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy giỏ hàng với ID: " + cartId));
 
-        // 2. Kiểm tra giỏ hàng có sản phẩm không
-        if (cart.getItems() == null || cart.getItems().isEmpty()) {
-            throw new IllegalStateException("Không thể tạo đơn hàng từ giỏ hàng trống");
+        List<OrderRequest.CartItemDTO> selectedItems = orderRequest.getCartItems();
+        if (selectedItems == null || selectedItems.isEmpty()) {
+            throw new IllegalStateException("Danh sách sản phẩm trong đơn hàng trống");
         }
 
-        // 3. Lấy thông tin khách hàng từ giỏ hàng
         Customer customer = cart.getCustomer();
         if (customer == null) {
             throw new IllegalArgumentException("Giỏ hàng không có thông tin khách hàng liên kết");
         }
 
-        // 4. Tạo mã đơn hàng
         SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
         String orderCode = "HD" + sdf.format(new Date());
 
-        // 5. Tạo đơn hàng mới
         Order order = new Order();
         order.setOrderCode(orderCode);
         order.setCustomer(customer);
-
-        // 6. Thiết lập thông tin khách hàng
         order.setCustomerName(orderRequest.getCustomerName() != null ?
                 orderRequest.getCustomerName() : customer.getFullName());
         order.setPhone(orderRequest.getPhone() != null ?
                 orderRequest.getPhone() : customer.getPhone());
         order.setAddress(orderRequest.getAddress());
         order.setNote(orderRequest.getNote());
-
-        // 7. Thiết lập thông tin thanh toán và vận chuyển
         order.setShippingFee(orderRequest.getShippingFee() != null ?
                 orderRequest.getShippingFee() : 0.0);
         order.setDiscountValue(orderRequest.getDiscountValue() != null ?
                 orderRequest.getDiscountValue() : 0.0);
 
-        // 8. Tính toán tổng giá
-        double totalPrice = cart.getItems().stream()
+        double totalPrice = selectedItems.stream()
                 .mapToDouble(item -> item.getPrice() * item.getQuantity())
                 .sum();
-
         order.setTotalPrice(totalPrice);
         order.setTotalPayment(totalPrice + order.getShippingFee() - order.getDiscountValue());
 
-        // 9. Thiết lập phương thức thanh toán
         if (orderRequest.getPaymentTypeId() != null) {
             PaymentType paymentType = paymentTypeRepository.findById(orderRequest.getPaymentTypeId())
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy loại thanh toán"));
@@ -249,37 +238,36 @@ public OrderResponse updateStatus(Integer id, int newStatus) {
             order.setPaymentMethod(paymentMethod);
         }
 
-        // 10. Thiết lập trạng thái và thời gian
         order.setOrderType(orderRequest.getOrderType() != null ? orderRequest.getOrderType() : 1);
-        order.setStatus(1); // 1 = Chờ tiếp nhận
+        order.setStatus(1); // Chờ tiếp nhận
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
 
-        // 11. Lưu đơn hàng
         order = repository.save(order);
 
-        // 12. Chuyển sản phẩm từ giỏ hàng sang đơn hàng
-        for (CartDetails cartDetail : cart.getItems()) {
-            // 12a. Tạo chi tiết đơn hàng
+        // Xóa các sản phẩm đã thanh toán khỏi giỏ hàng và lưu thay đổi
+        for (OrderRequest.CartItemDTO item : selectedItems) {
+            ProductDetail productDetail = productDetailRepository.findById(item.getProductDetailId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi tiết sản phẩm với ID: " + item.getProductDetailId()));
+
             OrderDetail orderDetail = new OrderDetail();
             orderDetail.setOrder(order);
-            orderDetail.setProductDetail(cartDetail.getProductDetail());
-            orderDetail.setQuantity(cartDetail.getQuantity());
-            orderDetail.setPrice(cartDetail.getPrice());
-            orderDetail.setTotalPrice(cartDetail.getTotal_price());
-            orderDetail.setStatus(1); // 1 = Hoạt động
-
-            // 12b. Lưu chi tiết đơn hàng
+            orderDetail.setProductDetail(productDetail);
+            orderDetail.setQuantity(item.getQuantity());
+            orderDetail.setPrice(item.getPrice());
+            orderDetail.setTotalPrice(item.getTotalPrice());
+            orderDetail.setStatus(1);
             orderDetailRepository.save(orderDetail);
-            // Xóa 12c: Không cập nhật số lượng tồn kho ở đây
+
+            // Xóa sản phẩm khỏi giỏ hàng
+            cart.getItems().removeIf(cartItem ->
+                    cartItem.getProductDetail().getId().equals(item.getProductDetailId())
+            );
         }
 
-        // 13. Cập nhật trạng thái giỏ hàng (đã chuyển thành đơn hàng)
-        cart.setStatus(2); // 2 = Đã chuyển thành đơn hàng
-        cart.setCreated_at(LocalDateTime.now());
+        // Lưu giỏ hàng đã cập nhật vào database
         cartRepository.save(cart);
 
-        // 14. Trả về thông tin đơn hàng đã tạo
         return mapper.toOrderResponse(order);
     }
     @Transactional
