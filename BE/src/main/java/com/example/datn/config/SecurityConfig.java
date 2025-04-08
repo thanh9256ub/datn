@@ -45,23 +45,21 @@ public class SecurityConfig {
                             .requestMatchers(
                                     "products/**",
                                     "product/**",
-                                    "employee/forgot-password",
                                     "product-detail/**",
-                                    "/brand",
-                                    "/category",
-                                    "/material",
-                                    "color",
-                                    "size",
+                                    "brand/**",
+                                    "category/**",
+                                    "material/**",
+                                    "color/**",
+                                    "size/**",
                                     "product-color/**",
+                                    "employee/forgot-password",
                                     "vouchers/**",
-                                    "/counter/provinces",
-                                    "/counter/districts",
-                                    "/counter/wards",
-                                    "/counter/get-price",
+                                    "/counter/**",
                                     "/cart-details/**",
                                     "/carts/**",
-                                    "/order/checkout/{cartId}",
-                                    "/order/checkout/guest"
+                                    "/order/**",
+                                    "/order-detail/**",
+                                    "customer/**"
                             )
                             .permitAll()
                             .requestMatchers("/address/**", "/role/**")
