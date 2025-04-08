@@ -86,6 +86,11 @@ const ProductDisplay = ({ product, productColors }) => {
             return;
         }
 
+        if (currentDetail && currentDetail.quantity === 0) {
+            message.warning('Sản phẩm đã hết hàng');
+            return;
+        }
+
         const selectedColor = productColors.find(pc => pc.color.id === selectedColorId);
         const selectedSizeObj = sizes.find(s => s.id === selectedSize);
 
@@ -186,6 +191,11 @@ const ProductDisplay = ({ product, productColors }) => {
                 return;
             }
 
+            if (currentDetail && currentDetail.quantity === 0) {
+                message.warning('Sản phẩm đã hết hàng');
+                return;
+            }
+
             await addToCart({
                 productId: product.id,
                 colorId: selectedColorId,
@@ -227,8 +237,9 @@ const ProductDisplay = ({ product, productColors }) => {
         setSelectedColorId(colorId);
         setSelectedProductColorId(productColorId);
         setMainImage(newImage || product.image || '');
-        setSizes([]); // Reset sizes
-        setSelectedSize(null); // Reset selected size
+
+        setSizes([]);
+        setSelectedSize(null);
 
         try {
             const sizeResponse = await fetchSizesByColor(product.id, colorId);

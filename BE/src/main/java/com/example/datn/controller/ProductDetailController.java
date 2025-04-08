@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -146,7 +147,17 @@ public class ProductDetailController {
                 ProductDetailResponse productDetailResponse = service.deleteAndRestoreProductDetail(pdId);
                 return ResponseEntity.ok(productDetailResponse);
         }
+        @PostMapping("/check-stock")
+        public ResponseEntity<ApiResponse<Map<Integer, Integer>>> checkStockAvailability(
+                @RequestBody List<Map<String, Integer>> checkStockRequests) {
+                Map<Integer, Integer> stockAvailability = service.checkStockAvailability(checkStockRequests);
 
+                ApiResponse<Map<Integer, Integer>> response = new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Stock availability checked successfully",
+                        stockAvailability
+                );
+                return ResponseEntity.ok(response);}
         @GetMapping("{id}/related")
         public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getRelatedProducts(
                 @PathVariable("id") Integer productId) {

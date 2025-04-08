@@ -86,19 +86,15 @@ public class OrderController {
             @RequestParam int newStatus,
             HttpServletResponse response) {
 
-        // Thêm headers CORS vào phản hồi
         response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-        // Gọi service để cập nhật trạng thái
         OrderResponse orderResponse = service.updateStatus(id, newStatus);
 
-        // Tạo phản hồi API
         ApiResponse<OrderResponse> apiResponse = new ApiResponse<>(
                 HttpStatus.OK.value(), "Order status updated successfully", orderResponse);
 
-        // Trả về phản hồi
         return ResponseEntity.ok(apiResponse);
     }
     @GetMapping("/filter")
@@ -161,7 +157,11 @@ public class OrderController {
         return service.getRevenueBetweenDates(startDate, endDate  );
         //ngay
     }
-
+    @GetMapping("/revenue-total")
+    public Object[] getRevenueTotal() {
+        return service.getRevenueTotal();
+        //tong
+    }
     @PostMapping("/checkout/{cartId}")
     public ResponseEntity<ApiResponse<OrderResponse>> checkout(
             @PathVariable("cartId") Integer cartId,
@@ -201,5 +201,18 @@ public class OrderController {
                             "An unexpected error occurred: " + e.getMessage(), null));
         }
 
+    }
+
+    @GetMapping("/code/{orderCode}")
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrderByCode(
+            @PathVariable String orderCode) {
+
+        try {
+            OrderResponse order = service.getOrderByCode(orderCode);
+            return ResponseEntity.ok(new ApiResponse<>(200, "Order found", order));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>(404, "Order not found", null));
+        }
     }
 }

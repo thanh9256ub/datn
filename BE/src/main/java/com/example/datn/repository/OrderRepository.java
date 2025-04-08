@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.awt.print.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
@@ -27,7 +28,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             "AND (:endDate IS NULL OR o.createdAt <= :endDate) " +
             "AND (:status IS NULL OR o.status = :status) " +
             "AND o.status <> 0 " +
-            "ORDER BY o.createdAt DESC")
+            "ORDER BY o.updatedAt DESC")
     List<Order> filterOrders(@Param("orderCode") String orderCode,
                              @Param("minPrice") Double minPrice,
                              @Param("maxPrice") Double maxPrice,
@@ -57,7 +58,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             "FROM [order] WHERE status = 5 AND YEAR(updated_at) = :year " +
             "AND MONTH(updated_at) = :month " +
             "GROUP BY DAY(updated_at) ORDER BY day", nativeQuery = true)
-    List<Object[]> findOrdersByDayInJanuaryNative(Integer month,Integer year);
+    List<Object[]> findOrdersByDayInJanuaryNative(Integer month, Integer year);
 
 
     @Query(value = "SELECT DAY(updated_at) AS day, SUM(total_price) AS revenue " +
@@ -67,7 +68,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             "AND MONTH(updated_at) = :month " +
             "GROUP BY DAY(updated_at) " +
             "ORDER BY day", nativeQuery = true)
-    List<Object[]> findRevenueByDayInMarch(Integer month,Integer year);
+    List<Object[]> findRevenueByDayInMarch(Integer month, Integer year);
 
     @Query(value = "SELECT MONTH(updated_at) AS month, SUM(total_price) AS revenue " +
             "FROM [order] " +
@@ -85,6 +86,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             "WHERE status = 5 " +
             "AND YEAR(updated_at) = :year", nativeQuery = true)
     Object[] findRevenueByYear(@Param("year") Integer year);
+
     @Query(value = "SELECT " +
             "SUM(total_payment - discount_value) AS total_revenue, " +
             "SUM(CASE WHEN order_type = 0 THEN total_payment - discount_value ELSE 0 END) AS off_revenue, " +
@@ -94,6 +96,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             "AND YEAR(updated_at) = :year " +
             "AND MONTH(updated_at) = :month", nativeQuery = true)
     Object[] findRevenueByMonth(@Param("year") Integer year, @Param("month") Integer month);
+
     @Query(value = "SELECT " +
             "SUM(total_payment - discount_value) AS total_revenue, " +
             "SUM(CASE WHEN order_type = 0 THEN total_payment - discount_value ELSE 0 END) AS off_revenue, " +
@@ -103,4 +106,16 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             "AND updated_at BETWEEN :startDate AND :endDate", nativeQuery = true)
     Object[] findRevenueBetweenDates(@Param("startDate") String startDate,
                                      @Param("endDate") String endDate);
+
+
+    @Query(value = "SELECT " +
+            "SUM(total_payment - discount_value) AS total_revenue, " +
+            "SUM(CASE WHEN order_type = 0 THEN total_payment - discount_value ELSE 0 END) AS off_revenue, " +
+            "SUM(CASE WHEN order_type = 1 THEN total_payment - discount_value ELSE 0 END) AS on_revenue " +
+            "FROM [order] " +
+            "WHERE status = 5 ", nativeQuery = true)
+    Object[] findRevenueTotal();
+
+    Optional<Order> findByOrderCode(String orderCode);
+
 }

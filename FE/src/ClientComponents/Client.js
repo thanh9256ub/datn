@@ -9,6 +9,7 @@ import Cart from './Pages/Cart';
 import all_banner from './Assets/shoes_banner4.png'
 import ShopAllProduct from './Pages/ShopAllProduct.jsx';
 import Product from './Pages/Product';
+import { SearchOrder } from './Pages/SearchOrder.jsx';
 
 const Client = () => {
 
@@ -22,6 +23,7 @@ const Client = () => {
                 <Route path="/cart" component={Cart} />
                 <Route exact path="/product/:productID" component={Product} />
                 <Route path="/cart" component={Cart} />
+                <Route path="/lookup" component={SearchOrder} />
             </Switch>
             <Footer />
         </div>

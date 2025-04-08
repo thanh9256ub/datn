@@ -31,6 +31,20 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+export const checkStockAvailability = async (items) => {
+    try {
+        const response = await api.post('/product-detail/check-stock', items);
+        console.log('API res (check stock):', response.data);
+        return response.data.data || {}; // Trả về Map { productDetailId: quantity }
+    } catch (error) {
+        console.error('Error checking stock availability:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data,
+        });
+        throw new Error(error.response?.data?.message || 'Không thể kiểm tra tồn kho');
+    }
+};
 export const fetchProducts = async () => {
     try {
         const response = await api.get('/products/list'); // Thay thế endpoint tương ứng
@@ -391,3 +405,21 @@ export const clearCartOnServer = async (cartId) => {
         throw error;
     }
 };
+export const fetchOrderByCode = async (orderCode) => {
+    try {
+      const response = await axios.get(`/order/code/${orderCode}`);
+      return response.data.data; // Giả sử API trả về data trong property data
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Không tìm thấy đơn hàng');
+    }
+  };
+  export const fetchOrderDetailsByOrderId = async (orderId) => {
+      try {
+          const response = await api.get(`/order-detail/order/${orderId}`);
+          console.log('Raw API Response:', response.data); // Thêm log để kiểm tra
+          return response.data;
+      } catch (error) {
+          console.error('Error fetching order details by order ID:', error);
+          throw error;
+      }
+  };

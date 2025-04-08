@@ -41,7 +41,8 @@ public class SecurityConfig {
                             .requestMatchers("authCustomer/**").permitAll()
                             .requestMatchers(
                                     "/auth/token",
-                                    "auth/introspect").permitAll()
+                                    "auth/introspect")
+                            .permitAll()
                             .requestMatchers(
                                     "products/**",
                                     "product/**",
@@ -59,8 +60,7 @@ public class SecurityConfig {
                                     "/carts/**",
                                     "/order/**",
                                     "/order-detail/**",
-                                    "customer/**"
-                            )
+                                    "customer/**")
                             .permitAll()
                             .requestMatchers("/address/**", "/role/**")
                             .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")
@@ -71,10 +71,8 @@ public class SecurityConfig {
                     .addFilterBefore(new RequestLoggingFilter(),
                             UsernamePasswordAuthenticationFilter.class);
 
-            httpSecurity.oauth2ResourceServer(oauth2 ->
-                    oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
-                            .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-            );
+            httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
+                    .jwtAuthenticationConverter(jwtAuthenticationConverter())));
             httpSecurity.cors(corsConfig -> corsConfig.configurationSource(corsConfigurationSource()));
             httpSecurity.csrf(AbstractHttpConfigurer::disable);
             log.info("Config success");

@@ -169,4 +169,54 @@ public class OrderDetailService {
         Pageable pageable = PageRequest.of(0, 5); // Lấy 5 sản phẩm đầu tiên
         return repository.getTop5BestSellingProducts(pageable);
     }
+    @Transactional
+    public List<OrderDetailResponse> updateOrderDetails(Integer orderId, List<OrderDetailRequest> items) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+
+        List<OrderDetail> currentDetails = repository.findByOrderId(orderId);
+        for (OrderDetail detail : currentDetails) {
+            ProductDetail productDetail = detail.getProductDetail();
+            productDetail.setQuantity(productDetail.getQuantity() + detail.getQuantity());
+            productDetailRepository.save(productDetail);
+            productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
+        }
+
+        repository.deleteByOrderId(orderId);
+
+        List<OrderDetail> newDetails = items.stream().map(item -> {
+            ProductDetail productDetail = productDetailRepository.findById(item.getProductDetailId())
+                    .orElseThrow(() -> new RuntimeException("ProductDetail not found with id: " + item.getProductDetailId()));
+
+            if (productDetail.getQuantity() < item.getQuantity()) {
+                throw new RuntimeException("Insufficient stock for product: " + productDetail.getProduct().getProductName());
+            }
+
+            productDetail.setQuantity(productDetail.getQuantity() - item.getQuantity());
+            productDetailRepository.save(productDetail);
+            productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
+
+            OrderDetail orderDetail = new OrderDetail();
+            orderDetail.setOrder(order);
+            orderDetail.setProductDetail(productDetail);
+            orderDetail.setQuantity(item.getQuantity());
+            orderDetail.setPrice(item.getPrice() != null ? item.getPrice() : productDetail.getPrice());
+            orderDetail.setTotalPrice(item.getTotalPrice() != null ? item.getTotalPrice() : item.getPrice() * item.getQuantity());
+            orderDetail.setStatus(item.getStatus() != null ? item.getStatus() : 0);
+            orderDetail.setProductStatus(item.getProductStatus() != null ? item.getProductStatus() : 1);
+
+            return orderDetail;
+        }).collect(Collectors.toList());
+
+        List<OrderDetail> savedDetails = repository.saveAll(newDetails);
+
+        double orderTotalPrice = savedDetails.stream()
+                .mapToDouble(OrderDetail::getTotalPrice)
+                .sum();
+
+        order.setTotalPrice(orderTotalPrice);
+        orderRepository.save(order);
+
+        return mapper.toListResponses(savedDetails);
+    }
 }
