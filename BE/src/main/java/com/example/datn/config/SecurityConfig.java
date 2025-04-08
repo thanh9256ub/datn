@@ -41,30 +41,26 @@ public class SecurityConfig {
                             .requestMatchers("authCustomer/**").permitAll()
                             .requestMatchers(
                                     "/auth/token",
-                                    "auth/introspect").permitAll()
+                                    "auth/introspect")
+                            .permitAll()
                             .requestMatchers(
                                     "products/**",
                                     "product/**",
-                                    "employee/forgot-password",
-                                    "/product-detail/**",
-                                    "/brand",
-                                    "/category",
-                                    "/material",
-                                    "color",
-                                    "size",
+                                    "product-detail/**",
+                                    "brand/**",
+                                    "category/**",
+                                    "material/**",
+                                    "color/**",
+                                    "size/**",
                                     "product-color/**",
+                                    "employee/forgot-password",
                                     "vouchers/**",
-                                    "/counter/provinces",
-                                    "/counter/districts",
-                                    "/counter/wards",
-                                    "/counter/get-price",
-                                    "/counter/update-order-details/{orderId}",
+                                    "/counter/**",
                                     "/cart-details/**",
                                     "/carts/**",
-                                    "/order/checkout/{cartId}",
-                                    "/order/checkout/guest",
-                                    "/order/code/{orderCode}","/order-detail/order/{orderId}"
-                            )
+                                    "/order/**",
+                                    "/order-detail/**",
+                                    "customer/**")
                             .permitAll()
                             .requestMatchers("/address/**", "/role/**")
                             .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")
@@ -75,10 +71,8 @@ public class SecurityConfig {
                     .addFilterBefore(new RequestLoggingFilter(),
                             UsernamePasswordAuthenticationFilter.class);
 
-            httpSecurity.oauth2ResourceServer(oauth2 ->
-                    oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
-                            .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-            );
+            httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
+                    .jwtAuthenticationConverter(jwtAuthenticationConverter())));
             httpSecurity.cors(corsConfig -> corsConfig.configurationSource(corsConfigurationSource()));
             httpSecurity.csrf(AbstractHttpConfigurer::disable);
             log.info("Config success");

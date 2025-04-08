@@ -16,7 +16,7 @@ function App() {
     <Route
       {...rest}
       render={(props) =>
-        isAuthenticated && role === 'ADMIN' ? (
+        isAuthenticated && role === 'ADMIN' || isAuthenticated && role === 'EMPLOYEE' ? (
           <Component {...props} />
         ) : isAuthenticated ? (
           <Redirect to="/" /> // Nếu đã đăng nhập nhưng không phải admin
@@ -33,7 +33,7 @@ function App() {
       render={(props) =>
         !isAuthenticated ? (
           <Component {...props} />
-        ) : role === 'ADMIN' ? (
+        ) : role === 'ADMIN' || role === 'EMPLOYEE' ? (
           <Redirect to="/admin" />
         ) : (
           <Redirect to="/" />
@@ -46,7 +46,7 @@ function App() {
     <Route
       {...rest}
       render={(props) =>
-        isAuthenticated && role === 'ADMIN' ? (
+        isAuthenticated && role === 'ADMIN' || isAuthenticated && role === 'EMPLOYEE' ? (
           <Redirect to="/admin" /> // Chuyển hướng admin về trang admin
         ) : (
           <Component {...props} /> // Cho phép tất cả các trường hợp khác
