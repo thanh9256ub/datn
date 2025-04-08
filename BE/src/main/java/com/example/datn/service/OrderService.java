@@ -371,7 +371,7 @@ public OrderResponse updateStatus(Integer id, int newStatus) {
 
     public  Object[] getRevenueTotal() {
         return repository.findRevenueTotal();
-
+    }
 
     public OrderResponse getOrderByCode(String orderCode) {
         Order order = repository.findByOrderCode(orderCode)

@@ -32,7 +32,9 @@ const ChatBot = () => {
                 const response = await axios.get(`${BASE_URL}/products/list`);
                 const productNames = response.data.data.map(item => item.productName);
                 setShoeKeywords(productNames);
-               
+                console.log("Name: ", productNames)
+                console.log("Key: ", shoeKeywords)
+
             } catch (error) {
                 console.error("Error fetching shoe keywords:", error);
             }
@@ -47,7 +49,7 @@ const ChatBot = () => {
                 const response = await axios.get(`${BASE_URL}/products/list`);
                 const brandNames = response.data.data.map(item => item.brand.brandName);
                 setBrandKeywords(brandNames);
-           
+
             } catch (error) {
                 console.error("Error fetching brand keywords:", error);
             }
@@ -66,27 +68,33 @@ const ChatBot = () => {
                 \n- Hỗ trợ khác`
             }]);
         }
-        
+
     }, [isChatOpen]);
+
+    const normalizeText = (text) => {
+        return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    };
 
     // Hàm trích xuất từ khóa tìm kiếm từ câu hỏi
     const extractSearchQuery = (message) => {
-        const lowerMessage = message.toLowerCase();
+        const lowerMessage = normalizeText(message);
 
         // Kiểm tra câu hỏi về cửa hàng
-        if (storeKeywords.some(keyword => lowerMessage.includes(keyword))) {
+        if (storeKeywords.some(keyword => lowerMessage.includes(normalizeText(keyword)))) {
             return 'store_info';
         }
 
         // Tìm thương hiệu trong câu hỏi
-        const foundBrand = brandKeywords.find(brand => lowerMessage.includes(brand));
+        const foundBrand = brandKeywords.find(brand =>
+            lowerMessage.includes(normalizeText(brand))
+        );
 
-        // Nếu có từ khóa giày và thương hiệu
-        if (shoeKeywords.some(shoe => lowerMessage.includes(shoe))) {
-            return foundBrand || shoeKeywords.find(shoe => lowerMessage.includes(shoe));
-        }
+        // Tìm từ khóa giày
+        const foundShoe = shoeKeywords.find(shoe =>
+            lowerMessage.includes(normalizeText(shoe))
+        );
 
-        return foundBrand || null;
+        return foundShoe || foundBrand || null;
     };
 
     // Hàm trả lời thông tin cửa hàng
@@ -118,7 +126,7 @@ const ChatBot = () => {
     const searchShoes = async (query) => {
         try {
             const response = await axios.get(`${BASE_URL}/products/search-ai?name=${encodeURIComponent(query)}`);
-            console.log(response.data.data );
+            console.log(response.data.data);
             return response.data?.data || []; // Giả sử API trả về data.data
 
         } catch (error) {
@@ -137,6 +145,7 @@ const ChatBot = () => {
 
         // Trích xuất từ khóa tìm kiếm
         const searchQuery = extractSearchQuery(chatMessage);
+        console.log("Tìm thấy từ khóa tìm kiếm:", searchQuery);
 
         if (searchQuery === 'store_info') {
             const storeResponse = getStoreInfoResponse(chatMessage);
@@ -150,7 +159,7 @@ const ChatBot = () => {
 
         if (searchQuery) {
             const shoes = await searchShoes(searchQuery);
-console.log(shoes);
+            console.log(shoes);
             if (shoes.length > 0) {
                 // Hiển thị tối đa 3 sản phẩm
                 const topProducts = shoes.slice(0, 3);
@@ -262,7 +271,7 @@ console.log(shoes);
                             alignItems: 'center',
                         }}
                     >
-                        <span>Chat tư vấn giày</span>
+                        <span>Chat tư vấn hỗ trợ khách hàng</span>
                         <CloseOutlined
                             style={{ cursor: 'pointer' }}
                             onClick={() => setIsChatOpen(false)}

@@ -68,6 +68,9 @@ public class ProductService {
     @Autowired
     ProductUpdateRepository productUpdateRepository;
 
+    @Autowired
+    ImageRepository imageRepository;
+
     @Scheduled(fixedRate = 5000) // Kiểm tra mỗi 5 giây
     @Transactional
     public void checkProductQuantityUpdates() {
@@ -396,7 +399,6 @@ public class ProductService {
                 continue;
             }
 
-            // ✅ Tìm hoặc tạo mới Brand, Category, Material
             Brand brand = brandRepository.findByBrandName(brandName)
                     .orElseGet(() -> {
                         Brand newBrand = new Brand();
@@ -405,7 +407,6 @@ public class ProductService {
                         return brandRepository.save(newBrand);
                     });
 
-            // ✅ Tìm hoặc tạo mới Category
             Category category = categoryRepository.findByCategoryName(categoryName)
                     .orElseGet(() -> {
                         Category newCategory = new Category();
@@ -414,7 +415,6 @@ public class ProductService {
                         return categoryRepository.save(newCategory);
                     });
 
-            // ✅ Tìm hoặc tạo mới Material
             Material material = materialRepository.findByMaterialName(materialName)
                     .orElseGet(() -> {
                         Material newMaterial = new Material();
@@ -423,7 +423,6 @@ public class ProductService {
                         return materialRepository.save(newMaterial);
                     });
 
-            // ✅ Tìm hoặc tạo mới Product
             Product product = repository.findByProductNameAndBrandAndCategoryAndMaterial(
                     productName, brand, category, material
             ).orElseGet(() -> {
@@ -435,23 +434,22 @@ public class ProductService {
                 newProduct.setCategory(category);
                 newProduct.setMaterial(material);
                 newProduct.setDescription(description);
-                newProduct.setMainImage("image.png");
-                newProduct.setTotalQuantity(0); // Đặt tạm thời
-                newProduct.setStatus(0); // Đặt tạm thời
+                newProduct.setMainImage("https://res.cloudinary.com/dgj9htnpn/image/upload/v1744099390/v9lfbbu379zzn498rtzo.png");
+                newProduct.setTotalQuantity(0);
+                newProduct.setStatus(0);
                 newProduct.setCreatedAt(LocalDateTime.now().withNano(0));
                 return repository.save(newProduct);
             });
 
-            // ✅ Tìm hoặc tạo mới Color, Size
             Color color = colorRepository.findByColorName(colorName)
                     .orElseGet(() -> {
                         Color newColor = new Color();
+                        newColor.setColorCode("");
                         newColor.setColorName(colorName);
                         newColor.setStatus(1);
                         return colorRepository.save(newColor);
                     });
 
-            // ✅ Tìm hoặc tạo mới Size
             Size size = sizeRepository.findBySizeName(sizeName)
                     .orElseGet(() -> {
                         Size newSize = new Size();
@@ -460,33 +458,46 @@ public class ProductService {
                         return sizeRepository.save(newSize);
                     });
 
+//            ProductColor productColor = productColorRepository.findByProductAndColor(product, color)
+//                    .orElseGet(() -> {
+//                        ProductColor newProductColor = new ProductColor();
+//                        newProductColor.setProduct(product);
+//                        newProductColor.setColor(color);
+//                        return productColorRepository.save(newProductColor);
+//                    });
             ProductColor productColor = productColorRepository.findByProductAndColor(product, color)
                     .orElseGet(() -> {
                         ProductColor newProductColor = new ProductColor();
                         newProductColor.setProduct(product);
                         newProductColor.setColor(color);
-                        return productColorRepository.save(newProductColor);
+                        ProductColor saved = productColorRepository.save(newProductColor);
+
+                        // 👇 Thêm ảnh mặc định
+                        Image defaultImage = new Image();
+                        defaultImage.setProductColor(saved);
+                        defaultImage.setImage("https://res.cloudinary.com/dgj9htnpn/image/upload/v1744099390/v9lfbbu379zzn498rtzo.png");
+                        imageRepository.save(defaultImage);
+
+                        return saved;
                     });
 
-            // ✅ Kiểm tra ProductDetail đã tồn tại chưa
             ProductDetail productDetail = productDetailRepository.findByProductAndColorAndSize(
                     product, color, size
             ).orElse(null);
 
             if (productDetail == null) {
-                // Nếu chưa có, tạo mới
                 productDetail = new ProductDetail();
                 productDetail.setProduct(product);
                 productDetail.setColor(color);
                 productDetail.setSize(size);
                 productDetail.setPrice(price);
                 productDetail.setQuantity(quantity);
-                productDetail.setStatus(quantity > 0 ? 1 : 0); // Nếu có số lượng, đặt trạng thái là 1
+                productDetail.setStatus(quantity > 0 ? 1 : 0);
                 productDetail.setCreatedAt(LocalDateTime.now().withNano(0));
                 productDetail.setQr("");
             } else {
                 productDetail.setQuantity(productDetail.getQuantity() + quantity);
-                productDetail.setStatus(productDetail.getQuantity() > 0 ? 1 : 0); // Nếu số lượng > 0, đặt trạng thái 1
+                productDetail.setStatus(productDetail.getQuantity() > 0 ? 1 : 0);
             }
 
             productDetails.add(productDetail);
@@ -494,7 +505,6 @@ public class ProductService {
             productTotalQuantities.put(product, productTotalQuantities.getOrDefault(product, 0) + quantity);
         }
 
-        // ✅ Lưu ProductDetail vào DB
         productDetailRepository.saveAll(productDetails);
 
         for (ProductDetail pd : productDetails) {
@@ -503,7 +513,6 @@ public class ProductService {
 
         productDetailRepository.saveAll(productDetails);
 
-        // ✅ Cập nhật totalQuantity & status cho Product
         for (Product product : productTotalQuantities.keySet()) {
             int totalQuantityInDB = productDetailRepository.sumQuantityByProduct(product.getId()).orElse(0);
             product.setTotalQuantity(totalQuantityInDB);
@@ -517,13 +526,11 @@ public class ProductService {
             Workbook errorWorkbook = new XSSFWorkbook();
             Sheet errorSheet = errorWorkbook.createSheet("Dòng lỗi");
 
-            // Ghi tiêu đề
             Row header = errorSheet.createRow(0);
             for (int j = 0; j < sheet.getRow(0).getLastCellNum(); j++) {
                 header.createCell(j).setCellValue(sheet.getRow(0).getCell(j).getStringCellValue());
             }
 
-            // Ghi các dòng bị lỗi
             int rowNum = 1;
             for (Row errorRow : errorRows) {
                 Row newRow = errorSheet.createRow(rowNum++);
@@ -539,7 +546,6 @@ public class ProductService {
             errorWorkbook.write(outputStream);
             errorWorkbook.close();
 
-            // ✅ Trả về danh sách lỗi và file lỗi dưới dạng Base64
             Map<String, Object> response = new HashMap<>();
             response.put("errors", errors);
             response.put("file", Base64.getEncoder().encodeToString(outputStream.toByteArray()));
@@ -549,8 +555,8 @@ public class ProductService {
 
         return ResponseEntity.ok(Map.of());
     }
-    public  List<Object[]> getTop5ProductsWithLowestQuantity() {
-     return repository.findTop5ProductsWithLowestQuantity();
 
-        }
+    public List<Object[]> getTop5ProductsWithLowestQuantity() {
+        return repository.findTop5ProductsWithLowestQuantity();
+    }
 }

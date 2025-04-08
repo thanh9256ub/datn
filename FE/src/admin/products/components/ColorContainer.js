@@ -36,11 +36,6 @@ const ColorContainer = ({ colorIds, setColorIds }) => {
             return;
         }
 
-        if (!newColorCode || newColorCode === "#000000") {
-            toast.warning("Vui lòng chọn mã màu!");
-            return;
-        }
-
         try {
             const colorResp = await getColors();
             const colors = colorResp.data.data;
@@ -56,9 +51,10 @@ const ColorContainer = ({ colorIds, setColorIds }) => {
             }
 
             if (colorExists) {
-                toast.error("Màu sắc đã tồn tại!");
+                toast.error("Tên màu sắc đã tồn tại!");
                 return;
             }
+
             const response = await createColor({ colorCode: newColorCode, colorName: newColorName });
             toast.success("Thêm màu sắc thành công!");
             setShowModal(false);
