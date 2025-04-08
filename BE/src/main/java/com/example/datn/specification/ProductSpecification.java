@@ -9,7 +9,10 @@ public class ProductSpecification {
         return (root, query, cb) ->
                 name == null || name.isEmpty() ? cb.conjunction() : cb.like(cb.lower(root.get("productName")), "%" + name.toLowerCase() + "%");
     }
-
+    public static Specification<Product> hasBrandName(String  name ) {
+        return (root, query, cb) ->
+                name  == null ? cb.conjunction() : cb.equal(root.get("brand").get("brandName"), name);
+    }
     public static Specification<Product> hasBrandId(Integer brandId) {
         return (root, query, cb) ->
                 brandId == null ? cb.conjunction() : cb.equal(root.get("brand").get("id"), brandId);

@@ -109,35 +109,35 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     setPaymen(2);
     toast.info("Đã chọn phương thức thanh toán QR ", toastOptions);
 
- 
-      qrIntervalRef.current = setInterval(async () => {
-      
-    
-        try {
-          const response = await fetchCassoTransactions();
-          const records = response.data.body.data.records || [];
-          const matchingRecord = records.find(record =>
-            record.description.includes(`thanh toan hoa don ID${idOrder}HD`) && record.amount === (finalAmount + shippingFee)
-          );
 
-          if (matchingRecord) {
-            clearInterval(qrIntervalRef.current);
-            qrIntervalRef.current = null;
-            setQrImageUrl("");
-            setIsPaymentSuccessful(true);
-            toast.success("Thanh toán thành công ", toastOptions);
-            setShowPrintModal(true);
-          }
-        } catch (error) {
-          console.error("Error checking payment status:", error);
+    qrIntervalRef.current = setInterval(async () => {
+
+
+      try {
+        const response = await fetchCassoTransactions();
+        const records = response.data.body.data.records || [];
+        const matchingRecord = records.find(record =>
+          record.description.includes(`thanh toan hoa don ID${idOrder}HD`) && record.amount === (finalAmount + shippingFee)
+        );
+
+        if (matchingRecord) {
+          clearInterval(qrIntervalRef.current);
+          qrIntervalRef.current = null;
+          setQrImageUrl("");
+          setIsPaymentSuccessful(true);
+          toast.success("Thanh toán thành công ", toastOptions);
+          setShowPrintModal(true);
         }
-        
-      }, 30000);
-    
+      } catch (error) {
+        console.error("Error checking payment status:", error);
+      }
+
+    }, 30000);
+
   };
 
   const handleCashPayment = () => {
-    
+
     if (!idOrder) {
       toast.warn("Vui lòng chọn hóa đơn trước khi chọn QR ", toastOptions);
       return;
@@ -273,11 +273,11 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   const handlePaymentConfirmation = async (shouldPrint) => {
 
     const requestBody = {
-      
+
       customerId: customer?.id || null,
-      customerName: customerInfo.fullName|| "Khách lẻ",
-      phone: customerInfo.phone|| "",
-      address: customerInfo.ward ? `${customerInfo.address}, ${customerInfo.ward}, ${customerInfo.district}, ${customerInfo.province}`:"" ,
+      customerName: customerInfo.fullName || "Khách lẻ",
+      phone: customerInfo.phone || "",
+      address: customerInfo.ward ? `${customerInfo.address}, ${customerInfo.ward}, ${customerInfo.district}, ${customerInfo.province}` : "",
       note: customerInfo.note || "",
       shippingFee: shippingFee,
       discountValue: totalAmount - finalAmount,
@@ -285,7 +285,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       totalPayment: finalAmount + shippingFee,
       paymentTypeId: delivery ? 2 : 1,
       paymentMethodId: paymen,
-    }; 
+    };
 
     try {
       const response = await confirmPayment(idOrder, requestBody);
@@ -302,9 +302,9 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
           handlePrintInvoice();
         }
         setTimeout(() => {
-          window.location.reload(); 
+          window.location.reload();
         }
-        , 2500); 
+          , 2500);
       } else {
         toast.error("Thanh toán thất bại. Vui lòng thử lại!", toastOptions);
       }
@@ -333,7 +333,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Tiền thừa không được nhỏ hơn 0 ", toastOptions);
       return;
     }
-  if (!isPaymentEnabled) {
+    if (!isPaymentEnabled) {
       toast.warn("Vui lòng thực hiện đủ các bước ", toastOptions);
       return;
     }
@@ -342,12 +342,12 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       return;
     }
 
-  
+
     setShowPrintModal(true);
   };
 
   const handlePrintModalClose = (shouldPrint) => {
-  
+
 
     setShowPrintModal(false);
     handlePaymentConfirmation(shouldPrint);
@@ -355,7 +355,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
 
   const handleSaveDeliveryInfo = async (customer) => {
     setDelivery(true);
-   // const fee = await fetchShippingFeeWrapper(customer);
+    // const fee = await fetchShippingFeeWrapper(customer);
     //setShippingFee(fee);
   };
 
@@ -398,12 +398,12 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         qrIntervalRef={qrIntervalRef}
         setQrImageUrl={setQrImageUrl}
       />
-      <PromoCode promo={promo} 
-      setPromo={setPromo} 
-      totalAmount={totalAmount}
-       idOrder={idOrder} 
-       setQrImageUrl={setQrImageUrl} 
-       qrIntervalRef={qrIntervalRef} />
+      <PromoCode promo={promo}
+        setPromo={setPromo}
+        totalAmount={totalAmount}
+        idOrder={idOrder}
+        setQrImageUrl={setQrImageUrl}
+        qrIntervalRef={qrIntervalRef} />
 
       <h5 style={{ fontWeight: 'bold' }}>Tổng tiền: {totalAmount.toLocaleString()} VND</h5>
       <h5 style={{ fontWeight: 'bold' }}>Giảm giá: {(totalAmount - finalAmount).toLocaleString()} VND</h5>
@@ -415,7 +415,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
           <Button style={{ fontWeight: 'bold' }}
             variant={paymen === 1 ? "primary" : "light"}
             className="w-100"
-
+            size='sm'
             onClick={handleCashPayment}
           >
             Tiền mặt
@@ -426,6 +426,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
             variant={paymen === 2 ? "primary" : "light"}
             className="w-100"
             onClick={handleShowQR}
+            size='sm'
           >
             QR
           </Button>
@@ -465,7 +466,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
                 <Form.Label style={{ fontWeight: 'bold' }}>Tiền thừa</Form.Label>
                 <Form.Control
                   type="number"
-                  value={change<0?0:change}
+                  value={change < 0 ? 0 : change}
                   style={{ fontWeight: 'bold' }}
                   readOnly
                   placeholder="Tiền thừa"

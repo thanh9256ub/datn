@@ -39,11 +39,35 @@ const Colors = () => {
             return;
         }
 
+        if (!colorCode) {
+            toast.warning("Vui lòng chọn mã màu!");
+            return;
+        }
+
         setSubmitLoading(true);
 
         try {
+            const colorResp = await getColors();
+            const colors = colorResp.data.data;
+
+            const codeExists = colors.some(
+                color => color.colorCode.toLowerCase() === colorCode.toLowerCase() && color.id !== colorId
+            );
+            const colorExists = colors.some(
+                color => color.colorName.toLowerCase() === colorName.toLowerCase() && color.id !== colorId
+            );
+
+            if (codeExists) {
+                toast.error("Mã màu đã tồn tại!");
+                return;
+            }
+
+            if (colorExists) {
+                toast.error("Tên màu sắc đã tồn tại!");
+                return;
+            }
+
             if (colorId) {
-                console.log("Đang cập nhật màu sắc:", colorId, colorName, desc);
                 await updateColor(colorId, { colorCode, colorName, description: desc })
                 toast.success("Sửa màu sắc thành công!");
             } else {
@@ -126,7 +150,7 @@ const Colors = () => {
                                 <button type="submit" className="btn btn-gradient-primary mr-2" disabled={submitLoading}>
                                     {submitLoading ? (
                                         <Spinner animation="border" size="sm" />
-                                    ) : colorId ? "Edit" : "Submit"}
+                                    ) : colorId ? "Sửa" : "Thêm"}
                                 </button>
                                 <button type='button' className="btn btn-light"
                                     onClick={() => {

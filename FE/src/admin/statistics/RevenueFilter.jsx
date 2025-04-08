@@ -36,7 +36,8 @@ const RevenueFilter = () => {
             params: { year },
           });
         } else {
-          return;
+          // Fetch total revenue by default
+          response = await axios.get('http://localhost:8080/order/revenue-total');
         }
 
         const [total = 0, counter = 0, online = 0] = response.data[0] || [];

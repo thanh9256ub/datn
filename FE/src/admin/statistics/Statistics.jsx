@@ -5,7 +5,7 @@ import RevenueFilter from './RevenueFilter';
 import axios from 'axios';
 import TopProducts from './TopProducts';
 import PieChart from './PieChart';
-import ChatBot from './ChatBot';
+import ChatBot from '../../ClientComponents/chatbot/ChatBot';
 
 const { Option } = Select;
 
@@ -293,7 +293,7 @@ const Statistics = () => {
             <div style={{ marginTop: '20px' }}>
                 <h3>Thống kê đơn hàng hoàn thành theo năm</h3>
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                <label>Chọn năm 1:</label>
+                    <label>Chọn năm 1:</label>
                     <Select
                         value={selectedYear1}
                         onChange={value => setSelectedYear1(value)}
@@ -433,7 +433,6 @@ const Statistics = () => {
                 <Line data={yearlyRevenueChartData} />
             </div>
 
-            <ChatBot />
         </div>
     );
 };
