@@ -273,6 +273,7 @@ const Shop = () => {
                                                         height: 20,
                                                         textAlign: 'center',
                                                         lineHeight: '20px',
+                                                        border: '0px'
                                                     }}
                                                 >
                                                     {/* Chỉ hiển thị màu sắc, có thể thêm icon hoặc text nếu cần */}
