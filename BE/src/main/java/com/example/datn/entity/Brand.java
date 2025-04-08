@@ -22,6 +22,9 @@ public class Brand {
             @NotBlank(message = "Brand name is required")
     String brandName;
 
+    @Column(name = "status")
+    Integer status;
+
     @Column(name = "description")
     String description;
 

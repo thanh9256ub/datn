@@ -1,6 +1,7 @@
 package com.example.datn.service;
 
 import com.example.datn.dto.request.CategoryRequest;
+import com.example.datn.dto.response.BrandResponse;
 import com.example.datn.dto.response.CategoryResponse;
 import com.example.datn.entity.Category;
 import com.example.datn.exception.ResourceNotFoundException;
@@ -23,6 +24,11 @@ public class CategoryService {
     public List<CategoryResponse> getAll(){
         return mapper.toListResponse(repository.findAll());
     }
+
+    public List<CategoryResponse> getActive(){
+        return mapper.toListResponse(repository.findByStatus(1));
+    }
+
 
     public CategoryResponse createCategory(CategoryRequest request){
 
@@ -51,11 +57,12 @@ public class CategoryService {
         return mapper.toCategoryResponse(repository.save(brand));
     }
 
-    public void deleteCategory(Integer id){
-
-        repository.findById(id).orElseThrow(
+    public CategoryResponse updateStatus(Integer id){
+        Category brand = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Category id is not exists with given id: " + id));
 
-        repository.deleteById(id);
+        brand.setStatus(brand.getStatus() == 1 ? 0 : 1);
+
+        return mapper.toCategoryResponse(repository.save(brand));
     }
 }

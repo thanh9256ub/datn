@@ -59,4 +59,6 @@ public class Customer {
     @JsonManagedReference
     @OneToMany(mappedBy = "customer")
     private List<Address> addressList;
+
+
 }

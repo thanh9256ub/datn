@@ -89,7 +89,7 @@ public class VoucherService {
     public VoucherResponse createVoucher(VoucherRequest request) {
 
         if (request.getDiscountType() == 0) {
-            request.setMaxDiscountValue(null);
+            request.setMaxDiscountValue(request.getDiscountValue());
         } else {
             if (request.getDiscountValue() < 1 || request.getDiscountValue() > 100) {
                 throw new IllegalArgumentException("Giá trị giảm phải từ 1-100%");
@@ -123,4 +123,14 @@ public class VoucherService {
         return mapper.voucherResponse(voucherRepository.save(voucher));
     }
 
+
+    public void updateVoucherStatus0() {
+        for ( Voucher voucher :voucherRepository.findAll()) {
+            if (voucher.getQuantity()==0&& voucher.getStatus()==1){
+                voucher.setStatus(3);
+                voucherRepository.save(voucher);
+            }
+        }
+
+    }
 }

@@ -14,6 +14,8 @@ public class AuthenticationResponse {
 
     boolean authenticated;
 
+    Integer idEmployee;
+
     String fullName;
 
     String role;

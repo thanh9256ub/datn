@@ -6,7 +6,10 @@ import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.AuthenticationResponse;
 import com.example.datn.dto.response.IntrospectResponse;
 import com.example.datn.entity.Employee;
+
+
 import com.example.datn.exception.ResourceNotFoundException;
+
 import com.example.datn.repository.EmployeeRepository;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -72,6 +75,7 @@ public class AuthenticationService {
         return AuthenticationResponse.builder()
                 .token(token)
                 .authenticated(true)
+                .idEmployee(employee.getId())
                 .fullName(employee.getFullName())
                 .role(employee.getRole().getRoleName())
                 .build();

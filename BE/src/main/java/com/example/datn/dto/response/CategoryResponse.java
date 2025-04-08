@@ -16,6 +16,8 @@ public class CategoryResponse {
 
     String categoryName;
 
+    Integer status;
+
     String description;
 
 }

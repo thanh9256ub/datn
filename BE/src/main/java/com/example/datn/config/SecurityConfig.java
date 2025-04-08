@@ -37,14 +37,31 @@ public class SecurityConfig {
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(request -> request
-                            .requestMatchers("/ws/**").permitAll()
-                            .requestMatchers("/auth/token",
-                                    "auth/introspect",
-                                    "authCustomer/token",
-                                    "authCustomer/register",
+                            .requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
+                            .requestMatchers("authCustomer/**").permitAll()
+                            .requestMatchers(
+                                    "/auth/token",
+                                    "auth/introspect")
+                            .permitAll()
+                            .requestMatchers(
                                     "products/**",
+                                    "product/**",
+                                    "product-detail/**",
+                                    "brand/**",
+                                    "category/**",
+                                    "material/**",
+                                    "color/**",
+                                    "size/**",
+                                    "product-color/**",
                                     "employee/forgot-password",
-                                    "product-detail")
+                                    "vouchers/**",
+                                    "/counter/**",
+                                    "/cart-details/**",
+                                    "/carts/**",
+                                    "/order/**",
+                                    "/order-detail/**",
+                                    "customer/**",
+                                    "/mail/send-order-confirmation")
                             .permitAll()
                             .requestMatchers("/address/**", "/role/**")
                             .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")
@@ -55,10 +72,8 @@ public class SecurityConfig {
                     .addFilterBefore(new RequestLoggingFilter(),
                             UsernamePasswordAuthenticationFilter.class);
 
-            httpSecurity.oauth2ResourceServer(oauth2 ->
-                    oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
-                            .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-            );
+            httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
+                    .jwtAuthenticationConverter(jwtAuthenticationConverter())));
             httpSecurity.cors(corsConfig -> corsConfig.configurationSource(corsConfigurationSource()));
             httpSecurity.csrf(AbstractHttpConfigurer::disable);
             log.info("Config success");

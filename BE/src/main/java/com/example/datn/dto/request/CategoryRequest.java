@@ -18,5 +18,7 @@ public class CategoryRequest {
     @NotBlank(message = "Category name is required")
     String categoryName;
 
+    Integer status = 1;
+
     String description;
 }

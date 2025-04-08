@@ -1,0 +1,90 @@
+/* ShopAllProduct.css */
+
+/* Base styles for product cards */
+.shop-container {
+    background-color: #fff;
+  }
+  
+  /* Responsive image container */
+  .product-image-container {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9f9f9;
+  }
+  
+  .product-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+  }
+  
+  .product-image-container:hover img {
+    transform: scale(1.05);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 1200px) {
+    .product-image-container {
+      height: 180px;
+    }
+  }
+  
+  @media (max-width: 992px) {
+    .product-image-container {
+      height: 160px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .product-image-container {
+      height: 140px;
+    }
+    
+    .ant-col-xs-12 {
+      padding: 0 8px !important;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .product-image-container {
+      height: 120px;
+    }
+    
+    .shop-container {
+      padding: 12px;
+    }
+  }
+  
+  /* Filter sidebar styles */
+  .filter-sidebar .ant-card-head {
+    padding: 0 16px;
+  }
+  
+  .filter-sidebar .ant-card-body {
+    padding: 16px;
+  }
+  
+  /* Price slider styles */
+  .price-slider .ant-slider-track {
+    background-color: #1890ff;
+  }
+  
+  .price-slider .ant-slider-handle {
+    border-color: #1890ff;
+  }
+  
+  /* Empty state styles */
+  .empty-state {
+    text-align: center;
+    padding: 40px 0;
+  }
+  
+  .empty-state img {
+    max-width: 200px;
+    margin-bottom: 20px;
+  }

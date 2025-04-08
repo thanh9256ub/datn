@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -86,35 +87,21 @@ public class ProductController {
                 return ResponseEntity.ok(response);
         }
 
-        // @GetMapping("/active")
-        // public ResponseEntity<ApiResponse<List<ProductResponse>>> getActiveProducts()
-        // {
-        //
-        // List<ProductResponse> list = service.getActiveProducts();
-        //
-        // ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
-        // HttpStatus.OK.value(),
-        // "Products active retrieved successfully",
-        // list
-        // );
-        //
-        // return ResponseEntity.ok(response);
-        // }
-        //
-        // @GetMapping("/inactive")
-        // public ResponseEntity<ApiResponse<List<ProductResponse>>>
-        // getInactiveProducts() {
-        //
-        // List<ProductResponse> list = service.getInactiveProducts();
-        //
-        // ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
-        // HttpStatus.OK.value(),
-        // "Products inactive retrieved successfully",
-        // list
-        // );
-        //
-        // return ResponseEntity.ok(response);
-        // }
+        @GetMapping("/bin")
+        public ResponseEntity<ApiResponse<Page<ProductResponse>>> getBin(
+                @RequestParam(defaultValue = "0") int page,
+                @RequestParam(defaultValue = "5") int size) {
+
+                Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+                Page<ProductResponse> list = service.getBin(pageable);
+
+                ApiResponse<Page<ProductResponse>> response = new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Products retrieved successfully",
+                        list);
+
+                return ResponseEntity.ok(response);
+        }
 
         @GetMapping("/{id}")
         public ResponseEntity<ApiResponse<ProductResponse>> getById(@PathVariable("id") Integer id) {
@@ -141,19 +128,6 @@ public class ProductController {
                                 HttpStatus.OK.value(),
                                 "Product updated successfully",
                                 productResponse);
-
-                return ResponseEntity.ok(response);
-        }
-
-        @DeleteMapping("/{id}")
-        public ResponseEntity<ApiResponse<ProductResponse>> deleteProduct(@PathVariable("id") Integer id) {
-
-                service.deleteProduct(id);
-
-                ApiResponse<ProductResponse> response = new ApiResponse<>(
-                                HttpStatus.OK.value(),
-                                "Product deleted successfully",
-                                null);
 
                 return ResponseEntity.ok(response);
         }
@@ -196,13 +170,19 @@ public class ProductController {
                 return ResponseEntity.ok(response);
         }
 
-//        @GetMapping("/export-excel")
-//        public void exportToExcel(HttpServletResponse response) throws IOException {
-//                List<ProductResponse> productList = service.getList();
-//                List<Product> products = productMapper.toListProduct(productList);
-//                ExcelExporter excelExporter = new ExcelExporter(products, productDetailRepository);
-//                excelExporter.export(response);
-//        }
+        @GetMapping("/search-ai")
+        public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProductAI(
+                @RequestParam(value = "name", required = false) String name) {
+
+                List<ProductResponse> list = service.searchProductAI(name);
+
+                ApiResponse<List<ProductResponse>> response = new ApiResponse<>(
+                        200,
+                        "Products retrieved successfully",
+                        list);
+
+                return ResponseEntity.ok(response);
+        }
 
         @PostMapping("/export-excel")
         public void exportToExcel(
@@ -237,4 +217,14 @@ public class ProductController {
                 }
         }
 
+        @PatchMapping("/delete-multiple")
+        public ResponseEntity<List<ProductResponse>> updateMultipleStatuses(
+                @RequestBody List<Integer> productIds) {
+                return ResponseEntity.ok(service.updateMultipleStatuses(productIds));
+        }
+        @GetMapping("/top5")
+        public List<Object[]> getTop5ProductsWithLowestQuantity() {
+                return service.getTop5ProductsWithLowestQuantity();
+                //top5 sp sap het
+        }
 }

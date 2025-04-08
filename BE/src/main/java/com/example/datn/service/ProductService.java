@@ -1,5 +1,6 @@
 package com.example.datn.service;
 
+import com.example.datn.controller.WebSocketController;
 import com.example.datn.dto.request.ProductRequest;
 import com.example.datn.dto.response.ProductResponse;
 import com.example.datn.entity.*;
@@ -18,6 +19,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +29,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -56,6 +61,29 @@ public class ProductService {
 
     @Autowired
     ProductColorRepository productColorRepository;
+
+    @Autowired
+    WebSocketController webSocketController;
+
+    @Autowired
+    ProductUpdateRepository productUpdateRepository;
+
+    @Autowired
+    ImageRepository imageRepository;
+
+    @Scheduled(fixedRate = 5000) // Kiểm tra mỗi 5 giây
+    @Transactional
+    public void checkProductQuantityUpdates() {
+        List<ProductUpdate> updates = productUpdateRepository.findLatestUpdates();
+
+        for (ProductUpdate update : updates) {
+            webSocketController.sendProductQuantityUpdate(update.getProductCode(), update.getNewTotalQuantity());
+        }
+
+        // Xóa sau khi gửi thông báo để tránh lặp lại
+        productUpdateRepository.deleteAll(updates);
+    }
+
 
     private String generateProductCode() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss");
@@ -91,12 +119,54 @@ public class ProductService {
 //    }
 
     public Page<ProductResponse> getAll(Pageable pageable) {
-        Pageable sortedByIdDesc = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("id").descending());
-        return repository.findAll(sortedByIdDesc).map(mapper::toProductResponse);
+        Specification<Product> spec = Specification.where(ProductSpecification.statusNotTwo());
+
+        Pageable sortedByIdDesc = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by("id").descending()
+        );
+        return repository.findAll(spec, sortedByIdDesc).map(mapper::toProductResponse);
     }
 
     public List<ProductResponse> getList() {
-        return mapper.toListProductResponse(repository.findAll());
+        Specification<Product> spec = ProductSpecification.statusNotTwo();
+
+        List<Product> products = repository.findAll(spec);
+        return mapper.toListProductResponse(products);
+    }
+
+    public Page<ProductResponse> searchProducts(String name, Integer brandId, Integer categoryId, Integer materialId,
+                                                Integer status, Pageable pageable) {
+        Specification<Product> spec = Specification
+                .where(ProductSpecification.hasName(name))
+                .and(ProductSpecification.hasBrandId(brandId))
+                .and(ProductSpecification.hasCategoryId(categoryId))
+                .and(ProductSpecification.hasMaterialId(materialId))
+                .and(ProductSpecification.hasStatus(status))
+                .and(ProductSpecification.statusNotTwo());
+
+        Pageable sortedByIdDesc = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by("id").descending());
+
+        return repository.findAll(spec, sortedByIdDesc).map(mapper::toProductResponse);
+    }
+
+    public List<ProductResponse> searchProductAI(String name) {
+        Specification<Product> spec = Specification
+                .where(ProductSpecification.hasName(name))
+                .or(ProductSpecification.hasBrandName(name))
+                .and(ProductSpecification.statusNotTwo());
+        return mapper.toListProductResponse(repository.findAll(spec));
+    }
+
+    public Page<ProductResponse> getBin(Pageable pageable) {
+        Specification<Product> spec = Specification.where(ProductSpecification.hasStatusTwo());
+
+        Pageable sortedByIdDesc = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by("id").descending());
+
+        return repository.findAll(spec, sortedByIdDesc).map(mapper::toProductResponse);
     }
 
     public ProductResponse getById(Integer id) {
@@ -136,20 +206,68 @@ public class ProductService {
         return mapper.toProductResponse(repository.save(product));
     }
 
-    public void deleteProduct(Integer id) {
-        repository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Product not found with ID: " + id));
-
-        repository.deleteById(id);
-    }
-
     public ProductResponse updateStatus(Integer productId, Integer status) {
         Product product = repository.findById(productId).orElseThrow(() -> new RuntimeException("Product not exist"));
 
         product.setStatus(status);
 
-        return mapper.toProductResponse(repository.save(product));
+        repository.save(product);
+
+        List<ProductDetail> productDetails = productDetailRepository.findByProductId(productId);
+
+        for (ProductDetail detail : productDetails) {
+            if (status == 2) {
+                detail.setStatus(2);
+            } else {
+                detail.setStatus(detail.getQuantity() > 0 ? 1 : 0);
+            }
+        }
+
+        productDetailRepository.saveAll(productDetails);
+
+        return mapper.toProductResponse(product);
     }
+
+    @Transactional
+    public List<ProductResponse> updateMultipleStatuses(List<Integer> productIds) {
+        List<Product> products = repository.findAllById(productIds);
+
+        if (products.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy sản phẩm nào với các ID đã cung cấp");
+        }
+
+        // Tìm tất cả ProductDetail cùng lúc để tránh query nhiều lần
+        List<ProductDetail> allDetails = productDetailRepository.findByProductIdIn(productIds);
+        Map<Integer, List<ProductDetail>> detailMap = allDetails.stream()
+                .collect(Collectors.groupingBy(detail -> detail.getProduct().getId()));
+
+        for (Product product : products) {
+            List<ProductDetail> productDetails = detailMap.getOrDefault(product.getId(), new ArrayList<>());
+
+            boolean allDetailsInactive = productDetails.stream().allMatch(d -> d.getStatus() == 2);
+
+            if (product.getStatus() != 2) {
+                product.setStatus(2);
+            } else {
+                product.setStatus((product.getTotalQuantity() > 0 && !allDetailsInactive) ? 1 : 0);
+            }
+
+            for (ProductDetail detail : productDetails) {
+                if (detail.getStatus() != 2) {
+                    detail.setStatus(2);
+                } else {
+                    detail.setStatus(detail.getQuantity() > 0 ? 1 : 0);
+                }
+            }
+        }
+
+        // Lưu tất cả thay đổi một lần để tối ưu hiệu suất
+        productDetailRepository.saveAll(allDetails);
+        repository.saveAll(products);
+
+        return mapper.toListProductResponse(products);
+    }
+
 
     // public List<ProductResponse> getActiveProducts(){
     //
@@ -164,18 +282,6 @@ public class ProductService {
     //
     // return mapper.toListProduct(productList);
     // }
-
-    public Page<ProductResponse> searchProducts(String name, Integer brandId, Integer categoryId, Integer materialId,
-            Integer status, Pageable pageable) {
-        Specification<Product> spec = Specification
-                .where(ProductSpecification.hasName(name))
-                .and(ProductSpecification.hasBrandId(brandId))
-                .and(ProductSpecification.hasCategoryId(categoryId))
-                .and(ProductSpecification.hasMaterialId(materialId))
-                .and(ProductSpecification.hasStatus(status));
-
-        return repository.findAll(spec, pageable).map(mapper::toProductResponse);
-    }
 
     private double getCellValueAsDouble(Cell cell) {
         if (cell == null) {
@@ -215,7 +321,11 @@ public class ProductService {
             case STRING:
                 return cell.getStringCellValue().trim();
             case NUMERIC:
-                return String.valueOf(cell.getNumericCellValue()); // Chuyển số thành chuỗi
+                double numericValue = cell.getNumericCellValue();
+                if (numericValue == (int) numericValue) {
+                    return String.valueOf((int) numericValue); // Nếu là số nguyên, ép kiểu về int để bỏ .0
+                }
+                return String.valueOf(numericValue);
             case FORMULA:
                 return cell.getCachedFormulaResultType() == CellType.NUMERIC
                         ? String.valueOf(cell.getNumericCellValue())
@@ -289,31 +399,30 @@ public class ProductService {
                 continue;
             }
 
-            // ✅ Tìm hoặc tạo mới Brand, Category, Material
             Brand brand = brandRepository.findByBrandName(brandName)
                     .orElseGet(() -> {
                         Brand newBrand = new Brand();
                         newBrand.setBrandName(brandName);
+                        newBrand.setStatus(1);
                         return brandRepository.save(newBrand);
                     });
 
-            // ✅ Tìm hoặc tạo mới Category
             Category category = categoryRepository.findByCategoryName(categoryName)
                     .orElseGet(() -> {
                         Category newCategory = new Category();
                         newCategory.setCategoryName(categoryName);
+                        newCategory.setStatus(1);
                         return categoryRepository.save(newCategory);
                     });
 
-            // ✅ Tìm hoặc tạo mới Material
             Material material = materialRepository.findByMaterialName(materialName)
                     .orElseGet(() -> {
                         Material newMaterial = new Material();
                         newMaterial.setMaterialName(materialName);
+                        newMaterial.setStatus(1);
                         return materialRepository.save(newMaterial);
                     });
 
-            // ✅ Tìm hoặc tạo mới Product
             Product product = repository.findByProductNameAndBrandAndCategoryAndMaterial(
                     productName, brand, category, material
             ).orElseGet(() -> {
@@ -325,66 +434,77 @@ public class ProductService {
                 newProduct.setCategory(category);
                 newProduct.setMaterial(material);
                 newProduct.setDescription(description);
-                newProduct.setMainImage("image.png");
-                newProduct.setTotalQuantity(0); // Đặt tạm thời
-                newProduct.setStatus(0); // Đặt tạm thời
+                newProduct.setMainImage("https://res.cloudinary.com/dgj9htnpn/image/upload/v1744099390/v9lfbbu379zzn498rtzo.png");
+                newProduct.setTotalQuantity(0);
+                newProduct.setStatus(0);
                 newProduct.setCreatedAt(LocalDateTime.now().withNano(0));
                 return repository.save(newProduct);
             });
 
-            // ✅ Tìm hoặc tạo mới Color, Size
             Color color = colorRepository.findByColorName(colorName)
                     .orElseGet(() -> {
                         Color newColor = new Color();
+                        newColor.setColorCode("");
                         newColor.setColorName(colorName);
+                        newColor.setStatus(1);
                         return colorRepository.save(newColor);
                     });
 
-            // ✅ Tìm hoặc tạo mới Size
             Size size = sizeRepository.findBySizeName(sizeName)
                     .orElseGet(() -> {
                         Size newSize = new Size();
                         newSize.setSizeName(sizeName);
+                        newSize.setStatus(1);
                         return sizeRepository.save(newSize);
                     });
 
+//            ProductColor productColor = productColorRepository.findByProductAndColor(product, color)
+//                    .orElseGet(() -> {
+//                        ProductColor newProductColor = new ProductColor();
+//                        newProductColor.setProduct(product);
+//                        newProductColor.setColor(color);
+//                        return productColorRepository.save(newProductColor);
+//                    });
             ProductColor productColor = productColorRepository.findByProductAndColor(product, color)
                     .orElseGet(() -> {
                         ProductColor newProductColor = new ProductColor();
                         newProductColor.setProduct(product);
                         newProductColor.setColor(color);
-                        return productColorRepository.save(newProductColor);
+                        ProductColor saved = productColorRepository.save(newProductColor);
+
+                        // 👇 Thêm ảnh mặc định
+                        Image defaultImage = new Image();
+                        defaultImage.setProductColor(saved);
+                        defaultImage.setImage("https://res.cloudinary.com/dgj9htnpn/image/upload/v1744099390/v9lfbbu379zzn498rtzo.png");
+                        imageRepository.save(defaultImage);
+
+                        return saved;
                     });
 
-            // ✅ Kiểm tra ProductDetail đã tồn tại chưa
             ProductDetail productDetail = productDetailRepository.findByProductAndColorAndSize(
                     product, color, size
             ).orElse(null);
 
             if (productDetail == null) {
-                // Nếu chưa có, tạo mới
                 productDetail = new ProductDetail();
                 productDetail.setProduct(product);
                 productDetail.setColor(color);
                 productDetail.setSize(size);
                 productDetail.setPrice(price);
                 productDetail.setQuantity(quantity);
-                productDetail.setStatus(quantity > 0 ? 1 : 0); // Nếu có số lượng, đặt trạng thái là 1
+                productDetail.setStatus(quantity > 0 ? 1 : 0);
                 productDetail.setCreatedAt(LocalDateTime.now().withNano(0));
                 productDetail.setQr("");
             } else {
-                // Nếu đã có, cập nhật số lượng (cộng dồn)
                 productDetail.setQuantity(productDetail.getQuantity() + quantity);
-                productDetail.setStatus(productDetail.getQuantity() > 0 ? 1 : 0); // Nếu số lượng > 0, đặt trạng thái 1
+                productDetail.setStatus(productDetail.getQuantity() > 0 ? 1 : 0);
             }
 
             productDetails.add(productDetail);
 
-            // ✅ Cập nhật tổng số lượng của Product
             productTotalQuantities.put(product, productTotalQuantities.getOrDefault(product, 0) + quantity);
         }
 
-        // ✅ Lưu ProductDetail vào DB
         productDetailRepository.saveAll(productDetails);
 
         for (ProductDetail pd : productDetails) {
@@ -393,7 +513,6 @@ public class ProductService {
 
         productDetailRepository.saveAll(productDetails);
 
-        // ✅ Cập nhật totalQuantity & status cho Product
         for (Product product : productTotalQuantities.keySet()) {
             int totalQuantityInDB = productDetailRepository.sumQuantityByProduct(product.getId()).orElse(0);
             product.setTotalQuantity(totalQuantityInDB);
@@ -407,13 +526,11 @@ public class ProductService {
             Workbook errorWorkbook = new XSSFWorkbook();
             Sheet errorSheet = errorWorkbook.createSheet("Dòng lỗi");
 
-            // Ghi tiêu đề
             Row header = errorSheet.createRow(0);
             for (int j = 0; j < sheet.getRow(0).getLastCellNum(); j++) {
                 header.createCell(j).setCellValue(sheet.getRow(0).getCell(j).getStringCellValue());
             }
 
-            // Ghi các dòng bị lỗi
             int rowNum = 1;
             for (Row errorRow : errorRows) {
                 Row newRow = errorSheet.createRow(rowNum++);
@@ -429,7 +546,6 @@ public class ProductService {
             errorWorkbook.write(outputStream);
             errorWorkbook.close();
 
-            // ✅ Trả về danh sách lỗi và file lỗi dưới dạng Base64
             Map<String, Object> response = new HashMap<>();
             response.put("errors", errors);
             response.put("file", Base64.getEncoder().encodeToString(outputStream.toByteArray()));
@@ -440,4 +556,7 @@ public class ProductService {
         return ResponseEntity.ok(Map.of());
     }
 
+    public List<Object[]> getTop5ProductsWithLowestQuantity() {
+        return repository.findTop5ProductsWithLowestQuantity();
+    }
 }

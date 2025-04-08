@@ -5,7 +5,7 @@ import { FaImage } from "react-icons/fa";
 import { useParams } from 'react-router-dom/cjs/react-router-dom.min';
 
 
-const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handleRemoveVariant, onImagesSelected, colorImages, errors }) => {
+const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handleRemoveVariant, onImagesSelected }) => {
 
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
@@ -52,7 +52,7 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                     <table className='table'>
                         <thead>
                             <tr>
-                                <th>Danh sách ảnh</th>
+                                <th>Danh sách ảnh theo màu</th>
                                 <th>Màu sắc</th>
                                 <th>Kích cỡ</th>
                                 <th>Số lượng</th>
@@ -114,14 +114,41 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                                     />
                                                 </td>
                                             )}
-                                            {/* {index === 0 && <td rowSpan={variants.length}>{colorName}</td>} */}
-                                            <td>{colorName}</td>
+                                            {index === 0 &&
+                                                <td rowSpan={variants.length}>
+                                                    <div
+                                                        style={{
+                                                            width: 'auto',
+                                                            height: '15px',
+                                                            backgroundColor: variant.color?.colorCode,
+                                                            borderRadius: '3px',
+                                                            marginRight: '10px',
+                                                            border: '1px solid #ccc'
+                                                        }}
+                                                    ></div>
+                                                    {colorName}
+                                                </td>
+                                            }
+                                            {/* <td>
+                                                <div
+                                                    style={{
+                                                        width: '15px',
+                                                        height: '15px',
+                                                        backgroundColor: variant.color?.colorCode,
+                                                        borderRadius: '3px',
+                                                        marginRight: '10px',
+                                                        border: '1px solid #ccc'
+                                                    }}
+                                                ></div>
+                                                {colorName}
+                                            </td> */}
                                             <td>{variant.size?.sizeName || variant.size}</td>
                                             <td>
                                                 <Form.Control
                                                     type="number"
                                                     value={variant.quantity ?? ''}
                                                     min={0}
+                                                    max={10000}
                                                     onChange={(e) => {
                                                         handleInputChange(originalIndex, 'quantity', e.target.value);
                                                     }}
@@ -137,6 +164,7 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                                         handleInputChange(originalIndex, 'price', e.target.value);
                                                     }}
                                                     style={{ width: '150px' }}
+                                                    disabled={id}
                                                 />
                                             </td>
                                             <td>

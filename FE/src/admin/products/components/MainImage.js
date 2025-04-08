@@ -6,9 +6,12 @@ const MainImage = ({ setMainImage, initialImage }) => {
     const [imagePreview, setImagePreview] = useState(null);
 
     useEffect(() => {
-        if (initialImage) {
+        if (initialImage && initialImage !== "image.png") {
             setImagePreview(initialImage);
+        } else {
+            setImagePreview(null);
         }
+        console.log("Initial Image:", initialImage);
     }, [initialImage]);
 
     const handleFileChange = (e) => {
@@ -24,19 +27,11 @@ const MainImage = ({ setMainImage, initialImage }) => {
         if (initialImage != "image.png" && initialImage && typeof initialImage === 'string') {
             // Nếu initialImage là URL, hiển thị ảnh từ URL
             return <img src={initialImage} alt="Preview" style={previewImageStyle} />;
-        } else if (initialImage && initialImage instanceof File) {
+        } else if (initialImage != "image.png" && initialImage && initialImage instanceof File) {
             // Nếu initialImage là File, hiển thị ảnh preview
             return <img src={URL.createObjectURL(initialImage)} alt="Preview" style={previewImageStyle} />;
         }
         return <div><FaImage size={80} color="#007bff" /> <br /> Chọn ảnh chính</div>; // Không hiển thị gì nếu không có ảnh
-    };
-
-    const previewContainerStyle = {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        marginTop: '15px',
-        marginBottom: '15px',
     };
 
     const previewImageStyle = {
@@ -58,13 +53,12 @@ const MainImage = ({ setMainImage, initialImage }) => {
                     opacity: imagePreview ? 1 : 0.5,
                     cursor: "pointer",
                 }}
-                onClick={() => document.getElementById("main-image-input").click()} // Cho phép click để chọn ảnh
+                onClick={() => document.getElementById("main-image-input").click()}
             >
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }} >
                     {renderImagePreview()}
                 </div>
 
-                {/* Input file ẩn */}
                 <input
                     type="file"
                     id="main-image-input"

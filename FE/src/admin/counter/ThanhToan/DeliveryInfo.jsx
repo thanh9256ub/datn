@@ -5,14 +5,14 @@ import axios from 'axios'; // Add this import
 import { fetchProvinces, fetchDistricts, fetchWards, fetchCustomerAddresses, addCustomerAddress } from '../api'; // Updated import
 import { toastOptions } from '../constants'; // Import constants
 
-import {  addCustomer } from '../api';
-const DeliveryInfo = ({ delivery, setDelivery, onSave, customer,setCustomer, customerInfo, setCustomerInfo, idOrder, totalAmount,setSelectedProvince,selectedProvince,setSelectedDistrict,selectedDistrict,setSelectedWard,selectedWard }) => {
+import { addCustomer } from '../api';
+const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, customerInfo, setCustomerInfo, idOrder, totalAmount, setSelectedProvince, selectedProvince, setSelectedDistrict, selectedDistrict, setSelectedWard, selectedWard, qrIntervalRef, setQrImageUrl }) => {
   const [tempDelivery, setTempDelivery] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
-const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
+  const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
 
   useEffect(() => {
     fetchProvinces()
@@ -57,11 +57,11 @@ const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
 
   const handleDeliveryChange = () => {
     if (!delivery) {
-      if (!idOrder ) {
+      if (!idOrder) {
         toast.warn("Vui lòng chọn hóa đơn trước khi bật giao hàng ", toastOptions);
         return;
       }
-      if ( totalAmount === 0) {
+      if (totalAmount === 0) {
         toast.warn("Vui lòng thêm sản phẩm trước khi bật giao hàng ", toastOptions);
         return;
       }
@@ -71,7 +71,7 @@ const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
             const address = response.data.data.find(item => item.customerId === customer.id);
             if (address) {
               setCustomerInfo({
-                name: customer.fullName,
+                fullName: customer.fullName,
                 phone: customer.phone,
                 province: address.city,
                 district: address.district,
@@ -124,12 +124,10 @@ const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
               setSelectedDistrict('');
               setSelectedWard('');
             }
-          //  setTempDelivery(false);
             setShowModal(true);
           })
           .catch(error => {
             console.error('Lỗi lấy địa chỉ:', error);
-           // setTempDelivery(false);
             setShowModal(true);
           });
       } else {
@@ -145,12 +143,14 @@ const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
         setSelectedProvince('');
         setSelectedDistrict('');
         setSelectedWard('');
-        //setTempDelivery(false);
         setShowModal(true);
       }
     } else {
       setDelivery(false);
-      toast.info("Chuyển sang không giao hàng 🥰", toastOptions);
+      toast.info("Chuyển sang không giao hàng ", toastOptions);
+      clearInterval(qrIntervalRef.current);
+      qrIntervalRef.current = null;
+      setQrImageUrl(null);
     }
   };
 
@@ -162,43 +162,47 @@ const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
 
   const handleSaveModal = async () => {
     // Validation
-    if (!customerInfo.name.trim()) {
-      toast.error("Họ tên không được để trống 🥰", toastOptions);
+    if (!customerInfo.fullName.trim()) { // Changed from customerInfo.name to customerInfo.fullName
+      toast.error("Họ tên không được để trống ", toastOptions);
       return;
     }
-  
-    if (!customerInfo.phone.trim() || !/^\d+$/.test(customerInfo.phone)) {
-      toast.error("Số điện thoại không hợp lệ 🥰", toastOptions);
+
+    if (!customerInfo.phone.trim() || !/^\d{10}$/.test(customerInfo.phone)) {
+      toast.error("Số điện thoại phải gồm 10 chữ số ", toastOptions);
       return;
     }
-  
+
     if (!selectedProvince) {
-      toast.error("Vui lòng chọn tỉnh/thành phố 🥰", toastOptions);
+      toast.error("Vui lòng chọn tỉnh/thành phố ", toastOptions);
       return;
     }
-  
+
     if (!selectedDistrict) {
-      toast.error("Vui lòng chọn quận/huyện 🥰", toastOptions);
+      toast.error("Vui lòng chọn quận/huyện ", toastOptions);
       return;
     }
-  
+
     if (!selectedWard) {
-      toast.error("Vui lòng chọn phường/xã 🥰", toastOptions);
+      toast.error("Vui lòng chọn phường/xã ", toastOptions);
       return;
     }
-  
+
     if (!customerInfo.address.trim()) {
-      toast.error("Địa chỉ cụ thể không được để trống 🥰", toastOptions);
+      toast.error("Địa chỉ cụ thể không được để trống ", toastOptions);
       return;
     }
-  
+    clearInterval(qrIntervalRef.current);
+    qrIntervalRef.current = null;
+    setQrImageUrl(null);
     const updatedCustomerInfo = {
       ...customerInfo,
+      fullName: newCustomer.fullName,
+      phone: newCustomer.phone,
       province: selectedProvince,
       district: selectedDistrict,
       ward: selectedWard,
     };
-  
+
     try {
       if (tempDelivery) {
         let addressPayload = {};
@@ -213,7 +217,7 @@ const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
             detailedAddress: customerInfo.address,
             customerId: response.data.data.id,
             status: 1,
-            defaultAddress:true,
+            defaultAddress: true,
           };
         } else {
           addressPayload = {
@@ -223,31 +227,33 @@ const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
             detailedAddress: customerInfo.address,
             customerId: customer.id,
             status: 1,
-            defaultAddress:true,
+            defaultAddress: true,
           };
         }
-  
+
         await addCustomerAddress(addressPayload);
-        toast.success("Địa chỉ đã được lưu thành công 🥰", toastOptions);
+        toast.success("Địa chỉ đã được lưu thành công ", toastOptions);
       }
-  
-      toast.success("Chuyển sang giao hàng thành công 🥰", toastOptions);
+
+      toast.success("Đã chuyển qua hình thức giao hàng", toastOptions);
       setDelivery(true);
       setShowModal(false);
+      //if (onSave) {
       onSave(updatedCustomerInfo);
+      //  }
+
     } catch (error) {
       console.error("Lỗi khi lưu địa chỉ hoặc khách hàng:", error);
-      toast.error("Lỗi khi lưu địa chỉ hoặc khách hàng 🥲", toastOptions);
+      toast.error("Lỗi khi lưu địa chỉ hoặc khách hàng ", toastOptions);
     }
   };
-  
 
   return (
     <>
       {/* Giao hàng */}
       <Row className="mb-3">
         <Col sm={7} md={5}>
-          <Form.Label>Giao hàng:</Form.Label>
+          <Form.Label style={{ fontWeight: 'bold' }}>Giao hàng:</Form.Label>
         </Col>
         <Col sm={6} md={4}>
           <Form.Check
@@ -263,63 +269,80 @@ const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
       {/* Modal hiển thị khi chọn giao hàng */}
       <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Thông tin giao hàng</Modal.Title>
+          <Modal.Title style={{ fontWeight: 'bold' }}>Thông tin giao hàng</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ overflow: 'hidden' }}> {/* Prevent scrollbars */}
           <Form>
             <Row className="mb-3">
               <Col sm={4}>
-                <Form.Label>Họ tên</Form.Label>
+                <Form.Label style={{ fontWeight: 'bold' }}>Họ tên</Form.Label>
               </Col>
               <Col sm={8}>
                 <Form.Control
                   type="text"
-                  value={customerInfo.name?customerInfo.name:""}
-                  onChange={(e) =>{
+                  style={{ fontWeight: 'bold' }}
+                  value={customerInfo.fullName ? customerInfo.fullName : ""}
+                  onChange={(e) => {
                     setNewCustomer({ ...newCustomer, fullName: e.target.value });
-                    setCustomerInfo({ ...customerInfo, name: e.target.value })} }
+                    setCustomerInfo({ ...customerInfo, fullName: e.target.value })
+                  }}
                 />
               </Col>
             </Row>
 
             <Row className="mb-3">
               <Col sm={4}>
-                <Form.Label>Số điện thoại</Form.Label>
+                <Form.Label style={{ fontWeight: 'bold' }}>Số điện thoại</Form.Label>
               </Col>
               <Col sm={8}>
                 <Form.Control
                   type="text"
+                  style={{ fontWeight: 'bold' }}
                   value={customerInfo.phone}
-                  onChange={(e) => {setNewCustomer({ ...newCustomer, phone: e.target.value });
-                    setCustomerInfo({ ...customerInfo, phone: e.target.value })}}
+                  onChange={(e) => {
+                    setNewCustomer({ ...newCustomer, phone: e.target.value });
+                    setCustomerInfo({ ...customerInfo, phone: e.target.value })
+                  }}
                 />
               </Col>
             </Row>
 
             <Row className="mb-3">
               <Col sm={4}>
-                <Form.Label>Tỉnh/ Thành phố</Form.Label>
+                <Form.Label style={{ fontWeight: 'bold' }}>Tỉnh/ Thành phố</Form.Label>
               </Col>
               <Col sm={8}>
-                <Form.Control as="select" value={selectedProvince} onChange={handleProvinceChange}>
+                <Form.Control as="select" value={selectedProvince} onChange={handleProvinceChange}
+                  style={{
+
+                    fontWeight: "bold",
+                    color: "black", // Ensure text color is always visible
+                    backgroundColor: "white", // Ensure background color is not faint
+                  }}
+                >
                   <option value="">Chọn tỉnh/thành phố</option>
                   {provinces.map(province => (
-                    <option key={province.PROVINCE_ID} value={province.PROVINCE_ID}>{province.PROVINCE_NAME}</option>
+                    <option key={province.PROVINCE_ID} value={province.PROVINCE_ID} style={{ fontWeight: 'bold' }}>{province.PROVINCE_NAME}</option>
                   ))}
                 </Form.Control>
-                
+
               </Col>
             </Row>
 
             <Row className="mb-3">
               <Col sm={4}>
-                <Form.Label>Quận/Huyện</Form.Label>
+                <Form.Label style={{ fontWeight: 'bold' }}>Quận/Huyện</Form.Label>
               </Col>
               <Col sm={8}>
-                <Form.Control as="select" value={selectedDistrict} onChange={handleDistrictChange} disabled={!selectedProvince}>
+                <Form.Control as="select" value={selectedDistrict} onChange={handleDistrictChange} disabled={!selectedProvince} style={{
+
+                  fontWeight: "bold",
+                  color: "black", // Ensure text color is always visible
+                  backgroundColor: "white", // Ensure background color is not faint
+                }}>
                   <option value="">Chọn quận/huyện</option>
                   {districts.map(district => (
-                    <option key={district.DISTRICT_ID} value={district.DISTRICT_ID}>{district.DISTRICT_NAME}</option>
+                    <option key={district.DISTRICT_ID} value={district.DISTRICT_ID} style={{ fontWeight: 'bold' }}>{district.DISTRICT_NAME}</option>
                   ))}
                 </Form.Control>
               </Col>
@@ -327,13 +350,18 @@ const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
 
             <Row className="mb-3">
               <Col sm={4}>
-                <Form.Label>Phường/Xã</Form.Label>
+                <Form.Label style={{ fontWeight: 'bold' }}>Phường/Xã</Form.Label>
               </Col>
               <Col sm={8}>
-                <Form.Control as="select" value={selectedWard} onChange={handleWardChange} disabled={!selectedDistrict}>
+                <Form.Control as="select" value={selectedWard} onChange={handleWardChange} disabled={!selectedDistrict} style={{
+
+                  fontWeight: "bold",
+                  color: "black", // Ensure text color is always visible
+                  backgroundColor: "white", // Ensure background color is not faint
+                }}>
                   <option value="">Chọn phường/xã</option>
                   {wards.map(ward => (
-                    <option key={ward.WARDS_ID} value={ward.WARDS_ID}>{ward.WARDS_NAME}</option>
+                    <option key={ward.WARDS_ID} value={ward.WARDS_ID} style={{ fontWeight: 'bold' }}>{ward.WARDS_NAME}</option>
                   ))}
                 </Form.Control>
               </Col>
@@ -341,11 +369,12 @@ const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
 
             <Row className="mb-3">
               <Col sm={4}>
-                <Form.Label>Địa chỉ cụ thể</Form.Label>
+                <Form.Label style={{ fontWeight: 'bold' }}>Địa chỉ cụ thể</Form.Label>
               </Col>
               <Col sm={8}>
                 <Form.Control
                   type="text"
+                  style={{ fontWeight: 'bold' }}
                   placeholder="Nhập địa chỉ cụ thể"
                   value={customerInfo.address}
                   onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
@@ -355,11 +384,12 @@ const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
 
             <Row className="mb-3">
               <Col sm={4}>
-                <Form.Label>Ghi chú</Form.Label>
+                <Form.Label style={{ fontWeight: 'bold' }}>Ghi chú</Form.Label>
               </Col>
               <Col sm={8}>
                 <Form.Control as="textarea" rows={3} placeholder="Nhập ghi chú"
                   value={customerInfo.note}
+                  style={{ fontWeight: 'bold' }}
                   onChange={(e) => setCustomerInfo({ ...customerInfo, note: e.target.value })}
                 />
                 <Form.Check
@@ -373,7 +403,7 @@ const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
+          <Button variant="dark" onClick={handleCloseModal}>
             Đóng
           </Button>
           <Button variant="primary" onClick={handleSaveModal}>

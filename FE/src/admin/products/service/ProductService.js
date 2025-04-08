@@ -58,6 +58,14 @@ export const createProduct = async (product) => {
     return response.data
 }
 
+export const deleteAndRestoreProducts = (productIds) => {
+    return axios.patch(`${BASE_URL}/delete-multiple`, productIds, {
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+};
+
 
 export const updateStatus = (id, statusPro) => {
     return axios.patch(`${BASE_URL}/${id}?status=${statusPro}`);
@@ -101,3 +109,7 @@ export const searchProducts = (filters, page, size) => {
 
     return axios.get(`${BASE_URL}/search?${params.toString()}`);
 };
+
+export const getBin = (page, size) => {
+    return axios.get(`${BASE_URL}/bin?page=${page}&size=${size}`)
+}

@@ -18,5 +18,7 @@ public class SizeRequest {
     @NotBlank(message = "Size name is required")
     String sizeName;
 
+    Integer status = 1;
+
     String description;
 }

@@ -15,8 +15,13 @@ public class ColorRequest {
 
     Integer id;
 
+    @NotBlank(message = "Color code is required")
+    String colorCode;
+
     @NotBlank(message = "Color name is required")
     String colorName;
+
+    Integer status = 1;
 
     String description;
 }

@@ -2,16 +2,20 @@ package com.example.datn.service;
 
 import com.example.datn.dto.request.OrderDetailRequest;
 import com.example.datn.dto.response.OrderDetailResponse;
+import com.example.datn.entity.Order;
 import com.example.datn.entity.OrderDetail;
 import com.example.datn.entity.ProductDetail;
 import com.example.datn.mapper.OrderDetailMapper;
 import com.example.datn.repository.OrderDetailRepository;
 import com.example.datn.repository.OrderRepository;
 import com.example.datn.repository.ProductDetailRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 
@@ -33,14 +37,32 @@ public class OrderDetailService {
     @Autowired
     private ProductDetailService productDetailService;
 
+    @Transactional
     public OrderDetailResponse create(OrderDetailRequest request) {
-        OrderDetail orderDetail = mapper.toOrderDetails(request);
+        OrderDetail orderDetail = new OrderDetail();
+
+        Order order = orderRepository.findById(request.getOrderId())
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + request.getOrderId()));
+        orderDetail.setOrder(order);
+
+        ProductDetail productDetail = productDetailRepository.findById(request.getProductDetailId())
+                .orElseThrow(() -> new RuntimeException("ProductDetail not found with id: " + request.getProductDetailId()));
+        orderDetail.setProductDetail(productDetail);
+
+        orderDetail.setQuantity(request.getQuantity());
+        orderDetail.setPrice(request.getPrice());
+        orderDetail.setTotalPrice(request.getTotalPrice());
+        orderDetail.setStatus(request.getStatus() != null ? request.getStatus() : 0);
+        orderDetail.setProductStatus(request.getProductStatus() != null ? request.getProductStatus() : 1);
+
         OrderDetail created = repository.save(orderDetail);
         return mapper.toOrderDetailResponse(created);
     }
-
     public List<OrderDetailResponse> getAll() {
-        return mapper.toListResponses(repository.findAll());
+        List<OrderDetail> validOrderDetails = repository.findAll().stream()
+                .filter(od -> od.getOrder() != null && od.getOrder().getStatus() == 0)
+                .collect(Collectors.toList());
+        return mapper.toListResponses(validOrderDetails);
     }
 
     public OrderDetailResponse getById(Integer id) {
@@ -62,16 +84,17 @@ public class OrderDetailService {
     public void updateProductQuantity(Integer productId, Integer quantity) {
         ProductDetail productDetail = productDetailRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
         productDetail.setQuantity(productDetail.getQuantity() - quantity);
-        productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
         productDetailRepository.save(productDetail);
-    }
+        productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
 
+    }
     public void updateProductDetail(Integer orderid, Integer productId, Integer quantity) {
         ProductDetail productDetail = productDetailRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
         productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
         OrderDetail orderDetail = repository.findById(orderid).orElseThrow(() -> new RuntimeException("order not found"));
         productDetail.setQuantity(productDetail.getQuantity() + orderDetail.getQuantity() - quantity);
         productDetailRepository.save(productDetail);
+        productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
     }
 
 
@@ -89,8 +112,9 @@ public class OrderDetailService {
         OrderDetail orderDetail = new OrderDetail();
 
         orderDetail.setOrder(orderRepository.findById(orderId).get());
-
-        orderDetail.setProductDetail(productDetailRepository.findById(productId).get());
+        ProductDetail productDetail=productDetailRepository.findById(productId).get();
+        orderDetail.setProductDetail(productDetail);
+        orderDetail.setProductDetailName(productDetail.getProduct().getProductName()+" - "+productDetail.getColor()+" - "+productDetail.getSize());
         orderDetail.setPrice(productDetailRepository.findById(productId).get().getPrice());
         orderDetail.setQuantity(quantity);
         orderDetail.setTotalPrice(quantity * productDetailRepository
@@ -139,5 +163,60 @@ public class OrderDetailService {
             }
         }
 
+    }
+    public List<?> getTopSellingProducts() {
+        // Tạo Pageable để giới hạn số lượng kết quả trả về là 5
+        Pageable pageable = PageRequest.of(0, 5); // Lấy 5 sản phẩm đầu tiên
+        return repository.getTop5BestSellingProducts(pageable);
+    }
+    @Transactional
+    public List<OrderDetailResponse> updateOrderDetails(Integer orderId, List<OrderDetailRequest> items) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+
+        List<OrderDetail> currentDetails = repository.findByOrderId(orderId);
+        for (OrderDetail detail : currentDetails) {
+            ProductDetail productDetail = detail.getProductDetail();
+            productDetail.setQuantity(productDetail.getQuantity() + detail.getQuantity());
+            productDetailRepository.save(productDetail);
+            productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
+        }
+
+        repository.deleteByOrderId(orderId);
+
+        List<OrderDetail> newDetails = items.stream().map(item -> {
+            ProductDetail productDetail = productDetailRepository.findById(item.getProductDetailId())
+                    .orElseThrow(() -> new RuntimeException("ProductDetail not found with id: " + item.getProductDetailId()));
+
+            if (productDetail.getQuantity() < item.getQuantity()) {
+                throw new RuntimeException("Insufficient stock for product: " + productDetail.getProduct().getProductName());
+            }
+
+            productDetail.setQuantity(productDetail.getQuantity() - item.getQuantity());
+            productDetailRepository.save(productDetail);
+            productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
+
+            OrderDetail orderDetail = new OrderDetail();
+            orderDetail.setOrder(order);
+            orderDetail.setProductDetail(productDetail);
+            orderDetail.setQuantity(item.getQuantity());
+            orderDetail.setPrice(item.getPrice() != null ? item.getPrice() : productDetail.getPrice());
+            orderDetail.setTotalPrice(item.getTotalPrice() != null ? item.getTotalPrice() : item.getPrice() * item.getQuantity());
+            orderDetail.setStatus(item.getStatus() != null ? item.getStatus() : 0);
+            orderDetail.setProductStatus(item.getProductStatus() != null ? item.getProductStatus() : 1);
+
+            return orderDetail;
+        }).collect(Collectors.toList());
+
+        List<OrderDetail> savedDetails = repository.saveAll(newDetails);
+
+        double orderTotalPrice = savedDetails.stream()
+                .mapToDouble(OrderDetail::getTotalPrice)
+                .sum();
+
+        order.setTotalPrice(orderTotalPrice);
+        orderRepository.save(order);
+
+        return mapper.toListResponses(savedDetails);
     }
 }

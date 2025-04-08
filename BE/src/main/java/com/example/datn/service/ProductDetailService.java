@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductDetailService {
@@ -36,7 +38,11 @@ public class ProductDetailService {
     SizeRepository sizeRepository;
 
     public List<ProductDetailResponse> getAll() {
-        return mapper.toListProductDetail(repository.findAll());
+        return mapper.toListProductDetail(repository.findByStatusNot(2));
+    }
+
+    public List<ProductDetailResponse> getBin() {
+        return mapper.toListProductDetail(repository.findByStatus(2));
     }
 
     public List<ProductDetailResponse> getProductDetailsByProductId(Integer productId) {
@@ -83,22 +89,21 @@ public class ProductDetailService {
         return mapper.toListProductDetail(productDetailList);
     }
 
-    // public ProductDetailResponse updateQR(Integer pdId) {
-    // ProductDetail productDetail = repository.findById(pdId)
-    // .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found
-    // with ID: " + pdId));
-    //
-    // try {
-    // String qrCodeData = "" + pdId;
-    // String qrCodeBase64 = QRCodeUtil.generateQRCode(qrCodeData);
-    // productDetail.setQr(qrCodeBase64);
-    // repository.save(productDetail);
-    // } catch (Exception e) {
-    // e.printStackTrace();
-    // }
-    //
-    // return mapper.toProductDetailResponse(productDetail);
-    // }
+    public Map<Integer, Integer> checkStockAvailability(List<Map<String, Integer>> checkStockRequests) {
+        List<Integer> productDetailIds = checkStockRequests.stream()
+                .map(request -> request.get("productDetailId"))
+                .collect(Collectors.toList());
+
+        // Thêm điều kiện kiểm tra status = 1 (còn hàng)
+        List<ProductDetail> productDetails = repository.findByIdInAndStatus(productDetailIds, 1);
+
+        return productDetails.stream()
+                .collect(Collectors.toMap(
+                        ProductDetail::getId,
+                        ProductDetail::getQuantity,
+                        (existing, replacement) -> existing
+                ));
+    }
     public ProductDetailResponse updateQR(Integer pdId) {
         ProductDetail productDetail = repository.findById(pdId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + pdId));
@@ -179,5 +184,67 @@ public class ProductDetailService {
 
         return mapper.toListProductDetail(updatedDetails);
     }
+    public List<Size> getSizesByProductIdAndColor(Integer productId, Integer colorId) {
 
+        // Kiểm tra sự tồn tại của sản phẩm
+        productRepository.findById(productId).orElseThrow(
+                () -> new ResourceNotFoundException("Product not found with ID: " + productId)
+        );
+
+        // Kiểm tra sự tồn tại của màu sắc
+        Color color = colorRepository.findById(colorId).orElseThrow(
+                () -> new ResourceNotFoundException("Color not found with ID: " + colorId)
+        );
+
+        // Lấy tất cả các productDetail theo productId và colorId
+        List<ProductDetail> productDetails = repository.findByProductIdAndColorId(productId, colorId);
+
+        // Lấy danh sách các size của productDetail
+        List<Size> sizes = productDetails.stream()
+                .map(ProductDetail::getSize)
+                .distinct()  // Đảm bảo chỉ lấy các size duy nhất
+                .collect(Collectors.toList());
+
+        return sizes;
+    }
+    public ProductDetailResponse getDetailByAttributes(Integer productId, Integer colorId, Integer sizeId) {
+        ProductDetail productDetail = repository.findByProduct_IdAndColor_IdAndSize_Id(productId, colorId, sizeId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format("Product detail not found with productId: %d, colorId: %d, sizeId: %d",
+                                productId, colorId, sizeId)
+                ));
+
+        return mapper.toProductDetailResponse(productDetail);
+    }
+
+    public ProductDetailResponse deleteAndRestoreProductDetail(Integer pdId) {
+        ProductDetail productDetail = repository.findById(pdId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + pdId));
+
+        if (productDetail.getStatus() != 2) {
+            productDetail.setStatus(2);
+        } else {
+            productDetail.setStatus(productDetail.getQuantity() > 0 ? 1 : 0);
+        }
+
+        return mapper.toProductDetailResponse(repository.save(productDetail));
+    }
+
+    public List<ProductDetailResponse> getRelatedProducts(Integer pId){
+        return mapper.toListProductDetail(repository.findAllExceptId(pId));
+    }
+    public void  updateProductDetaiStatus0(){
+        for (ProductDetail productDetail: repository.findAll()) {
+            if (productDetail.getStatus()==1&&productDetail.getQuantity()==0){
+                productDetail.setStatus(0);
+                repository.save(productDetail);
+            }
+        }
+        for (Product product:productRepository.findAll()             ) {
+            if (product.getStatus()==1&&product.getTotalQuantity()==0){
+                product.setStatus(0);
+                productRepository.save(product);
+            }
+        }
+    }
 }

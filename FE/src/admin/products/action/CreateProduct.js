@@ -113,9 +113,16 @@ const CreateProduct = () => {
         colors.forEach(color => {
             sizes.forEach(size => {
                 newVariants.push({
-                    color: color.label,
+                    color: {
+                        colorName: color.label,
+                        colorCode: color.colorCode,
+                        id: color.value
+                    },
                     colorId: color.value,
-                    size: size.label,
+                    size: {
+                        sizeName: size.label,
+                        id: size.value
+                    },
                     sizeId: size.value,
                     quantity: '',
                     price: '',
@@ -129,6 +136,33 @@ const CreateProduct = () => {
     };
 
     const handleInputChange = (index, field, value) => {
+        const maxQuantity = 10000;
+        const maxPrice = 10000000;
+
+        if (value === '') {
+            const updatedVariants = [...variantList];
+            updatedVariants[index] = { ...updatedVariants[index], [field]: '' };
+            setVariantList(updatedVariants);
+            return;
+        }
+        const numericValue = parseFloat(value);
+        if (isNaN(numericValue)) {
+            return;
+        }
+
+        if (field === 'quantity') {
+            if (numericValue > maxQuantity) {
+                value = maxQuantity.toString();
+            } else if (numericValue < 0) {
+                value = "0";
+            }
+        } else if (field === 'price') {
+            if (numericValue > maxPrice) {
+                value = maxPrice.toString();
+            } else if (numericValue < 0) {
+                value = "0";
+            }
+        }
         const updatedVariants = [...variantList];
         updatedVariants[index] = { ...updatedVariants[index], [field]: value };
         setVariantList(updatedVariants);
@@ -203,25 +237,20 @@ const CreateProduct = () => {
             let updatedVariants = [...prevVariants];
             const removedVariant = updatedVariants[index];
 
-            // Tìm tất cả biến thể cùng màu
             const sameColorVariants = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
 
-            // Nếu xóa biến thể đầu tiên của nhóm màu, chuyển ảnh cho biến thể tiếp theo
             if (sameColorVariants.length > 1 && sameColorVariants[0] === removedVariant) {
                 sameColorVariants[1].imageUrls = removedVariant.imageUrls;
                 sameColorVariants[1].images = removedVariant.images;
             }
 
-            // Xóa biến thể khỏi danh sách
             updatedVariants.splice(index, 1);
 
-            // Nếu không còn biến thể nào có cùng màu, xóa ảnh
             if (!updatedVariants.some(v => v.colorId === removedVariant.colorId)) {
                 updatedVariants = updatedVariants.map(v =>
                     v.colorId === removedVariant.colorId ? { ...v, imageUrls: [] } : v
                 );
             }
-
 
             const remainingVariantsWithColor = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
             if (remainingVariantsWithColor.length === 0) {
@@ -464,11 +493,31 @@ const CreateProduct = () => {
         }
     };
 
+    const isEmpty = (value) => value.trim() === "";
+
+    const isExceedLimit = (value, limit) => {
+        const num = parseFloat(value);
+        return isNaN(num) || num < 0 || num > limit;
+    };
 
     const updateAllVariants = () => {
-        if (commonQuantity.trim() === "" && commonPrice.trim() === "") {
-            alert("Vui lòng nhập ít nhất một giá trị!");
+        if (isEmpty(commonQuantity) && isEmpty(commonPrice)) {
+            toast.error("Vui lòng nhập ít nhất một giá trị!");
             return;
+        }
+
+        if (!isEmpty(commonQuantity)) {
+            if (isExceedLimit(commonQuantity, 10000)) {
+                toast.error("Số lượng quá lớn! Vui lòng nhập giá trị từ 0 đến 1000.");
+                return;
+            }
+        }
+
+        if (!isEmpty(commonPrice)) {
+            if (isExceedLimit(commonPrice, 10000000)) {
+                toast.error("Giá quá lớn! Vui lòng nhập giá trị từ 0 đến 10 triệu.");
+                return;
+            }
         }
 
         const updatedVariants = variantList.map(variant => ({
@@ -477,10 +526,9 @@ const CreateProduct = () => {
             price: commonPrice.trim() !== "" ? parseFloat(commonPrice) : variant.price
         }));
 
-        setVariantList(updatedVariants);
-        handleCloseModal();
+        setVariantList(updatedVariants);  // Cập nhật state
+        handleCloseModal();  // Đóng modal
     };
-
 
     const handleSaveClick = async () => {
         if (isSaving) return;
@@ -558,7 +606,18 @@ const CreateProduct = () => {
                 <div className="col-12 grid-margin">
                     <div className="card">
                         <div className="card-body">
-                            <h3 className="card-title">Thêm mới sản phẩm</h3>
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <h3 className="card-title">Thêm mới sản phẩm</h3>
+                                <button
+                                    type="button"
+                                    className="btn btn-link"
+                                    style={{ padding: "0px", marginBottom: "10px" }}
+                                    onClick={() => history.push('/admin/products')}
+                                >
+                                    <i className="mdi mdi-subdirectory-arrow-left"></i>
+                                    Quay lại
+                                </button>
+                            </div>
                             <hr />
                             <div style={{ marginBottom: '50px' }}></div>
                             <form className="form-sample">
@@ -634,7 +693,7 @@ const CreateProduct = () => {
                                 <div className='col-md-9'></div>
                                 <div className='col-md-3'>
                                     {variantList.length > 0 && (
-                                        <button type="button" className="btn btn-primary float-right" onClick={handleOpenModal}>
+                                        <button type="button" className="btn btn-primary btn-sm float-right" onClick={handleOpenModal}>
                                             + Thêm thuộc tính chung
                                         </button>
                                     )}
@@ -656,17 +715,10 @@ const CreateProduct = () => {
                             </div>
                             <hr />
                             <div className="d-flex justify-content-end mt-4">
+
                                 <button
                                     type="button"
-                                    className="btn btn-secondary btn-icon-text"
-                                    onClick={() => history.push('/admin/products')}
-                                >
-                                    <i className="mdi mdi-subdirectory-arrow-left"></i>
-                                    Quay lại
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-gradient-primary btn-icon-text"
+                                    className="btn btn-primary btn-icon-text"
                                     onClick={handleSaveClick}
                                     disabled={isSaving}
                                 >
@@ -678,6 +730,7 @@ const CreateProduct = () => {
                     </div>
                 </div>
             </div>
+
             <Modal show={showModal} onHide={handleCloseModal} centered>
                 <Modal.Header closeButton>
                     <Modal.Title>Thêm thuộc tính chung</Modal.Title>

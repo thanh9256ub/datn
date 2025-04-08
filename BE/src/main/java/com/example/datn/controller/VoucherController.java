@@ -65,7 +65,7 @@ public class VoucherController {
             @Valid @RequestBody VoucherRequest request){
 
         VoucherResponse voucherResponse = voucherService.updateVoucher(id, request);
-
+         voucherService.updateVoucherStatus0();
         ApiResponse<VoucherResponse> response = new ApiResponse<>(
                 
                 HttpStatus.OK.value(),

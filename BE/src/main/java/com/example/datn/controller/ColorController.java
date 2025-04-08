@@ -3,6 +3,8 @@ package com.example.datn.controller;
 import com.example.datn.dto.request.ColorRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.ColorResponse;
+import com.example.datn.dto.response.ColorResponse;
+import com.example.datn.dto.response.ColorResponse;
 import com.example.datn.service.ColorService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,17 @@ public class ColorController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<ColorResponse>>> getActive(){
+
+        List<ColorResponse> list = service.getActive();
+
+        ApiResponse<List<ColorResponse>> response = new ApiResponse<>(HttpStatus.OK.value(),
+                "Colors retrieved successfully", list);
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ColorResponse> getOne(@PathVariable("id") Integer id){
 
@@ -66,15 +79,15 @@ public class ColorController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<ApiResponse<ColorResponse>> deleteColor(@PathVariable("id") Integer id){
+    @PatchMapping ("/update-status/{id}")
+    public ResponseEntity<ApiResponse<ColorResponse>> updateStatus(@PathVariable("id") Integer id){
 
-        service.deleteColor(id);
+        ColorResponse brandResponse = service.updateStatus(id);
 
         ApiResponse<ColorResponse> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
-                "Color deleted successfully",
-                null
+                "Updated status successfully",
+                brandResponse
         );
 
         return ResponseEntity.ok(response);

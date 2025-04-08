@@ -17,6 +17,7 @@ public class OrderDetailRequest {
 
     Integer productDetailId;
 
+    String productDetailName;
 
     Integer quantity;
 
@@ -31,4 +32,5 @@ public class OrderDetailRequest {
 
 
     Integer productStatus;
+
 }

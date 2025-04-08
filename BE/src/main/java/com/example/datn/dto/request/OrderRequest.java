@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -54,4 +55,16 @@ public class OrderRequest {
     LocalDateTime createdAt;
 
     LocalDateTime updatedAt;
+    List<CartItemDTO> cartItems; // Thêm danh sách sản phẩm
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class CartItemDTO {
+        Integer productDetailId;
+        Integer quantity;
+        Double price;
+        Double totalPrice; // Sửa từ total_price thành totalPrice để đồng nhất với naming convention
+    }
 }

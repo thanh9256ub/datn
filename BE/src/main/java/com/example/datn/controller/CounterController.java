@@ -1,11 +1,17 @@
 package com.example.datn.controller;
 
+import com.example.datn.dto.request.OrderDetailRequest;
 import com.example.datn.dto.request.OrderRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.OrderDetailResponse;
 import com.example.datn.dto.response.OrderResponse;
+import com.example.datn.entity.OrderDetail;
+import com.example.datn.entity.ProductDetail;
+import com.example.datn.repository.OrderRepository;
+import com.example.datn.repository.ProductDetailRepository;
 import com.example.datn.service.OrderDetailService;
 import com.example.datn.service.OrderService;
+import com.example.datn.service.ProductDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -13,15 +19,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +45,12 @@ public class CounterController {
     OrderService orderService;
     @Autowired
     OrderDetailService orderDetailService;
+    @Autowired
+    OrderRepository orderRepository;
+    @Autowired
+    ProductDetailRepository productDetailRepository;
+    @Autowired
+    ProductDetailService productDetailService;
 
     @GetMapping("/add-to-cart")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> addToCart(@RequestParam Integer orderID,
@@ -59,7 +63,6 @@ public class CounterController {
                 HttpStatus.OK.value(), "Order detail updated successfully", orderDetailResponse);
         return ResponseEntity.ok(apiResponse);
     }
-
     @GetMapping("/update-quantity")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> updateQuantity(@RequestParam Integer orderDetailID,
                                                                            @RequestParam Integer productDetailID,
@@ -101,6 +104,7 @@ public class CounterController {
     @PostMapping("/comfirm/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> confirm(@PathVariable Integer id, @RequestBody OrderRequest orderRequest) {
         OrderResponse orderResponse = orderService.update(id, orderRequest);
+        productDetailService.updateProductDetaiStatus0();
         ApiResponse<OrderResponse> apiResponse = new ApiResponse<>(
                 HttpStatus.OK.value(), "Order  successfully", orderResponse);
         return ResponseEntity.ok(apiResponse);
@@ -170,17 +174,43 @@ public class CounterController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching wards");
         }
     }
+//
+//    @DeleteMapping("/delete-order/{id}")
+//    public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id") Integer id) {
+//        orderDetailService.updateOrderDetail(id);
+//        orderDetailService.deteleOrderDetailByIdOrder(id);
+//        orderService.detele(id);
+//        ApiResponse<OrderDetailResponse> apiResponse = new ApiResponse<>(
+//                HttpStatus.OK.value(), "PaymentMethod deleted successfully", null);
+//        return ResponseEntity.ok(apiResponse);
+//    }
+@DeleteMapping("/delete-order/{id}")
+public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id") Integer id) {
+    try {
+        // Kiểm tra order tồn tại
+        if (!orderRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>(HttpStatus.NOT_FOUND.value(), "Order not found with ID: " + id, null));
+        }
 
-    @DeleteMapping("/delete-order/{id}")
-    public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id") Integer id) {
-        orderDetailService.updateOrderDetail(id);
-        orderDetailService.deteleOrderDetailByIdOrder(id);
+        // Lấy danh sách chi tiết đơn hàng và hoàn lại số lượng sản phẩm
+        List<OrderDetailResponse> orderDetails = orderDetailService.getOrderDetailsByOrderId(id);
+        for (OrderDetailResponse detail : orderDetails) {
+            ProductDetail productDetail = detail.getProductDetail();
+            productDetail.setQuantity(productDetail.getQuantity() + detail.getQuantity());
+            productDetailRepository.save(productDetail);
+            orderDetailService.detele(detail.getId());
+        }
+
+        // Xóa đơn hàng
         orderService.detele(id);
-        ApiResponse<OrderDetailResponse> apiResponse = new ApiResponse<>(
-                HttpStatus.OK.value(), "PaymentMethod deleted successfully", null);
-        return ResponseEntity.ok(apiResponse);
-    }
 
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Order deleted successfully", null));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error deleting order: " + e.getMessage(), null));
+    }
+}
     @PostMapping("/zalopay/payment")
     public ResponseEntity<?> generateZaloPayPayment(@RequestBody Map<String, Object> payload) {
         try {
@@ -307,6 +337,26 @@ public class CounterController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching transactions from Casso.vn: " + e.getMessage());
         }
     }
-
+    @PutMapping("/update-order-details/{orderId}")
+    public ResponseEntity<ApiResponse<List<OrderDetailResponse>>> updateOrderDetails(
+            @PathVariable("orderId") Integer orderId,
+            @RequestBody List<OrderDetailRequest> items) {
+        try {
+            List<OrderDetailResponse> updatedDetails = orderDetailService.updateOrderDetails(orderId, items);
+            ApiResponse<List<OrderDetailResponse>> apiResponse = new ApiResponse<>(
+                    HttpStatus.OK.value(),
+                    "Order details updated successfully",
+                    updatedDetails
+            );
+            return ResponseEntity.ok(apiResponse);
+        } catch (Exception e) {
+            ApiResponse<List<OrderDetailResponse>> apiResponse = new ApiResponse<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "Error updating order details: " + e.getMessage(),
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
+        }
+    }
 }
 

@@ -2,6 +2,8 @@ package com.example.datn.controller;
 
 import com.example.datn.dto.request.CategoryRequest;
 import com.example.datn.dto.response.ApiResponse;
+import com.example.datn.dto.response.BrandResponse;
+import com.example.datn.dto.response.CategoryResponse;
 import com.example.datn.dto.response.CategoryResponse;
 import com.example.datn.service.CategoryService;
 import jakarta.validation.Valid;
@@ -42,6 +44,17 @@ public class CategoryController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getActive(){
+
+        List<CategoryResponse> list = service.getActive();
+
+        ApiResponse<List<CategoryResponse>> response = new ApiResponse<>(HttpStatus.OK.value(),
+                "Brands retrieved successfully", list);
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> getOne(@PathVariable("id") Integer id){
 
@@ -66,15 +79,15 @@ public class CategoryController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<ApiResponse<CategoryResponse>> deleteCategory(@PathVariable("id") Integer id){
+    @PatchMapping ("/update-status/{id}")
+    public ResponseEntity<ApiResponse<CategoryResponse>> updateStatus(@PathVariable("id") Integer id){
 
-        service.deleteCategory(id);
+        CategoryResponse brandResponse = service.updateStatus(id);
 
         ApiResponse<CategoryResponse> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
-                "Category deleted successfully",
-                null
+                "Updated status successfully",
+                brandResponse
         );
 
         return ResponseEntity.ok(response);
