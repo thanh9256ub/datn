@@ -69,11 +69,15 @@ const RevenueFilter = () => {
   const handleYearForMonthChange = (value) => {
     setSelectedYearForMonth(value);
     setMonth(null);
+    setYear(null);
+    setDateRange(null);
   };
 
   const handleMonthChange = (value) => {
     if (selectedYearForMonth) {
       setMonth(value);
+      setYear(null);
+    setDateRange(null);
     }
   };
 
