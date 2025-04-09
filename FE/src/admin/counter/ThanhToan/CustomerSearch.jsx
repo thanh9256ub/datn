@@ -21,7 +21,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
     try {
 
       const response = await fetchCustomers();
-      const customer = response.data.data.find(c => c.phone === phoneNumber);
+      const customer = response.data.data.find(c => c.phone === phoneNumber&& c.status ===1 );
 
       if (!customer) {
         toast.error("Không tìm thấy khách hàng", toastOptions);
