@@ -66,24 +66,10 @@ public class ProductService {
     WebSocketController webSocketController;
 
     @Autowired
-    ProductUpdateRepository productUpdateRepository;
-
-    @Autowired
     ImageRepository imageRepository;
 
-    @Scheduled(fixedRate = 5000) // Kiểm tra mỗi 5 giây
-    @Transactional
-    public void checkProductQuantityUpdates() {
-        List<ProductUpdate> updates = productUpdateRepository.findLatestUpdates();
-
-        for (ProductUpdate update : updates) {
-            webSocketController.sendProductQuantityUpdate(update.getProductCode(), update.getNewTotalQuantity());
-        }
-
-        // Xóa sau khi gửi thông báo để tránh lặp lại
-        productUpdateRepository.deleteAll(updates);
-    }
-
+    @Autowired
+    ProductDetailService productDetailService;
 
     private String generateProductCode() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss");
@@ -183,7 +169,8 @@ public class ProductService {
                 () -> new ResourceNotFoundException("Material not found with ID: " + id));
 
         Brand brand = brandRepository.findById(request.getBrandId())
-                .orElseThrow(() -> new ResourceNotFoundException("Brand not found with ID: " + request.getBrandId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Brand not found with ID: " + request.getBrandId()));
 
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(
@@ -199,8 +186,10 @@ public class ProductService {
         product.setCategory(category);
         product.setMaterial(material);
 
-        LocalDateTime now = LocalDateTime.now().withNano(0);
+        product.setTotalQuantity(request.getTotalQuantity());
+        product.setStatus(request.getTotalQuantity() > 0 ? 1 : 0);
 
+        LocalDateTime now = LocalDateTime.now().withNano(0);
         product.setUpdatedAt(now);
 
         return mapper.toProductResponse(repository.save(product));
@@ -244,12 +233,12 @@ public class ProductService {
         for (Product product : products) {
             List<ProductDetail> productDetails = detailMap.getOrDefault(product.getId(), new ArrayList<>());
 
-            boolean allDetailsInactive = productDetails.stream().allMatch(d -> d.getStatus() == 2);
+//            boolean allDetailsInactive = productDetails.stream().allMatch(d -> d.getStatus() == 2);
 
             if (product.getStatus() != 2) {
                 product.setStatus(2);
             } else {
-                product.setStatus((product.getTotalQuantity() > 0 && !allDetailsInactive) ? 1 : 0);
+                product.setStatus((product.getTotalQuantity() > 0) ? 1 : 0);
             }
 
             for (ProductDetail detail : productDetails) {
@@ -267,21 +256,6 @@ public class ProductService {
 
         return mapper.toListProductResponse(products);
     }
-
-
-    // public List<ProductResponse> getActiveProducts(){
-    //
-    // List<Product> productList = repository.findByStatus(1);
-    //
-    // return mapper.toListProduct(productList);
-    // }
-    //
-    // public List<ProductResponse> getInactiveProducts(){
-    //
-    // List<Product> productList = repository.findByStatus(0);
-    //
-    // return mapper.toListProduct(productList);
-    // }
 
     private double getCellValueAsDouble(Cell cell) {
         if (cell == null) {
