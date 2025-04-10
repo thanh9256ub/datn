@@ -6,13 +6,16 @@ import com.example.datn.dto.request.OrderRequest;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.OrderDetailResponse;
 import com.example.datn.dto.response.OrderResponse;
+import com.example.datn.entity.Order;
 import com.example.datn.entity.OrderDetail;
 import com.example.datn.entity.ProductDetail;
+import com.example.datn.exception.ResourceNotFoundException;
 import com.example.datn.repository.OrderRepository;
 import com.example.datn.repository.ProductDetailRepository;
 import com.example.datn.service.OrderDetailService;
 import com.example.datn.service.OrderService;
 import com.example.datn.service.ProductDetailService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -21,20 +24,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.util.Base64;
-import java.util.UUID;
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -42,6 +48,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class CounterController {
 
     private static final Logger logger = LoggerFactory.getLogger(CounterController.class);
+
+    private static final String VNP_TMN_CODE = "DLO4BO7S";
+    private static final String VNP_HASH_SECRET = "X7SNCY4MFJXV8RM446395M52ARVFS5MD";
+    private static final String VNP_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+    private static final String VNP_RETURN_URL = "https://sharing-cub-meet.ngrok-free.app/counter/vnpay-return";
+    private static final String VNP_API_VERSION = "2.1.0";
+    private static final String VNP_COMMAND = "pay";
+    private static final String VNP_CURRENCY = "VND";
+    private static final String VNP_LOCALE = "vn";
+    private static final String VNP_ORDER_TYPE = "billpayment";
 
     @Autowired
     OrderService orderService;
@@ -361,118 +377,262 @@ public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id
         }
 
     }
-    @PostMapping("/casso/check-payment-and-order")
-    public ResponseEntity<ApiResponse<OrderResponse>> checkPaymentAndOrder(
-            @RequestParam String orderId, // Mã đơn hàng tạm thời từ client để khớp với giao dịch
-            @RequestBody OrderRequest orderRequest) { // Thông tin đơn hàng từ client
+    @PostMapping("/vnpay/payment")
+    public ResponseEntity<Map<String, String>> generateVNPayPayment(
+            @RequestBody Map<String, Object> payload,
+            HttpServletRequest request) {
         try {
-            // Bước 1: Gọi API Casso để lấy danh sách giao dịch
-            RestTemplate restTemplate = new RestTemplate();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "apikey AK_CS.0ad6d28e008b4534b42a399824148f91.RsEZaWKnMUKuYatpQeWdeG6sOIMu9u2Ttt8RAvxtnF5Yp9nYxWanV8oTAYiB1vW6"); // Đúng định dạng "apikey"
-
-            HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-            // Lấy thời điểm hiện tại làm fromDate
-            String fromDate = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE); // Ví dụ: "2025-04-08"
-            String cassoUrl = "https://oauth.casso.vn/v2/transactions?sort=DESC&sortBy=when&page=1&pageSize=10&fromDate=" + fromDate;
-
-            ResponseEntity<Map> cassoResponse;
-            try {
-                cassoResponse = restTemplate.exchange(cassoUrl, HttpMethod.GET, requestEntity, Map.class);
-            } catch (Exception e) {
-                logger.error("Lỗi khi gọi API Casso: {}", e.getMessage());
-                if (e.getMessage().contains("401")) {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                            .body(new ApiResponse<>(401, "Xác thực với Casso thất bại, kiểm tra API key", null));
-                }
-                throw e; // Ném lỗi để xử lý tiếp
+            // Validate request
+            if (!validateVNPayRequest(payload)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid request parameters"));
             }
 
-            Map<String, Object> cassoResponseBody = cassoResponse.getBody();
+            // Prepare parameters
+            String orderId = payload.get("orderId").toString();
+            long amount = (long) (Double.parseDouble(payload.get("amount").toString()) * 100);
+            String clientIP = getClientIP(request);
 
-            if (cassoResponseBody == null || !cassoResponseBody.containsKey("data")) {
-                logger.error("Không thể lấy dữ liệu giao dịch từ Casso: {}", cassoResponseBody);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Không thể kiểm tra thanh toán từ Casso", null));
-            }
+            // Create sorted params (TreeMap automatically sorts by key)
+            TreeMap<String, String> vnpParams = new TreeMap<>();
+            vnpParams.put("vnp_Version", VNP_API_VERSION);
+            vnpParams.put("vnp_Command", VNP_COMMAND);
+            vnpParams.put("vnp_TmnCode", VNP_TMN_CODE);
+            vnpParams.put("vnp_Amount", String.valueOf(amount));
+            vnpParams.put("vnp_CurrCode", VNP_CURRENCY);
+            vnpParams.put("vnp_TxnRef", orderId);
+            vnpParams.put("vnp_OrderInfo", "Thanh toan don hang #" + orderId);
+            vnpParams.put("vnp_OrderType", VNP_ORDER_TYPE);
+            vnpParams.put("vnp_Locale", VNP_LOCALE);
+            vnpParams.put("vnp_ReturnUrl", VNP_RETURN_URL);
+            vnpParams.put("vnp_IpAddr", clientIP);
+            vnpParams.put("vnp_CreateDate", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+            // Generate secure hash
+            String secureHash = generateSecureHash(vnpParams);
 
-            // Bước 2: Kiểm tra trạng thái thanh toán
-            Map<String, Object> data = (Map<String, Object>) cassoResponseBody.get("data");
-            List<Map<String, Object>> records = (List<Map<String, Object>>) data.get("records");
+            // Build payment URL with single encoding
+            String paymentUrl = buildVNPayPaymentUrl(vnpParams, secureHash);
 
-            boolean paymentSuccess = false;
-            String transactionDescription = "Thanh toan don hang #" + orderId; // Mô tả giao dịch cần khớp
+            logger.info("Generated VNPay URL for order {}: {}", orderId, paymentUrl);
 
-            for (Map<String, Object> record : records) {
-                String description = (String) record.get("description");
-                Number amount = (Number) record.get("amount"); // Số tiền giao dịch từ Casso
-                double expectedAmount = orderRequest.getTotalPayment(); // Tổng tiền từ orderRequest
-
-                if (description != null && description.contains(transactionDescription) &&
-                    amount != null && Math.abs(amount.doubleValue() - expectedAmount) < 1) { // So sánh với sai số nhỏ
-                    paymentSuccess = true;
-                    break;
-                }
-            }
-
-            // Bước 3: Nếu thanh toán thành công, tiến hành đặt hàng
-            if (paymentSuccess) {
-                logger.info("Thanh toán VietQR thành công cho đơn hàng: {}", orderId);
-
-                // Điều chỉnh orderRequest để phù hợp với logic của OrderService
-                orderRequest.setStatus(2); // Đã thanh toán
-                orderRequest.setPaymentMethodId(2); // VietQR
-
-                OrderResponse orderResponse;
-                if (orderRequest.getCustomerId() != null) {
-                    // Đặt hàng từ giỏ hàng cho khách đã đăng nhập
-                    orderResponse = orderService.createOrderFromCart(orderRequest.getCustomerId(), orderRequest);
-                } else {
-                    // Đặt hàng cho khách vãng lai
-                    GuestOrderRequest guestOrderRequest = new GuestOrderRequest();
-                    guestOrderRequest.setCustomerName(orderRequest.getCustomerName());
-                    guestOrderRequest.setPhone(orderRequest.getPhone());
-                    guestOrderRequest.setAddress(orderRequest.getAddress());
-                    guestOrderRequest.setNote(orderRequest.getNote());
-                    guestOrderRequest.setShippingFee(orderRequest.getShippingFee());
-                    guestOrderRequest.setDiscountValue(orderRequest.getDiscountValue());
-                    guestOrderRequest.setTotalPrice(orderRequest.getTotalPrice());
-                    guestOrderRequest.setTotalPayment(orderRequest.getTotalPayment());
-                    guestOrderRequest.setPaymentTypeId(orderRequest.getPaymentTypeId());
-                    guestOrderRequest.setPaymentMethodId(orderRequest.getPaymentMethodId());
-                    guestOrderRequest.setOrderType(orderRequest.getOrderType());
-                    guestOrderRequest.setStatus(orderRequest.getStatus());
-                    guestOrderRequest.setCartItems(orderRequest.getCartItems().stream()
-                            .map(item -> new GuestOrderRequest.CartItemDTO(
-                                    item.getProductDetailId(),
-                                    item.getQuantity(),
-                                    item.getPrice(),
-                                    item.getTotalPrice()
-                            ))
-                            .collect(Collectors.toList()));
-
-                    orderResponse = orderService.createOrderForGuest(guestOrderRequest);
-                }
-
-                // Trả về phản hồi thành công
-                ApiResponse<OrderResponse> apiResponse = new ApiResponse<>(
-                        HttpStatus.OK.value(),
-                        "Thanh toán thành công qua VietQR và đơn hàng đã được đặt",
-                        orderResponse
-                );
-                return ResponseEntity.ok(apiResponse);
-            } else {
-                logger.warn("Không tìm thấy giao dịch thành công cho đơn hàng: {}", orderId);
-                return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED)
-                        .body(new ApiResponse<>(HttpStatus.PAYMENT_REQUIRED.value(), "Thanh toán chưa được xác nhận", null));
-            }
+            return ResponseEntity.ok(Map.of(
+                    "code", "00",
+                    "message", "success",
+                    "paymentUrl", paymentUrl,
+                    "transactionId", orderId
+            ));
 
         } catch (Exception e) {
-            logger.error("Lỗi khi kiểm tra thanh toán và đặt hàng: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Lỗi: " + e.getMessage(), null));
+            logger.error("VNPay payment processing failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Payment processing failed: " + e.getMessage()));
         }
     }
+
+    private String generateSecureHash(TreeMap<String, String> params) throws Exception {
+        StringBuilder hashData = new StringBuilder();
+        boolean firstParam = true;
+
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+                if (!firstParam) {
+                    hashData.append('&');
+                }
+                hashData.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.toString()));
+                hashData.append('=');
+                hashData.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.toString()));
+                firstParam = false;
+            }
+        }
+        logger.info("Raw data for hash: {}", hashData.toString());
+        return hmacSHA512(VNP_HASH_SECRET, hashData.toString());
+    }
+    private boolean validateVNPayRequest(Map<String, Object> payload) {
+        return payload.containsKey("orderId")
+               && payload.containsKey("amount")
+               && !payload.get("orderId").toString().isEmpty()
+               && payload.get("amount") != null;
+    }
+    private String hmacSHA512(String key, String data) throws Exception {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA512");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(
+                    key.getBytes(StandardCharsets.UTF_8),
+                    "HmacSHA512"
+            );
+            mac.init(secretKeySpec);
+            byte[] hash = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+
+            // Convert byte array to hex string
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString().toLowerCase(Locale.ROOT);
+        } catch (Exception e) {
+            logger.error("Error creating HMAC-SHA512", e);
+            throw new RuntimeException("Cannot create HMAC-SHA512", e);
+        }
+    }
+    private String buildVNPayPaymentUrl(TreeMap<String, String> params, String secureHash) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(VNP_URL);
+
+        // Add all parameters with single URL encoding
+        params.forEach((key, value) -> {
+            try {
+                builder.queryParam(
+                        key,
+                        URLEncoder.encode(value, StandardCharsets.UTF_8.toString())
+                                .replace("+", "%20")
+                );
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException("URL encoding failed", e);
+            }
+        });
+
+        // Add secure hash (no encoding)
+        builder.queryParam("vnp_SecureHash", secureHash);
+
+        return builder.build().toUriString();
+    }
+
+    private String encodeURLComponent(String component) {
+        try {
+            return URLEncoder.encode(component, "UTF-8")
+                    .replace("+", "%20")
+                    .replace("*", "%2A")
+                    .replace("%7E", "~");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("URL encoding failed", e);
+        }
+    }
+    @GetMapping("/vnpay/check-payment-status")
+    public ResponseEntity<?> checkVNPayPaymentStatus(@RequestParam String transactionId) {
+        try {
+            String status = orderService.checkPaymentStatus(transactionId);
+            Map<String, Object> response = new HashMap<>();
+            response.put("transactionId", transactionId);
+            response.put("status", status);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error checking VNPay payment status for transactionId: {}", transactionId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error checking payment status: " + e.getMessage()));
+        }
+    }
+
+    @CrossOrigin(origins = "*")
+    @GetMapping("/vnpay-return")
+    public ResponseEntity<Map<String, String>> vnpayReturnHandler(
+            @RequestParam Map<String, String> allParams,
+            HttpServletRequest request) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            logger.info("VNPay Callback Params: {}", allParams);
+
+            Map<String, String> vnpParams = new TreeMap<>(allParams);
+            vnpParams.remove("vnp_SecureHashType");
+            vnpParams.remove("vnp_SecureHash");
+
+            String vnp_SecureHash = allParams.get("vnp_SecureHash");
+            if (vnp_SecureHash == null) {
+                response.put("message", "Missing vnp_SecureHash");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            String signValue = buildHashData(vnpParams);
+            String computedHash = hmacSHA512(VNP_HASH_SECRET, signValue);
+
+            logger.info("Computed Hash: {}", computedHash);
+            logger.info("Received Hash: {}", vnp_SecureHash);
+
+            if (!computedHash.equalsIgnoreCase(vnp_SecureHash)) {
+                logger.error("Invalid signature. Expected: {} - Actual: {}", computedHash, vnp_SecureHash);
+                response.put("message", "Invalid signature");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            String responseCode = allParams.get("vnp_ResponseCode");
+            String orderId = allParams.get("vnp_TxnRef");
+
+            if ("00".equals(responseCode)) {
+                OrderResponse updatedOrder = orderService.updateStatus(
+                        orderRepository.findByOrderCode(orderId)
+                                .orElseThrow(() -> new RuntimeException("Order not found with code: " + orderId))
+                                .getId(),
+                        2
+                );
+                logger.info("Payment success for order: {}", orderId);
+                response.put("message", "Payment success");
+                response.put("status", "SUCCESS");
+            } else {
+                logger.warn("Payment failed. Code: {}", responseCode);
+                orderService.updateStatus(
+                        orderRepository.findByOrderCode(orderId)
+                                .orElseThrow(() -> new RuntimeException("Order not found with code: " + orderId))
+                                .getId(),
+                        5
+                );
+                response.put("message", "Payment failed. Code: " + responseCode);
+                response.put("status", "FAILED");
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("VNPay callback processing error", e);
+            response.put("message", "Server error");
+            response.put("status", "ERROR");
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
+
+    private String buildHashData(Map<String, String> params) {
+        StringBuilder hashData = new StringBuilder();
+        boolean firstParam = true;
+
+        // Sắp xếp tất cả các tham số theo thứ tự bảng chữ cái
+        for (Map.Entry<String, String> entry : new TreeMap<>(params).entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+                if (!firstParam) {
+                    hashData.append('&');
+                }
+                try {
+                    hashData.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.toString()));
+                    hashData.append('=');
+                    hashData.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.toString()));
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException("URL encoding failed", e);
+                }
+                firstParam = false;
+            }
+        }
+
+        String result = hashData.toString();
+        logger.info("Raw data for hash verification: {}", result); // Giữ log để kiểm tra
+        return result;
+    }
+
+    private String getClientIP(HttpServletRequest request) {
+        // Ưu tiên lấy IP từ các header proxy (nếu có)
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+
+        // Xử lý trường hợp localhost hoặc IPv6
+        if (ip.equals("127.0.0.1") || ip.equals("0:0:0:0:0:0:0:1")) {
+            ip = "14.181.139.170"; // Hardcode IP public của bạn
+        }
+
+        // Lấy IP đầu tiên nếu có nhiều IP (ví dụ: "client, proxy1, proxy2")
+        return ip.split(",")[0].trim();
+    }
+
 }
 

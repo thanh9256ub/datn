@@ -109,41 +109,6 @@ const ProductDisplay = ({ product, productColors }) => {
         setConfirmModalVisible(true);
     };
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         if (selectedProductColorId && product?.id) {
-    //             setLoadingImages(true);
-    //             try {
-    //                 const [imageResponse, sizeResponse] = await Promise.all([
-    //                     fetchImagesByProductColor(selectedProductColorId),
-    //                     fetchSizesByColor(product.id, selectedColorId)
-    //                 ]);
-
-    //                 setImages(imageResponse || []);
-    //                 if (imageResponse?.length > 0) {
-    //                     setMainImage(imageResponse[0].image);
-    //                 }
-
-    //                 setSizes(sizeResponse || []);
-    //                 if (sizeResponse?.length > 0) {
-    //                     // Chỉ đặt selectedSize nếu hiện tại không hợp lệ
-    //                     if (!selectedSize || !sizeResponse.some(s => s.id === selectedSize)) {
-    //                         setSelectedSize(sizeResponse[0].id);
-    //                     }
-    //                 } else {
-    //                     setSelectedSize(null); // Reset nếu không có size
-    //                     message.warning('Không có kích thước nào khả dụng cho màu này');
-    //                 }
-    //             } catch (error) {
-    //                 console.error('Error loading data:', error);
-    //                 message.error('Lỗi tải dữ liệu sản phẩm');
-    //             } finally {
-    //                 setLoadingImages(false);
-    //             }
-    //         }
-    //     };
-    //     fetchData();
-    // }, [selectedProductColorId, selectedColorId, product?.id]);
     useEffect(() => {
         const fetchData = async () => {
             if (selectedProductColorId && product?.id) {
@@ -213,26 +178,6 @@ const ProductDisplay = ({ product, productColors }) => {
 
     if (!product) return <Card>Sản phẩm không tồn tại</Card>;
 
-    // const handleColorChange = async (colorId, productColorId, newImage) => {
-    //     setSelectedColorId(colorId);
-    //     setSelectedProductColorId(productColorId);
-    //     setMainImage(newImage || product.image || '');
-
-    //     // Reset size khi đổi màu
-    //     setSizes([]);
-    //     setSelectedSize(null);
-
-    //     try {
-    //         const sizeResponse = await fetchSizesByColor(product.id, colorId);
-    //         setSizes(sizeResponse || []);
-
-    //         if (sizeResponse.length > 0) {
-    //             setSelectedSize(sizeResponse[0].id); // Chọn size đầu tiên của màu mới
-    //         }
-    //     } catch (error) {
-    //         message.error('Lỗi tải danh sách size');
-    //     }
-    // };
     const handleColorChange = async (colorId, productColorId, newImage) => {
         setSelectedColorId(colorId);
         setSelectedProductColorId(productColorId);
@@ -398,24 +343,6 @@ const ProductDisplay = ({ product, productColors }) => {
                                 >
                                     {product.name}
                                 </Title>
-                                {/* <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                    <Rate
-                                        disabled
-                                        defaultValue={4.5}
-                                        allowHalf
-                                        style={{ color: warningColor, fontSize: 16 }}
-                                    />
-                                    <Text type="secondary" style={{ fontSize: 14 }}>
-                                        (12 đánh giá)
-                                    </Text>
-                                    <Tag color={successColor} style={{
-                                        borderRadius: 4,
-                                        fontWeight: 500,
-                                        marginLeft: 8
-                                    }}>
-                                        Bán chạy
-                                    </Tag>
-                                </div> */}
                             </div>
 
                             {/* Price Section */}
@@ -566,16 +493,18 @@ const ProductDisplay = ({ product, productColors }) => {
                                     icon={<ShoppingCartOutlined />}
                                     onClick={handleAddToCart}
                                     block
+                                    disabled={currentDetail && currentDetail.quantity === 0} // Vô hiệu hóa nếu số lượng = 0
                                     style={{
                                         height: 56,
                                         fontSize: 16,
                                         fontWeight: 600,
-                                        backgroundColor: primaryColor,
-                                        borderColor: primaryColor,
-                                        borderRadius: 8
+                                        backgroundColor: currentDetail && currentDetail.quantity === 0 ? '#d9d9d9' : primaryColor, // Đổi màu khi hết hàng
+                                        borderColor: currentDetail && currentDetail.quantity === 0 ? '#d9d9d9' : primaryColor,
+                                        borderRadius: 8,
+                                        cursor: currentDetail && currentDetail.quantity === 0 ? 'not-allowed' : 'pointer' // Thay đổi con trỏ chuột
                                     }}
                                 >
-                                    THÊM VÀO GIỎ HÀNG
+                                    {currentDetail && currentDetail.quantity === 0 ? 'SẢN PHẨM ĐÃ HẾT HÀNG' : 'THÊM VÀO GIỎ HÀNG'}
                                 </Button>
                                 <Button
                                     size="large"

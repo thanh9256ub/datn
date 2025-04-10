@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Row, Col, Typography, Button, Card, Space, Divider,
-    Badge, Rate, Tag, Image
+    Row, Col, Typography, Button, Card, Space, Tag, 
 } from 'antd';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper';
-import { HeartOutlined, ShoppingCartOutlined, FireFilled } from '@ant-design/icons';
 import 'swiper/swiper-bundle.min.css';
 import slide1 from '../../assets/images/slide-show/slide1.jpg';
 import slide2 from '../../assets/images/slide-show/slide2.jpg';
@@ -48,7 +46,6 @@ const Shop = () => {
                     return { productId: item.product.id, colors };
                 });
 
-                // Lấy tất cả màu sắc của các sản phẩm
                 const colorData = await Promise.all(colorPromises);
                 const colorMap = colorData.reduce((acc, { productId, colors }) => {
                     acc[productId] = colors;
@@ -113,7 +110,6 @@ const Shop = () => {
                 </Swiper>
             </section>
 
-            {/* Featured Products Section */}
             <section style={{
                 maxWidth: 1400,
                 margin: '64px auto',
@@ -179,21 +175,6 @@ const Shop = () => {
                                                     padding: 24
                                                 }}
                                             />
-                                            {/* {index < 3 && (
-                                                <Tag style={{
-                                                    position: 'absolute',
-                                                    top: 12,
-                                                    left: 12,
-                                                    backgroundColor: successColor,
-                                                    color: '#fff',
-                                                    fontWeight: 600,
-                                                    border: 'none',
-                                                    borderRadius: 4,
-                                                    zIndex: 1
-                                                }}>
-                                                    <FireFilled /> BÁN CHẠY
-                                                </Tag>
-                                            )} */}
                                         </div>
                                     }
                                     bodyStyle={{ padding: 16 }}
@@ -215,24 +196,6 @@ const Shop = () => {
                                     }}>
                                         {product.product.productName}
                                     </Title>
-
-                                    {/* <div style={{ marginBottom: 12 }}>
-                                        <Rate
-                                            disabled
-                                            defaultValue={4.5}
-                                            allowHalf
-                                            style={{
-                                                color: '#FDCB6E',
-                                                fontSize: 14
-                                            }}
-                                        />
-                                        <Text type="secondary" style={{
-                                            fontSize: 12,
-                                            marginLeft: 8
-                                        }}>
-                                            (12)
-                                        </Text>
-                                    </div> */}
 
                                     <div style={{
                                         display: 'flex',
@@ -276,28 +239,11 @@ const Shop = () => {
                                                         border: '0px'
                                                     }}
                                                 >
-                                                    {/* Chỉ hiển thị màu sắc, có thể thêm icon hoặc text nếu cần */}
                                                 </Tag>
                                             ))}
                                         </div>
                                     )}
 
-                                    {/* <Button
-                                        type="primary"
-                                        icon={<ShoppingCartOutlined />}
-                                        block
-                                        style={{
-                                            backgroundColor: primaryColor,
-                                            borderColor: primaryColor,
-                                            borderRadius: 8
-                                        }}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            // Handle add to cart
-                                        }}
-                                    >
-                                        Thêm vào giỏ
-                                    </Button> */}
                                 </Card>
                             </Col>
                         ))
@@ -305,7 +251,6 @@ const Shop = () => {
                 </Row>
             </section>
 
-            {/* New Collections Section */}
             <section style={{
                 backgroundColor: lightBg,
                 padding: '64px 0',

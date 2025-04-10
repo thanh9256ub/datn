@@ -61,7 +61,9 @@ public class SecurityConfig {
                                     "/order/**",
                                     "/order-detail/**",
                                     "customer/**",
-                                    "/mail/send-order-confirmation")
+                                    "/mail/send-order-confirmation",
+                                    "/vnpay/payment",
+                                    "/vnpay-return")
                             .permitAll()
                             .requestMatchers("/address/**", "/role/**")
                             .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")
@@ -117,7 +119,7 @@ public class SecurityConfig {
     @Bean
     UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000","https://sharing-cub-meet.ngrok-free.app"));
         configuration.setAllowedMethods(List.of("*"));
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);

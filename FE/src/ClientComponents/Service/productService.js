@@ -448,18 +448,31 @@ export const fetchOrderByCode = async (orderCode) => {
         throw new Error(error.response?.data?.message || 'Không thể gửi email xác nhận đơn hàng');
     }
 };
-export const checkPaymentAndOrder = async (orderId, orderData) => {
+export const generateVNPayPayment = async (orderId, amount) => {
     try {
-        const response = await api.post(`/counter/casso/check-payment-and-order?orderId=${orderId}`, orderData);
-        console.log('API res (check payment and order):', response.data);
-        return response.data; // Trả về dữ liệu từ API
+        const response = await api.post('/counter/vnpay/payment', { orderId, amount });
+        console.log('API res (VNPAY payment):', response.data);
+        return response.data;
     } catch (error) {
-        console.error('Error checking payment and ordering:', {
+        console.error('Error generating VNPAY payment:', {
             url: error.config?.url,
             status: error.response?.status,
-            errorData: error.response?.data,
-            requestData: error.config?.data
+            errorData: error.response?.data
         });
-        throw new Error(error.response?.data?.message || 'Không thể kiểm tra thanh toán và đặt hàng');
+        throw new Error(error.response?.data?.message || 'Không thể tạo URL thanh toán VNPAY');
+    }
+};
+export const checkVNPayPaymentStatus = async (transactionId) => {
+    try {
+        const response = await api.get(`/counter/vnpay/check-payment-status?transactionId=${transactionId}`);
+        console.log('API res (VNPay payment status):', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error checking VNPay payment status:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data
+        });
+        throw new Error(error.response?.data?.message || 'Không thể kiểm tra trạng thái thanh toán VNPAY');
     }
 };

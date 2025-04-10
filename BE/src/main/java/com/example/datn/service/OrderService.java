@@ -367,4 +367,23 @@ public OrderResponse updateStatus(Integer id, int newStatus) {
         return mapper.toOrderResponse(order);
 
     }
+    public String checkPaymentStatus(String orderCode) {
+        Order order = repository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with code: " + orderCode));
+
+        // Giả sử trạng thái đơn hàng:
+        // 1: Chờ tiếp nhận (PENDING)
+        // 2: Đã thanh toán (SUCCESS)
+        // 5: Thất bại hoặc hủy (FAILED)
+        switch (order.getStatus()) {
+            case 2:
+                return "SUCCESS";
+            case 1:
+                return "PENDING";
+            case 5:
+                return "FAILED";
+            default:
+                return "PENDING"; // Trạng thái khác coi như đang chờ xử lý
+        }
+    }
 }
