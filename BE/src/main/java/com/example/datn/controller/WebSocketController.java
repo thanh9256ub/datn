@@ -35,5 +35,8 @@ public class WebSocketController {
         messagingTemplate.convertAndSend("/topic/product-updates", message);
     }
 
-
+    public void notifyOrderDeletion(Integer orderId) {
+        String payload = "Hoá đơn" + orderId + "đã xoá vì hết hạn";
+        messagingTemplate.convertAndSend("/topic/orders/delete", payload);
+    }
 }

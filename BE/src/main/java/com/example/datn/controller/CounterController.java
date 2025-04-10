@@ -81,6 +81,7 @@ public class CounterController {
                 HttpStatus.OK.value(), "Order detail updated successfully", orderDetailResponse);
         return ResponseEntity.ok(apiResponse);
     }
+
     @GetMapping("/update-quantity")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> updateQuantity(@RequestParam Integer orderDetailID,
                                                                            @RequestParam Integer productDetailID,
@@ -192,7 +193,8 @@ public class CounterController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching wards");
         }
     }
-//
+
+    //
 //    @DeleteMapping("/delete-order/{id}")
 //    public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id") Integer id) {
 //        orderDetailService.updateOrderDetail(id);
@@ -202,33 +204,34 @@ public class CounterController {
 //                HttpStatus.OK.value(), "PaymentMethod deleted successfully", null);
 //        return ResponseEntity.ok(apiResponse);
 //    }
-@DeleteMapping("/delete-order/{id}")
-public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id") Integer id) {
-    try {
-        // Kiểm tra order tồn tại
-        if (!orderRepository.existsById(id)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse<>(HttpStatus.NOT_FOUND.value(), "Order not found with ID: " + id, null));
+    @DeleteMapping("/delete-order/{id}")
+    public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id") Integer id) {
+        try {
+            // Kiểm tra order tồn tại
+            if (!orderRepository.existsById(id)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ApiResponse<>(HttpStatus.NOT_FOUND.value(), "Order not found with ID: " + id, null));
+            }
+
+            // Lấy danh sách chi tiết đơn hàng và hoàn lại số lượng sản phẩm
+            List<OrderDetailResponse> orderDetails = orderDetailService.getOrderDetailsByOrderId(id);
+            for (OrderDetailResponse detail : orderDetails) {
+                ProductDetail productDetail = detail.getProductDetail();
+                productDetail.setQuantity(productDetail.getQuantity() + detail.getQuantity());
+                productDetailRepository.save(productDetail);
+                orderDetailService.detele(detail.getId());
+            }
+
+            // Xóa đơn hàng
+            orderService.detele(id);
+
+            return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Order deleted successfully", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error deleting order: " + e.getMessage(), null));
         }
-
-        // Lấy danh sách chi tiết đơn hàng và hoàn lại số lượng sản phẩm
-        List<OrderDetailResponse> orderDetails = orderDetailService.getOrderDetailsByOrderId(id);
-        for (OrderDetailResponse detail : orderDetails) {
-            ProductDetail productDetail = detail.getProductDetail();
-            productDetail.setQuantity(productDetail.getQuantity() + detail.getQuantity());
-            productDetailRepository.save(productDetail);
-            orderDetailService.detele(detail.getId());
-        }
-
-        // Xóa đơn hàng
-        orderService.detele(id);
-
-        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Order deleted successfully", null));
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error deleting order: " + e.getMessage(), null));
     }
-}
+
     @PostMapping("/zalopay/payment")
     public ResponseEntity<?> generateZaloPayPayment(@RequestBody Map<String, Object> payload) {
         try {
@@ -355,6 +358,7 @@ public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching transactions from Casso.vn: " + e.getMessage());
         }
     }
+
     @PutMapping("/update-order-details/{orderId}")
     public ResponseEntity<ApiResponse<List<OrderDetailResponse>>> updateOrderDetails(
             @PathVariable("orderId") Integer orderId,
@@ -377,6 +381,7 @@ public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id
         }
 
     }
+
     @PostMapping("/vnpay/payment")
     public ResponseEntity<Map<String, String>> generateVNPayPayment(
             @RequestBody Map<String, Object> payload,
@@ -445,12 +450,14 @@ public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id
         logger.info("Raw data for hash: {}", hashData.toString());
         return hmacSHA512(VNP_HASH_SECRET, hashData.toString());
     }
+
     private boolean validateVNPayRequest(Map<String, Object> payload) {
         return payload.containsKey("orderId")
-               && payload.containsKey("amount")
-               && !payload.get("orderId").toString().isEmpty()
-               && payload.get("amount") != null;
+                && payload.containsKey("amount")
+                && !payload.get("orderId").toString().isEmpty()
+                && payload.get("amount") != null;
     }
+
     private String hmacSHA512(String key, String data) throws Exception {
         try {
             Mac mac = Mac.getInstance("HmacSHA512");
@@ -474,6 +481,7 @@ public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id
             throw new RuntimeException("Cannot create HMAC-SHA512", e);
         }
     }
+
     private String buildVNPayPaymentUrl(TreeMap<String, String> params, String secureHash) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(VNP_URL);
 
@@ -506,6 +514,7 @@ public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id
             throw new RuntimeException("URL encoding failed", e);
         }
     }
+
     @GetMapping("/vnpay/check-payment-status")
     public ResponseEntity<?> checkVNPayPaymentStatus(@RequestParam String transactionId) {
         try {
@@ -627,7 +636,8 @@ public ResponseEntity<ApiResponse<OrderDetailResponse>> delete(@PathVariable("id
 
         // Xử lý trường hợp localhost hoặc IPv6
         if (ip.equals("127.0.0.1") || ip.equals("0:0:0:0:0:0:0:1")) {
-            ip = "14.181.139.170"; // Hardcode IP public của bạn
+//            ip = "14.181.139.170";
+            ip = "118.70.54.7";
         }
 
         // Lấy IP đầu tiên nếu có nhiều IP (ví dụ: "client, proxy1, proxy2")
