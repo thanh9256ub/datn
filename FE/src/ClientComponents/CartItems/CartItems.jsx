@@ -5,22 +5,23 @@ import {
 } from 'antd';
 import {
     DeleteOutlined, ShoppingCartOutlined, EnvironmentOutlined, PhoneOutlined,
-    UserOutlined, CreditCardOutlined, MoneyCollectOutlined,CheckCircleOutlined
+    UserOutlined, CreditCardOutlined, MoneyCollectOutlined, CheckCircleOutlined
 } from '@ant-design/icons';
 import { ShopContext } from '../Context/ShopContext';
-import { fetchProvinces, 
-    fetchDistricts, 
-    fetchWards, 
-    fetchShippingFee, 
-    createOrder, 
-    createGuestOrder, 
-    fetchCustomerProfile, 
-    clearCartOnServer, 
-    getCartDetails, 
+import {
+    fetchProvinces,
+    fetchDistricts,
+    fetchWards,
+    fetchShippingFee,
+    createOrder,
+    createGuestOrder,
+    fetchCustomerProfile,
+    clearCartOnServer,
+    getCartDetails,
     checkStockAvailability,
     sendOrderConfirmationEmail,
     checkPaymentAndOrder
- } from '../Service/productService';
+} from '../Service/productService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -67,7 +68,7 @@ const CartItems = () => {
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const [thankYouModalVisible, setThankYouModalVisible] = useState(false);
     const [orderCode, setOrderCode] = useState('');
-    
+
     // Khởi tạo giỏ hàng
     useEffect(() => {
         console.log('CartItems được gắn với:', { isGuest, cartId, token, cartItems });
@@ -288,167 +289,168 @@ const CartItems = () => {
         console.log('Các mục trong giỏ hàng hiện tại:', JSON.stringify(cartItems, null, 2));
         console.log('Các mục đã chọn:', selectedItems);
         try {
-          await form.validateFields();
-      
-          if (selectedItems.length === 0) {
-            message.warning('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
-            return;
-          }
-      
-          if (paymentMethod === 2 && paymentStatus !== 'success') {
-            message.warning('Vui lòng hoàn thành thanh toán qua VietQR trước');
-            return;
-          }
-      
-          setLoading(true);
-      
-          const formValues = form.getFieldsValue();
-          const address = `${formValues.address}, ${wards.find(w => w.WARDS_ID === selectedWard)?.WARDS_NAME || ''}, 
+            await form.validateFields();
+
+            if (selectedItems.length === 0) {
+                message.warning('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+                return;
+            }
+
+            if (paymentMethod === 2 && paymentStatus !== 'success') {
+                message.warning('Vui lòng hoàn thành thanh toán qua VietQR trước');
+                return;
+            }
+
+            setLoading(true);
+
+            const formValues = form.getFieldsValue();
+            const address = `${formValues.address}, ${wards.find(w => w.WARDS_ID === selectedWard)?.WARDS_NAME || ''}, 
             ${districts.find(d => d.DISTRICT_ID === selectedDistrict)?.DISTRICT_NAME || ''}, 
             ${provinces.find(p => p.PROVINCE_ID === selectedProvince)?.PROVINCE_NAME || ''}`;
-      
-          // Đảm bảo validSelectedItems khớp với định danh của các mục trong giỏ hàng
-          const validSelectedItems = selectedItems.filter(id => 
-            cartItems.some(item => 
-              (item.id === id || item.productDetailId === id || item.productDetail?.id === id)
-            )
-          );
-      
-          if (validSelectedItems.length === 0) {
-            message.error('Không có sản phẩm hợp lệ nào được chọn để thanh toán');
-            setLoading(false);
-            return;
-          }
-      
-          const selectedCartItems = cartItems
-            .filter(item => {
-              const itemId = item.id || item.productDetailId || item.productDetail?.id;
-              return validSelectedItems.includes(itemId);
-            })
-            .map(item => ({
-              productDetailId: item.productDetail?.id || item.productDetailId,
-              quantity: item.quantity,
-              price: item.price,
-              totalPrice: item.total_price || item.price * item.quantity
-            }));
-      
-          console.log('Các mục trong giỏ hàng đã chọn trước khi kiểm tra tồn kho:', selectedCartItems);
-      
-          if (selectedCartItems.length === 0) {
-            message.error('Không có sản phẩm nào để kiểm tra tồn kho');
-            setLoading(false);
-            return;
-          }
-      
-          // Kiểm tra tồn kho
-          const insufficientItems = await checkStockAvailabilityFrontend(selectedCartItems);
-          if (insufficientItems === null) {
-            setLoading(false);
-            return;
-          }
-          if (insufficientItems.length > 0) {
-            const errorMessage = insufficientItems.map(item =>
-              `${item.name} (Màu: ${item.color}, Size: ${item.size}) - Yêu cầu ${item.requested}, chỉ còn ${item.available}`
-            ).join('\n');
-            message.error(`Không đủ sản phẩm trong kho:\n${errorMessage}`, 5);
-            setLoading(false);
-            return;
-          }
-      
-          const orderData = {
-            customerName: formValues.name,
-            phone: formValues.phone,
-            email: formValues.email,
-            address: address,
-            note: formValues.note || '',
-            shippingFee: shippingFee,
-            discountValue: 0.0,
-            totalPrice: getTotalCartAmount(),
-            totalPayment: getTotalCartAmount() + shippingFee,
-            paymentMethodId: paymentMethod === 1 ? 3 : 2,
-            paymentTypeId: 2,
-            orderType: 1,
-            status: paymentMethod === 1 ? 1 : 2,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            cartItems: selectedCartItems,
-            customerId: isGuest ? null : customerId
-          };
-      
-          console.log('Dữ liệu đơn hàng gửi đi:', JSON.stringify(orderData, null, 2));
-          let response;
-          if (isGuest) {
-            response = await createGuestOrder(orderData);
-            if (response.status === 201) {
-              const orderCode = response.data?.orderCode || response.data?.data?.orderCode;
-              console.log("===Mã đơn hàng===" + orderCode);
-              setOrderCode(orderCode);
-              setThankYouModalVisible(true);
-              message.success('Đặt hàng thành công!');
-              await sendOrderConfirmationEmail(
-                formValues.email,
-                orderCode,
-                formValues.name,
-                getTotalCartAmount() + shippingFee,
-                paymentMethod === 1 ? 'COD' : 'VietQR'
-            );
-              setCartItems(prev => prev.filter(item => 
-                !validSelectedItems.includes(item.productDetailId || item.productDetail?.id)
-              ));
-              localStorage.setItem('cartItems', JSON.stringify(
-                cartItems.filter(item => !validSelectedItems.includes(item.productDetailId || item.productDetail?.id))
-              ));
-            } else {
-              throw new Error('Tạo đơn hàng khách vãng lai thất bại');
-            }
-          } else {
-            if (!cartId) {
-              console.log('Không tìm thấy cartId, đang tạo giỏ hàng mới...');
-              const cartData = await getOrCreateCart(customerId);
-              setCartId(cartData.id);
-              await loadCartItems(cartData.id);
-            } else {
-              const cartDetails = await getCartDetails(cartId);
-              if (!cartDetails.data.length || cartDetails.data[0]?.cart?.customerId !== customerId) {
-                console.log('Giỏ hàng không khớp với khách hàng, đang tạo giỏ hàng mới...');
-                const cartData = await getOrCreateCart(customerId);
-                setCartId(cartData.id);
-                await loadCartItems(cartData.id);
-              }
-            }
-      
-            response = await createOrder(cartId, orderData);
-            console.log('Phản hồi đơn hàng đã xác thực:', response.data);
-            if (response.status === 201) {
-              const orderCode = response.data?.orderCode || response.data?.data?.orderCode;
-              console.log("===Mã đơn hàng===" + orderCode);
-              setOrderCode(orderCode);
-              setThankYouModalVisible(true);
-              message.success('Đặt hàng thành công!');
-              await sendOrderConfirmationEmail(
-                formValues.email,
-                orderCode,
-                formValues.name,
-                getTotalCartAmount() + shippingFee,
-                paymentMethod === 1 ? 'COD' : 'VietQR'
-            );
-              setCartItems(prev => prev.filter(item => 
-                !validSelectedItems.includes(item.id || item.productDetail?.id)
-              ));
-            } else {
-              throw new Error('Tạo đơn hàng thất bại');
-            }
-          }
-        } catch (error) {
-          console.error('Lỗi khi đặt hàng:', error);
-          message.error(error.message || 'Đã có lỗi xảy ra khi đặt hàng');
-        } finally {
-          setLoading(false);
-          setIsConfirmModalVisible(false);
-        }
-      };
 
-    const handleConfirmOk = () => {
+            // Đảm bảo validSelectedItems khớp với định danh của các mục trong giỏ hàng
+            const validSelectedItems = selectedItems.filter(id =>
+                cartItems.some(item =>
+                    (item.id === id || item.productDetailId === id || item.productDetail?.id === id)
+                )
+            );
+
+            if (validSelectedItems.length === 0) {
+                message.error('Không có sản phẩm hợp lệ nào được chọn để thanh toán');
+                setLoading(false);
+                return;
+            }
+
+            const selectedCartItems = cartItems
+                .filter(item => {
+                    const itemId = item.id || item.productDetailId || item.productDetail?.id;
+                    return validSelectedItems.includes(itemId);
+                })
+                .map(item => ({
+                    productDetailId: item.productDetail?.id || item.productDetailId,
+                    quantity: item.quantity,
+                    price: item.price,
+                    totalPrice: item.total_price || item.price * item.quantity
+                }));
+
+            console.log('Các mục trong giỏ hàng đã chọn trước khi kiểm tra tồn kho:', selectedCartItems);
+
+            if (selectedCartItems.length === 0) {
+                message.error('Không có sản phẩm nào để kiểm tra tồn kho');
+                setLoading(false);
+                return;
+            }
+
+            // Kiểm tra tồn kho
+            const insufficientItems = await checkStockAvailabilityFrontend(selectedCartItems);
+            if (insufficientItems === null) {
+                setLoading(false);
+                return;
+            }
+            if (insufficientItems.length > 0) {
+                const errorMessage = insufficientItems.map(item =>
+                    `${item.name} (Màu: ${item.color}, Size: ${item.size}) - Yêu cầu ${item.requested}, chỉ còn ${item.available}`
+                ).join('\n');
+                message.error(`Không đủ sản phẩm trong kho:\n${errorMessage}`, 5);
+                setLoading(false);
+                return;
+            }
+
+            const orderData = {
+                customerName: formValues.name,
+                phone: formValues.phone,
+                email: formValues.email,
+                address: address,
+                note: formValues.note || '',
+                shippingFee: shippingFee,
+                discountValue: 0.0,
+                totalPrice: getTotalCartAmount(),
+                totalPayment: getTotalCartAmount() + shippingFee,
+                paymentMethodId: paymentMethod === 1 ? 3 : 2,
+                paymentTypeId: 2,
+                orderType: 1,
+                status: paymentMethod === 1 ? 1 : 2,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                cartItems: selectedCartItems,
+                customerId: isGuest ? null : customerId
+            };
+
+            console.log('Dữ liệu đơn hàng gửi đi:', JSON.stringify(orderData, null, 2));
+            let response;
+            if (isGuest) {
+                response = await createGuestOrder(orderData);
+                if (response.status === 201) {
+                    const orderCode = response.data?.orderCode || response.data?.data?.orderCode;
+                    console.log("===Mã đơn hàng===" + orderCode);
+                    setOrderCode(orderCode);
+                    setThankYouModalVisible(true);
+                    message.success('Đặt hàng thành công!');
+                    await sendOrderConfirmationEmail(
+                        formValues.email,
+                        orderCode,
+                        formValues.name,
+                        getTotalCartAmount() + shippingFee,
+                        paymentMethod === 1 ? 'COD' : 'VietQR'
+                    );
+                    setCartItems(prev => prev.filter(item =>
+                        !validSelectedItems.includes(item.productDetailId || item.productDetail?.id)
+                    ));
+                    localStorage.setItem('cartItems', JSON.stringify(
+                        cartItems.filter(item => !validSelectedItems.includes(item.productDetailId || item.productDetail?.id))
+                    ));
+                } else {
+                    throw new Error('Tạo đơn hàng khách vãng lai thất bại');
+                }
+            } else {
+                if (!cartId) {
+                    console.log('Không tìm thấy cartId, đang tạo giỏ hàng mới...');
+                    const cartData = await getOrCreateCart(customerId);
+                    setCartId(cartData.id);
+                    await loadCartItems(cartData.id);
+                } else {
+                    const cartDetails = await getCartDetails(cartId);
+                    if (!cartDetails.data.length || cartDetails.data[0]?.cart?.customerId !== customerId) {
+                        console.log('Giỏ hàng không khớp với khách hàng, đang tạo giỏ hàng mới...');
+                        const cartData = await getOrCreateCart(customerId);
+                        setCartId(cartData.id);
+                        await loadCartItems(cartData.id);
+                    }
+                }
+
+                response = await createOrder(cartId, orderData);
+                console.log('Phản hồi đơn hàng đã xác thực:', response.data);
+                if (response.status === 201) {
+                    const orderCode = response.data?.orderCode || response.data?.data?.orderCode;
+                    console.log("===Mã đơn hàng===" + orderCode);
+                    setOrderCode(orderCode);
+                    setThankYouModalVisible(true);
+                    message.success('Đặt hàng thành công!');
+                    await sendOrderConfirmationEmail(
+                        formValues.email,
+                        orderCode,
+                        formValues.name,
+                        getTotalCartAmount() + shippingFee,
+                        paymentMethod === 1 ? 'COD' : 'VietQR'
+                    );
+                    setCartItems(prev => prev.filter(item =>
+                        !validSelectedItems.includes(item.id || item.productDetail?.id)
+                    ));
+                } else {
+                    throw new Error('Tạo đơn hàng thất bại');
+                }
+            }
+        } catch (error) {
+            console.error('Lỗi khi đặt hàng:', error);
+            message.error(error.message || 'Đã có lỗi xảy ra khi đặt hàng');
+        } finally {
+            setLoading(false);
+            setIsConfirmModalVisible(false);
+        }
+    };
+
+    const handleConfirmOk = (e) => {
+        e.preventDefault();
         handleCheckout();
     };
 
@@ -484,60 +486,60 @@ const CartItems = () => {
                                 renderItem={item => {
                                     const itemId = item.id || item.productDetailId || item.productDetail?.id;
                                     return (
-                                    <List.Item
-                                        key={itemId}
-                                        style={{ padding: '16px 24px' }}
-                                        actions={[
-                                        <Button
-                                            icon={<DeleteOutlined />}
-                                            danger
-                                            onClick={() => removeFromCart(itemId)}
-                                        />
-                                        ]}
-                                    >
-                                        <Checkbox
-                                        checked={selectedItems.includes(itemId)}
-                                        onChange={() => toggleItemSelection(itemId)}
-                                        style={{ marginRight: 16 }}
-                                        />
-                                        <List.Item.Meta
-                                        avatar={
-                                            <Image
-                                            src={item.productDetail?.product?.mainImage || 'https://via.placeholder.com/80'}
-                                            width={80}
-                                            height={80}
-                                            style={{ objectFit: 'cover' }}
-                                            preview={false}
-                                            />
-                                        }
-                                        title={<Text strong>{item.productDetail?.product?.productName || 'Sản phẩm'}</Text>}
-                                        description={
-                                            <Space size="middle" style={{ marginTop: 8 }}>
-                                            <Text>Giá: {(item.price || 0).toLocaleString('vi-VN')}₫</Text>
-                                            <Space>
-                                                <Text>Số lượng:</Text>
-                                                <InputNumber
-                                                min={1}
-                                                max={10}
-                                                value={item.quantity}
-                                                onChange={(value) => updateQuantity(itemId, value)}
-                                                style={{ width: 60 }}
+                                        <List.Item
+                                            key={itemId}
+                                            style={{ padding: '16px 24px' }}
+                                            actions={[
+                                                <Button
+                                                    icon={<DeleteOutlined />}
+                                                    danger
+                                                    onClick={() => removeFromCart(itemId)}
                                                 />
+                                            ]}
+                                        >
+                                            <Checkbox
+                                                checked={selectedItems.includes(itemId)}
+                                                onChange={() => toggleItemSelection(itemId)}
+                                                style={{ marginRight: 16 }}
+                                            />
+                                            <List.Item.Meta
+                                                avatar={
+                                                    <Image
+                                                        src={item.productDetail?.product?.mainImage || 'https://via.placeholder.com/80'}
+                                                        width={80}
+                                                        height={80}
+                                                        style={{ objectFit: 'cover' }}
+                                                        preview={false}
+                                                    />
+                                                }
+                                                title={<Text strong>{item.productDetail?.product?.productName || 'Sản phẩm'}</Text>}
+                                                description={
+                                                    <Space size="middle" style={{ marginTop: 8 }}>
+                                                        <Text>Giá: {(item.price || 0).toLocaleString('vi-VN')}₫</Text>
+                                                        <Space>
+                                                            <Text>Số lượng:</Text>
+                                                            <InputNumber
+                                                                min={1}
+                                                                max={10}
+                                                                value={item.quantity}
+                                                                onChange={(value) => updateQuantity(itemId, value)}
+                                                                style={{ width: 60 }}
+                                                            />
+                                                        </Space>
+                                                        <Text>Màu: {item.productDetail?.color?.colorName || 'N/A'}</Text>
+                                                        <Text>Size: {item.productDetail?.size?.sizeName || 'N/A'}</Text>
+                                                    </Space>
+                                                }
+                                            />
+                                            <Space size="middle" style={{ marginRight: 16 }}>
+                                                <Text strong style={{ minWidth: 100, textAlign: 'right' }}>
+                                                    {(item.total_price || item.price * item.quantity).toLocaleString('vi-VN')}₫
+                                                </Text>
                                             </Space>
-                                            <Text>Màu: {item.productDetail?.color?.colorName || 'N/A'}</Text>
-                                            <Text>Size: {item.productDetail?.size?.sizeName || 'N/A'}</Text>
-                                            </Space>
-                                        }
-                                        />
-                                        <Space size="middle" style={{ marginRight: 16 }}>
-                                        <Text strong style={{ minWidth: 100, textAlign: 'right' }}>
-                                            {(item.total_price || item.price * item.quantity).toLocaleString('vi-VN')}₫
-                                        </Text>
-                                        </Space>
-                                    </List.Item>
+                                        </List.Item>
                                     );
                                 }}
-                                />
+                            />
                         ) : (
                             <Empty description="Giỏ hàng của bạn đang trống" style={{ padding: '48px 0' }} />
                         )}
@@ -574,8 +576,8 @@ const CartItems = () => {
                                     { type: 'email', message: 'Email không hợp lệ' }
                                 ]}
                             >
-                                <Input 
-                                    placeholder="example@email.com" 
+                                <Input
+                                    placeholder="example@email.com"
                                     type="email"
                                 />
                             </Form.Item>
@@ -701,29 +703,29 @@ const CartItems = () => {
                 </Space>
             </Modal>
             <Modal
-    title="Cảm ơn bạn đã đặt hàng"
-    visible={thankYouModalVisible}
-    onOk={() => setThankYouModalVisible(false)}
-    onCancel={() => setThankYouModalVisible(false)}
-    footer={[
-        <Button 
-            key="submit" 
-            type="primary" 
-            onClick={() => setThankYouModalVisible(false)}
-        >
-            Đóng
-        </Button>
-    ]}
-    centered
->
-    <div style={{ textAlign: 'center' }}>
-        <CheckCircleOutlined style={{ fontSize: 48, color: '#52c41a', marginBottom: 16 }} />
-        <Title level={4} style={{ marginBottom: 8 }}>Đơn hàng của bạn đã được tiếp nhận!</Title>
-        <Text style={{ display: 'block', marginBottom: 16 }}>
-            Vui lòng kiểm tra email để biết thêm thông tin về đơn hàng.
-        </Text>
-    </div>
-</Modal>
+                title="Cảm ơn bạn đã đặt hàng"
+                visible={thankYouModalVisible}
+                onOk={() => setThankYouModalVisible(false)}
+                onCancel={() => setThankYouModalVisible(false)}
+                footer={[
+                    <Button
+                        key="submit"
+                        type="primary"
+                        onClick={() => setThankYouModalVisible(false)}
+                    >
+                        Đóng
+                    </Button>
+                ]}
+                centered
+            >
+                <div style={{ textAlign: 'center' }}>
+                    <CheckCircleOutlined style={{ fontSize: 48, color: '#52c41a', marginBottom: 16 }} />
+                    <Title level={4} style={{ marginBottom: 8 }}>Đơn hàng của bạn đã được tiếp nhận!</Title>
+                    <Text style={{ display: 'block', marginBottom: 16 }}>
+                        Vui lòng kiểm tra email để biết thêm thông tin về đơn hàng.
+                    </Text>
+                </div>
+            </Modal>
         </div>
     );
 };

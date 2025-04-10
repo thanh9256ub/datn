@@ -10,6 +10,8 @@ import { ShopContext } from '../Context/ShopContext';
 import { fetchSizesByColor, fetchImagesByProductColor, fetchProductDetailByAttributes } from '../Service/productService';
 
 import chooseSize from '../../assets/images/choose-size/size-shoe.jpeg';
+import useWebSocket from '../../hook/useWebSocket';
+import { toast } from 'react-toastify';
 
 const { Text, Title } = Typography;
 
@@ -39,6 +41,8 @@ const ProductDisplay = ({ product, productColors }) => {
     const lightBg = '#F8F9FA'; // Light gray
     const darkText = '#2D3436'; // Dark gray
 
+    const { messages, isConnected } = useWebSocket("/topic/product-updates");
+
     const handleColorOrSizeChange = async () => {
         if (selectedColorId && selectedSize) {
             try {
@@ -61,6 +65,12 @@ const ProductDisplay = ({ product, productColors }) => {
             setCurrentDetail(null);
         }
     };
+
+    useEffect(() => {
+        if (messages.length > 0) {
+            handleColorOrSizeChange()
+        }
+    }, [messages]);
 
     useEffect(() => {
         handleColorOrSizeChange();
@@ -181,6 +191,7 @@ const ProductDisplay = ({ product, productColors }) => {
                 }
             }
         };
+
         fetchData();
     }, [selectedProductColorId, selectedColorId, product?.id]);
 
@@ -273,10 +284,11 @@ const ProductDisplay = ({ product, productColors }) => {
     return (
         <App>
             <div style={{
-                maxWidth: 1600,
+                maxWidth: 1400,
                 margin: '0 auto',
                 padding: '40px 24px',
-                backgroundColor: '#fff'
+                backgroundColor: '#fff',
+                borderRadius: 12,
             }}>
                 <Row gutter={[48, 48]} align="top">
                     {/* Product Images Section */}
@@ -433,11 +445,6 @@ const ProductDisplay = ({ product, productColors }) => {
                                     }}>
                                         {product.price?.toLocaleString() || 0} ₫
                                     </Text>
-                                    {product.originalPrice && (
-                                        <Text delete type="secondary" style={{ fontSize: 18 }}>
-                                            {product.originalPrice.toLocaleString()} ₫
-                                        </Text>
-                                    )}
                                 </div>
                                 {currentDetail ? (
                                     <div style={{ marginTop: 8 }}>

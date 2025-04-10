@@ -115,7 +115,7 @@ const Shop = () => {
 
             {/* Featured Products Section */}
             <section style={{
-                maxWidth: 1400,
+                maxWidth: 1200,
                 margin: '64px auto',
                 padding: '0 24px'
             }}>
@@ -312,7 +312,7 @@ const Shop = () => {
                 marginBottom: 64
             }}>
                 <div style={{
-                    maxWidth: 1400,
+                    maxWidth: 1300,
                     margin: '0 auto',
                     padding: '0 24px'
                 }}>
@@ -357,7 +357,7 @@ const Shop = () => {
                             768: { slidesPerView: 3 },
                             992: { slidesPerView: 4 }
                         }}
-                        style={{ padding: '0 16px' }}
+                        style={{ padding: '0 60px' }}
                     >
                         {products.map((product) => (
                             <SwiperSlide key={product.id}>
