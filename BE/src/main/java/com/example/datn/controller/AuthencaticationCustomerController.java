@@ -41,7 +41,7 @@ public class AuthencaticationCustomerController {
         } catch (AuthenticationException e) {
             return ResponseEntity.ok(ApiResponse.<AuthenticationCustomerResponse>builder()
                     .status(HttpStatus.OK.value())
-                    .message("NOT_CUSTOMER") // Flag đặc biệt
+                    .message("NOT_CUSTOMER")
                     .data(null)
                     .build());
         }

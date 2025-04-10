@@ -111,7 +111,7 @@ const BanHang = () => {
     if (!canAdd) return;
 
     const newInvoice = { employeeId: localStorage.getItem("id"), orderType: 0, status: 0 };
-    console.log(localStorage.getItem("id"));
+  
     axios.post('http://localhost:8080/order/add', newInvoice)
       .then(response => {
         toast.success("Tạo hóa đơn thành công thành công ", toastOptions);

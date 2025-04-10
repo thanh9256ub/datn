@@ -261,7 +261,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       <h3>HÓA ĐƠN BÁN HÀNG</h2>
       </div>
       <div class="invoice-info">
-      <p><strong>Tên nhân viên:</strong> Hoàng Văn Tuấn</p>
+      <p><strong>Tên nhân viên:</strong> ${localStorage.getItem("fullName")}</p>
       <p><strong>Mã hóa đơn:</strong> ${selectedOrderDetail[0]?.order?.orderCode || ''}</p>
       <p><strong>Ngày tạo:</strong> ${selectedOrderDetail[0]?.order?.createdAt ? new Date(selectedOrderDetail[0]?.order?.createdAt).toLocaleString('vi-VN') : ''}</p>
       <p><strong>Tên khách hàng:</strong> ${customerInfo.fullName || 'Khách lẻ'}</p>
