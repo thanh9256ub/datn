@@ -5,9 +5,9 @@ import { fetchCustomers, addCustomer } from '../api'; // Correct the relative pa
 import { toastOptions } from '../constants'; // Import constants
 
 const CustomerSearch = ({ customer, setCustomer, setDelivery,
-   setShippingFee, totalAmount, setFinalAmount,phoneNumber,
-   setPhoneNumber,setQrImageUrl,qrIntervalRef,customerInfo,setCustomerInfo }) => {
-  
+  setShippingFee, totalAmount, setFinalAmount, phoneNumber,
+  setPhoneNumber, setQrImageUrl, qrIntervalRef, customerInfo, setCustomerInfo }) => {
+
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [newCustomer, setNewCustomer] = useState({ fullName: '', phone: '' });
 
@@ -19,6 +19,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
     }
 
     try {
+
       const response = await fetchCustomers();
       const customer = response.data.data.find(c => c.phone === phoneNumber);
 
@@ -46,7 +47,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
       toast.error("Họ tên không được để trống ", toastOptions);
       return;
     }
-  
+
     if (!newCustomer.phone.trim() || !/^\d+$/.test(newCustomer.phone)) {
       toast.error("Số điện thoại không hợp lệ ", toastOptions);
       return;
@@ -56,7 +57,12 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
       toast.error("Số điện thoại phải có đúng 10 chữ số ", toastOptions);
       return;
     }
-  
+    const response = await fetchCustomers();
+    const customer = response.data.data.find(c => c.phone === newCustomer.phone);
+    if (customer) {
+      toast.error("Số điện thoại đã tồn tại ", toastOptions);
+      return;
+    }
     try {
       const response = await addCustomer(newCustomer);
       toast.success("Thêm khách hàng thành công", toastOptions);
@@ -69,6 +75,10 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
       clearInterval(qrIntervalRef.current);
       qrIntervalRef.current = null;
       setQrImageUrl(null);
+      const responseCustomer  = await fetchCustomers();
+      const customer = responseCustomer.data.data.find(c => c.phone === newCustomer.phone);
+      setCustomer(customer);
+      setCustomerInfo({ ...customerInfo, fullName: newCustomer.fullName, phone: newCustomer.phone });
     } catch (error) {
       console.error('Lỗi thêm khách hàng:', error);
       toast.error("Thêm khách hàng thất bại", toastOptions);
@@ -77,18 +87,19 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
 
   return (
     <>
-     
-        <Row className="mb-3">
-          <Col sm={12}>
-            <Button variant="primary" onClick={() => {setShowAddCustomerModal(true)
 
-              setQrImageUrl(null); 
-            }}>
-              Thêm khách hàng
-            </Button>
-          </Col>
-        </Row>
-      
+      <Row className="mb-3">
+        <Col sm={12}>
+          <Button variant="primary" onClick={() => {
+            setShowAddCustomerModal(true)
+
+            setQrImageUrl(null);
+          }}>
+            Thêm khách hàng
+          </Button>
+        </Col>
+      </Row>
+
       <Row className="mb-3">
         <Col sm={12}>
           <InputGroup>
@@ -111,28 +122,29 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
             </Button>
           </InputGroup>
         </Col>
-        
+
       </Row>
 
-    
+
 
       <Row className="mb-3">
         <Col sm={12}>
           <InputGroup>
-          
+
             <h5 style={{ marginRight: "15px", fontWeight: "bold" }}>Khách hàng: {customer ? customer.fullName : 'khách lẻ'}</h5>
             <h5
               style={{ cursor: "pointer", color: "red" }}
-              onClick={() => {if (!customer) return;
+              onClick={() => {
+                if (!customer) return;
                 setCustomerInfo({ ...customerInfo, fullName: '', phone: '' });
                 setCustomer(null);
                 setPhoneNumber('');
-                setDelivery(false); 
-                setShippingFee(0); 
+                setDelivery(false);
+                setShippingFee(0);
                 toast.info("Đã xóa thông tin khách hàng ", toastOptions);
                 clearInterval(qrIntervalRef.current);
-      qrIntervalRef.current = null;
-      setQrImageUrl(null);
+                qrIntervalRef.current = null;
+                setQrImageUrl(null);
               }}
             >
               X
@@ -169,7 +181,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
                   const onlyNumbers = e.target.value.replace(/\D/g, ''); // Loại bỏ ký tự không phải số
                   setNewCustomer({ ...newCustomer, phone: onlyNumbers });
                 }}
-                
+
               />
             </Form.Group>
           </Form>

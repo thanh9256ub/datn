@@ -96,6 +96,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng thêm sản phẩm trước khi chọn QR  ", toastOptions);
       return;
     }
+    if (promo.voucherCode) {
     fetchPromoCodes().then(response => {
       const promoCodes = response.data.data || [];
       const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
@@ -108,7 +109,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         return;
       }
     })
-      .catch(error => console.error('Error fetching promo codes:', error));
+      .catch(error => console.error('Error fetching promo codes:', error));}
     if (qrIntervalRef.current) {
       clearInterval(qrIntervalRef.current);
       qrIntervalRef.current = null;
@@ -122,6 +123,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     setPaymen(2);
     toast.info("Đã chọn phương thức thanh toán QR ", toastOptions);
     const checkVoucher = setInterval(() => {
+      if( promo.voucherCode) {
       fetchPromoCodes().then(response => {
         const promoCodes = response.data.data || [];
         const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
@@ -142,7 +144,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
           return;
         }
       })
-        .catch(error => console.error('Error fetching promo codes:', error));
+        .catch(error => console.error('Error fetching promo codes:', error));}
     }, 5000);
     qrIntervalRef.current = setInterval(async () => {
 
@@ -161,6 +163,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
           setIsPaymentSuccessful(true);
           toast.success("Thanh toán thành công ", toastOptions);
           setShowPrintModal(true);
+          clearInterval(checkVoucher);
           if (promo.voucherCode) {
             await updatePromoCode(promo.id, { ...promo, quantity: promo.quantity - 1 });
             await addOrderVoucher(idOrder, promo.id);
@@ -258,7 +261,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       <h3>HÓA ĐƠN BÁN HÀNG</h2>
       </div>
       <div class="invoice-info">
-      <p><strong>Tên nhân viên:</strong> Hoàng Văn Tuấn</p>
+      <p><strong>Tên nhân viên:</strong> ${localStorage.getItem("fullName")}</p>
       <p><strong>Mã hóa đơn:</strong> ${selectedOrderDetail[0]?.order?.orderCode || ''}</p>
       <p><strong>Ngày tạo:</strong> ${selectedOrderDetail[0]?.order?.createdAt ? new Date(selectedOrderDetail[0]?.order?.createdAt).toLocaleString('vi-VN') : ''}</p>
       <p><strong>Tên khách hàng:</strong> ${customerInfo.fullName || 'Khách lẻ'}</p>
@@ -309,7 +312,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   };
 
   const handlePaymentConfirmation = async (shouldPrint) => {
-
+    if( promo.voucherCode) {
     fetchPromoCodes().then(response => {
       const promoCodes = response.data.data || [];
       const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
@@ -322,7 +325,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         return;
       } 
     })
-    .catch(error => console.error('Error fetching promo codes:', error));
+    .catch(error => console.error('Error fetching promo codes:', error));}
     const requestBody = {
 
       customerId: customer?.id || null,
@@ -388,6 +391,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng thực hiện đủ các bước ", toastOptions);
       return;
     }
+    if( promo.voucherCode) {
     fetchPromoCodes().then(response => {
       const promoCodes = response.data.data || [];
       const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
@@ -400,7 +404,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         return;
       } 
     })
-    .catch(error => console.error('Error fetching promo codes:', error));
+    .catch(error => console.error('Error fetching promo codes:', error));}
     if (paymen === 2 && !isPaymentSuccessful) {
       toast.warn("Khách hàng chưa chuyển khoản thành công. Vui lòng kiểm tra lại!", toastOptions);
       return;
