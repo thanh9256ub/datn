@@ -21,7 +21,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
     try {
 
       const response = await fetchCustomers();
-      const customer = response.data.data.find(c => c.phone === phoneNumber&& c.status ===1 );
+      const customer = response.data.data.find(c => c.phone === phoneNumber);
 
       if (!customer) {
         toast.error("Không tìm thấy khách hàng", toastOptions);
@@ -75,6 +75,10 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
       clearInterval(qrIntervalRef.current);
       qrIntervalRef.current = null;
       setQrImageUrl(null);
+      const responseCustomer  = await fetchCustomers();
+      const customer = responseCustomer.data.data.find(c => c.phone === newCustomer.phone);
+      setCustomer(customer);
+      setCustomerInfo({ ...customerInfo, fullName: newCustomer.fullName, phone: newCustomer.phone });
     } catch (error) {
       console.error('Lỗi thêm khách hàng:', error);
       toast.error("Thêm khách hàng thất bại", toastOptions);
