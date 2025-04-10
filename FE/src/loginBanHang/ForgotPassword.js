@@ -37,7 +37,7 @@ const ForgotPassword = () => {
                     placement: 'topRight',
                     duration: 4.5
                 });
-                history.push('/login-nhan-vien');
+                history.push('/login');
             } else {
                 setError(response.message || 'Gửi yêu cầu thất bại');
             }
@@ -159,7 +159,7 @@ const ForgotPassword = () => {
                     </Button>
                     <div style={{ marginTop: 16 }}>
                         <Text>
-                            Quay lại <Link to="/login-nhan-vien" style={{ color: '#b388ff' }}>đăng nhập</Link>
+                            Quay lại <Link to="/login" style={{ color: '#b388ff' }}>đăng nhập</Link>
                         </Text>
                     </div>
                 </Space>

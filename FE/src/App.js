@@ -62,11 +62,13 @@ function App() {
           <LoginRoute path="/login" component={Login} />
           <LoginRoute path="/signup" component={Signup} />
           <AdminRoute path="/admin" component={Admin} />
-          <ClientRoute path="/" component={Client} />
-
+          
           {/* Các route không cần xác thực */}
           <Route path="/doi-mat-khau" component={DoiMatKhau} />
+
           <Route path="/quen-mat-khau" component={QuenMatKhau} />
+
+          <ClientRoute path="/" component={Client} />
 
           <Redirect to="/" />
         </Switch>

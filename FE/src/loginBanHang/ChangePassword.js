@@ -36,7 +36,7 @@ const ChangePassword = () => {
 
             setLoading(true);
             setError(null);
-
+ 
             const response = await ListChangePassword(oldPassword, newPassword);
             if (response.status === 200) {
                 notification.success({

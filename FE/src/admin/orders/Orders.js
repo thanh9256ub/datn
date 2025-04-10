@@ -200,7 +200,7 @@ const Orders = () => {
         <div className="container-fluid py-3">
             <div className="card shadow-sm" style={{ borderRadius: '15px', overflow: 'hidden' }}>
                 <div className="card-header bg-white border-bottom-0">
-                    <h2 className="mb-0 fw-bold text-primary">Đơn hàng</h2>
+                    <h2>Danh sách đơn hàng</h2>
                 </div>
                 <div className="card-body border-bottom">
                     <div className="row mb-4">
