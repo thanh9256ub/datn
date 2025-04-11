@@ -6,7 +6,9 @@ import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.AuthenticationCustomerResponse;
 import com.example.datn.dto.response.CustomerProfileResponse;
 import com.example.datn.entity.Customer;
+import com.example.datn.entity.Employee;
 import com.example.datn.entity.Role;
+import com.example.datn.exception.ResourceNotFoundException;
 import com.example.datn.repository.CustomerRepository;
 import com.example.datn.repository.RoleRepository;
 import com.nimbusds.jose.*;
@@ -23,16 +25,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.security.sasl.AuthenticationException;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -152,7 +157,7 @@ public class AuthenticationCustomerService {
         Customer created = customerRepository.save(customer);
         created.setCustomerCode(generateCustomerCode(created.getId()));
         customerRepository.save(created);
-        emailService.sendSimpleMessage(customer.getEmail(), "Password login", "Chào, " + customer.getFullName() +
+        emailService.sendSimpleMessage(customer.getEmail(), "Kính chào quý khách đến với H2TL - Mật khẩu đăng nhập của bạn", "Chào, " + customer.getFullName() +
                 "\n" +
                 "Cảm ơn quý khách đã tin tưởng và lựa chọn sản phẩm của chúng tôi. Chúng tôi rất vui mừng khi biết rằng quý khách đã có trải nghiệm mua sắm tuyệt vời tại H2TL. Chúng tôi cam kết sẽ luôn cung cấp những sản phẩm chất lượng và dịch vụ tốt nhất đến quý khách.\n" +
                 "\n" +
@@ -168,6 +173,7 @@ public class AuthenticationCustomerService {
                 .message("Đăng ký thành công!")
                 .build();
     }
+
     public CustomerProfileResponse getCustomerProfile(String token) throws AuthenticationException {
         log.info("Received token: {}", token);
         try {
@@ -205,6 +211,7 @@ public class AuthenticationCustomerService {
             throw new AuthenticationException("Invalid token format");
         }
     }
+
     private String generateCustomerCode(Integer id) {
         return String.format("KH%05d", id);
     }
@@ -212,4 +219,65 @@ public class AuthenticationCustomerService {
     private String generatePassword() {
         return String.format("%06d", new Random().nextInt(1000000));
     }
+
+
+    public ResponseEntity<ApiResponse<?>> changePassword(String token, String oldPassword, String newPassword) throws JOSEException, ParseException, AuthenticationException {
+        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        boolean verified = signedJWT.verify(verifier);
+        if (expiryTime.before(new Date()) || !verified)
+            throw new AuthenticationException("Authentication failed");
+        String email = signedJWT.getJWTClaimsSet().getSubject();
+        Optional<Customer> customerOptional = customerRepository.findByEmail(email);
+        if (customerOptional.isEmpty())
+            throw new ResourceNotFoundException("User is not exist!");
+
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        Customer customer = customerOptional.get();
+        if (passwordEncoder.matches(oldPassword, customer.getPassword())) {
+            customer.setPassword(passwordEncoder.encode(newPassword));
+            customerRepository.save(customer);
+            ApiResponse<?> apiResponse = new ApiResponse<>(
+                    HttpStatus.OK.value(),
+                    "Customer change password successfully"
+            );
+
+            return ResponseEntity.ok(apiResponse);
+        }
+        ApiResponse<?> apiResponse = new ApiResponse<>(
+                HttpStatus.BAD_REQUEST.value(),
+                "OldPassword is invalid"
+        );
+        return ResponseEntity.badRequest().body(apiResponse);
+    }
+
+    public ResponseEntity<ApiResponse<?>> forgotPassword(String email) {
+        Optional<Customer> customerOptional = customerRepository.findByEmail(email);
+        if (customerOptional.isEmpty())
+            throw new ResourceNotFoundException("User is not exist!");
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        Customer customer = customerOptional.get();
+        String password = generatePassword();
+        customer.setPassword(passwordEncoder.encode(password));
+        emailService.sendSimpleMessage(customer.getEmail(), "Kính chào quý khách đến với H2TL - Mật khẩu đăng nhập của bạn", "Chào, " + customer.getFullName() +
+                "\n" +
+                "Cảm ơn quý khách đã tin tưởng và lựa chọn sản phẩm của chúng tôi. Chúng tôi rất vui mừng khi biết rằng quý khách đã có trải nghiệm mua sắm tuyệt vời tại H2TL. Chúng tôi cam kết sẽ luôn cung cấp những sản phẩm chất lượng và dịch vụ tốt nhất đến quý khách.\n" +
+                "\n" +
+                "Để hoàn tất việc truy cập vào tài khoản của mình, xin vui lòng sử dụng mật khẩu sau để đăng nhập:\n" +
+                "Mật khẩu: " + password + "\n" +
+                "\n" +
+                "Nếu có bất kỳ câu hỏi nào hoặc cần hỗ trợ thêm, đừng ngần ngại liên hệ với chúng tôi. Chúng tôi luôn sẵn sàng hỗ trợ quý khách.\n" +
+                "\n" +
+                "Chúc quý khách một ngày tuyệt vời và hy vọng được phục vụ quý khách trong tương lai!");
+        customerRepository.save(customer);
+        ApiResponse<?> apiResponse = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Quý khách vui lòng kiểm tra email, password đã được gửi!"
+        );
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+
 }

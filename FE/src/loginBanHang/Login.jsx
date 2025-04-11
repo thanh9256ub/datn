@@ -20,6 +20,12 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const handleForgotPassword = (e) => {
+        e.preventDefault();
+        window.location.href = '/quen-mat-khau';
+    }
+
+
     const handleLogin = async (e) => {
 
         try {
@@ -83,27 +89,57 @@ const Login = () => {
         }
     };
 
-    const showConfirm = () => {
-        confirm({
-            title: 'Xác nhận đăng nhập',
-            content: 'Bạn có chắc chắn muốn đăng nhập vào hệ thống?',
-            okText: 'Đồng ý',
-            cancelText: 'Hủy bỏ',
-            centered: true,
-            onOk() {
-                handleLogin();
-            },
-            onCancel() {
-                console.log('Hủy đăng nhập');
-            },
-        });
-    };
-
     const handleGoBack = () => {
         history.push('/')
         // history.goBack(); // Hoặc history.push('/') nếu muốn về trang chủ
     };
 
+    const [errors, setErrors] = useState({
+        username: '',
+        password: '',
+    });
+
+    const validateForm = () => {
+        let isValid = true;
+        const newErrors = { ...errors };
+
+        if (!username.trim()) {
+            newErrors.username = 'Tên đăng nhập không được để trống';
+            isValid = false;
+        } else {
+            newErrors.username = '';
+        }
+
+        if (!password.trim()) {
+            newErrors.password = 'Mật khẩu không được để trống';
+            isValid = false;
+        } else {
+            newErrors.password = '';
+        }
+
+        setErrors(newErrors);
+        return isValid;
+    };
+
+    const showConfirm = () => {
+        const isValid = validateForm();
+
+        if (isValid) {
+            confirm({
+                title: 'Xác nhận đăng nhập',
+                content: 'Bạn có chắc chắn muốn đăng nhập vào hệ thống?',
+                okText: 'Đồng ý',
+                cancelText: 'Hủy bỏ',
+                centered: true,
+                onOk() {
+                    handleLogin();
+                },
+                onCancel() {
+                    console.log('Hủy đăng nhập');
+                },
+            });
+        }
+    };
     return (
         <div
             style={{
@@ -195,6 +231,9 @@ const Login = () => {
                         size="large"
                         style={{ width: '100%' }}
                     />
+
+                    {errors.username && <p style={{ color: 'red' }}>{errors.username}</p>}
+
                     <Input.Password
                         placeholder="Mật khẩu"
                         value={password}
@@ -202,6 +241,7 @@ const Login = () => {
                         size="large"
                         style={{ width: '100%' }}
                     />
+                    {errors.password && <p style={{ color: 'red' }}>{errors.password}</p>}
                     <Button
                         type="primary"
                         size="large"
@@ -221,7 +261,7 @@ const Login = () => {
                     </Text>
                     <Text>
                         <Link to="/quen-mat-khau">
-                            <Text strong style={{ color: '#b388ff' }}>
+                            <Text strong style={{ color: '#b388ff' }} onClick={handleForgotPassword}>
                                 Quên mật khẩu?
                             </Text>
                         </Link>
