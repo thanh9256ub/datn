@@ -114,9 +114,28 @@ const BanHang = () => {
 
   useEffect(() => {
     if (messages.length > 0) {
+      clearInterval(qrIntervalRef.current);
+      qrIntervalRef.current = null;
+      setQrImageUrl(null);
+      setSelectedInvoiceId(null);
+      setTotalAmount(0);
+      setPromo({});
+      setDelivery(false);
+      setPhoneNumber("");
+      setCustomer(null);
+      setCustomerInfo({
+        name: '',
+        phone: '',
+        province: '',
+        district: '',
+        ward: '',
+        address: '',
+        note: '',
+      });
       const lastMessage = messages[messages.length - 1];
       toast.info(lastMessage);
       fetchInvoices();
+      fetchProducts();
     }
   }, [messages]);
 

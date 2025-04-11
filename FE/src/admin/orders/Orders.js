@@ -6,6 +6,8 @@ import { fetchOrders, filterOrders } from './OrderService/orderService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faBoxOpen, faTruck, faCheckCircle, faTimesCircle, faHome } from '@fortawesome/free-solid-svg-icons';
 import { faSearch, faDollarSign, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import useWebSocket from '../../hook/useWebSocket';
+import { toast, ToastContainer } from 'react-toastify';
 
 const Orders = () => {
     const [data, setData] = useState([]);
@@ -29,6 +31,8 @@ const Orders = () => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Array.isArray(data) ? data.slice(indexOfFirstItem, indexOfLastItem) : [];
     const totalPages = Math.ceil(data.length / itemsPerPage);
+
+    const { messages, isConnected } = useWebSocket("/topic/order-customer");
 
     useEffect(() => {
         localStorage.setItem('currentPage', currentPage);
@@ -62,7 +66,6 @@ const Orders = () => {
         };
     }, []);
 
-    // Làm mới dữ liệu khi quay lại từ OrderDetail
     useEffect(() => {
         if (location.state?.shouldRefresh) {
             console.log('Làm mới dữ liệu từ OrderDetail');
@@ -70,6 +73,14 @@ const Orders = () => {
             history.replace({ ...location, state: { ...location.state, shouldRefresh: false } });
         }
     }, [location, history]);
+
+    useEffect(() => {
+        if (messages.length > 0) {
+            const lastMessage = messages[messages.length - 1];
+            toast.info(lastMessage);
+            fetchData();
+        }
+    }, [messages]);
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
@@ -92,7 +103,7 @@ const Orders = () => {
 
     const calculateTotalPayment = (order) => {
         if (!order) return 0;
-        
+
         // Logic đồng bộ với OrderDetail
         if (order.orderDetails?.length > 0) {
             const productsTotal = order.orderDetails.reduce(
@@ -103,7 +114,7 @@ const Orders = () => {
             const discountValue = order.discountValue || 0;
             return productsTotal + shippingFee - discountValue;
         }
-        
+
         // Fallback nếu không có orderDetails
         return (order.totalPrice || 0) + (order.shippingFee || 0) - (order.discountValue || 0);
     };
@@ -448,6 +459,8 @@ const Orders = () => {
                     transform: translateY(-1px);
                 }
             `}</style>
+
+            <ToastContainer />
         </div>
     );
 };

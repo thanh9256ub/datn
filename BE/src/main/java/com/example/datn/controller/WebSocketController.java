@@ -35,8 +35,18 @@ public class WebSocketController {
         messagingTemplate.convertAndSend("/topic/product-updates", message);
     }
 
-    public void notifyOrderDeletion(Integer orderId) {
-        String payload = "Hoá đơn" + orderId + "đã xoá vì hết hạn";
+    public void notifyOrderDeletion() {
+        String payload = "Đã xoá những hóa đơn cũ";
         messagingTemplate.convertAndSend("/topic/orders/delete", payload);
+    }
+
+    public void sendOrderCustomer(String orderCode, String ctmName){
+        String message = "Khách hàng "+ ctmName + " vừa mua hàng với đơn hàng là: " + orderCode;
+        messagingTemplate.convertAndSend("/topic/order-customer", message);
+    }
+
+    public void sendOrderGuest(String orderCode){
+        String message = "Khách hàng vãng lai vừa mua hàng với đơn hàng là: " + orderCode;
+        messagingTemplate.convertAndSend("/topic/order-customer", message);
     }
 }
