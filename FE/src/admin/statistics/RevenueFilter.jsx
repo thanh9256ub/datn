@@ -96,7 +96,9 @@ const RevenueFilter = () => {
       {/* Phần 1, 2, 3: Cùng trên một hàng */}
       <Row gutter={16} style={{ marginBottom: '20px' }}>
         <Col span={8}>
-          <RangePicker onChange={handleDateChange} style={{ width: '100%' }} />
+          <RangePicker 
+          value={dateRange}
+          onChange={handleDateChange} style={{ width: '100%' }} />
         </Col>
         <Col span={8}>
           <Select
