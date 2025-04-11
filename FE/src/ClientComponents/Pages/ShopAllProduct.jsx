@@ -154,7 +154,7 @@ const ShopAllProduct = (props) => {
     };
 
     return (
-        <div style={{ backgroundColor: '#fff', minHeight: '100vh' }}>
+        <div style={{ backgroundColor: '#fff', minHeight: '100vh', paddingBottom: 30 }}>
             {/* Banner */}
             <div style={{
                 position: 'relative',
@@ -162,7 +162,7 @@ const ShopAllProduct = (props) => {
                 overflow: 'hidden',
                 marginBottom: 40,
                 height: 600,
-                marginTop: 95
+                marginTop: 70
             }}>
                 <Image
                     src={props.banner}
@@ -443,7 +443,7 @@ const ShopAllProduct = (props) => {
                         </Row>
 
                         {filteredProducts.length > visibleProducts && (
-                            <div style={{ textAlign: 'center', margin: '48px 0' }}>
+                            <div style={{ textAlign: 'center', margin: '48px 0 0 0' }}>
                                 <Button
                                     type="primary"
                                     size="large"
