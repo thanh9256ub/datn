@@ -159,21 +159,33 @@ const Employees = () => {
         }
     });
 
-    const handleSearchChange = (event) => {
-        setSearch(event.target.value);
-    };
+    // const handleSearchChange = (event) => {
+    //     setSearch(event.target.value);
+    // };
 
-    const handleSearch = () => {
-        setPage(1)
-        listEmployee(search, 1, statusFilter).then((response) => {
+    // const handleSearch = () => {
+    //     setPage(1)
+    //     listEmployee(search, 1, statusFilter).then((response) => {
+    //         setEmployees(response.data.data);
+    //         setTotalPage(response.data.totalPage);
+    //         console.log("Checkkk search:  ", search)
+    //     }).catch(error => {
+    //         console.error(error);
+    //     })
+    // };
+    const handleSearchChange = (event) => {
+        const searchValue = event.target.value;
+        setSearch(searchValue);
+        setPage(1);
+
+        listEmployee(searchValue, 1).then((response) => {
             setEmployees(response.data.data);
             setTotalPage(response.data.totalPage);
-            console.log("Checkkk search:  ", search)
         }).catch(error => {
             console.error(error);
-        })
-    };
+        });
 
+    }
     const handleChangeStatus = (event) => {
         setPage(1)
         setStatusFilter(event.target.value);
@@ -209,66 +221,28 @@ const Employees = () => {
     }
 
 
-
     return (
         <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-                {/* Tìm kiếm */}
-                <div style={{ flex: 1, maxWidth: "300px" }}>
-                    <InputGroup>
-                        <Form.Control
-                            placeholder="Mã, tên nhân viên....."
-                            style={{
-                                border: "1px solid #ccc",
-                                borderRadius: "px",
-                                padding: "8px 12px",
-                                fontSize: "16px"
-                            }}
-                            value={search}
-                            onChange={handleSearchChange}
-                        />
-                        <Button
-                            variant="light"
-                            style={{ border: "1px solid #ccc", padding: "8px 15px", borderRadius: "4px" }}
-                            onClick={handleSearch}
-                        >
-                            Tìm kiếm
-                        </Button>
-                    </InputGroup>
-                </div>
-
-                {/* Bộ lọc */}
-                <div>
-                    <select
-                        style={{
-                            border: '1px solid #ccc',
-                            padding: '8px 12px',
-                            borderRadius: '4px',
-                            fontSize: '16px',
-                            marginLeft: '20px', // Điều chỉnh khoảng cách giữa các phần tử
-                            width: "200px"
-                        }}
-                        className="form-select"
-                        onChange={handleChangeStatus}
-                    >
-                        <option value={""}>Bộ lọc</option>
-                        <option value={"1"}>Đang hoạt động</option>
-                        <option value={"0"}>Không hoạt động</option>
-                    </select>
-                </div>
-
+            <h2>Danh sách nhân viên</h2>
+            <div style={{ display: "flex", marginBottom: "10px" }}>
                 {/* Thêm nhân viên */}
-                <div>
+                {/* <div>
                     <button type="button" className="btn btn-gradient-primary btn-icon-text" onClick={handleAdd}>
                         Thêm nhân viên
                     </button>
+                </div> */}
+                <div style={{ marginLeft: 'auto', marginRight: '20px' }}>
+                    <Button size='sm' variant="primary" className="btn btn-gradient-primary btn-sm float-right"
+                       onClick={handleAdd}
+                    // onClick={() => setShowModalAdd(true)} 
+                    ><i className='mdi mdi-plus'></i>Thêm nhân viên</Button >
                 </div>
             </div>
 
             <div className="col-lg-15 grid-margin stretch-card">
                 <div className="card">
                     <div className="card-body">
-                        <h2 style={{ textAlign: "center" }}>Danh sách nhân viên</h2>
+
                         {/* <p className="card-description"> Add className <code>.table-hover</code>
                         </p> */}
                         {successMessage && (
@@ -285,7 +259,43 @@ const Employees = () => {
                             <div className="text-danger">{error}</div>
                         ) : (
                             <div>
-                                <div style={{ height: "400px" }}>
+                                <div style={{ height: "350px" }}>
+                                    <div style={{display:"flex"}}>
+                                        <div style={{ width: "300px", overflow: "hidden", border: "1px solid #dcdcdc", borderRadius: "10px" }}>
+                                            <InputGroup>
+                                                <Form.Control
+                                                    placeholder="Mã, tên nhân viên....."
+                                                    style={{ border: "none", outline: "none", padding: "8px 12px" }}
+                                                    value={search}
+                                                    onChange={handleSearchChange}
+                                                />
+                                                {/* <Button variant="light" style={{ border: "none", padding: "8px 15px" }} onClick={handleSearch}>Tìm kiếm</Button> */}
+                                            </InputGroup>
+                                        </div>
+
+                                        <div >
+                                            <select
+                                                style={{
+                                                    overflow: "hidden",
+                                                    border: '1px solid #dcdcdc"',
+                                                    padding: '8px 12px',
+                                                    borderRadius: '10px',
+                                                    fontSize: '15px',
+                                                    marginLeft: '330px', // Điều chỉnh khoảng cách giữa các phần tử
+                                                    width: "200px"
+                                                }}
+
+                                               
+
+                                                className="form-select"
+                                                onChange={handleChangeStatus}
+                                            >
+                                                <option value={""}>Bộ lọc</option>
+                                                <option value={"1"}>Đang hoạt động</option>
+                                                <option value={"0"}>Không hoạt động</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                     <table className="table table-hover text-center">
                                         <thead>
                                             <tr>
@@ -295,7 +305,7 @@ const Employees = () => {
                                                 <th>Giới tính</th>
                                                 <th>Ngày sinh</th>
                                                 <th>Trạng thái</th>
-                                                <th>Chỉnh sửa</th>
+                                                <th>Hành động</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -309,25 +319,49 @@ const Employees = () => {
                                                         <td>{employee.birthDate}</td>
                                                         <td>{employee.status ? "Đang hoạt động" : "Không hoạt động"}</td>
                                                         <td>
-                                                            <Button variant="link"
-                                                                onClick={() => handleUpdateEmployee(employee.id)}
-                                                            // onClick={() => handleShow(employee)}
-                                                            >
-                                                                <i className='mdi mdi-border-color'></i>
-                                                            </Button>
-                                                            <i type="button" onClick={() => handleRemove(employee.id)} className="mdi mdi-delete-forever"></i>
+                                                            {/* <div className="button-container">
+                                                                <Button onClick={() => handleUpdateEmployee(employee.id)}>
+                                                                    <i className='mdi mdi-border-color'></i>Sửa
+                                                                </Button>
+                                                                <Button onClick={() => handleRemove(employee.id)}>
+                                                                    <i className='mdi mdi-delete-forever'></i>Xóa
+                                                                </Button>
+                                                            </div> */}
+
+                                                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                                <Button variant="link" onClick={() => handleUpdateEmployee(employee.id)} style={{ padding: '0px', marginRight: "20px" }}>
+                                                                    <i className='mdi mdi-eye'></i>
+                                                                </Button>
+                                                                <Button variant="link" onClick={() => handleRemove(employee.id)} style={{ padding: '0px' }}>
+                                                                    <i className='mdi mdi-delete-forever'></i>
+                                                                </Button>
+                                                            </div>
                                                         </td>
-                                                    </tr>))
+                                                    </tr>
+                                                ))
                                             }
                                         </tbody>
                                     </table>
                                 </div>
-                                <div style={{ marginTop: "10px" }}>
-                                    <label onClick={() => handleTruoc()}><i className='mdi mdi-arrow-left-bold'></i></label>
+                                {/* <div style={{ marginTop: "10px" }}>
+                                    <Button onClick={() => handleTruoc()}>
+                                        <i className='mdi mdi-arrow-left-bold'></i>
+                                    </Button>
                                     <label>Trang: {page}/{totalPage}</label>
-                                    <label onClick={() => handleSau()}><i className='mdi mdi-arrow-right-bold'></i></label>
-                                </div>
+                                    <Button onClick={() => handleSau()} >
+                                        <i className='mdi mdi-arrow-right-bold'></i>
+                                    </Button>
+                                </div> */}
 
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <button className="pagination-button" onClick={() => handleTruoc()}>
+                                        <i className='mdi mdi-arrow-left-bold'></i>
+                                    </button>
+                                    <label style={{ margin: '0 10px' }}>Trang: {page}/{totalPage} </label>
+                                    <button className="pagination-button" onClick={() => handleSau()}>
+                                        <i className='mdi mdi-arrow-right-bold'></i>
+                                    </button>
+                                </div>
 
                                 <Modal show={showModal} onHide={handleClose} size='lg'>
                                     <Modal.Header closeButton>

@@ -128,7 +128,7 @@ class Sidebar extends Component {
               </div>
               <Collapse in={this.state.employeesPagesMenuOpen}>
                 <ul className="nav flex-column sub-menu">
-                  <li className="nav-item"> <Link className={this.isPathActive('/admin/employees') ? 'nav-link active' : 'nav-link'} to="/admin/employees"><Trans>Employees</Trans></Link></li>
+                  <li className="nav-item"> <Link className={this.isPathActive('/admin/employees') ? 'nav-link active' : 'nav-link'} to="/admin/employees"><Trans>Nhân viên</Trans></Link></li>
                 </ul>
               </Collapse>
             </li>
@@ -141,7 +141,7 @@ class Sidebar extends Component {
             </div>
             <Collapse in={this.state.customersPagesMenuOpen}>
               <ul className="nav flex-column sub-menu">
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/customers') ? 'nav-link active' : 'nav-link'} to="/admin/customers"><Trans>Customers</Trans></Link></li>
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/customers') ? 'nav-link active' : 'nav-link'} to="/admin/customers"><Trans>Khách hàng</Trans></Link></li>
               </ul>
             </Collapse>
           </li>
@@ -153,7 +153,7 @@ class Sidebar extends Component {
             </div>
             <Collapse in={this.state.ordersPagesMenuOpen}>
               <ul className="nav flex-column sub-menu">
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/orders') ? 'nav-link active' : 'nav-link'} to="/admin/orders"><Trans>Orders</Trans></Link></li>
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/orders') ? 'nav-link active' : 'nav-link'} to="/admin/orders"><Trans>Đơn hàng</Trans></Link></li>
               </ul>
             </Collapse>
           </li>
@@ -165,7 +165,7 @@ class Sidebar extends Component {
             </div>
             <Collapse in={this.state.vouchersPagesMenuOpen}>
               <ul className="nav flex-column sub-menu">
-                <li className="nav-item"> <Link className={this.isPathActive('/admin/vouchers') ? 'nav-link active' : 'nav-link'} to="/admin/vouchers"><Trans>Vouchers</Trans></Link></li>
+                <li className="nav-item"> <Link className={this.isPathActive('/admin/vouchers') ? 'nav-link active' : 'nav-link'} to="/admin/vouchers"><Trans>Khuyến mại</Trans></Link></li>
               </ul>
             </Collapse>
           </li>
