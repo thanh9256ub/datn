@@ -141,7 +141,7 @@ const Bin = () => {
 
             fetchProducts();
 
-            toast.success("Đã xoá các sản phẩm thành công!");
+            toast.success("Đã khôi phục các sản phẩm thành công!");
         } catch (error) {
             console.error("Lỗi khi cập nhật trạng thái sản phẩm:", error);
             toast.error("Có lỗi xảy ra, vui lòng thử lại!");

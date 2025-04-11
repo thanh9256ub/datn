@@ -41,6 +41,18 @@ const Sizes = () => {
         setSubmitLoading(true);
 
         try {
+            const sizeResp = await getSizes();
+            const sizes = sizeResp.data.data;
+
+            const sizeExists = sizes.some(
+                size => size.sizeName.toLowerCase() === sizeName.toLowerCase() && size.id !== sizeId
+            );
+
+            if (sizeExists) {
+                toast.error("Tên kích cỡ đã tồn tại!");
+                return;
+            }
+
             if (sizeId) {
                 console.log("Đang cập nhật kích cỡ:", sizeId, sizeName, desc);
                 await updateSize(sizeId, { sizeName, description: desc })

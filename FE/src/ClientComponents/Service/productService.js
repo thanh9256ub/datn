@@ -33,14 +33,16 @@ api.interceptors.response.use(
 );
 export const checkStockAvailability = async (items) => {
     try {
+        console.log('Items being sent to check stock:', items);
         const response = await api.post('/product-detail/check-stock', items);
-        console.log('API res (check stock):', response.data);
-        return response.data.data || {}; // Trả về Map { productDetailId: quantity }
+        console.log('API response (check stock):', response.data);
+        return response.data.data || {}; 
     } catch (error) {
         console.error('Error checking stock availability:', {
             url: error.config?.url,
             status: error.response?.status,
             errorData: error.response?.data,
+            requestData: error.config?.data
         });
         throw new Error(error.response?.data?.message || 'Không thể kiểm tra tồn kho');
     }
@@ -423,3 +425,54 @@ export const fetchOrderByCode = async (orderCode) => {
           throw error;
       }
   };
+  export const sendOrderConfirmationEmail = async (email, orderCode, customerName, totalAmount, paymentMethod) => {
+    try {
+        const payload = {
+            email,
+            orderCode,
+            customerName,
+            totalAmount,
+            paymentMethod
+        };
+        console.log('Sending order confirmation email with payload:', payload);
+        const response = await api.post('/mail/send-order-confirmation', payload);
+        console.log('API res (send order confirmation email):', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error sending order confirmation email:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data,
+            requestData: error.config?.data
+        });
+        throw new Error(error.response?.data?.message || 'Không thể gửi email xác nhận đơn hàng');
+    }
+};
+export const generateVNPayPayment = async (orderId, amount) => {
+    try {
+        const response = await api.post('/counter/vnpay/payment', { orderId, amount });
+        console.log('API res (VNPAY payment):', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error generating VNPAY payment:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data
+        });
+        throw new Error(error.response?.data?.message || 'Không thể tạo URL thanh toán VNPAY');
+    }
+};
+export const checkVNPayPaymentStatus = async (transactionId) => {
+    try {
+        const response = await api.get(`/counter/vnpay/check-payment-status?transactionId=${transactionId}`);
+        console.log('API res (VNPay payment status):', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error checking VNPay payment status:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data
+        });
+        throw new Error(error.response?.data?.message || 'Không thể kiểm tra trạng thái thanh toán VNPAY');
+    }
+};

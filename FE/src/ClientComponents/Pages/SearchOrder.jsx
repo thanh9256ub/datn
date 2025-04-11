@@ -43,9 +43,10 @@ export const SearchOrder = () => {
     const statusMap = {
       1: { color: 'orange', text: 'Chờ xác nhận' },
       2: { color: 'blue', text: 'Đã xác nhận' },
-      3: { color: 'cyan', text: 'Đang giao hàng' },
-      4: { color: 'green', text: 'Đã giao hàng' },
-      5: { color: 'red', text: 'Đã hủy' },
+      3: { color: 'blue', text: 'Chờ giao hàng' },
+      4: { color: 'cyan', text: 'Đang giao hàng' },
+      5: { color: 'green', text: 'Hoàn tất' },
+      6: { color: 'red', text: 'Đã hủy' },
     };
     return <Tag color={statusMap[status]?.color || 'gray'}>
       {statusMap[status]?.text || 'Không xác định'}
@@ -113,7 +114,9 @@ export const SearchOrder = () => {
   return (
     <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
       <Title level={2}>Tra cứu đơn hàng</Title>
-      
+      <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+                Lưu ý: Khách hàng có nhu cầu đặt thêm sản phẩm, quý khách xin vui lòng liên hệ đến cửa hàng.
+            </Text>
       <Card style={{ marginBottom: 24 }}>
         <Form form={form} layout="inline" onFinish={onSearch}>
           <Form.Item

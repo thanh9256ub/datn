@@ -21,9 +21,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer>, JpaS
 //    @Query("SELECT p.id, p.totalQuantity FROM Product p")
 //    List<Object[]> getAllProductQuantities();
 
-    @Query("SELECT pu FROM ProductUpdate pu ORDER BY pu.updatedAt DESC")
-    List<Product> findLatestUpdates();
-
     Page<Product> findAll(Pageable pageable);
 
     Optional<Product> findByProductNameAndBrandAndCategoryAndMaterial(String productName, Brand brand, Category category, Material material);

@@ -147,9 +147,21 @@ public class ProductDetailController {
                 ProductDetailResponse productDetailResponse = service.deleteAndRestoreProductDetail(pdId);
                 return ResponseEntity.ok(productDetailResponse);
         }
+
         @PostMapping("/check-stock")
         public ResponseEntity<ApiResponse<Map<Integer, Integer>>> checkStockAvailability(
                 @RequestBody List<Map<String, Integer>> checkStockRequests) {
+
+                if (checkStockRequests == null || checkStockRequests.isEmpty()) {
+                        throw new IllegalArgumentException("Danh sách kiểm tra tồn kho không được trống");
+                }
+
+                for (Map<String, Integer> request : checkStockRequests) {
+                        if (request.get("productDetailId") == null) {
+                                throw new IllegalArgumentException("Thiếu productDetailId trong request");
+                        }
+                }
+
                 Map<Integer, Integer> stockAvailability = service.checkStockAvailability(checkStockRequests);
 
                 ApiResponse<Map<Integer, Integer>> response = new ApiResponse<>(
@@ -157,7 +169,9 @@ public class ProductDetailController {
                         "Stock availability checked successfully",
                         stockAvailability
                 );
-                return ResponseEntity.ok(response);}
+                return ResponseEntity.ok(response);
+        }
+
         @GetMapping("{id}/related")
         public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getRelatedProducts(
                 @PathVariable("id") Integer productId) {

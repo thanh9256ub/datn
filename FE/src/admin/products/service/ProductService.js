@@ -66,7 +66,6 @@ export const deleteAndRestoreProducts = (productIds) => {
     });
 };
 
-
 export const updateStatus = (id, statusPro) => {
     return axios.patch(`${BASE_URL}/${id}?status=${statusPro}`);
 }

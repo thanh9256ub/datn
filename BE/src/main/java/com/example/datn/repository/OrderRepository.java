@@ -14,6 +14,7 @@ import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
+
     @Query("SELECT o FROM Order o LEFT JOIN FETCH o.paymentType LEFT JOIN FETCH o.paymentMethod")
     List<Order> findAllWithPaymentDetails();
 
@@ -117,5 +118,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     Object[] findRevenueTotal();
 
     Optional<Order> findByOrderCode(String orderCode);
+
+    List<Order> findByStatusAndCreatedAtBefore(Integer status, LocalDateTime yesterday);
 
 }

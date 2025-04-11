@@ -1,5 +1,6 @@
 package com.example.datn.service;
 
+import com.example.datn.controller.WebSocketController;
 import com.example.datn.dto.request.*;
 import com.example.datn.dto.response.CustomerResponse;
 import com.example.datn.dto.response.OrderResponse;
@@ -11,6 +12,7 @@ import com.example.datn.mapper.PaymentTypeMapper;
 import com.example.datn.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -41,17 +43,46 @@ public class OrderService {
 
     @Autowired
     private PaymentMethodRepository paymentMethodRepository;
+
     @Autowired
     private CartRepository cartRepository;
+
     @Autowired
     private OrderDetailService orderDetailService;
 
     @Autowired
     private OrderMapper mapper;
+
     @Autowired
     private ProductDetailRepository productDetailRepository;
+
     @Autowired
     private OrderDetailRepository orderDetailRepository;
+
+    @Autowired
+    private WebSocketController webSocketController;
+
+    @Scheduled(cron = "0 0 0 * * ?") // Chạy lúc 00:00 hàng ngày
+    @Transactional
+    public void cleanupExpiredOrders() {
+        // Lấy 00:00 của ngày hiện tại (ví dụ: 2020-01-02T00:00:00)
+        LocalDateTime todayMidnight = LocalDateTime.now()
+                .withHour(0)
+                .withMinute(0)
+                .withSecond(0);
+
+        // Tìm hóa đơn: status = 0 và createdAt < 00:00 hôm nay
+        List<Order> expiredOrders = repository.findByStatusAndCreatedAtBefore(0, todayMidnight);
+
+        // Xóa hóa đơn
+        repository.deleteAll(expiredOrders);
+
+        // Gửi thông báo qua WebSocket (tuỳ chọn)
+        expiredOrders.forEach(order -> {
+            webSocketController.notifyOrderDeletion(order.getId());
+        });
+    }
+
     public OrderResponse create(OrderRequest request) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmssS");
 
@@ -69,39 +100,40 @@ public class OrderService {
         return mapper.toListOrders(repository.findAllWithPaymentDetails());
     }
 
-//    public OrderResponse updateStatus(Integer id, int newStatus) {
+    //    public OrderResponse updateStatus(Integer id, int newStatus) {
 //        Order order = repository.findById(id)
 //                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
 //        order.setStatus(newStatus);
 //        Order updatedOrder = repository.save(order);
 //        return mapper.toOrderResponse(updatedOrder);
 //    }
-@Transactional
-public OrderResponse updateStatus(Integer id, int newStatus) {
-    Order order = repository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+    @Transactional
+    public OrderResponse updateStatus(Integer id, int newStatus) {
+        Order order = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
 
-    // Nếu trạng thái mới là "Đã xác nhận" (2) và trạng thái hiện tại nhỏ hơn 2
-    if (newStatus == 2 && order.getStatus() < 2) {
-        List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(id);
-        for (OrderDetail detail : orderDetails) {
-            ProductDetail productDetail = productDetailRepository.findById(detail.getProductDetail().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("ProductDetail not found"));
-            int newQuantity = productDetail.getQuantity() - detail.getQuantity();
-            if (newQuantity < 0) {
-                throw new IllegalStateException("Số lượng tồn kho không đủ cho sản phẩm: "
-                        + productDetail.getProduct().getProductName());
+        // Nếu trạng thái mới là "Đã xác nhận" (2) và trạng thái hiện tại nhỏ hơn 2
+        if (newStatus == 2 && order.getStatus() < 2) {
+            List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(id);
+            for (OrderDetail detail : orderDetails) {
+                ProductDetail productDetail = productDetailRepository.findById(detail.getProductDetail().getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("ProductDetail not found"));
+                int newQuantity = productDetail.getQuantity() - detail.getQuantity();
+                if (newQuantity < 0) {
+                    throw new IllegalStateException("Số lượng tồn kho không đủ cho sản phẩm: "
+                            + productDetail.getProduct().getProductName());
+                }
+                productDetail.setQuantity(newQuantity);
+                productDetailRepository.save(productDetail);
             }
-            productDetail.setQuantity(newQuantity);
-            productDetailRepository.save(productDetail);
         }
+
+        order.setStatus(newStatus);
+        order.setUpdatedAt(LocalDateTime.now().withNano(0));
+        Order updatedOrder = repository.save(order);
+        return mapper.toOrderResponse(updatedOrder);
     }
 
-    order.setStatus(newStatus);
-    order.setUpdatedAt(LocalDateTime.now().withNano(0));
-    Order updatedOrder = repository.save(order);
-    return mapper.toOrderResponse(updatedOrder);
-}
     public OrderResponse getById(Integer id) {
         Order order = repository.findById(id).get();
         return mapper.toOrderResponse(order);
@@ -190,53 +222,42 @@ public OrderResponse updateStatus(Integer id, int newStatus) {
 
     @Transactional
     public OrderResponse createOrderFromCart(Integer cartId, OrderRequest orderRequest) {
-        // 1. Validate và lấy thông tin giỏ hàng
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy giỏ hàng với ID: " + cartId));
 
-        // 2. Kiểm tra giỏ hàng có sản phẩm không
-        if (cart.getItems() == null || cart.getItems().isEmpty()) {
-            throw new IllegalStateException("Không thể tạo đơn hàng từ giỏ hàng trống");
+        List<OrderRequest.CartItemDTO> selectedItems = orderRequest.getCartItems();
+        if (selectedItems == null || selectedItems.isEmpty()) {
+            throw new IllegalStateException("Danh sách sản phẩm trong đơn hàng trống");
         }
 
-        // 3. Lấy thông tin khách hàng từ giỏ hàng
         Customer customer = cart.getCustomer();
         if (customer == null) {
             throw new IllegalArgumentException("Giỏ hàng không có thông tin khách hàng liên kết");
         }
 
-        // 4. Tạo mã đơn hàng
         SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
         String orderCode = "HD" + sdf.format(new Date());
 
-        // 5. Tạo đơn hàng mới
         Order order = new Order();
         order.setOrderCode(orderCode);
         order.setCustomer(customer);
-
-        // 6. Thiết lập thông tin khách hàng
         order.setCustomerName(orderRequest.getCustomerName() != null ?
                 orderRequest.getCustomerName() : customer.getFullName());
         order.setPhone(orderRequest.getPhone() != null ?
                 orderRequest.getPhone() : customer.getPhone());
         order.setAddress(orderRequest.getAddress());
         order.setNote(orderRequest.getNote());
-
-        // 7. Thiết lập thông tin thanh toán và vận chuyển
         order.setShippingFee(orderRequest.getShippingFee() != null ?
                 orderRequest.getShippingFee() : 0.0);
         order.setDiscountValue(orderRequest.getDiscountValue() != null ?
                 orderRequest.getDiscountValue() : 0.0);
 
-        // 8. Tính toán tổng giá
-        double totalPrice = cart.getItems().stream()
+        double totalPrice = selectedItems.stream()
                 .mapToDouble(item -> item.getPrice() * item.getQuantity())
                 .sum();
-
         order.setTotalPrice(totalPrice);
         order.setTotalPayment(totalPrice + order.getShippingFee() - order.getDiscountValue());
 
-        // 9. Thiết lập phương thức thanh toán
         if (orderRequest.getPaymentTypeId() != null) {
             PaymentType paymentType = paymentTypeRepository.findById(orderRequest.getPaymentTypeId())
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy loại thanh toán"));
@@ -249,39 +270,39 @@ public OrderResponse updateStatus(Integer id, int newStatus) {
             order.setPaymentMethod(paymentMethod);
         }
 
-        // 10. Thiết lập trạng thái và thời gian
         order.setOrderType(orderRequest.getOrderType() != null ? orderRequest.getOrderType() : 1);
-        order.setStatus(1); // 1 = Chờ tiếp nhận
+        order.setStatus(1); // Chờ tiếp nhận
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
 
-        // 11. Lưu đơn hàng
         order = repository.save(order);
 
-        // 12. Chuyển sản phẩm từ giỏ hàng sang đơn hàng
-        for (CartDetails cartDetail : cart.getItems()) {
-            // 12a. Tạo chi tiết đơn hàng
+        // Xóa các sản phẩm đã thanh toán khỏi giỏ hàng và lưu thay đổi
+        for (OrderRequest.CartItemDTO item : selectedItems) {
+            ProductDetail productDetail = productDetailRepository.findById(item.getProductDetailId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi tiết sản phẩm với ID: " + item.getProductDetailId()));
+
             OrderDetail orderDetail = new OrderDetail();
             orderDetail.setOrder(order);
-            orderDetail.setProductDetail(cartDetail.getProductDetail());
-            orderDetail.setQuantity(cartDetail.getQuantity());
-            orderDetail.setPrice(cartDetail.getPrice());
-            orderDetail.setTotalPrice(cartDetail.getTotal_price());
-            orderDetail.setStatus(1); // 1 = Hoạt động
-
-            // 12b. Lưu chi tiết đơn hàng
+            orderDetail.setProductDetail(productDetail);
+            orderDetail.setQuantity(item.getQuantity());
+            orderDetail.setPrice(item.getPrice());
+            orderDetail.setTotalPrice(item.getTotalPrice());
+            orderDetail.setStatus(1);
             orderDetailRepository.save(orderDetail);
-            // Xóa 12c: Không cập nhật số lượng tồn kho ở đây
+
+            // Xóa sản phẩm khỏi giỏ hàng
+            cart.getItems().removeIf(cartItem ->
+                    cartItem.getProductDetail().getId().equals(item.getProductDetailId())
+            );
         }
 
-        // 13. Cập nhật trạng thái giỏ hàng (đã chuyển thành đơn hàng)
-        cart.setStatus(2); // 2 = Đã chuyển thành đơn hàng
-        cart.setCreated_at(LocalDateTime.now());
+        // Lưu giỏ hàng đã cập nhật vào database
         cartRepository.save(cart);
 
-        // 14. Trả về thông tin đơn hàng đã tạo
         return mapper.toOrderResponse(order);
     }
+
     @Transactional
     public OrderResponse createOrderForGuest(GuestOrderRequest request) {
         Order order = new Order();
@@ -313,14 +334,14 @@ public OrderResponse updateStatus(Integer id, int newStatus) {
 
         order = repository.save(order);
         for (GuestOrderRequest.CartItemDTO item : request.getCartItems()) {
-            ProductDetail productDetail=productDetailRepository.findById(item.getProductDetailId()).orElseThrow(
+            ProductDetail productDetail = productDetailRepository.findById(item.getProductDetailId()).orElseThrow(
                     () -> new ResourceNotFoundException("getProductDetailId not found")
             );
 
             OrderDetailRequest orderDetailRequest = new OrderDetailRequest(
                     order.getId(),
                     item.getProductDetailId(),
-                    productDetail.getProduct().getProductName()+" - "+productDetail.getColor()+" - "+productDetail.getSize(),
+                    productDetail.getProduct().getProductName() + " - " + productDetail.getColor() + " - " + productDetail.getSize(),
                     item.getQuantity(),
                     item.getPrice(),
                     item.getTotal_price(),
@@ -342,34 +363,38 @@ public OrderResponse updateStatus(Integer id, int newStatus) {
 
     }
 
-    public List<Object[]> getOrdersByMonthIn( Integer year) {
+    public List<Object[]> getOrdersByMonthIn(Integer year) {
         return repository.findOrdersByMonthInNative(year);
     }
 
-    public List<Object[]> getOrdersByDayInJanuary(Integer month,Integer year) {
-        return repository.findOrdersByDayInJanuaryNative(month,year);
+    public List<Object[]> getOrdersByDayInJanuary(Integer month, Integer year) {
+        return repository.findOrdersByDayInJanuaryNative(month, year);
     }
 
     public List<Object[]> findRevenueByMonthIn2025(Integer year) {
         return repository.findRevenueByMonthIn2025(year);
     }
-    public List<Object[]> findRevenueByDayInMarch(Integer month,Integer year) {
-        return repository.findRevenueByDayInMarch(month,year);
+
+    public List<Object[]> findRevenueByDayInMarch(Integer month, Integer year) {
+        return repository.findRevenueByDayInMarch(month, year);
     }
+
     public Object[] getRevenueByYear(Integer year) {
-         return repository.findRevenueByYear(year);
+        return repository.findRevenueByYear(year);
 
     }
+
     public Object[] getRevenueByMonth(Integer year, Integer month) {
-         return repository.findRevenueByMonth(year, month);
+        return repository.findRevenueByMonth(year, month);
 
     }
-    public  Object[] getRevenueBetweenDates(String startDate, String endDate) {
+
+    public Object[] getRevenueBetweenDates(String startDate, String endDate) {
         return repository.findRevenueBetweenDates(startDate, endDate);
 
     }
 
-    public  Object[] getRevenueTotal() {
+    public Object[] getRevenueTotal() {
         return repository.findRevenueTotal();
     }
 
@@ -378,5 +403,25 @@ public OrderResponse updateStatus(Integer id, int newStatus) {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with code: " + orderCode));
         return mapper.toOrderResponse(order);
 
+    }
+
+    public String checkPaymentStatus(String orderCode) {
+        Order order = repository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with code: " + orderCode));
+
+        // Giả sử trạng thái đơn hàng:
+        // 1: Chờ tiếp nhận (PENDING)
+        // 2: Đã thanh toán (SUCCESS)
+        // 5: Thất bại hoặc hủy (FAILED)
+        switch (order.getStatus()) {
+            case 2:
+                return "SUCCESS";
+            case 1:
+                return "PENDING";
+            case 5:
+                return "FAILED";
+            default:
+                return "PENDING"; // Trạng thái khác coi như đang chờ xử lý
+        }
     }
 }

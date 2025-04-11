@@ -599,7 +599,6 @@ const CreateProduct = () => {
         }
     };
 
-
     return (
         <div>
             <div className="row">

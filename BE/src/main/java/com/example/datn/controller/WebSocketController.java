@@ -5,6 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
 @Slf4j
 @Controller
 @RequiredArgsConstructor
@@ -19,10 +23,20 @@ public class WebSocketController {
     }
 
     public void sendProductQuantityUpdate(String productCode, int newQuantity) {
-        String message = "🔄 Số lượng sản phẩm [" + productCode + "] đã thay đổi: " + newQuantity;
+        String message = "🔄 Số lượng sản phẩm [" + productCode + "] đã được cập nhật: " + newQuantity;
         log.info("📢 Gửi thông báo WebSocket: {}", message);
         messagingTemplate.convertAndSend("/topic/product-updates", message);
     }
 
+    public void sendProductUpdate(String productCode, int newQuantity) {
+        String message = "🔄 Số lượng sản phẩm [" + productCode + "] đã được cập nhật: " + newQuantity;
 
+        log.info("🚀 Gửi realtime update sản phẩm {}: {}", productCode, newQuantity);
+        messagingTemplate.convertAndSend("/topic/product-updates", message);
+    }
+
+    public void notifyOrderDeletion(Integer orderId) {
+        String payload = "Hoá đơn" + orderId + "đã xoá vì hết hạn";
+        messagingTemplate.convertAndSend("/topic/orders/delete", payload);
+    }
 }
