@@ -62,6 +62,9 @@ public class OrderService {
     @Autowired
     private WebSocketController webSocketController;
 
+    @Autowired
+    ProductDetailService productDetailService;
+
     @Scheduled(cron = "0 0 0 * * ?") // Chạy lúc 00:00 hàng ngày
     @Transactional
     public void cleanupExpiredOrders() {
@@ -125,6 +128,7 @@ public class OrderService {
                 }
                 productDetail.setQuantity(newQuantity);
                 productDetailRepository.save(productDetail);
+                productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
             }
         }
 
@@ -277,6 +281,8 @@ public class OrderService {
 
         order = repository.save(order);
 
+        webSocketController.sendOrderCustomer(order.getOrderCode(), customer.getFullName());
+
         // Xóa các sản phẩm đã thanh toán khỏi giỏ hàng và lưu thay đổi
         for (OrderRequest.CartItemDTO item : selectedItems) {
             ProductDetail productDetail = productDetailRepository.findById(item.getProductDetailId())
@@ -333,6 +339,9 @@ public class OrderService {
         order.setUpdatedAt(LocalDateTime.now().withNano(0));
 
         order = repository.save(order);
+
+        webSocketController.sendOrderGuest(order.getOrderCode());
+
         for (GuestOrderRequest.CartItemDTO item : request.getCartItems()) {
             ProductDetail productDetail = productDetailRepository.findById(item.getProductDetailId()).orElseThrow(
                     () -> new ResourceNotFoundException("getProductDetailId not found")
@@ -351,6 +360,7 @@ public class OrderService {
             orderDetailService.create(orderDetailRequest); // Tạo chi tiết đơn hàng
 
         }
+
         return mapper.toOrderResponse(order);
     }
 

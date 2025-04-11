@@ -39,4 +39,14 @@ public class WebSocketController {
         String payload = "Hoá đơn" + orderId + "đã xoá vì hết hạn";
         messagingTemplate.convertAndSend("/topic/orders/delete", payload);
     }
+
+    public void sendOrderCustomer(String orderCode, String ctmName){
+        String message = "Khách hàng "+ ctmName + " vừa mua hàng với đơn hàng là: " + orderCode;
+        messagingTemplate.convertAndSend("/topic/order-customer", message);
+    }
+
+    public void sendOrderGuest(String orderCode){
+        String message = "Khách hàng vãng lai vừa mua hàng với đơn hàng là: " + orderCode;
+        messagingTemplate.convertAndSend("/topic/order-customer", message);
+    }
 }
