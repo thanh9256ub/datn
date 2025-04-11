@@ -3,6 +3,7 @@ package com.example.datn.service;
 import com.example.datn.controller.WebSocketController;
 import com.example.datn.dto.request.*;
 import com.example.datn.dto.response.CustomerResponse;
+import com.example.datn.dto.response.OrderDetailResponse;
 import com.example.datn.dto.response.OrderResponse;
 import com.example.datn.dto.response.PaymentTypeResponse;
 import com.example.datn.entity.*;
@@ -62,7 +63,7 @@ public class OrderService {
     @Autowired
     private WebSocketController webSocketController;
 
-    @Scheduled(cron = "0 0 0 * * ?") // Chạy lúc 00:00 hàng ngày
+    @Scheduled(cron = "0 33 14 * * ?") // Chạy lúc 00:00 hàng ngày
     @Transactional
     public void cleanupExpiredOrders() {
         // Lấy 00:00 của ngày hiện tại (ví dụ: 2020-01-02T00:00:00)
@@ -71,16 +72,22 @@ public class OrderService {
                 .withMinute(0)
                 .withSecond(0);
 
-        // Tìm hóa đơn: status = 0 và createdAt < 00:00 hôm nay
+
         List<Order> expiredOrders = repository.findByStatusAndCreatedAtBefore(0, todayMidnight);
 
-        // Xóa hóa đơn
-        repository.deleteAll(expiredOrders);
+        for (Order order:expiredOrders   ) {
+            List<OrderDetailResponse> orderDetails = orderDetailService.getOrderDetailsByOrderId(order.getId());
+            for (OrderDetailResponse detail : orderDetails) {
+                ProductDetail productDetail = detail.getProductDetail();
+                productDetail.setQuantity(productDetail.getQuantity() + detail.getQuantity());
+                productDetailRepository.save(productDetail);
 
-        // Gửi thông báo qua WebSocket (tuỳ chọn)
-        expiredOrders.forEach(order -> {
-            webSocketController.notifyOrderDeletion(order.getId());
-        });
+            }
+        }
+            repository.deleteAll(expiredOrders);
+
+            webSocketController.notifyOrderDeletion();
+
     }
 
     public OrderResponse create(OrderRequest request) {
