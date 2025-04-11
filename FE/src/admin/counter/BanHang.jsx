@@ -15,6 +15,7 @@ import {
   updateOrderStatus,
 } from './api'; // Import API functions
 import { toastOptions } from './constants'; // Import constants
+import useWebSocket from "../../hook/useWebSocket";
 
 const BanHang = () => {
   const qrIntervalRef = useRef(null);
@@ -60,6 +61,10 @@ const BanHang = () => {
     ward: '',
     note: '',
   });
+
+  const { messages, isConnected } = useWebSocket("/topic/orders/delete");
+
+
   const fetchInvoices = () => {
     fetchOrders()
       .then(response => {
@@ -107,11 +112,19 @@ const BanHang = () => {
     fetchOrderItems();
   }, [selectedInvoiceId]);
 
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      toast.info(lastMessage);
+      fetchInvoices();
+    }
+  }, [messages]);
+
   const addInvoice = () => {
     if (!canAdd) return;
 
     const newInvoice = { employeeId: localStorage.getItem("id"), orderType: 0, status: 0 };
-    console.log(localStorage.getItem("id"));
+
     axios.post('http://localhost:8080/order/add', newInvoice)
       .then(response => {
         toast.success("Tạo hóa đơn thành công thành công ", toastOptions);
@@ -257,7 +270,10 @@ const BanHang = () => {
           toast.error("Sản phẩm không tồn tại trong giỏ hàng ", toastOptions);
           return;
         }
-
+        if (item.quantity === newQuantity) {
+          toast.warn("Sản phẩm số lượng đã đến giới hạn ", toastOptions);
+          return;
+        }
         if (newQuantity < 0 || itemToRemove.productDetail.quantity + itemToRemove.quantity < newQuantity) return;
         axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
           .then(response => {
@@ -733,7 +749,7 @@ const BanHang = () => {
                             <img
                               src={product.product.mainImage}
                               alt="Product"
-                              style={{ width: '100px', height: 'auto', cursor: 'pointer', borderRadius: '5%', objectFit: 'contain' }}
+                              style={{ width: '50px', height: 'auto', cursor: 'pointer', borderRadius: '5%', objectFit: 'contain' }}
 
                             />
                           ) : (

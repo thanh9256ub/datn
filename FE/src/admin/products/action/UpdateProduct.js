@@ -45,6 +45,7 @@ const UpdateProduct = () => {
                 setMaterialId(product.material.id);
                 setDescription(product.description);
                 setMainImage(product.mainImage === "image.png" ? null : product.mainImage);
+                setTotalQuantity(product.totalQuantity)
 
                 const variantResponse = await getProductDetailByProductId(id);
                 const variants = variantResponse.data.data || [];
@@ -93,11 +94,27 @@ const UpdateProduct = () => {
         fetchProduct();
     }, [id]);
 
+    // const handleInputChange = (index, field, value) => {
+    //     const updatedVariants = [...variantList];
+    //     updatedVariants[index] = { ...updatedVariants[index], [field]: value };
+    //     setVariantList(updatedVariants);
+    // };
     const handleInputChange = (index, field, value) => {
         const updatedVariants = [...variantList];
-        updatedVariants[index] = { ...updatedVariants[index], [field]: value };
+        const updatedVariant = { ...updatedVariants[index], [field]: value };
+
+        if (field === "quantity") {
+            updatedVariant.quantityChanged = true;
+        }
+
+        if (field === "price") {
+            updatedVariant.priceChanged = true;
+        }
+
+        updatedVariants[index] = updatedVariant;
         setVariantList(updatedVariants);
     };
+
 
     const saveProduct = async () => {
         const result = await Swal.fire({
@@ -135,18 +152,24 @@ const UpdateProduct = () => {
 
             const product = await updateProduct(id, productData);
 
-            const formattedVariants = variantList.map(variant => ({
-                id: variant.id,
-                colorId: variant.color?.id || variant.color,
-                sizeId: variant.size?.id || variant.size,
-                quantity: Number(variant.quantity),
-                price: Number(variant.price),
-                status: variant.status === 0 ? 0 : 1
-            }));
+            const isVariantsChanged = variantList.some(variant =>
+                variant.quantityChanged || variant.priceChanged
+            );
 
-            console.log("Dữ liệu gửi lên API updateProductDetails:", formattedVariants);
+            if (isVariantsChanged) {
+                const formattedVariants = variantList.map(variant => ({
+                    id: variant.id,
+                    colorId: variant.color?.id || variant.color,
+                    sizeId: variant.size?.id || variant.size,
+                    quantity: Number(variant.quantity),
+                    price: Number(variant.price),
+                    status: variant.status === 0 ? 0 : 1
+                }));
 
-            await updateProductDetails(id, formattedVariants);
+                console.log("Dữ liệu gửi lên API updateProductDetails:", formattedVariants);
+
+                await updateProductDetails(id, formattedVariants);
+            }
 
             await handleImagesForProductColors(id);
 

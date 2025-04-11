@@ -59,7 +59,7 @@ const RevenueFilter = () => {
     if (dates && dates.length === 2) {
       setDateRange([dates[0], dates[1]]);
     } else {
-      setDateRange(null);
+      setDateRange([]);
     }
     setMonth(null);
     setYear(null);
@@ -69,17 +69,21 @@ const RevenueFilter = () => {
   const handleYearForMonthChange = (value) => {
     setSelectedYearForMonth(value);
     setMonth(null);
+    setYear(null);
+    setDateRange([]);
   };
 
   const handleMonthChange = (value) => {
     if (selectedYearForMonth) {
       setMonth(value);
+      setYear(null);
+      setDateRange([]);
     }
   };
 
   const handleYearChange = (value) => {
     setYear(value);
-    setDateRange(null);
+    setDateRange([]);
     setMonth(null);
     setSelectedYearForMonth(null);
   };

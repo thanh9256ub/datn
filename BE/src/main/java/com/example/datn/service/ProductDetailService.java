@@ -1,5 +1,6 @@
 package com.example.datn.service;
 
+import com.example.datn.controller.WebSocketController;
 import com.example.datn.dto.request.ProductDetailRequest;
 import com.example.datn.dto.response.ProductDetailResponse;
 import com.example.datn.entity.Color;
@@ -12,6 +13,7 @@ import com.example.datn.repository.ProductRepository;
 import com.example.datn.repository.ColorRepository;
 import com.example.datn.repository.ProductDetailRepository;
 import com.example.datn.repository.SizeRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ProductDetailService {
 
@@ -36,6 +39,9 @@ public class ProductDetailService {
 
     @Autowired
     SizeRepository sizeRepository;
+
+    @Autowired
+    WebSocketController webSocketController;
 
     public List<ProductDetailResponse> getAll() {
         return mapper.toListProductDetail(repository.findByStatusNot(2));
@@ -104,6 +110,7 @@ public class ProductDetailService {
                         (existing, replacement) -> existing
                 ));
     }
+
     public ProductDetailResponse updateQR(Integer pdId) {
         ProductDetail productDetail = repository.findById(pdId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + pdId));
@@ -115,16 +122,46 @@ public class ProductDetailService {
         return mapper.toProductDetailResponse(productDetail);
     }
 
+    //    public void updateTotalQuantity(Integer productId) {
+//
+//        Integer updatedTotalQuantity = repository.sumQuantityByProductId(productId);
+//
+//        Product product = productRepository.findById(productId).orElseThrow(
+//                () -> new ResourceNotFoundException("Product not found with ID: " + productId));
+//
+//        product.setTotalQuantity(updatedTotalQuantity);
+//        product.setStatus(updatedTotalQuantity > 0 ? 1 : 0);
+//        Product savedProduct = productRepository.save(product);
+//
+//        // Gửi thông báo realtime sau khi cập nhật thành công
+//        webSocketController.sendProductUpdate(
+//                savedProduct.getProductCode(),
+//                savedProduct.getTotalQuantity()
+//        );
+//
+//    }
     public void updateTotalQuantity(Integer productId) {
-
-        Integer updatedTotalQuantity = repository.sumQuantityByProductId(productId);
-
         Product product = productRepository.findById(productId).orElseThrow(
                 () -> new ResourceNotFoundException("Product not found with ID: " + productId));
 
-        product.setTotalQuantity(updatedTotalQuantity);
-        product.setStatus(updatedTotalQuantity > 0 ? 1 : 0);
-        productRepository.save(product);
+        Integer oldQuantity = product.getTotalQuantity();
+
+        Integer updatedTotalQuantity = repository.sumQuantityByProductId(productId);
+
+        if (!updatedTotalQuantity.equals(oldQuantity)) {
+            product.setTotalQuantity(updatedTotalQuantity);
+            product.setStatus(updatedTotalQuantity > 0 ? 1 : 0);
+            Product savedProduct = productRepository.save(product);
+
+            // CHỈ gửi thông báo nếu số lượng thay đổi
+            webSocketController.sendProductUpdate(
+                    savedProduct.getProductCode(),
+                    savedProduct.getTotalQuantity()
+            );
+
+            log.info("✅ Đã cập nhật số lượng sản phẩm {} từ {} -> {}",
+                    productId, oldQuantity, updatedTotalQuantity);
+        }
     }
 
     public ProductDetailResponse updateProductDetail(Integer pdId, ProductDetailRequest request) {
@@ -184,6 +221,7 @@ public class ProductDetailService {
 
         return mapper.toListProductDetail(updatedDetails);
     }
+
     public List<Size> getSizesByProductIdAndColor(Integer productId, Integer colorId) {
 
         // Kiểm tra sự tồn tại của sản phẩm
@@ -207,6 +245,7 @@ public class ProductDetailService {
 
         return sizes;
     }
+
     public ProductDetailResponse getDetailByAttributes(Integer productId, Integer colorId, Integer sizeId) {
         ProductDetail productDetail = repository.findByProduct_IdAndColor_IdAndSize_Id(productId, colorId, sizeId)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -230,18 +269,19 @@ public class ProductDetailService {
         return mapper.toProductDetailResponse(repository.save(productDetail));
     }
 
-    public List<ProductDetailResponse> getRelatedProducts(Integer pId){
+    public List<ProductDetailResponse> getRelatedProducts(Integer pId) {
         return mapper.toListProductDetail(repository.findAllExceptId(pId));
     }
-    public void  updateProductDetaiStatus0(){
-        for (ProductDetail productDetail: repository.findAll()) {
-            if (productDetail.getStatus()==1&&productDetail.getQuantity()==0){
+
+    public void updateProductDetaiStatus0() {
+        for (ProductDetail productDetail : repository.findAll()) {
+            if (productDetail.getStatus() == 1 && productDetail.getQuantity() == 0) {
                 productDetail.setStatus(0);
                 repository.save(productDetail);
             }
         }
-        for (Product product:productRepository.findAll()             ) {
-            if (product.getStatus()==1&&product.getTotalQuantity()==0){
+        for (Product product : productRepository.findAll()) {
+            if (product.getStatus() == 1 && product.getTotalQuantity() == 0) {
                 product.setStatus(0);
                 productRepository.save(product);
             }

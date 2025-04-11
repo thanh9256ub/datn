@@ -68,14 +68,25 @@ export const updateOrderStatus = async (id, newStatus) => {
 // Hàm lấy danh sách OrderDetail theo orderID
 export const fetchOrderDetailsByOrderId = async (orderId) => {
     try {
-        const response = await api.get(`/order-detail/order/${orderId}`);
-        console.log('Raw API Response:', response.data); // Thêm log để kiểm tra
-        return response.data;
+      const response = await api.get(`/order-detail/order/${orderId}`);
+      console.log('Raw API response:', response);
+      
+      // Kiểm tra và chuẩn hóa dữ liệu
+      let details = Array.isArray(response.data) ? response.data : [];
+      
+      // Tính toán totalPrice nếu null
+      details = details.map(item => ({
+        ...item,
+        totalPrice: item.totalPrice || (item.price * item.quantity)
+      }));
+      
+      return details;
     } catch (error) {
-        console.error('Error fetching order details by order ID:', error);
-        throw error;
+      console.error('Error fetching order details:', error);
+      throw error;
     }
-};
+  };
+  
 // Hàm cập nhật toàn bộ danh sách OrderDetail cho một orderId
 export const updateOrderDetails = async (orderId, items) => {
     try {
