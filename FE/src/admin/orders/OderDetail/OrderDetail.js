@@ -125,6 +125,7 @@ const OrderDetail = () => {
             });
             if (!isMounted) return;
 
+            // Cập nhật thông tin đơn hàng trên giao diện
             setOrder(prev => ({
                 ...prev,
                 customerName: updatedCustomer.customerName,
@@ -140,6 +141,17 @@ const OrderDetail = () => {
                     address: updatedCustomer.address
                 }
             })));
+
+            // Lưu lịch sử đơn hàng
+            const historyData = {
+                orderId: orderId,
+                icon: "customer-update", // Icon mới để phân biệt hành động
+                description: `Cập nhật thông tin khách hàng: ${updatedCustomer.customerName}, ${updatedCustomer.phone}, ${updatedCustomer.address}`,
+                change_time: new Date().toISOString(),
+            };
+            console.log('Customer Update History Data:', historyData);
+            await createOrderHistory(historyData);
+
             showNotification("Cập nhật thông tin thành công!");
             return response;
         } catch (error) {
@@ -284,12 +296,28 @@ const OrderDetail = () => {
             const updateResponse = await updateOrderStatus(order.id, 6);
             console.log('Cancel Response:', updateResponse);
 
+            const noteData = {
+                note: note || "Đơn hàng đã bị hủy",
+            };
+            console.log('Note Data for updateOrderNote:', noteData);
+            await updateOrderNote(order.id, noteData);
+
+            const historyData = {
+                orderId: order.id,
+                icon: "cancel",
+                description: note || "Đơn hàng đã bị hủy",
+                change_time: new Date().toISOString(),
+            };
+            console.log('Cancel History Data:', historyData);
+            await createOrderHistory(historyData);
+
             const updatedDetails = await fetchOrderDetailsByOrderId(orderId);
             setOrderDetails(updatedDetails);
             setOrder(updatedDetails[0]?.order);
 
             showNotification("Đơn hàng đã được hủy thành công!");
             setShowCancelModal(false);
+            setNote("");
         } catch (error) {
             console.error('Error in handleCancelOrder:', error.response?.data || error.message);
             showNotification(`Có lỗi xảy ra khi hủy đơn hàng: ${error.response?.data?.data || error.message}`);
@@ -358,6 +386,17 @@ const OrderDetail = () => {
             const updatedDetails = await updateOrderDetails(orderId, itemsToUpdate);
             setOrderDetails(updatedDetails);
             setUpdatedCart(updatedDetails);
+
+            // Lưu lịch sử đơn hàng
+            const historyData = {
+                orderId: orderId,
+                icon: "product-update", // Icon mới để phân biệt hành động
+                description: `Cập nhật danh sách sản phẩm: ${updatedCart.length} sản phẩm`,
+                change_time: new Date().toISOString(),
+            };
+            console.log('Product Update History Data:', historyData);
+            await createOrderHistory(historyData);
+
             setShowUpdateModal(false);
             showNotification("Cập nhật danh sách sản phẩm thành công!");
             history.replace(location.pathname, { ...location.state, shouldRefresh: true });
@@ -568,16 +607,22 @@ const OrderDetail = () => {
         if (order.orderType === 0 && order.paymentType.paymentTypeName === "Trực tiếp") {
             statusFlow = [
                 { icon: "status-update", name: "Cập nhật trạng thái", color: "#118ab2" },
+                { icon: "customer-update", name: "Cập nhật thông tin khách hàng", color: "#17a2b8" },
+                { icon: "product-update", name: "Cập nhật danh sách sản phẩm", color: "#28a745" },
                 { icon: "cancel", name: "Đã hủy", color: "#ef476f" },
             ];
         } else if (order.orderType === 0) {
             statusFlow = [
                 { icon: "status-update", name: "Cập nhật trạng thái", color: "#ffd700" },
+                { icon: "customer-update", name: "Cập nhật thông tin khách hàng", color: "#17a2b8" },
+                { icon: "product-update", name: "Cập nhật danh sách sản phẩm", color: "#28a745" },
                 { icon: "cancel", name: "Đã hủy", color: "#ef476f" },
             ];
         } else {
             statusFlow = [
                 { icon: "status-update", name: "Cập nhật trạng thái", color: "#ffd700" },
+                { icon: "customer-update", name: "Cập nhật thông tin khách hàng", color: "#17a2b8" },
+                { icon: "product-update", name: "Cập nhật danh sách sản phẩm", color: "#28a745" },
                 { icon: "cancel", name: "Đã hủy", color: "#ef476f" },
             ];
         }
@@ -963,7 +1008,17 @@ const OrderDetail = () => {
                     <Modal.Title>Xác nhận hủy đơn hàng</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    Bạn có chắc chắn muốn hủy đơn hàng #{order.orderCode} không? Hành động này không thể hoàn tác.
+                    <p>Bạn có chắc chắn muốn hủy đơn hàng #{order.orderCode} không? Hành động này không thể hoàn tác.</p>
+                    <Form.Group controlId="cancelNote">
+                        <Form.Label>Ghi chú hủy đơn</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            placeholder="Nhập lý do hủy đơn (tùy chọn)"
+                        />
+                    </Form.Group>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowCancelModal(false)}>
