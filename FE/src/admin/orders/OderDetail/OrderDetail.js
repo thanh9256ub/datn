@@ -577,15 +577,15 @@ const OrderDetail = () => {
         }
 
         return (
-            <div className="d-flex align-items-center" style={{ gap: "10px" }}>
+            <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
                 {visibleStatuses.map((s, index) => (
                     <React.Fragment key={s.id}>
-                        <div className="d-flex flex-column align-items-center" style={{ gap: "5px" }}>
-                            <FontAwesomeIcon icon={s.icon} style={{ color: s.color, fontSize: "24px" }} />
-                            <span style={{ fontSize: "12px", color: s.color, textAlign: "center" }}>{s.name}</span>
+                        <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
+                            <FontAwesomeIcon icon={s.icon} style={{ color: s.color, fontSize: "36px" }} />
+                            <span style={{ fontSize: "16px", color: s.color, textAlign: "center" }}>{s.name}</span>
                         </div>
                         {index < visibleStatuses.length - 1 && (
-                            <div style={{ width: "20px", height: "2px", backgroundColor: s.color }} />
+                            <div style={{ width: "200px", height: "4px", backgroundColor: s.color, borderRadius: "2px" }} />
                         )}
                     </React.Fragment>
                 ))}
