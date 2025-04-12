@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     Row, Col, Typography, Button, Card, Space, Divider,
-    Badge, Rate, Tag, Image, Select, Slider, InputNumber
+    Badge, Rate, Tag, Image, Select, Slider, InputNumber, Checkbox
 } from 'antd';
 import { HeartOutlined, ShoppingCartOutlined, FireFilled, FilterOutlined } from '@ant-design/icons';
 import { fetchProducts, fetchProductDetail } from '../Service/productService';
@@ -14,6 +14,8 @@ const ShopAllProduct = (props) => {
     const history = useHistory();
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
+    const [materials, setMaterials] = useState([]);
+    const [selectedMaterials, setSelectedMaterials] = useState([]);
     const [brands, setBrands] = useState([]);
     const [priceRange, setPriceRange] = useState([0, 5000000]);
     const [selectedBrand, setSelectedBrand] = useState(null);
@@ -55,12 +57,25 @@ const ShopAllProduct = (props) => {
                         return {
                             ...product,
                             price: detail ? detail.price : 0,
-                            isBestSeller: Math.random() > 0.7
+                            isBestSeller: Math.random() > 0.7,
+                            material: product.material?.materialName || product.material || 'Không xác định'
                         };
                     });
 
-                    const uniqueBrands = [...new Set(mergedProducts.map(item => item.brand?.brandName || 'Unknown'))].filter(Boolean);
+                    const uniqueBrands = [...new Set(
+                        mergedProducts
+                            .map(item => item.brand?.brandName)
+                            .filter(brandName => brandName)
+                    )];
+
                     setBrands(uniqueBrands);
+
+                    const uniqueMaterials = [...new Set(
+                        mergedProducts
+                            .map(item => item.material)
+                            .filter(material => material)
+                    )];
+                    setMaterials(uniqueMaterials);
 
                     const maxPrice = mergedProducts.reduce((max, item) => Math.max(max, item.price), 5000000);
                     setPriceRange([0, Math.min(maxPrice, 5000000)]);
@@ -87,13 +102,19 @@ const ShopAllProduct = (props) => {
 
     useEffect(() => {
         applyFilters();
-    }, [selectedBrand, priceRange, sortOption, products]);
+    }, [selectedBrand, priceRange, sortOption, products, selectedMaterials]);
 
     const applyFilters = () => {
         let result = [...products];
 
         if (selectedBrand) {
-            result = result.filter(item => item.brand === selectedBrand);
+            result = result.filter(item => item.brand?.brandName === selectedBrand);
+        }
+
+        if (selectedMaterials.length > 0) {
+            result = result.filter(item =>
+                selectedMaterials.includes(item.material)
+            );
         }
 
         result = result.filter(item => item.price >= priceRange[0] && item.price <= priceRange[1]);
@@ -106,16 +127,28 @@ const ShopAllProduct = (props) => {
                 result.sort((a, b) => b.price - a.price);
                 break;
             case 'name-asc':
-                result.sort((a, b) => a.name.localeCompare(b.name));
+                result.sort((a, b) => {
+                    const nameA = a.productName?.toUpperCase() || '';
+                    const nameB = b.productName?.toUpperCase() || '';
+                    return nameA.localeCompare(nameB, 'vi');
+                });
                 break;
             case 'name-desc':
-                result.sort((a, b) => b.name.localeCompare(a.name));
+                result.sort((a, b) => {
+                    const nameA = a.productName?.toUpperCase() || '';
+                    const nameB = b.productName?.toUpperCase() || '';
+                    return nameB.localeCompare(nameA, 'vi');
+                });
                 break;
             default:
                 break;
         }
 
         setFilteredProducts(result);
+    };
+
+    const handleMaterialChange = (checkedValues) => {
+        setSelectedMaterials(checkedValues);
     };
 
     const handlePriceChange = (value) => {
@@ -144,6 +177,7 @@ const ShopAllProduct = (props) => {
 
     const clearFilters = () => {
         setSelectedBrand(null);
+        setSelectedMaterials([]);
         setPriceRange([0, 5000000]);
         setInputValues([0, 5000000]);
         setSortOption('default');
@@ -231,7 +265,28 @@ const ShopAllProduct = (props) => {
                                         ))}
                                     </Select>
                                 </div>
-
+                                <div>
+                                    <Text strong>Chất liệu</Text>
+                                    <div style={{ marginTop: 8 }}>
+                                        <Checkbox.Group
+                                            style={{ width: '100%' }}
+                                            onChange={handleMaterialChange}
+                                            value={selectedMaterials}
+                                        >
+                                            <Space direction="vertical">
+                                                {materials.map((material, index) => (
+                                                    <Checkbox
+                                                        key={material + index}
+                                                        value={material}
+                                                        style={{ marginLeft: 0 }}
+                                                    >
+                                                        {material}
+                                                    </Checkbox>
+                                                ))}
+                                            </Space>
+                                        </Checkbox.Group>
+                                    </div>
+                                </div>
                                 <div>
                                     <Text strong>Khoảng giá</Text>
                                     <div style={{ display: 'flex', gap: '8px', margin: '8px 0' }}>
