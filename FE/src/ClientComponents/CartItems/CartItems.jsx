@@ -128,17 +128,17 @@ const CartItems = () => {
                 return;
             }
 
-            // Bắt đầu kiểm tra trạng thái thanh toán
-            pollPaymentStatus(response.transactionId);
+            // Bắt đầu kiểm tra trạng thái thanh toán, truyền orderCode
+            pollPaymentStatus(response.transactionId, orderId); // Truyền orderId (orderCode) vào đây
         } catch (error) {
             console.error('Lỗi khi tạo URL VNPAY:', error);
             message.error('Không thể tạo mã thanh toán VNPAY.');
         }
     };
 
-    const pollPaymentStatus = async (transactionId) => {
+    const pollPaymentStatus = async (transactionId, orderCode) => { // Thêm tham số orderCode
         setCheckingPayment(true);
-        const maxAttempts = 30; // Giới hạn 30 lần kiểm tra (1 phút với interval 2s)
+        const maxAttempts = 450;
         let attempts = 0;
 
         const interval = setInterval(async () => {
@@ -155,7 +155,7 @@ const CartItems = () => {
                     const formValues = form.getFieldsValue();
                     await sendOrderConfirmationEmail(
                         formValues.email,
-                        orderCode,
+                        orderCode, // Sử dụng orderCode được truyền vào
                         formValues.name,
                         getTotalCartAmount() + shippingFee,
                         'VNPAY'
@@ -433,7 +433,7 @@ const CartItems = () => {
                 setOrderCode(orderCode);
 
                 if (paymentMethod === 2) { // VNPAY
-                    await generateVNPayPaymentHandler(orderCode, totalAmount);
+                    await generateVNPayPaymentHandler(orderCode, totalAmount); // Truyền orderCode
                 } else { // COD
                     setThankYouModalVisible(true);
                     message.success('Đặt hàng thành công!');
@@ -452,8 +452,6 @@ const CartItems = () => {
                         cartItems.filter(item => !validSelectedItems.includes(item.productDetailId || item.productDetail?.id))
                     ));
                 }
-            } else {
-                throw new Error('Tạo đơn hàng thất bại');
             }
         } catch (error) {
             console.error('Lỗi khi đặt hàng:', error);

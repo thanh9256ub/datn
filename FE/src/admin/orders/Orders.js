@@ -145,16 +145,20 @@ const Orders = () => {
         setSelectedOrder(order);
     };
 
-    const getStatusName = (statusId, orderType) => {
+    const getStatusName = (statusId, orderType, paymentType) => {
         let statusFlow;
-        if (orderType === 0) {
+
+        // Đơn tại quầy thanh toán trực tiếp
+        if (orderType === 0 && paymentType?.paymentTypeName === "Trực tiếp") {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
                 { id: 5, name: "Hoàn tất", color: "#4caf50" },
-                { id: 7, name: "Đã hủy", color: "#ef476f" },
+                { id: 6, name: "Đã hủy", color: "#ef476f" },
             ];
-        } else {
+        }
+        // Đơn tại quầy thanh toán khác (có thể có giao hàng)
+        else if (orderType === 0) {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", color: "#ffd700" },
@@ -164,19 +168,45 @@ const Orders = () => {
                 { id: 6, name: "Đã hủy", color: "#ef476f" },
             ];
         }
+        // Đơn online
+        else {
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 2, name: "Đã xác nhận", color: "#ffd700" },
+                { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
+                { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
+                { id: 5, name: "Hoàn tất", color: "#4caf50" },
+                { id: 6, name: "Đã hủy", color: "#ef476f" },
+            ];
+        }
+
         const status = statusFlow.find(s => s.id === statusId);
         return status ? { name: status.name, color: status.color } : { name: "Không xác định", color: "#6c757d" };
     };
 
-    const StatusTimeline = ({ status, orderType }) => {
+    const StatusTimeline = ({ status, orderType, paymentType }) => {
         let statusFlow;
-        if (orderType === 0) {
+
+        // Xác định luồng trạng thái dựa trên loại đơn hàng và phương thức thanh toán
+        if (orderType === 0 && paymentType?.paymentTypeName === "Trực tiếp") {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
                 { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+            ];
+        } else if (orderType === 0) {
+            // Đơn tại quầy có thể có giao hàng
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
+                { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
+                { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
+                { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         } else {
+            // Đơn online
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
@@ -187,8 +217,18 @@ const Orders = () => {
             ];
         }
 
-        const currentIndex = statusFlow.findIndex(s => s.id === status);
-        const visibleStatuses = statusFlow.slice(0, currentIndex + 1);
+        let visibleStatuses = [];
+        if (status === 6) {
+            // Nếu trạng thái là "Đã hủy", chỉ hiển thị trạng thái trước đó và "Đã hủy"
+            const currentIndex = statusFlow.findIndex(s => s.id === status) || 0;
+            visibleStatuses = [
+                statusFlow[currentIndex - 1] || statusFlow[0],
+                statusFlow.find(s => s.id === 6)
+            ];
+        } else {
+            const currentIndex = statusFlow.findIndex(s => s.id === status);
+            visibleStatuses = statusFlow.slice(0, currentIndex + 1);
+        }
 
         return (
             <div className="d-flex align-items-center" style={{ gap: "10px" }}>
@@ -217,13 +257,12 @@ const Orders = () => {
                     <div className="row mb-4">
                         <div className="col-12">
                             <h5 className="fw-semibold">Trạng thái đơn hàng</h5>
-                            {selectedOrder ? (
-                                <>
-                                    <h6 className="text-muted">Đơn hàng: {selectedOrder.orderCode}</h6>
-                                    <StatusTimeline status={selectedOrder.status} orderType={selectedOrder.orderType} />
-                                </>
-                            ) : (
-                                <p className="text-muted">Chọn một đơn hàng để xem trạng thái.</p>
+                            {selectedOrder && (
+                                <StatusTimeline
+                                    status={selectedOrder.status}
+                                    orderType={selectedOrder.orderType}
+                                    paymentType={selectedOrder.paymentType}
+                                />
                             )}
                         </div>
                     </div>
@@ -385,7 +424,7 @@ const Orders = () => {
                                             <span
                                                 className="badge"
                                                 style={{
-                                                    backgroundColor: statusInfo.color,
+                                                    backgroundColor: getStatusName(order.status, order.orderType, order.paymentType).color,
                                                     color: '#fff',
                                                     fontFamily: '"Roboto", sans-serif',
                                                     fontWeight: '500',
@@ -394,11 +433,11 @@ const Orders = () => {
                                                     borderRadius: '12px',
                                                     borderWidth: '1px',
                                                     borderStyle: 'solid',
-                                                    borderColor: statusInfo.color,
+                                                    borderColor: getStatusName(order.status, order.orderType, order.paymentType).color,
                                                     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
                                                 }}
                                             >
-                                                {statusInfo.name}
+                                                {getStatusName(order.status, order.orderType, order.paymentType).name}
                                             </span>
                                         </td>
                                         <td className="py-3 px-4">

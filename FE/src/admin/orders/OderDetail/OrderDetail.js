@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useParams,useHistory } from 'react-router-dom';
+import { useLocation, useParams, useHistory } from 'react-router-dom';
 import { Card, Table, Button, Row, Col, Toast, Modal, Form, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faClock, faBoxOpen, faTruck, faHome, faCheckCircle, faTimesCircle, faPrint, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { fetchOrderDetailsByOrderId, updateOrderStatus, updateCustomerInfo, updateOrderDetails } from '../OrderService/orderService';
+import { fetchOrderDetailsByOrderId, updateOrderStatus, updateCustomerInfo, updateOrderDetails, fetchOrderHistory, createOrderHistory, updateOrderNote } from '../OrderService/orderService';
 import { Image } from 'react-bootstrap';
 import CustomerInfo from './CustomerInfo';
 import axios from 'axios';
+import { useAuth } from '../../../context/AuthContext';
 
 const OrderDetail = () => {
     const location = useLocation();
@@ -27,6 +28,11 @@ const OrderDetail = () => {
     const [maxPrice, setMaxPrice] = useState("");
     const [currentProductPage, setCurrentProductPage] = useState(1);
     const [productsPerPage] = useState(5);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [orderHistory, setOrderHistory] = useState([]);
+    const [note, setNote] = useState("");
+    const { fullName } = useAuth();
 
     useEffect(() => {
         let isMounted = true;
@@ -93,6 +99,18 @@ const OrderDetail = () => {
         return order.status < 4;
     };
 
+    const fetchOrderHistoryData = async () => {
+        try {
+            const history = await fetchOrderHistory(orderId);
+            console.log('Fetched Order History:', history);
+            setOrderHistory(history || []);
+            setShowHistoryModal(true);
+        } catch (error) {
+            console.error('Error fetching order history:', error);
+            showNotification("Không thể tải lịch sử đơn hàng!");
+        }
+    };
+
     const handleCustomerUpdate = async (updatedCustomer) => {
         if (!canUpdateOrder()) {
             showNotification("Không thể cập nhật thông tin khi đơn hàng đang giao hàng hoặc đã hoàn tất!");
@@ -155,7 +173,19 @@ const OrderDetail = () => {
             ];
             const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
             return currentIndex < statusFlow.length - 1 ? statusFlow[currentIndex + 1].id : currentStatus;
-        } else {
+        }
+        else if (order.orderType === 0) {
+            const statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận" },
+                { id: 2, name: "Đã xác nhận" },
+                { id: 3, name: "Chờ vận chuyển" },
+                { id: 4, name: "Đang vận chuyển" },
+                { id: 5, name: "Hoàn tất" },
+            ];
+            const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
+            return currentIndex < statusFlow.length - 1 ? statusFlow[currentIndex + 1].id : currentStatus;
+        }
+        else {
             const statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận" },
                 { id: 2, name: "Đã xác nhận" },
@@ -175,24 +205,71 @@ const OrderDetail = () => {
     };
 
     const handleConfirm = async () => {
+        setShowConfirmModal(true);
+    };
+
+    const handleConfirmSubmit = async () => {
         const nextStatus = getNextStatus(order.status);
         if (nextStatus === order.status) {
             showNotification("Đơn hàng đã ở trạng thái cuối cùng.");
+            setShowConfirmModal(false);
             return;
         }
 
         try {
-            const updateResponse = await updateOrderStatus(order.id, nextStatus);
-            console.log('Update Response:', updateResponse);
+            if (!order || !order.id) {
+                throw new Error("Không tìm thấy thông tin đơn hàng hoặc orderId.");
+            }
 
+            // Cập nhật trạng thái
+            await updateOrderStatus(order.id, nextStatus);
+
+            // Cập nhật note
+            const noteData = {
+                note: note || "",
+            };
+            console.log('Note Data for updateOrderNote:', noteData);
+            await updateOrderNote(order.id, noteData);
+
+            // Tạo lịch sử đơn hàng
+            const historyData = {
+                orderId: order.id,
+                icon: "status-update",
+                description: note || "Cập nhật trạng thái",
+                change_time: new Date().toISOString(),
+            };
+            console.log('History Data:', historyData);
+            await createOrderHistory(historyData);
+
+            // Cập nhật dữ liệu hiển thị
             const updatedDetails = await fetchOrderDetailsByOrderId(orderId);
             setOrderDetails(updatedDetails);
             setOrder(updatedDetails[0]?.order);
 
+            // Tải lại lịch sử đơn hàng
+            const updatedHistory = await fetchOrderHistory(orderId);
+            console.log('Updated Order History:', updatedHistory);
+            setOrderHistory(updatedHistory || []);
+
             showNotification("Cập nhật trạng thái thành công!");
+            setShowConfirmModal(false);
+            setNote("");
         } catch (error) {
-            console.error('Error in handleConfirm:', error.response?.data || error.message);
-            showNotification(`Có lỗi xảy ra khi cập nhật trạng thái: ${error.response?.data?.data || error.message}`);
+            console.error('Error in handleConfirmSubmit:', error.response?.data || error.message);
+            let errorMessage = "Có lỗi xảy ra khi cập nhật trạng thái.";
+            if (error.response) {
+                if (error.response.status === 404) {
+                    errorMessage = "Không tìm thấy đơn hàng.";
+                } else if (error.response.status === 400) {
+                    errorMessage = error.response.data?.data || "Dữ liệu không hợp lệ.";
+                } else {
+                    errorMessage = error.response.data?.data || error.message;
+                }
+            } else {
+                errorMessage = error.message;
+            }
+            showNotification(errorMessage);
+            setShowConfirmModal(false);
         }
     };
 
@@ -307,10 +384,9 @@ const OrderDetail = () => {
     const paginateProduct = (pageNumber) => setCurrentProductPage(pageNumber);
 
     const handlePrintInvoice = () => {
-        // Use orderDetails from state instead of undefined orderDetail
-        const selectedOrderDetail = orderDetails; // Already filtered by orderId in useEffect
+        const selectedOrderDetail = orderDetails;
         const totalAmount = selectedOrderDetail.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-        const finalAmount = totalAmount - (order.discountValue || 0); // Include discount if available
+        const finalAmount = totalAmount - (order.discountValue || 0);
         const shippingFee = order.shippingFee || 0;
 
         const invoiceContent = `
@@ -415,13 +491,23 @@ const OrderDetail = () => {
         printWindow.document.close();
         printWindow.print();
     };
+
     const StatusTimeline = ({ status }) => {
         let statusFlow;
 
-        if (isCounterOrderWithCashPayment()) {
+        if (order.orderType === 0 && order.paymentType.paymentTypeName === "Trực tiếp") {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+            ];
+        } else if (order.orderType === 0) {
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
+                { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
+                { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
+                { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
                 { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
@@ -438,17 +524,15 @@ const OrderDetail = () => {
 
         let visibleStatuses = [];
         if (status === 6) {
-            // Nếu trạng thái là "Đã hủy", chỉ hiển thị trạng thái trước đó và "Đã hủy"
             const lastStatusBeforeCancel = order.statusHistory && order.statusHistory.length > 1
-                ? order.statusHistory[order.statusHistory.length - 2] // Lấy trạng thái trước khi hủy
-                : statusFlow[0]; // Nếu không có lịch sử, mặc định là trạng thái đầu tiên
+                ? order.statusHistory[order.statusHistory.length - 2]
+                : statusFlow[0];
             const currentIndex = statusFlow.findIndex(s => s.id === lastStatusBeforeCancel.id) || 0;
             visibleStatuses = [
-                statusFlow[currentIndex], // Trạng thái trước khi hủy
-                statusFlow.find(s => s.id === 6) // Trạng thái "Đã hủy"
+                statusFlow[currentIndex],
+                statusFlow.find(s => s.id === 6)
             ];
         } else {
-            // Logic hiện tại cho các trạng thái khác
             const currentIndex = statusFlow.findIndex(s => s.id === status);
             visibleStatuses = statusFlow.slice(0, currentIndex + 1);
         }
@@ -478,28 +562,27 @@ const OrderDetail = () => {
         }
     };
 
-    const getStatusName = (statusId, orderType) => {
+    const getStatusName = (icon, orderType) => {
         let statusFlow;
 
-        if (orderType === 0) {
+        if (order.orderType === 0 && order.paymentType.paymentTypeName === "Trực tiếp") {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
-                { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
-                { id: 5, name: "Hoàn tất", color: "#4caf50" },
-                { id: 6, name: "Đã hủy", color: "#ef476f" },
+                { icon: "status-update", name: "Cập nhật trạng thái", color: "#118ab2" },
+                { icon: "cancel", name: "Đã hủy", color: "#ef476f" },
+            ];
+        } else if (order.orderType === 0) {
+            statusFlow = [
+                { icon: "status-update", name: "Cập nhật trạng thái", color: "#ffd700" },
+                { icon: "cancel", name: "Đã hủy", color: "#ef476f" },
             ];
         } else {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
-                { id: 2, name: "Đã xác nhận", color: "#ffd700" },
-                { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
-                { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
-                { id: 5, name: "Hoàn tất", color: "#4caf50" },
-                { id: 6, name: "Đã hủy", color: "#ef476f" },
+                { icon: "status-update", name: "Cập nhật trạng thái", color: "#ffd700" },
+                { icon: "cancel", name: "Đã hủy", color: "#ef476f" },
             ];
         }
 
-        const status = statusFlow.find(s => s.id === statusId);
+        const status = statusFlow.find(s => s.icon === icon);
         return status ? { name: status.name, color: status.color } : { name: "Không xác định", color: "#6c757d" };
     };
 
@@ -516,7 +599,7 @@ const OrderDetail = () => {
         return productsTotal + order.shippingFee - order.discountValue;
     };
 
-    const statusInfo = getStatusName(order.status, order.orderType);
+    const statusInfo = getStatusName("status-update", order.orderType);
     const paymentStatusInfo = getPaymentStatusName(order.paymentStatus);
 
     return (
@@ -534,8 +617,16 @@ const OrderDetail = () => {
             <Row className="mb-4">
                 <Col>
                     <Card className="shadow-sm bg-white border border-light">
-                        <Card.Header className="bg-white border-bottom">
+                        <Card.Header className="bg-white border-bottom d-flex justify-content-between align-items-center">
                             <h5 className="mb-0">Trạng thái đơn hàng</h5>
+                            <Button
+                                variant="outline-info"
+                                size="sm"
+                                onClick={fetchOrderHistoryData}
+                            >
+                                <FontAwesomeIcon icon={faClock} className="me-2" />
+                                Lịch sử đơn hàng
+                            </Button>
                         </Card.Header>
                         <Card.Body>
                             <StatusTimeline status={order.status} />
@@ -880,6 +971,91 @@ const OrderDetail = () => {
                     </Button>
                     <Button variant="danger" onClick={handleCancelOrder}>
                         Xác nhận hủy
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Xác nhận cập nhật trạng thái</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>Bạn có chắc chắn muốn chuyển trạng thái đơn hàng #{order.orderCode}?</p>
+                    <Form>
+                        <Form.Group controlId="employeeName">
+                            <Form.Label>Nhân viên thực hiện</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={fullName || "Nhân viên hệ thống"}
+                                readOnly
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="note" className="mt-3">
+                            <Form.Label>Ghi chú</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                value={note}
+                                onChange={(e) => setNote(e.target.value)}
+                                placeholder="Nhập ghi chú (nếu có)"
+                            />
+                        </Form.Group>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+                        Hủy
+                    </Button>
+                    <Button variant="primary" onClick={handleConfirmSubmit}>
+                        Đồng ý
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            <Modal show={showHistoryModal} onHide={() => setShowHistoryModal(false)} size="lg" centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Lịch sử đơn hàng #{order.orderCode}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {orderHistory.length > 0 ? (
+                        <Table responsive bordered hover>
+                            <thead>
+                                <tr>
+                                    <th>Thời gian</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ghi chú</th>
+                                    <th>Người thực hiện</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {orderHistory.map((history, index) => (
+                                    <tr key={history.id || index}>
+                                        <td>
+                                            {history.change_time
+                                                ? new Date(history.change_time).toLocaleString('vi-VN', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                    second: '2-digit',
+                                                })
+                                                : 'Không xác định'}
+                                        </td>
+                                        <td>{getStatusName(history.icon, order.orderType).name}</td>
+                                        <td>{history.description || 'Không có ghi chú'}</td>
+                                        <td>{fullName || 'Hệ thống'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    ) : (
+                        <Alert variant="info">Chưa có lịch sử đơn hàng.</Alert>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowHistoryModal(false)}>
+                        Đóng
                     </Button>
                 </Modal.Footer>
             </Modal>
