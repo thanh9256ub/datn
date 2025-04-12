@@ -15,7 +15,8 @@ const Breadcrum = ({ product }) => {
             maxWidth: 1400,
             margin: '0 auto',
             padding: '16px 0',
-            marginBottom: 24
+            marginBottom: 24,
+            marginTop: 70
         }}>
             <Breadcrumb
                 separator={<RightOutlined style={{

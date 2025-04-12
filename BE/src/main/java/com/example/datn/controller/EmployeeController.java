@@ -125,7 +125,7 @@ public class EmployeeController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<?>> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) throws AuthenticationException {
+    public ResponseEntity<ApiResponse<?>> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest){
         return authenticationService.forgotPassword(forgotPasswordRequest.getEmail());
     }
 

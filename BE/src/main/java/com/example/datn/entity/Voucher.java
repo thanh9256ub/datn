@@ -41,11 +41,11 @@ public class Voucher {
     @Column(name = "discount_value")
     Double discountValue;
 
-    @Column(name = "min_order_value")
-    Double minOrderValue;
-
-    @Column(name = "max_discount_value")
-    Double maxDiscountValue;
+//    @Column(name = "min_order_value")
+//    Double minOrderValue;
+//
+//    @Column(name = "max_discount_value")
+//    Double maxDiscountValue;
 
     @Column(name = "start_date")
     LocalDateTime startDate;

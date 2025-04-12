@@ -41,7 +41,7 @@ const Navbar = () => {
 
   const handleChangePassword = (e) => {
     e.preventDefault();
-    history.push('/doi-mat-khau');
+    window.location.href = '/doi-mat-khau';
   };
 
   const handleShowProfileCustomer = (e) => {

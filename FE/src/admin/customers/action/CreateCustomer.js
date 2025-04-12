@@ -33,11 +33,60 @@ const CreateCustomer = () => {
 
     const [loading, setLoading] = useState(false);
 
+    const [fullNameError, setFullNameError] = useState('');
+
+    const [emailError, setEmailError] = useState('');
+
+    const [phoneError, setPhoneError] = useState('');
+
+    const [birthDateError, setBirthDateError] = useState('');
 
     const handleSaveCustomer = () => {
         if (!window.confirm('Bạn có chắc chắn muốn thêm khách hàng?')) return;
 
+        setFullNameError('');
+
+        setEmailError('');
+
+        setPhoneError('');
+
+        setBirthDateError('');
+
+
+        let isValid = true;
+
+        if (!customer.fullName) {
+            setFullNameError('Vui lòng nhập tên khách hàng.');
+            isValid = false;
+        }
+
+        if (!customer.email) {
+            setEmailError('Vui lòng nhập email.');
+            isValid = false;
+        } else if (!/\S+@\S+\.\S+/.test(customer.email)) {
+            setEmailError('Email không hợp lệ.');
+            isValid = false;
+        }
+
+        if (!customer.phone) {
+            setPhoneError('Vui lòng nhập số điện thoại.');
+            isValid = false;
+        } else if (!/^\d{10}$/.test(customer.phone)) {
+            setPhoneError('Số điện thoại không hợp lệ (10 chữ số).');
+            isValid = false;
+        }
+
+        if (!customer.birthDate) {
+            setBirthDateError('Vui lòng chọn ngày sinh.');
+            isValid = false;
+        }
+
+        if (!isValid) {
+            return;
+        }
+
         setLoading(true);
+
         // Cập nhật các địa chỉ với thuộc tính defaultAddress
         const updatedAddresses = addresses.map((address, index) => ({
             ...address,
@@ -164,6 +213,8 @@ const CreateCustomer = () => {
                                                 onChange={(e) => {
                                                     setCustomer({ ...customer, fullName: e.target.value });
                                                 }} />
+                                            {fullNameError && <div style={{ color: "red" }}>{fullNameError}</div>}
+
                                         </Form.Group>
 
                                         <Form.Group className="mb-3">
@@ -206,6 +257,9 @@ const CreateCustomer = () => {
                                                 onChange={(e) => {
                                                     setCustomer({ ...customer, birthDate: e.target.value });
                                                 }} />
+                                            {birthDateError && (
+                                                <div style={{ color: "red" }}>{birthDateError}</div>
+                                            )}
                                         </Form.Group>
                                     </div>
 
@@ -226,6 +280,8 @@ const CreateCustomer = () => {
                                                 onChange={(e) => {
                                                     setCustomer({ ...customer, email: e.target.value });
                                                 }} />
+                                            {emailError && <div style={{ color: "red" }}>{emailError}</div>}
+
                                         </Form.Group>
 
                                         <Form.Group className="mb-3">
@@ -235,6 +291,9 @@ const CreateCustomer = () => {
                                                 onChange={(e) => {
                                                     setCustomer({ ...customer, phone: e.target.value });
                                                 }} />
+                                            {phoneError && <div style={{ color: "red" }}>{phoneError}</div>}
+
+
                                         </Form.Group>
                                     </div>
 
