@@ -5,7 +5,8 @@ import {
 } from 'antd';
 import {
     DeleteOutlined, ShoppingCartOutlined, EnvironmentOutlined, PhoneOutlined,
-    UserOutlined, CreditCardOutlined, MoneyCollectOutlined, CheckCircleOutlined
+    UserOutlined, CreditCardOutlined, MoneyCollectOutlined, CheckCircleOutlined,
+    TagOutlined
 } from '@ant-design/icons';
 import { ShopContext } from '../Context/ShopContext';
 import {
@@ -631,178 +632,273 @@ const CartItems = () => {
                     </Card>
                 </Col>
                 <Col xs={24} md={8}>
-                    <Card title={<Text strong>Thông tin thanh toán</Text>} headStyle={{ backgroundColor: '#fafafa' }}>
-                        <Divider orientation="left">Mã khuyến mãi</Divider>
-                        <Form.Item label="Mã khuyến mãi">
-                            <Space style={{ width: '100%' }}>
-                                <Input
-                                    placeholder="Nhập mã khuyến mãi"
-                                    value={voucherCode}
-                                    onChange={(e) => {
-                                        setVoucherCode(e.target.value);
-                                        setVoucherError('');
-                                    }}
-                                />
-                                <Button
-                                    type="primary"
-                                    onClick={async () => {
-                                        if (selectedItems.length === 0) {
-                                            setVoucherError('Vui lòng chọn ít nhất một sản phẩm trước khi áp dụng mã khuyến mãi');
-                                            return;
-                                        }
-
-                                        if (!voucherCode) {
-                                            setVoucherError('Vui lòng nhập mã khuyến mãi');
-                                            return;
-                                        }
-
-                                        setVoucherLoading(true);
-                                        try {
-                                            const voucher = await getVoucherByCode(voucherCode);
-                                            if (!voucher) {
-                                                setVoucherError('Mã khuyến mãi không hợp lệ');
-                                                setVoucherDiscount(0);
-                                                setVoucherLoading(false);
-                                                return;
-                                            }
-
-                                            if (voucher.quantity <= 0) {
-                                                setVoucherError('Mã khuyến mãi đã hết số lượng sử dụng');
-                                                setVoucherDiscount(0);
-                                                setVoucherLoading(false);
-                                                return;
-                                            }
-
-                                            const currentDate = new Date();
-                                            const voucherEndDate = new Date(voucher.endDate);
-                                            if (voucherEndDate < currentDate) {
-                                                setVoucherError('Mã khuyến mãi đã hết hạn');
-                                                setVoucherDiscount(0);
-                                                setVoucherLoading(false);
-                                                return;
-                                            }
-
-                                            const totalCartAmount = getTotalCartAmount();
-                                            if (totalCartAmount < voucher.minOrderValue) {
-                                                setVoucherError(`Đơn hàng phải có giá trị tối thiểu ${voucher.minOrderValue.toLocaleString('vi-VN')}₫ để áp dụng mã này`);
-                                                setVoucherDiscount(0);
-                                                setVoucherLoading(false);
-                                                return;
-                                            }
-
-                                            let calculatedDiscount = 0;
-                                            if (voucher.discountType === 0) {
-                                                calculatedDiscount = voucher.discountValue;
-                                            } else if (voucher.discountType === 1) {
-                                                calculatedDiscount = (voucher.discountValue / 100) * totalCartAmount;
-                                                if (voucher.maxDiscountValue && calculatedDiscount > voucher.maxDiscountValue) {
-                                                    calculatedDiscount = voucher.maxDiscountValue;
-                                                    message.info(`Giảm giá đã được giới hạn ở mức tối đa ${voucher.maxDiscountValue.toLocaleString('vi-VN')}₫`);
-                                                }
-                                            } else {
-                                                setVoucherError('Loại giảm giá không hợp lệ');
-                                                setVoucherDiscount(0);
-                                                setVoucherLoading(false);
-                                                return;
-                                            }
-
-                                            setVoucherDiscount(calculatedDiscount);
-                                            message.success('Áp dụng mã khuyến mãi thành công!');
+                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                        <Card
+                            title={
+                                <Space>
+                                    <TagOutlined style={{ color: '#faad14' }} />
+                                    <Text strong>Mã khuyến mãi</Text>
+                                </Space>
+                            }
+                            headStyle={{ backgroundColor: '#fffbe6' }}
+                        >
+                            <Form.Item>
+                                <Space.Compact style={{ width: '100%' }}>
+                                    <Input
+                                        placeholder="Nhập mã khuyến mãi"
+                                        value={voucherCode}
+                                        onChange={(e) => {
+                                            setVoucherCode(e.target.value);
                                             setVoucherError('');
-                                        } catch (error) {
-                                            setVoucherError(error.message || 'Mã khuyến mãi không hợp lệ');
-                                            setVoucherDiscount(0);
-                                        } finally {
-                                            setVoucherLoading(false);
-                                        }
-                                    }}
-                                    loading={voucherLoading}
-                                >
-                                    Áp dụng
-                                </Button>
-                            </Space>
-                            {voucherError && <Text type="danger" style={{ display: 'block', marginTop: 8 }}>{voucherError}</Text>}
-                        </Form.Item>
-                        <Form form={form} layout="vertical" initialValues={{ remember: true }}>
-                            <Form.Item
-                                name="name"
-                                label="Họ và tên"
-                                rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
-                            >
-                                <Input
-                                    prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-                                    placeholder="Nguyễn Văn A"
-                                />
-                            </Form.Item>
-                            <Form.Item
-                                name="phone"
-                                label="Số điện thoại"
-                                rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
-                            >
-                                <Input
-                                    prefix={<PhoneOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-                                    placeholder="0987654321"
-                                />
-                            </Form.Item>
-                            <Form.Item
-                                name="email"
-                                label="Email"
-                                rules={[
-                                    { required: true, message: 'Vui lòng nhập email' },
-                                    { type: 'email', message: 'Email không hợp lệ' }
-                                ]}
-                            >
-                                <Input
-                                    placeholder="example@email.com"
-                                    type="email"
-                                />
-                            </Form.Item>
-                            <Form.Item name="province" label="Tỉnh/Thành phố" rules={[{ required: true, message: 'Vui lòng chọn tỉnh/thành phố' }]}>
-                                <Select placeholder="Chọn tỉnh/thành phố" onChange={value => setSelectedProvince(value)} loading={!provinces.length} suffixIcon={<EnvironmentOutlined />}>
-                                    {provinces.map(province => (
-                                        <Option key={province.PROVINCE_ID} value={province.PROVINCE_ID}>{province.PROVINCE_NAME}</Option>
-                                    ))}
-                                </Select>
-                            </Form.Item>
-                            <Form.Item name="district" label="Quận/Huyện" rules={[{ required: true, message: 'Vui lòng chọn quận/huyện' }]}>
-                                <Select placeholder="Chọn quận/huyện" onChange={value => setSelectedDistrict(value)} disabled={!selectedProvince} loading={!districts.length && !!selectedProvince} suffixIcon={<EnvironmentOutlined />}>
-                                    {districts.map(district => (
-                                        <Option key={district.DISTRICT_ID} value={district.DISTRICT_ID}>{district.DISTRICT_NAME}</Option>
-                                    ))}
-                                </Select>
-                            </Form.Item>
-                            <Form.Item name="ward" label="Phường/Xã" rules={[{ required: true, message: 'Vui lòng chọn phường/xã' }]}>
-                                <Select placeholder="Chọn phường/xã" onChange={value => setSelectedWard(value)} disabled={!selectedDistrict} loading={!wards.length && !!selectedDistrict} suffixIcon={<EnvironmentOutlined />}>
-                                    {wards.map(ward => (
-                                        <Option key={ward.WARDS_ID} value={ward.WARDS_ID}>{ward.WARDS_NAME}</Option>
-                                    ))}
-                                </Select>
-                            </Form.Item>
-                            <Form.Item name="address" label="Địa chỉ cụ thể" rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}>
-                                <Input prefix={<EnvironmentOutlined style={{ color: 'rgba(0,0,0,.25)' }} />} placeholder="Số nhà, tên đường" />
-                            </Form.Item>
-                            <Form.Item name="note" label="Ghi chú (tùy chọn)">
-                                <TextArea rows={3} placeholder="Ghi chú về đơn hàng..." style={{ resize: 'none' }} />
-                            </Form.Item>
-                            <Divider orientation="left">Phương thức thanh toán</Divider>
-                            <Form.Item name="paymentMethod" rules={[{ required: true, message: 'Vui lòng chọn phương thức thanh toán' }]} initialValue={1}>
-                                <Radio.Group onChange={handlePaymentMethodChange} value={paymentMethod} style={{ width: '100%' }}>
-                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                        <Radio value={1}><Space><MoneyCollectOutlined /><div><Text strong>Thanh toán khi nhận hàng (COD)</Text><br /><Text type="secondary">Khách hàng thanh toán khi nhận được hàng</Text></div></Space></Radio>
-                                        <Radio value={2}><Space><CreditCardOutlined /><div><Text strong>Chuyển khoản qua VNPAY</Text><br /><Text type="secondary">Mở cửa sổ mới để thanh toán</Text></div></Space></Radio>
-                                    </Space>
-                                </Radio.Group>
-                            </Form.Item>
-                            <Divider style={{ margin: '16px 0' }} />
-                            <Space direction="vertical" style={{ width: '100%' }}>
-                                <Row justify="space-between"><Text>Tạm tính:</Text><Text strong>{getTotalCartAmount().toLocaleString('vi-VN')}₫</Text></Row>
-                                <Spin spinning={shippingLoading}><Row justify="space-between"><Text>Phí vận chuyển:</Text><Text strong>{shippingFee.toLocaleString('vi-VN')}₫</Text></Row></Spin>
+                                        }}
+                                    />
+                                    <Button
+                                        type="primary"
+                                        onClick={async () => {
+                                            if (selectedItems.length === 0) {
+                                                setVoucherError('Vui lòng chọn ít nhất một sản phẩm trước khi áp dụng mã khuyến mãi');
+                                                return;
+                                            }
+
+                                            if (!voucherCode) {
+                                                setVoucherError('Vui lòng nhập mã khuyến mãi');
+                                                return;
+                                            }
+
+                                            setVoucherLoading(true);
+                                            try {
+                                                const voucher = await getVoucherByCode(voucherCode);
+                                                if (!voucher) {
+                                                    setVoucherError('Mã khuyến mãi không hợp lệ');
+                                                    setVoucherDiscount(0);
+                                                    setVoucherLoading(false);
+                                                    return;
+                                                }
+
+                                                if (voucher.quantity <= 0) {
+                                                    setVoucherError('Mã khuyến mãi đã hết số lượng sử dụng');
+                                                    setVoucherDiscount(0);
+                                                    setVoucherLoading(false);
+                                                    return;
+                                                }
+
+                                                const currentDate = new Date();
+                                                const voucherEndDate = new Date(voucher.endDate);
+                                                if (voucherEndDate < currentDate) {
+                                                    setVoucherError('Mã khuyến mãi đã hết hạn');
+                                                    setVoucherDiscount(0);
+                                                    setVoucherLoading(false);
+                                                    return;
+                                                }
+
+                                                const totalCartAmount = getTotalCartAmount();
+                                                if (totalCartAmount < voucher.minOrderValue) {
+                                                    setVoucherError(`Đơn hàng phải có giá trị tối thiểu ${voucher.minOrderValue.toLocaleString('vi-VN')}₫ để áp dụng mã này`);
+                                                    setVoucherDiscount(0);
+                                                    setVoucherLoading(false);
+                                                    return;
+                                                }
+
+                                                let calculatedDiscount = 0;
+                                                if (voucher.discountType === 0) {
+                                                    calculatedDiscount = voucher.discountValue;
+                                                } else if (voucher.discountType === 1) {
+                                                    calculatedDiscount = (voucher.discountValue / 100) * totalCartAmount;
+                                                    if (voucher.maxDiscountValue && calculatedDiscount > voucher.maxDiscountValue) {
+                                                        calculatedDiscount = voucher.maxDiscountValue;
+                                                        message.info(`Giảm giá đã được giới hạn ở mức tối đa ${voucher.maxDiscountValue.toLocaleString('vi-VN')}₫`);
+                                                    }
+                                                } else {
+                                                    setVoucherError('Loại giảm giá không hợp lệ');
+                                                    setVoucherDiscount(0);
+                                                    setVoucherLoading(false);
+                                                    return;
+                                                }
+
+                                                setVoucherDiscount(calculatedDiscount);
+                                                message.success('Áp dụng mã khuyến mãi thành công!');
+                                                setVoucherError('');
+                                            } catch (error) {
+                                                if (error.response && error.response.status === 404) {
+                                                    setVoucherError('Mã khuyến mãi không tồn tại');
+                                                } else {
+                                                    setVoucherError(error.message || 'Có lỗi khi kiểm tra mã khuyến mãi');
+                                                }
+                                                setVoucherDiscount(0);
+                                            } finally {
+                                                setVoucherLoading(false);
+                                            }
+                                        }}
+                                        loading={voucherLoading}
+                                    >
+                                        Áp dụng
+                                    </Button>
+                                </Space.Compact>
+                                {voucherError && <Text type="danger" style={{ display: 'block', marginTop: 8 }}>{voucherError}</Text>}
                                 {voucherDiscount > 0 && (
-                                    <Row justify="space-between"><Text>Giảm giá (mã khuyến mãi):</Text><Text strong>-{voucherDiscount.toLocaleString('vi-VN')}₫</Text></Row>
+                                    <Alert
+                                        message={`Đã áp dụng giảm giá ${voucherDiscount.toLocaleString('vi-VN')}₫`}
+                                        type="success"
+                                        showIcon
+                                        style={{ marginTop: 12 }}
+                                    />
                                 )}
-                                <Divider style={{ margin: '12px 0' }} />
-                                <Row justify="space-between" style={{ marginBottom: 24 }}>
-                                    <Text strong style={{ fontSize: 16 }}>Tổng cộng:</Text>
+                            </Form.Item>
+                        </Card>
+                        <Card title={<Text strong>Thông tin thanh toán</Text>} headStyle={{ backgroundColor: '#fafafa' }}>
+                            <Form form={form} layout="vertical" initialValues={{ remember: true }}>
+                                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                                    <Form.Item
+                                        name="name"
+                                        label="Họ tên"
+                                        rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
+                                        style={{ marginBottom: 12 }}
+                                    >
+                                        <Input prefix={<UserOutlined />} placeholder="Nguyễn Văn A" />
+                                    </Form.Item>
+                                    <Form.Item
+                                        name="phone"
+                                        label="Số điện thoại"
+                                        rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
+                                        style={{ marginBottom: 12 }}
+                                    >
+                                        <Input prefix={<PhoneOutlined />} placeholder="0987654321" />
+                                    </Form.Item>
+                                    <Form.Item
+                                        name="email"
+                                        label="Email"
+                                        rules={[
+                                            { required: true, message: 'Vui lòng nhập email' },
+                                            { type: 'email', message: 'Email không hợp lệ' }
+                                        ]}
+                                        style={{ marginBottom: 12 }}
+                                    >
+                                        <Input placeholder="example@email.com" type="email" />
+                                    </Form.Item>
+
+                                    <Form.Item
+                                        name="province"
+                                        label="Tỉnh/Thành"
+                                        rules={[{ required: true, message: 'Vui lòng chọn tỉnh/thành' }]}
+                                        style={{ marginBottom: 12 }}
+                                    >
+                                        <Select
+                                            placeholder="Chọn tỉnh/thành"
+                                            onChange={value => setSelectedProvince(value)}
+                                            loading={!provinces.length}
+                                            suffixIcon={<EnvironmentOutlined />}
+                                        >
+                                            {provinces.map(province => (
+                                                <Option key={province.PROVINCE_ID} value={province.PROVINCE_ID}>{province.PROVINCE_NAME}</Option>
+                                            ))}
+                                        </Select>
+                                    </Form.Item>
+
+                                    <Form.Item
+                                        name="district"
+                                        label="Quận/Huyện"
+                                        rules={[{ required: true, message: 'Vui lòng chọn quận/huyện' }]}
+                                        style={{ marginBottom: 12 }}
+                                    >
+                                        <Select
+                                            placeholder="Chọn quận/huyện"
+                                            onChange={value => setSelectedDistrict(value)}
+                                            disabled={!selectedProvince}
+                                            loading={!districts.length && !!selectedProvince}
+                                            suffixIcon={<EnvironmentOutlined />}
+                                        >
+                                            {districts.map(district => (
+                                                <Option key={district.DISTRICT_ID} value={district.DISTRICT_ID}>{district.DISTRICT_NAME}</Option>
+                                            ))}
+                                        </Select>
+                                    </Form.Item>
+
+                                    <Form.Item
+                                        name="ward"
+                                        label="Phường/Xã"
+                                        rules={[{ required: true, message: 'Vui lòng chọn phường/xã' }]}
+                                        style={{ marginBottom: 12 }}
+                                    >
+                                        <Select
+                                            placeholder="Chọn phường/xã"
+                                            onChange={value => setSelectedWard(value)}
+                                            disabled={!selectedDistrict}
+                                            loading={!wards.length && !!selectedDistrict}
+                                            suffixIcon={<EnvironmentOutlined />}
+                                        >
+                                            {wards.map(ward => (
+                                                <Option key={ward.WARDS_ID} value={ward.WARDS_ID}>{ward.WARDS_NAME}</Option>
+                                            ))}
+                                        </Select>
+                                    </Form.Item>
+
+                                    <Form.Item
+                                        name="address"
+                                        label="Địa chỉ"
+                                        rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
+                                        style={{ marginBottom: 12 }}
+                                    >
+                                        <Input prefix={<EnvironmentOutlined />} placeholder="Số nhà, tên đường" />
+                                    </Form.Item>
+
+                                    <Form.Item name="note" label="Ghi chú" style={{ marginBottom: 16 }}>
+                                        <TextArea rows={2} placeholder="Ghi chú về đơn hàng..." style={{ resize: 'none' }} />
+                                    </Form.Item>
+
+                                    <Divider orientation="left" style={{ marginTop: 0 }}>Phương thức thanh toán</Divider>
+
+                                    <Form.Item
+                                        name="paymentMethod"
+                                        rules={[{ required: true, message: 'Vui lòng chọn phương thức thanh toán' }]}
+                                        initialValue={1}
+                                        style={{ marginBottom: 16 }}
+                                    >
+                                        <Radio.Group
+                                            onChange={handlePaymentMethodChange}
+                                            value={paymentMethod}
+                                            style={{ width: '100%' }}
+                                        >
+                                            <Space direction="vertical" style={{ width: '100%' }}>
+                                                <Radio value={1} style={{ whiteSpace: 'nowrap' }}>
+                                                    <Space size="small">
+                                                        <MoneyCollectOutlined />
+                                                        <Text>Thanh toán khi nhận hàng </Text>
+                                                    </Space>
+                                                </Radio>
+                                                <Radio value={2} style={{ whiteSpace: 'nowrap' }}>
+                                                    <Space size="small">
+                                                        <CreditCardOutlined />
+                                                        <Text>Thanh toán qua VNPAY</Text>
+                                                    </Space>
+                                                </Radio>
+                                            </Space>
+                                        </Radio.Group>
+                                    </Form.Item>
+                                </Space>
+                            </Form>
+
+                            <Divider style={{ margin: '12px 0' }} />
+
+                            <Space direction="vertical" style={{ width: '100%' }}>
+                                <Row justify="space-between">
+                                    <Text>Tạm tính:</Text>
+                                    <Text strong>{getTotalCartAmount().toLocaleString('vi-VN')}₫</Text>
+                                </Row>
+                                <Spin spinning={shippingLoading}>
+                                    <Row justify="space-between">
+                                        <Text>Phí vận chuyển:</Text>
+                                        <Text strong>{shippingFee.toLocaleString('vi-VN')}₫</Text>
+                                    </Row>
+                                </Spin>
+                                {voucherDiscount > 0 && (
+                                    <Row justify="space-between">
+                                        <Text>Giảm giá:</Text>
+                                        <Text strong style={{ color: '#ff4d4f' }}>-{voucherDiscount.toLocaleString('vi-VN')}₫</Text>
+                                    </Row>
+                                )}
+                                <Divider style={{ margin: '8px 0' }} />
+                                <Row justify="space-between" style={{ marginBottom: 16 }}>
+                                    <Text strong>Tổng cộng:</Text>
                                     <Text strong style={{ fontSize: 18, color: '#1890ff' }}>
                                         {(getTotalCartAmount() + shippingFee - voucherDiscount).toLocaleString('vi-VN')}₫
                                     </Text>
@@ -819,8 +915,8 @@ const CartItems = () => {
                                     Đặt hàng
                                 </Button>
                             </Space>
-                        </Form>
-                    </Card>
+                        </Card>
+                    </Space>
                 </Col>
                 <Modal
                     title="Xác nhận đặt hàng"
