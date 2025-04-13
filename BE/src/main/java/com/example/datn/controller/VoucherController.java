@@ -76,4 +76,16 @@ public class VoucherController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/code/{voucherCode}")
+    public ResponseEntity<ApiResponse<VoucherResponse>> getByCode(@PathVariable String voucherCode) {
+        VoucherResponse voucherResponse = voucherService.getVoucherByCode(voucherCode);
+
+        ApiResponse<VoucherResponse> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Voucher retrieved successfully",
+                voucherResponse
+        );
+
+        return ResponseEntity.ok(response);
+    }
 }

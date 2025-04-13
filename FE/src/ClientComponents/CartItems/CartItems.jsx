@@ -12,7 +12,7 @@ import {
     fetchProvinces, fetchDistricts, fetchWards, fetchShippingFee, createOrder,
     createGuestOrder, fetchCustomerProfile, clearCartOnServer, getCartDetails,
     checkStockAvailability, sendOrderConfirmationEmail, generateVNPayPayment,
-    checkVNPayPaymentStatus
+    checkVNPayPaymentStatus, getVoucherByCode, createOrderVoucher
 } from '../Service/productService';
 
 const { Title, Text } = Typography;
@@ -48,7 +48,11 @@ const CartItems = () => {
     const [orderCode, setOrderCode] = useState('');
     const [isConfirmModalLoading, setIsConfirmModalLoading] = useState(false);
     const [checkingPayment, setCheckingPayment] = useState(false);
-    const vnpayWindowRef = useRef(null); // Tham chiếu đến cửa sổ VNPay
+    const vnpayWindowRef = useRef(null);
+    const [voucherCode, setVoucherCode] = useState('');
+    const [voucherDiscount, setVoucherDiscount] = useState(0);
+    const [voucherError, setVoucherError] = useState('');
+    const [voucherLoading, setVoucherLoading] = useState(false);
 
     // Khởi tạo giỏ hàng
     useEffect(() => {
@@ -171,7 +175,15 @@ const CartItems = () => {
                     else localStorage.setItem('cartItems', JSON.stringify(
                         cartItems.filter(item => !validSelectedItems.includes(item.productDetailId || item.productDetail?.id))
                     ));
-
+                    setVoucherCode('');
+                    setVoucherDiscount(0);
+                    setVoucherError('');
+                    // Xóa thông tin thanh toán
+                    form.resetFields();
+                    setSelectedProvince('');
+                    setSelectedDistrict('');
+                    setSelectedWard('');
+                    setShippingFee(0);
                     if (vnpayWindowRef.current && !vnpayWindowRef.current.closed) {
                         vnpayWindowRef.current.close();
                     }
@@ -384,7 +396,7 @@ const CartItems = () => {
                 return;
             }
 
-            const totalAmount = getTotalCartAmount() + shippingFee;
+            const totalAmount = getTotalCartAmount() + shippingFee - voucherDiscount;
             const orderData = {
                 customerName: formValues.name,
                 phone: formValues.phone,
@@ -392,7 +404,7 @@ const CartItems = () => {
                 address: address,
                 note: formValues.note || '',
                 shippingFee: shippingFee,
-                discountValue: 0.0,
+                discountValue: voucherDiscount,
                 totalPrice: getTotalCartAmount(),
                 totalPayment: totalAmount,
                 paymentMethodId: paymentMethod === 1 ? 3 : 2, // 3: COD, 2: VNPAY
@@ -407,6 +419,40 @@ const CartItems = () => {
 
             console.log('Dữ liệu đơn hàng gửi đi:', JSON.stringify(orderData, null, 2));
             let response;
+            let voucherData = null;
+            if (voucherCode && voucherDiscount > 0) {
+                voucherData = await getVoucherByCode(voucherCode);
+                // Kiểm tra lại voucher để đảm bảo tính nhất quán
+                if (!voucherData || voucherData.quantity <= 0) {
+                    message.error('Mã khuyến mãi đã hết số lượng hoặc không hợp lệ');
+                    setLoading(false);
+                    return;
+                }
+                const currentDate = new Date();
+                const voucherEndDate = new Date(voucherData.endDate);
+                if (voucherEndDate < currentDate) {
+                    message.error('Mã khuyến mãi đã hết hạn');
+                    setLoading(false);
+                    return;
+                }
+                if (getTotalCartAmount() < voucherData.minOrderValue) {
+                    message.error(`Đơn hàng phải có giá trị tối thiểu ${voucherData.minOrderValue.toLocaleString('vi-VN')}₫`);
+                    setLoading(false);
+                    return;
+                }
+                // Kiểm tra lại giảm giá
+                let calculatedDiscount = voucherData.discountValue;
+                if (voucherData.discountType === 1) {
+                    calculatedDiscount = (voucherData.discountValue / 100) * getTotalCartAmount();
+                    if (voucherData.maxDiscountValue && calculatedDiscount > voucherData.maxDiscountValue) {
+                        calculatedDiscount = voucherData.maxDiscountValue;
+                    }
+                    if (calculatedDiscount !== voucherDiscount) {
+                        setVoucherDiscount(calculatedDiscount);
+                    }
+                }
+            }
+
             if (isGuest) {
                 response = await createGuestOrder(orderData);
             } else {
@@ -432,8 +478,24 @@ const CartItems = () => {
                 console.log("===Mã đơn hàng===" + orderCode);
                 setOrderCode(orderCode);
 
+                // Tạo OrderVoucher nếu voucher được áp dụng
+                if (voucherData) {
+                    const orderVoucherData = {
+                        orderId: response.data?.id || response.data?.data?.id,
+                        voucherId: voucherData.id,
+                        status: '1'
+                    };
+                    try {
+                        await createOrderVoucher(orderVoucherData);
+                    } catch (error) {
+                        message.error(error.message || 'Không thể áp dụng mã khuyến mãi do lỗi hệ thống');
+                        setLoading(false);
+                        return;
+                    }
+                }
+
                 if (paymentMethod === 2) { // VNPAY
-                    await generateVNPayPaymentHandler(orderCode, totalAmount); // Truyền orderCode
+                    await generateVNPayPaymentHandler(orderCode, totalAmount);
                 } else { // COD
                     setThankYouModalVisible(true);
                     message.success('Đặt hàng thành công!');
@@ -451,6 +513,16 @@ const CartItems = () => {
                     else localStorage.setItem('cartItems', JSON.stringify(
                         cartItems.filter(item => !validSelectedItems.includes(item.productDetailId || item.productDetail?.id))
                     ));
+                    // Đặt lại trạng thái voucher
+                    setVoucherCode('');
+                    setVoucherDiscount(0);
+                    setVoucherError('');
+                    // Xóa thông tin thanh toán
+                    form.resetFields();
+                    setSelectedProvince('');
+                    setSelectedDistrict('');
+                    setSelectedWard('');
+                    setShippingFee(0);
                 }
             }
         } catch (error) {
@@ -560,6 +632,97 @@ const CartItems = () => {
                 </Col>
                 <Col xs={24} md={8}>
                     <Card title={<Text strong>Thông tin thanh toán</Text>} headStyle={{ backgroundColor: '#fafafa' }}>
+                        <Divider orientation="left">Mã khuyến mãi</Divider>
+                        <Form.Item label="Mã khuyến mãi">
+                            <Space style={{ width: '100%' }}>
+                                <Input
+                                    placeholder="Nhập mã khuyến mãi"
+                                    value={voucherCode}
+                                    onChange={(e) => {
+                                        setVoucherCode(e.target.value);
+                                        setVoucherError('');
+                                    }}
+                                />
+                                <Button
+                                    type="primary"
+                                    onClick={async () => {
+                                        if (selectedItems.length === 0) {
+                                            setVoucherError('Vui lòng chọn ít nhất một sản phẩm trước khi áp dụng mã khuyến mãi');
+                                            return;
+                                        }
+
+                                        if (!voucherCode) {
+                                            setVoucherError('Vui lòng nhập mã khuyến mãi');
+                                            return;
+                                        }
+
+                                        setVoucherLoading(true);
+                                        try {
+                                            const voucher = await getVoucherByCode(voucherCode);
+                                            if (!voucher) {
+                                                setVoucherError('Mã khuyến mãi không hợp lệ');
+                                                setVoucherDiscount(0);
+                                                setVoucherLoading(false);
+                                                return;
+                                            }
+
+                                            if (voucher.quantity <= 0) {
+                                                setVoucherError('Mã khuyến mãi đã hết số lượng sử dụng');
+                                                setVoucherDiscount(0);
+                                                setVoucherLoading(false);
+                                                return;
+                                            }
+
+                                            const currentDate = new Date();
+                                            const voucherEndDate = new Date(voucher.endDate);
+                                            if (voucherEndDate < currentDate) {
+                                                setVoucherError('Mã khuyến mãi đã hết hạn');
+                                                setVoucherDiscount(0);
+                                                setVoucherLoading(false);
+                                                return;
+                                            }
+
+                                            const totalCartAmount = getTotalCartAmount();
+                                            if (totalCartAmount < voucher.minOrderValue) {
+                                                setVoucherError(`Đơn hàng phải có giá trị tối thiểu ${voucher.minOrderValue.toLocaleString('vi-VN')}₫ để áp dụng mã này`);
+                                                setVoucherDiscount(0);
+                                                setVoucherLoading(false);
+                                                return;
+                                            }
+
+                                            let calculatedDiscount = 0;
+                                            if (voucher.discountType === 0) {
+                                                calculatedDiscount = voucher.discountValue;
+                                            } else if (voucher.discountType === 1) {
+                                                calculatedDiscount = (voucher.discountValue / 100) * totalCartAmount;
+                                                if (voucher.maxDiscountValue && calculatedDiscount > voucher.maxDiscountValue) {
+                                                    calculatedDiscount = voucher.maxDiscountValue;
+                                                    message.info(`Giảm giá đã được giới hạn ở mức tối đa ${voucher.maxDiscountValue.toLocaleString('vi-VN')}₫`);
+                                                }
+                                            } else {
+                                                setVoucherError('Loại giảm giá không hợp lệ');
+                                                setVoucherDiscount(0);
+                                                setVoucherLoading(false);
+                                                return;
+                                            }
+
+                                            setVoucherDiscount(calculatedDiscount);
+                                            message.success('Áp dụng mã khuyến mãi thành công!');
+                                            setVoucherError('');
+                                        } catch (error) {
+                                            setVoucherError(error.message || 'Mã khuyến mãi không hợp lệ');
+                                            setVoucherDiscount(0);
+                                        } finally {
+                                            setVoucherLoading(false);
+                                        }
+                                    }}
+                                    loading={voucherLoading}
+                                >
+                                    Áp dụng
+                                </Button>
+                            </Space>
+                            {voucherError && <Text type="danger" style={{ display: 'block', marginTop: 8 }}>{voucherError}</Text>}
+                        </Form.Item>
                         <Form form={form} layout="vertical" initialValues={{ remember: true }}>
                             <Form.Item
                                 name="name"
@@ -634,11 +797,14 @@ const CartItems = () => {
                             <Space direction="vertical" style={{ width: '100%' }}>
                                 <Row justify="space-between"><Text>Tạm tính:</Text><Text strong>{getTotalCartAmount().toLocaleString('vi-VN')}₫</Text></Row>
                                 <Spin spinning={shippingLoading}><Row justify="space-between"><Text>Phí vận chuyển:</Text><Text strong>{shippingFee.toLocaleString('vi-VN')}₫</Text></Row></Spin>
+                                {voucherDiscount > 0 && (
+                                    <Row justify="space-between"><Text>Giảm giá (mã khuyến mãi):</Text><Text strong>-{voucherDiscount.toLocaleString('vi-VN')}₫</Text></Row>
+                                )}
                                 <Divider style={{ margin: '12px 0' }} />
                                 <Row justify="space-between" style={{ marginBottom: 24 }}>
                                     <Text strong style={{ fontSize: 16 }}>Tổng cộng:</Text>
                                     <Text strong style={{ fontSize: 18, color: '#1890ff' }}>
-                                        {(getTotalCartAmount() + shippingFee).toLocaleString('vi-VN')}₫
+                                        {(getTotalCartAmount() + shippingFee - voucherDiscount).toLocaleString('vi-VN')}₫
                                     </Text>
                                 </Row>
                                 <Button
@@ -676,10 +842,16 @@ const CartItems = () => {
                         <Text>Phí vận chuyển:</Text>
                         <Text strong>{shippingFee.toLocaleString('vi-VN')}₫</Text>
                     </Row>
+                    {voucherDiscount > 0 && (
+                        <Row justify="space-between">
+                            <Text>Giảm giá (mã khuyến mãi):</Text>
+                            <Text strong>-{voucherDiscount.toLocaleString('vi-VN')}₫</Text>
+                        </Row>
+                    )}
                     <Row justify="space-between">
                         <Text strong>Tổng thanh toán:</Text>
                         <Text strong style={{ color: '#1890ff' }}>
-                            {(getTotalCartAmount() + shippingFee).toLocaleString('vi-VN')}₫
+                            {(getTotalCartAmount() + shippingFee - voucherDiscount).toLocaleString('vi-VN')}₫
                         </Text>
                     </Row>
                 </Modal>

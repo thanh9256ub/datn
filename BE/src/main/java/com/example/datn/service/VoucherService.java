@@ -99,7 +99,8 @@ public class VoucherService {
         Voucher voucher = mapper.voucher(request);
 
         voucher.setVoucherCode(generateUniqueVoucher());
-
+        voucher.setMinOrderValue(request.getMinOrderValue());
+voucher.setMaxDiscountValue(request.getMaxDiscountValue());
         Voucher created = voucherRepository.save(voucher);
 
         return mapper.voucherResponse(created);
@@ -132,5 +133,11 @@ public class VoucherService {
             }
         }
 
+    }
+    public VoucherResponse getVoucherByCode(String voucherCode) {
+        Voucher voucher = voucherRepository.findByVoucherCode(voucherCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Voucher not found with code: " + voucherCode));
+
+        return mapper.voucherResponse(voucher);
     }
 }
