@@ -47,9 +47,11 @@ const Shop = () => {
                     }
                 });
 
-                const newProds = products.sort((a, b) =>
+                const uniqueProducts = Array.from(uniqueProductsMap.values());
+
+                const newProds = [...uniqueProducts].sort((a, b) =>
                     new Date(b.product.createdAt) - new Date(a.product.createdAt)
-                );
+                ).slice(0, 8);
 
                 const colorPromises = products.map(async (item) => {
                     const colors = await fetchProductColorsByProduct(item.product.id);
@@ -62,9 +64,9 @@ const Shop = () => {
                     return acc;
                 }, {});
 
-                setProducts(Array.from(uniqueProductsMap.values()));
+                setProducts(uniqueProducts);
                 setProductColors(colorMap);
-                setNewProducts(newProds.slice(0, 8))
+                setNewProducts(newProds)
 
                 const voucherResponse = await getVouchers();
                 setVouchers(voucherResponse.data.data || []);
@@ -215,7 +217,7 @@ const Shop = () => {
                                 height: 20,
                                 textAlign: 'center',
                                 lineHeight: '20px',
-                                border: '0px'
+                                border: '1px solid #00000'
                             }}
                         >
                         </Tag>
