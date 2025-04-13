@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Button, Card, Form, Input, List, Typography, Spin, 
-  Alert, Divider, Space, Tag, Image, Row, Col, Descriptions 
+import {
+  Button, Card, Form, Input, List, Typography, Spin,
+  Alert, Divider, Space, Tag, Image, Row, Col, Descriptions
 } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { fetchOrderByCode, fetchOrderDetailsByOrderId } from '../Service/productService';
@@ -21,11 +21,11 @@ export const SearchOrder = () => {
       setError(null);
       setOrder(null);
       setOrderDetails([]);
-      
+
       // 1. Tìm order bằng orderCode
       const orderData = await fetchOrderByCode(values.orderCode);
       setOrder(orderData);
-      
+
       // 2. Nếu tìm thấy order, lấy danh sách orderDetails
       if (orderData && orderData.id) {
         const details = await fetchOrderDetailsByOrderId(orderData.id);
@@ -68,13 +68,13 @@ export const SearchOrder = () => {
         dataSource={orderDetails}
         renderItem={(item, index) => {
           // Xử lý dữ liệu sản phẩm
-          const productName = item.productDetail?.product?.productName || 
-                            item.productDetailName || 
-                            `Sản phẩm ${index + 1}`;
+          const productName = item.productDetail?.product?.productName ||
+            item.productDetailName ||
+            `Sản phẩm ${index + 1}`;
           const color = item.productDetail?.color?.colorName || 'Không xác định';
           const size = item.productDetail?.size?.sizeName || 'Không xác định';
-          const imageUrl = item.productDetail?.product?.mainImage || 
-                         'https://via.placeholder.com/80';
+          const imageUrl = item.productDetail?.product?.mainImage ||
+            'https://via.placeholder.com/80';
 
           return (
             <List.Item key={index}>
@@ -115,8 +115,8 @@ export const SearchOrder = () => {
     <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
       <Title level={2}>Tra cứu đơn hàng</Title>
       <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
-                Lưu ý: Khách hàng có nhu cầu đặt thêm sản phẩm, quý khách xin vui lòng liên hệ đến cửa hàng.
-            </Text>
+        Lưu ý: Khách hàng có nhu cầu đặt thêm sản phẩm, quý khách xin vui lòng liên hệ đến cửa hàng.
+      </Text>
       <Card style={{ marginBottom: 24 }}>
         <Form form={form} layout="inline" onFinish={onSearch}>
           <Form.Item
@@ -124,17 +124,17 @@ export const SearchOrder = () => {
             rules={[{ required: true, message: 'Vui lòng nhập mã đơn hàng' }]}
             style={{ flex: 1 }}
           >
-            <Input 
-              placeholder="Nhập mã đơn hàng (ví dụ: HD2407123456)" 
-              size="large" 
+            <Input
+              placeholder="Nhập mã đơn hàng (ví dụ: HD2407123456)"
+              size="large"
               style={{ minWidth: 300 }}
             />
           </Form.Item>
           <Form.Item>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
-              icon={<SearchOutlined />} 
+            <Button
+              type="primary"
+              htmlType="submit"
+              icon={<SearchOutlined />}
               size="large"
               loading={loading}
             >
@@ -149,18 +149,18 @@ export const SearchOrder = () => {
       )}
 
       {error && (
-        <Alert 
-          message="Lỗi khi tìm đơn hàng" 
-          description={error} 
-          type="error" 
-          showIcon 
-          style={{ marginBottom: 24 }} 
+        <Alert
+          message="Lỗi khi tìm đơn hàng"
+          description={error}
+          type="error"
+          showIcon
+          style={{ marginBottom: 24 }}
         />
       )}
 
       {order && (
         <>
-          <Card 
+          <Card
             title={`Đơn hàng #${order.orderCode}`}
             extra={getStatusTag(order.status)}
             style={{ marginBottom: 24 }}
@@ -180,7 +180,7 @@ export const SearchOrder = () => {
             <Divider orientation="left">Thông tin thanh toán</Divider>
             <Row gutter={16} style={{ marginBottom: 16 }}>
               <Col span={12}>
-                <Text strong>Phương thức thanh toán:</Text> {order.paymentMethod?.methodName || 'COD'}
+                <Text strong>Phương thức thanh toán:</Text> {order.paymentMethod?.paymentMethodName || 'COD'}
               </Col>
               <Col span={12} style={{ textAlign: 'right' }}>
                 <Text strong>Tổng tiền hàng:</Text> {order.totalPrice?.toLocaleString('vi-VN')}₫
@@ -191,7 +191,7 @@ export const SearchOrder = () => {
                 <Text strong>Phí vận chuyển:</Text> {order.shippingFee?.toLocaleString('vi-VN')}₫
               </Col>
               <Col span={12} style={{ textAlign: 'right' }}>
-                <Text strong>Tổng thanh toán:</Text> 
+                <Text strong>Tổng thanh toán:</Text>
                 <Text strong style={{ color: '#1890ff', fontSize: 18 }}>
                   {' '}{order.totalPayment?.toLocaleString('vi-VN')}₫
                 </Text>

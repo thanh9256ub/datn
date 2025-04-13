@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -107,19 +108,11 @@ public class OrderService {
         return mapper.toListOrders(repository.findAllWithPaymentDetails());
     }
 
-    // public OrderResponse updateStatus(Integer id, int newStatus) {
-    // Order order = repository.findById(id)
-    // .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
-    // order.setStatus(newStatus);
-    // Order updatedOrder = repository.save(order);
-    // return mapper.toOrderResponse(updatedOrder);
-    // }
     @Transactional
     public OrderResponse updateStatus(Integer id, int newStatus) {
         Order order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
 
-        // Nếu trạng thái mới là "Đã xác nhận" (2) và trạng thái hiện tại nhỏ hơn 2
         if (newStatus == 2 && order.getStatus() < 2) {
             List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(id);
             for (OrderDetail detail : orderDetails) {
@@ -176,7 +169,30 @@ public class OrderService {
 
         return mapper.toOrderResponse(repository.save(order));
     }
+    public OrderResponse updateNote(Integer id, UpdateOrderNoteRequest request) {
+        // Kiểm tra id không null
+        if (Objects.isNull(id)) {
+            throw new IllegalArgumentException("orderId không được để trống");
+        }
 
+        // Tìm đơn hàng
+        Order order = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Đơn hàng không tồn tại với id: " + id));
+
+        // Cập nhật note
+        if (request.getNote() != null) {
+            order.setNote(request.getNote());
+        } else {
+            order.setNote(""); // Đặt note rỗng nếu không có giá trị
+        }
+
+        // Cập nhật thời gian
+        order.setUpdatedAt(LocalDateTime.now().withNano(0));
+
+        // Lưu đơn hàng
+        Order updatedOrder = repository.save(order);
+        return mapper.toOrderResponse(updatedOrder);
+    }
     public List<OrderResponse> filterOrders(
             String orderCode,
             Double minPrice,

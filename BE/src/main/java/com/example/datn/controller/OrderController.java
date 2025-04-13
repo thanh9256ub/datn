@@ -1,9 +1,6 @@
 package com.example.datn.controller;
 
-import com.example.datn.dto.request.CustomerInfoRequest;
-import com.example.datn.dto.request.GuestOrderRequest;
-import com.example.datn.dto.request.OrderRequest;
-import com.example.datn.dto.request.PaymentMethodRequest;
+import com.example.datn.dto.request.*;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.OrderResponse;
 import com.example.datn.dto.response.PaymentMethodResponse;
@@ -213,6 +210,25 @@ public class OrderController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ApiResponse<>(404, "Order not found", null));
+        }
+    }
+    @PutMapping("/{id}/note")
+    public ResponseEntity<ApiResponse<OrderResponse>> updateOrderNote(
+            @PathVariable Integer id,
+            @RequestBody @Valid UpdateOrderNoteRequest request) {
+        try {
+            System.out.println("Received update note request for order id: " + id + ", note: " + request.getNote()); // Debug
+            OrderResponse response = service.updateNote(id, request);
+            return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Cập nhật ghi chú đơn hàng thành công", response));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>(HttpStatus.NOT_FOUND.value(), e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Có lỗi xảy ra khi cập nhật ghi chú: " + e.getMessage(), null));
         }
     }
 }
