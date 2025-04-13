@@ -32,30 +32,24 @@ public class OrderVoucherService {
     @Transactional
 
     public OrderVoucherReponse create(OrderVoucherRequest request) {
-        // Tìm voucher theo voucherId
         Voucher voucher = voucherRepository.findById(request.getVoucherId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy voucher với ID: " + request.getVoucherId()));
 
-        // Kiểm tra số lượng voucher
         if (voucher.getQuantity() <= 0) {
             throw new RuntimeException("Mã khuyến mãi đã hết số lượng");
         }
 
-        // Tìm order theo orderId
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với ID: " + request.getOrderId()));
 
-        // Tạo OrderVoucher
         OrderVoucher orderVoucher = new OrderVoucher();
         orderVoucher.setOrder(order);
         orderVoucher.setVoucher(voucher);
         orderVoucher.setStatus(request.getStatus());
 
-        // Giảm số lượng voucher
         voucher.setQuantity(voucher.getQuantity() - 1);
         voucherRepository.save(voucher);
 
-        // Lưu OrderVoucher
         OrderVoucher created = repository.save(orderVoucher);
         return mapper.toOrderVoucherReponse(created);
     }

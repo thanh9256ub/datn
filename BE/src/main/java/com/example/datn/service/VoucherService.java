@@ -51,7 +51,6 @@ public class VoucherService {
             if (!oldStatus.equals(newStatus)) {
                 v.setStatus(newStatus);
                 updatedVouchers.add(v);
-                // Gửi thông báo chỉ với mã voucher
                 webSocketController.sendVoucherUpdate(v.getVoucherCode());
                 log.info("Voucher {} updated from status {} to {}", v.getVoucherCode(), oldStatus, newStatus);
             }
