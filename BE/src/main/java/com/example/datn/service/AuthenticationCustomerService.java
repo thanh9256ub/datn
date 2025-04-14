@@ -61,8 +61,12 @@ public class AuthenticationCustomerService {
 
     public AuthenticationCustomerResponse authenticationResponse(AuthencaticationCustomerRequest authencaticationCustomerRequest) throws AuthenticationException {
         var customer = customerRepository.findByEmail(authencaticationCustomerRequest.getEmail()).orElseThrow(
-                () -> new AuthenticationException("Customer not existed.")
+                () -> new AuthenticationException("NOT_CUSTOMER")
         );
+
+        if (customer.getStatus() == 0) {
+            throw new AuthenticationException("TAI_KHOAN_BI_KHOA");
+        }
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
 
