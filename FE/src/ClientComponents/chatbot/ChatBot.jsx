@@ -14,6 +14,9 @@ const ChatBot = () => {
 
     const [shoeKeywords, setShoeKeywords] = useState([]);
     const [brandKeywords, setBrandKeywords] = useState([]);
+    const [colorKeywords, setColorKeywords] = useState(['màu', 'color']);
+    const [sizeKeywords, setSizeKeywords] = useState(['size', 'kích cỡ']);
+    const [priceKeywords, setPriceKeywords] = useState(['giá', 'price']);
     const ai = new GoogleGenAI({ apiKey: "AIzaSyBJy-DswHgXLYZvyXhh3p49aZzdXTeCl-s" });
 
     const storeInfo = {
@@ -29,12 +32,17 @@ const ChatBot = () => {
     useEffect(() => {
         const fetchShoeKeywords = async () => {
             try {
-                const response = await axios.get(`${BASE_URL}/products/list`);
-                const productNames = response.data.data.map(item => item.productName);
+                const response = await axios.get(`${BASE_URL}/product-detail/products/list`);
+                const productNames = response.data.data.map(item => item.product.productName);
                 setShoeKeywords(productNames);
-                console.log("Name: ", productNames)
-                console.log("Key: ", shoeKeywords)
-
+                const brandNames = response.data.data.map(item => item.product.brand.brandName);
+                setBrandKeywords(brandNames);
+                const colorNames  = response.data.data.map(item => item.brand.brandName);
+                colorKeywords(colorNames);
+                const sizeNames   = response.data.data.map(item => item.brand.brandName);
+                sizeKeywords(sizeNames);
+                const priceNames  = response.data.data.map(item => item.brand.brandName);
+                setPriceKeywords(priceNames);
             } catch (error) {
                 console.error("Error fetching shoe keywords:", error);
             }
@@ -43,20 +51,7 @@ const ChatBot = () => {
         fetchShoeKeywords();
     }, []);
 
-    useEffect(() => {
-        const fetchBrandKeywords = async () => {
-            try {
-                const response = await axios.get(`${BASE_URL}/products/list`);
-                const brandNames = response.data.data.map(item => item.brand.brandName);
-                setBrandKeywords(brandNames);
-
-            } catch (error) {
-                console.error("Error fetching brand keywords:", error);
-            }
-        };
-
-        fetchBrandKeywords();
-    }, []);
+   
 
     useEffect(async () => {
         if (isChatOpen && chatHistory.length === 0) {
@@ -99,6 +94,21 @@ const ChatBot = () => {
         const foundShoe = shoeKeywords.find(shoe =>
             lowerMessage.includes(normalizeText(shoe))
         );
+
+        // Tìm từ khóa màu sắc
+        if (colorKeywords.some(keyword => lowerMessage.includes(normalizeText(keyword)))) {
+            return 'color';
+        }
+
+        // Tìm từ khóa kích cỡ
+        if (sizeKeywords.some(keyword => lowerMessage.includes(normalizeText(keyword)))) {
+            return 'size';
+        }
+
+        // Tìm từ khóa giá cả
+        if (priceKeywords.some(keyword => lowerMessage.includes(normalizeText(keyword)))) {
+            return 'price';
+        }
 
         return foundShoe || foundBrand || null;
     };
