@@ -47,8 +47,8 @@ public class ProductDetailService {
         return mapper.toListProductDetail(repository.findByStatusNot(2));
     }
 
-    public List<ProductDetailResponse> getBin() {
-        return mapper.toListProductDetail(repository.findByStatus(2));
+    public List<ProductDetailResponse> getBin(Integer productId) {
+        return mapper.toListProductDetail(repository.findByProductIdAndStatus(productId,2));
     }
 
     public List<ProductDetailResponse> getProductDetailsByProductId(Integer productId) {
@@ -56,7 +56,7 @@ public class ProductDetailService {
         productRepository.findById(productId).orElseThrow(
                 () -> new ResourceNotFoundException("Product not found with ID: "));
 
-        List<ProductDetail> productDetails = repository.findByProductId(productId);
+        List<ProductDetail> productDetails = repository.findByProductIdAndStatusNot(productId, 2);
 
         return mapper.toListProductDetail(productDetails);
     }
@@ -122,24 +122,6 @@ public class ProductDetailService {
         return mapper.toProductDetailResponse(productDetail);
     }
 
-    //    public void updateTotalQuantity(Integer productId) {
-//
-//        Integer updatedTotalQuantity = repository.sumQuantityByProductId(productId);
-//
-//        Product product = productRepository.findById(productId).orElseThrow(
-//                () -> new ResourceNotFoundException("Product not found with ID: " + productId));
-//
-//        product.setTotalQuantity(updatedTotalQuantity);
-//        product.setStatus(updatedTotalQuantity > 0 ? 1 : 0);
-//        Product savedProduct = productRepository.save(product);
-//
-//        // Gửi thông báo realtime sau khi cập nhật thành công
-//        webSocketController.sendProductUpdate(
-//                savedProduct.getProductCode(),
-//                savedProduct.getTotalQuantity()
-//        );
-//
-//    }
     public void updateTotalQuantity(Integer productId) {
         Product product = productRepository.findById(productId).orElseThrow(
                 () -> new ResourceNotFoundException("Product not found with ID: " + productId));
@@ -235,7 +217,7 @@ public class ProductDetailService {
         );
 
         // Lấy tất cả các productDetail theo productId và colorId
-        List<ProductDetail> productDetails = repository.findByProductIdAndColorId(productId, colorId);
+        List<ProductDetail> productDetails = repository.findByProductIdAndColorIdAndStatusNot(productId, colorId, 2);
 
         // Lấy danh sách các size của productDetail
         List<Size> sizes = productDetails.stream()
@@ -247,7 +229,7 @@ public class ProductDetailService {
     }
 
     public ProductDetailResponse getDetailByAttributes(Integer productId, Integer colorId, Integer sizeId) {
-        ProductDetail productDetail = repository.findByProduct_IdAndColor_IdAndSize_Id(productId, colorId, sizeId)
+        ProductDetail productDetail = repository.findByProduct_IdAndColor_IdAndSize_IdAndStatusNot(productId, colorId, sizeId, 2)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         String.format("Product detail not found with productId: %d, colorId: %d, sizeId: %d",
                                 productId, colorId, sizeId)
@@ -267,6 +249,45 @@ public class ProductDetailService {
         }
 
         return mapper.toProductDetailResponse(repository.save(productDetail));
+    }
+
+    public List<ProductDetailResponse> deleteAndRestoreProductDetails(List<Integer> pdIds) {
+        // Lấy tất cả product details từ database
+        List<ProductDetail> productDetails = repository.findAllById(pdIds);
+
+        // Kiểm tra nếu có ID không tồn tại
+        if (productDetails.size() != pdIds.size()) {
+            List<Integer> foundIds = productDetails.stream()
+                    .map(ProductDetail::getId)
+                    .collect(Collectors.toList());
+
+            List<Integer> missingIds = pdIds.stream()
+                    .filter(id -> !foundIds.contains(id))
+                    .collect(Collectors.toList());
+
+            throw new ResourceNotFoundException("Product Details not found with IDs: " + missingIds);
+        }
+
+        // Cập nhật trạng thái cho từng product detail
+        for (ProductDetail productDetail : productDetails) {
+            if (productDetail.getStatus() != 2) {
+                productDetail.setStatus(2); // Đánh dấu là đã xóa
+            } else {
+                productDetail.setStatus(productDetail.getQuantity() > 0 ? 1 : 0); // Khôi phục
+            }
+        }
+
+        // Lưu tất cả thay đổi
+        List<ProductDetail> savedDetails = repository.saveAll(productDetails);
+
+        Integer productId = productDetails.get(0).getProduct().getId();
+
+        updateTotalQuantity(productId);
+
+        // Chuyển đổi sang response
+        return savedDetails.stream()
+                .map(mapper::toProductDetailResponse)
+                .collect(Collectors.toList());
     }
 
     public List<ProductDetailResponse> getRelatedProducts(Integer pId) {

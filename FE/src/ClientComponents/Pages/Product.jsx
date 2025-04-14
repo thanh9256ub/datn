@@ -32,6 +32,15 @@ const Product = () => {
                 console.log("API response (product details):", detailResponse);
                 console.log("API response (product colors):", colorResponse);
 
+                const availableColorIds = [...new Set(
+                    detailResponse.map(detail => detail.color?.id).filter(Boolean)
+                )];
+
+                // Lọc productColors chỉ giữ lại những màu có trong detailResponse
+                const filteredColors = colorResponse.filter(pc =>
+                    availableColorIds.includes(pc.color.id)
+                );
+
                 const productData = detailResponse.length > 0 ? {
                     id: Number(productID),
                     name: detailResponse[0].product.productName || "Unnamed Product",
@@ -56,7 +65,7 @@ const Product = () => {
 
                 if (isMounted) {
                     setProduct(productData);
-                    setProductColors(colorResponse);
+                    setProductColors(filteredColors);
                     setProductRelated(processedRelatedProducts);
                     setLoading(false);
                 }

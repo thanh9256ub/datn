@@ -141,7 +141,8 @@ const Shop = () => {
                 <div style={{
                     position: 'relative',
                     paddingTop: '100%',
-                    backgroundColor: lightBg
+                    backgroundColor: lightBg,
+                    overflow: 'hidden'
                 }}>
                     <img
                         alt={product.product.productName}
@@ -153,7 +154,7 @@ const Shop = () => {
                             width: '100%',
                             height: '100%',
                             objectFit: 'contain',
-                            padding: 24
+                            padding: 0
                         }}
                     />
                 </div>
@@ -193,14 +194,6 @@ const Shop = () => {
                         currency: 'VND'
                     }).format(product.price)}
                 </Text>
-                {product.originalPrice && (
-                    <Text delete type="secondary" style={{ fontSize: 14 }}>
-                        {new Intl.NumberFormat('vi-VN', {
-                            style: 'currency',
-                            currency: 'VND'
-                        }).format(product.originalPrice)}
-                    </Text>
-                )}
             </div>
 
             {productColors[product.product.id] && productColors[product.product.id].length > 0 && (
@@ -239,7 +232,7 @@ const Shop = () => {
                     pagination={{ clickable: true }}
                     loop
                     style={{
-                        maxWidth: 1500,
+                        maxWidth: 1550,
                         borderRadius: 12,
                         overflow: 'hidden',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
@@ -250,7 +243,8 @@ const Shop = () => {
                             <div style={{
                                 position: 'relative',
                                 paddingTop: '40%',
-                                width: '100%'
+                                width: '100%',
+                                zIndex: 1
                             }}>
                                 <img
                                     src={image}

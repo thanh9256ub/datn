@@ -3,8 +3,8 @@ import {
     Row, Col, Typography, Button, Card, Space, Divider,
     Badge, Rate, Tag, Image, Select, Slider, InputNumber, Checkbox
 } from 'antd';
-import { HeartOutlined, ShoppingCartOutlined, FireFilled, FilterOutlined } from '@ant-design/icons';
-import { fetchProducts, fetchProductDetail } from '../Service/productService';
+import { FilterOutlined } from '@ant-design/icons';
+import { fetchProducts, fetchProductDetail, fetchProductColorsByProduct } from '../Service/productService';
 import { useHistory } from 'react-router-dom';
 
 const { Title, Text } = Typography;
@@ -27,6 +27,8 @@ const ShopAllProduct = (props) => {
     const [inputValues, setInputValues] = useState([0, 5000000]);
     const [loading, setLoading] = useState(true);
     const [visibleProducts, setVisibleProducts] = useState(8);
+
+    const [productColors, setProductColors] = useState({});
 
     // Color palette
     const primaryColor = '#6C5CE7';
@@ -67,6 +69,21 @@ const ShopAllProduct = (props) => {
                             size: detail?.size?.sizeName || detail?.size || 'Không xác định'
                         };
                     });
+
+                    const colorPromises = detailsData.map(async (item) => {
+                        const colors = await fetchProductColorsByProduct(item.product.id);
+                        return { productId: item.product.id, colors };
+                    });
+
+                    const colorData = await Promise.all(colorPromises);
+                    const colorMap = colorData.reduce((acc, { productId, colors }) => {
+                        acc[productId] = colors;
+                        return acc;
+                    }, {});
+
+                    console.log('Product colors data:', colorMap);
+
+                    setProductColors(colorMap);
 
                     const uniqueBrands = [...new Set(
                         mergedProducts
@@ -586,7 +603,27 @@ const ShopAllProduct = (props) => {
                                                     </Text>
                                                 )}
                                             </div>
-
+                                            {productColors[product.id] && productColors[product.id].length > 0 && (
+                                                <div style={{ display: 'flex', marginTop: 8 }}>
+                                                    {productColors[product.id].map((color, index) => (
+                                                        <Tag
+                                                            key={index}
+                                                            style={{
+                                                                backgroundColor: color.color.colorCode,
+                                                                color: '#fff',
+                                                                marginRight: 8,
+                                                                borderRadius: '50%',
+                                                                width: 20,
+                                                                height: 20,
+                                                                textAlign: 'center',
+                                                                lineHeight: '20px',
+                                                                border: '1px solid #00000'
+                                                            }}
+                                                        >
+                                                        </Tag>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </Card>
                                     </Col>
                                 ))

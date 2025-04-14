@@ -488,7 +488,8 @@ public class ProductService {
         productDetailRepository.saveAll(productDetails);
 
         for (Product product : productTotalQuantities.keySet()) {
-            int totalQuantityInDB = productDetailRepository.sumQuantityByProduct(product.getId()).orElse(0);
+//            int totalQuantityInDB = productDetailRepository.sumQuantityByProduct(product.getId()).orElse(0);
+            int totalQuantityInDB = productDetailRepository.sumQuantityByProductId(product.getId());
             product.setTotalQuantity(totalQuantityInDB);
             product.setStatus(totalQuantityInDB > 0 ? 1 : 0);
             repository.save(product);
