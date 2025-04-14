@@ -51,7 +51,6 @@ public class VoucherService {
             if (!oldStatus.equals(newStatus)) {
                 v.setStatus(newStatus);
                 updatedVouchers.add(v);
-                // Gửi thông báo chỉ với mã voucher
                 webSocketController.sendVoucherUpdate(v.getVoucherCode());
                 log.info("Voucher {} updated from status {} to {}", v.getVoucherCode(), oldStatus, newStatus);
             }
@@ -99,7 +98,8 @@ public class VoucherService {
         Voucher voucher = mapper.voucher(request);
 
         voucher.setVoucherCode(generateUniqueVoucher());
-
+        voucher.setMinOrderValue(request.getMinOrderValue());
+voucher.setMaxDiscountValue(request.getMaxDiscountValue());
         Voucher created = voucherRepository.save(voucher);
 
         return mapper.voucherResponse(created);
@@ -132,5 +132,11 @@ public class VoucherService {
             }
         }
 
+    }
+    public VoucherResponse getVoucherByCode(String voucherCode) {
+        Voucher voucher = voucherRepository.findByVoucherCode(voucherCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Voucher not found with code: " + voucherCode));
+
+        return mapper.voucherResponse(voucher);
     }
 }

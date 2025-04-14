@@ -52,7 +52,7 @@ public class CounterController {
     private static final String VNP_TMN_CODE = "DLO4BO7S";
     private static final String VNP_HASH_SECRET = "X7SNCY4MFJXV8RM446395M52ARVFS5MD";
     private static final String VNP_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    private static final String VNP_RETURN_URL = "https://sharing-cub-meet.ngrok-free.app/counter/vnpay-return";
+    private static final String VNP_RETURN_URL = "http://localhost:8080/counter/vnpay-return";
     private static final String VNP_API_VERSION = "2.1.0";
     private static final String VNP_COMMAND = "pay";
     private static final String VNP_CURRENCY = "VND";
@@ -468,7 +468,6 @@ public class CounterController {
             mac.init(secretKeySpec);
             byte[] hash = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
 
-            // Convert byte array to hex string
             StringBuilder hexString = new StringBuilder();
             for (byte b : hash) {
                 String hex = Integer.toHexString(0xff & b);
@@ -485,7 +484,6 @@ public class CounterController {
     private String buildVNPayPaymentUrl(TreeMap<String, String> params, String secureHash) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(VNP_URL);
 
-        // Add all parameters with single URL encoding
         params.forEach((key, value) -> {
             try {
                 builder.queryParam(
@@ -498,7 +496,6 @@ public class CounterController {
             }
         });
 
-        // Add secure hash (no encoding)
         builder.queryParam("vnp_SecureHash", secureHash);
 
         return builder.build().toUriString();

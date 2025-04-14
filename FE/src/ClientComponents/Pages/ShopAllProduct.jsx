@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     Row, Col, Typography, Button, Card, Space, Divider,
-    Badge, Rate, Tag, Image, Select, Slider, InputNumber
+    Badge, Rate, Tag, Image, Select, Slider, InputNumber, Checkbox
 } from 'antd';
 import { HeartOutlined, ShoppingCartOutlined, FireFilled, FilterOutlined } from '@ant-design/icons';
 import { fetchProducts, fetchProductDetail } from '../Service/productService';
@@ -14,7 +14,13 @@ const ShopAllProduct = (props) => {
     const history = useHistory();
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
+    const [materials, setMaterials] = useState([]);
+    const [selectedMaterials, setSelectedMaterials] = useState([]);
     const [brands, setBrands] = useState([]);
+    const [colors, setColors] = useState([]);
+    const [selectedColors, setSelectedColors] = useState([]);
+    const [sizes, setSizes] = useState([]);
+    const [selectedSizes, setSelectedSizes] = useState([]);
     const [priceRange, setPriceRange] = useState([0, 5000000]);
     const [selectedBrand, setSelectedBrand] = useState(null);
     const [sortOption, setSortOption] = useState('default');
@@ -55,12 +61,41 @@ const ShopAllProduct = (props) => {
                         return {
                             ...product,
                             price: detail ? detail.price : 0,
-                            isBestSeller: Math.random() > 0.7
+                            isBestSeller: Math.random() > 0.7,
+                            material: product.material?.materialName || product.material || 'Không xác định',
+                            color: detail?.color?.colorName || detail?.color || 'Không xác định',
+                            size: detail?.size?.sizeName || detail?.size || 'Không xác định'
                         };
                     });
 
-                    const uniqueBrands = [...new Set(mergedProducts.map(item => item.brand?.brandName || 'Unknown'))].filter(Boolean);
+                    const uniqueBrands = [...new Set(
+                        mergedProducts
+                            .map(item => item.brand?.brandName)
+                            .filter(brandName => brandName)
+                    )];
+
                     setBrands(uniqueBrands);
+
+                    const uniqueMaterials = [...new Set(
+                        mergedProducts
+                            .map(item => item.material)
+                            .filter(material => material)
+                    )];
+                    setMaterials(uniqueMaterials);
+
+                    const uniqueColors = [...new Set(
+                        mergedProducts
+                            .map(item => item.color)
+                            .filter(color => color)
+                    )];
+                    setColors(uniqueColors);
+
+                    const uniqueSizes = [...new Set(
+                        mergedProducts
+                            .map(item => item.size)
+                            .filter(size => size)
+                    )];
+                    setSizes(uniqueSizes);
 
                     const maxPrice = mergedProducts.reduce((max, item) => Math.max(max, item.price), 5000000);
                     setPriceRange([0, Math.min(maxPrice, 5000000)]);
@@ -87,13 +122,49 @@ const ShopAllProduct = (props) => {
 
     useEffect(() => {
         applyFilters();
-    }, [selectedBrand, priceRange, sortOption, products]);
+    }, [selectedBrand, priceRange, sortOption, products, selectedMaterials, selectedColors, selectedSizes]);
+
+    const getColorCode = (colorName) => {
+        const colorMap = {
+            'đỏ': 'red',
+            'xanh': 'blue',
+            'vàng': 'yellow',
+            'đen': 'black',
+            'trắng': 'white',
+            'hồng': 'pink',
+            'xám': 'gray',
+            'xanh lá': 'green',
+            'tím': 'purple',
+            'cam': 'orange',
+            'nâu': 'brown',
+            'be': 'beige'
+        };
+        return colorMap[colorName.toLowerCase()] || '#ccc';
+    };
 
     const applyFilters = () => {
         let result = [...products];
 
         if (selectedBrand) {
-            result = result.filter(item => item.brand === selectedBrand);
+            result = result.filter(item => item.brand?.brandName === selectedBrand);
+        }
+
+        if (selectedMaterials.length > 0) {
+            result = result.filter(item =>
+                selectedMaterials.includes(item.material)
+            );
+        }
+
+        if (selectedColors.length > 0) {
+            result = result.filter(item =>
+                selectedColors.includes(item.color)
+            );
+        }
+
+        if (selectedSizes.length > 0) {
+            result = result.filter(item =>
+                selectedSizes.includes(item.size)
+            );
         }
 
         result = result.filter(item => item.price >= priceRange[0] && item.price <= priceRange[1]);
@@ -106,16 +177,28 @@ const ShopAllProduct = (props) => {
                 result.sort((a, b) => b.price - a.price);
                 break;
             case 'name-asc':
-                result.sort((a, b) => a.name.localeCompare(b.name));
+                result.sort((a, b) => {
+                    const nameA = a.productName?.toUpperCase() || '';
+                    const nameB = b.productName?.toUpperCase() || '';
+                    return nameA.localeCompare(nameB, 'vi');
+                });
                 break;
             case 'name-desc':
-                result.sort((a, b) => b.name.localeCompare(a.name));
+                result.sort((a, b) => {
+                    const nameA = a.productName?.toUpperCase() || '';
+                    const nameB = b.productName?.toUpperCase() || '';
+                    return nameB.localeCompare(nameA, 'vi');
+                });
                 break;
             default:
                 break;
         }
 
         setFilteredProducts(result);
+    };
+
+    const handleMaterialChange = (checkedValues) => {
+        setSelectedMaterials(checkedValues);
     };
 
     const handlePriceChange = (value) => {
@@ -128,7 +211,6 @@ const ShopAllProduct = (props) => {
         newValues[index] = value || 0;
         setInputValues(newValues);
 
-        // Auto update slider if values are valid
         if (!isNaN(newValues[0]) && !isNaN(newValues[1])) {
             setPriceRange([Number(newValues[0]), Number(newValues[1])]);
         }
@@ -144,6 +226,9 @@ const ShopAllProduct = (props) => {
 
     const clearFilters = () => {
         setSelectedBrand(null);
+        setSelectedMaterials([]);
+        setSelectedColors([]);
+        setSelectedSizes([]);
         setPriceRange([0, 5000000]);
         setInputValues([0, 5000000]);
         setSortOption('default');
@@ -154,7 +239,7 @@ const ShopAllProduct = (props) => {
     };
 
     return (
-        <div style={{ backgroundColor: '#fff', minHeight: '100vh' }}>
+        <div style={{ backgroundColor: '#fff', minHeight: '100vh', paddingBottom: 30 }}>
             {/* Banner */}
             <div style={{
                 position: 'relative',
@@ -162,7 +247,7 @@ const ShopAllProduct = (props) => {
                 overflow: 'hidden',
                 marginBottom: 40,
                 height: 600,
-                marginTop: 95
+                marginTop: 70
             }}>
                 <Image
                     src={props.banner}
@@ -217,7 +302,7 @@ const ShopAllProduct = (props) => {
                             }}
                         >
                             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                                <div>
+                                <div style={{ marginBottom: 16 }}>
                                     <Text strong>Thương hiệu</Text>
                                     <Select
                                         style={{ width: '100%', marginTop: '8px' }}
@@ -231,8 +316,116 @@ const ShopAllProduct = (props) => {
                                         ))}
                                     </Select>
                                 </div>
-
+                                <div style={{ marginBottom: 16 }}>
+                                    <Text strong>Chất liệu</Text>
+                                    <div style={{ marginTop: 8 }}>
+                                        <Checkbox.Group
+                                            style={{ width: '100%' }}
+                                            onChange={handleMaterialChange}
+                                            value={selectedMaterials}
+                                        >
+                                            <Space direction="vertical">
+                                                {materials.map((material, index) => (
+                                                    <Checkbox
+                                                        key={material + index}
+                                                        value={material}
+                                                        style={{ marginLeft: 0 }}
+                                                    >
+                                                        {material}
+                                                    </Checkbox>
+                                                ))}
+                                            </Space>
+                                        </Checkbox.Group>
+                                    </div>
+                                </div>
                                 <div>
+                                    <Text strong>Màu sắc</Text>
+                                    <div style={{ marginTop: 8 }}>
+                                        <Checkbox.Group
+                                            style={{ width: '100%' }}
+                                            onChange={(checkedValues) => setSelectedColors(checkedValues)}
+                                            value={selectedColors}
+                                        >
+                                            <div style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                                                gap: '8px'
+                                            }}>
+                                                {colors.map((color, index) => (
+                                                    <div key={color + index} style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        whiteSpace: 'nowrap'
+                                                    }}>
+                                                        <Checkbox value={color} style={{ marginRight: 8 }}>
+                                                            <div style={{
+                                                                display: 'inline-block',
+                                                                width: 16,
+                                                                height: 16,
+                                                                backgroundColor: getColorCode(color),
+                                                                borderRadius: '50%',
+                                                                border: '1px solid #d9d9d9',
+                                                                marginRight: 8,
+                                                                verticalAlign: 'middle'
+                                                            }} />
+                                                            <span style={{
+                                                                fontSize: 14,
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                maxWidth: '80px',
+                                                                display: 'inline-block'
+                                                            }}>
+                                                                {color}
+                                                            </span>
+                                                        </Checkbox>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </Checkbox.Group>
+                                    </div>
+                                </div>
+                                <div>
+                                    <Text strong>Kích thước</Text>
+                                    <div style={{ marginTop: 8 }}>
+                                        <Checkbox.Group
+                                            style={{ width: '100%' }}
+                                            onChange={(checkedValues) => setSelectedSizes(checkedValues)}
+                                            value={selectedSizes}
+                                        >
+                                            <div style={{
+                                                display: 'flex',
+                                                flexWrap: 'wrap',
+                                                gap: '8px',
+                                                alignItems: 'center'
+                                            }}>
+                                                {sizes.map((size, index) => (
+                                                    <Checkbox
+                                                        key={size + index}
+                                                        value={size}
+                                                        style={{
+                                                            margin: 0,
+                                                            padding: '0 12px',
+                                                            height: 32,
+                                                            minWidth: 40,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            lineHeight: '30px',
+                                                            border: '1px solid #d9d9d9',
+                                                            borderRadius: 4,
+                                                            backgroundColor: selectedSizes.includes(size) ? primaryColor : '#fff',
+                                                            color: selectedSizes.includes(size) ? '#fff' : darkText,
+                                                            whiteSpace: 'nowrap'
+                                                        }}
+                                                    >
+                                                        {size}
+                                                    </Checkbox>
+                                                ))}
+                                            </div>
+                                        </Checkbox.Group>
+                                    </div>
+                                </div>
+                                <div style={{ marginBottom: 16 }}>
                                     <Text strong>Khoảng giá</Text>
                                     <div style={{ display: 'flex', gap: '8px', margin: '8px 0' }}>
                                         <InputNumber
@@ -286,10 +479,6 @@ const ShopAllProduct = (props) => {
                             alignItems: 'center',
                             marginBottom: 24
                         }}>
-                            {/* <Text>
-                                <span style={{ fontWeight: '600' }}>Hiển thị 1-{filteredProducts.length}</span> trong tổng số {filteredProducts.length} sản phẩm
-                            </Text> */}
-
                             <span style={{ fontWeight: '600' }}>Hiển thị 1-{visibleProducts}</span> trong tổng số {filteredProducts.length} sản phẩm
 
                             <Select
@@ -379,24 +568,6 @@ const ShopAllProduct = (props) => {
                                                 {product.productName}
                                             </Title>
 
-                                            {/* <div style={{ marginBottom: 12 }}>
-                                                <Rate
-                                                    disabled
-                                                    defaultValue={4.5}
-                                                    allowHalf
-                                                    style={{
-                                                        color: '#FDCB6E',
-                                                        fontSize: 14
-                                                    }}
-                                                />
-                                                <Text type="secondary" style={{
-                                                    fontSize: 12,
-                                                    marginLeft: 8
-                                                }}>
-                                                    (12)
-                                                </Text>
-                                            </div> */}
-
                                             <div style={{
                                                 display: 'flex',
                                                 alignItems: 'flex-end',
@@ -416,22 +587,6 @@ const ShopAllProduct = (props) => {
                                                 )}
                                             </div>
 
-                                            {/* <Button
-                                                type="primary"
-                                                icon={<ShoppingCartOutlined />}
-                                                block
-                                                style={{
-                                                    backgroundColor: primaryColor,
-                                                    borderColor: primaryColor,
-                                                    borderRadius: 8
-                                                }}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // Handle add to cart
-                                                }}
-                                            >
-                                                Thêm vào giỏ
-                                            </Button> */}
                                         </Card>
                                     </Col>
                                 ))
@@ -443,7 +598,7 @@ const ShopAllProduct = (props) => {
                         </Row>
 
                         {filteredProducts.length > visibleProducts && (
-                            <div style={{ textAlign: 'center', margin: '48px 0' }}>
+                            <div style={{ textAlign: 'center', margin: '48px 0 0 0' }}>
                                 <Button
                                     type="primary"
                                     size="large"

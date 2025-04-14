@@ -114,28 +114,12 @@ const BanHang = () => {
 
   useEffect(() => {
     if (messages.length > 0) {
-      clearInterval(qrIntervalRef.current);
-      qrIntervalRef.current = null;
-      setQrImageUrl(null);
-      setSelectedInvoiceId(null);
-      setTotalAmount(0);
-      setPromo({});
-      setDelivery(false);
-      setPhoneNumber("");
-      setCustomer(null);
-      setCustomerInfo({
-        name: '',
-        phone: '',
-        province: '',
-        district: '',
-        ward: '',
-        address: '',
-        note: '',
-      });
+      
       const lastMessage = messages[messages.length - 1];
       toast.info(lastMessage);
-      fetchInvoices();
-      fetchProducts();
+      setTimeout(() => {
+      window.location.reload();
+      }, 1500); 
     }
   }, [messages]);
 
@@ -146,7 +130,7 @@ const BanHang = () => {
 
     axios.post('http://localhost:8080/order/add', newInvoice)
       .then(response => {
-        toast.success("Tạo hóa đơn thành công thành công ", toastOptions);
+        toast.success("Tạo hóa đơn thành công thành công ", toastOptions); 
         const createdInvoice = response.data.data;
         setInvoices([createdInvoice, ...invoices]); // Add the new invoice to the top of the list
         setSelectedInvoiceId(createdInvoice.id); // Select the newly created invoice

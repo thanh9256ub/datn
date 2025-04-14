@@ -36,7 +36,7 @@ export const checkStockAvailability = async (items) => {
         console.log('Items being sent to check stock:', items);
         const response = await api.post('/product-detail/check-stock', items);
         console.log('API response (check stock):', response.data);
-        return response.data.data || {}; 
+        return response.data.data || {};
     } catch (error) {
         console.error('Error checking stock availability:', {
             url: error.config?.url,
@@ -409,23 +409,23 @@ export const clearCartOnServer = async (cartId) => {
 };
 export const fetchOrderByCode = async (orderCode) => {
     try {
-      const response = await axios.get(`/order/code/${orderCode}`);
-      return response.data.data; // Giả sử API trả về data trong property data
+        const response = await axios.get(`/order/code/${orderCode}`);
+        return response.data.data; // Giả sử API trả về data trong property data
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Không tìm thấy đơn hàng');
+        throw new Error(error.response?.data?.message || 'Không tìm thấy đơn hàng');
     }
-  };
-  export const fetchOrderDetailsByOrderId = async (orderId) => {
-      try {
-          const response = await api.get(`/order-detail/order/${orderId}`);
-          console.log('Raw API Response:', response.data); // Thêm log để kiểm tra
-          return response.data;
-      } catch (error) {
-          console.error('Error fetching order details by order ID:', error);
-          throw error;
-      }
-  };
-  export const sendOrderConfirmationEmail = async (email, orderCode, customerName, totalAmount, paymentMethod) => {
+};
+export const fetchOrderDetailsByOrderId = async (orderId) => {
+    try {
+        const response = await api.get(`/order-detail/order/${orderId}`);
+        console.log('Raw API Response:', response.data); // Thêm log để kiểm tra
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching order details by order ID:', error);
+        throw error;
+    }
+};
+export const sendOrderConfirmationEmail = async (email, orderCode, customerName, totalAmount, paymentMethod) => {
     try {
         const payload = {
             email,
@@ -474,5 +474,30 @@ export const checkVNPayPaymentStatus = async (transactionId) => {
             errorData: error.response?.data
         });
         throw new Error(error.response?.data?.message || 'Không thể kiểm tra trạng thái thanh toán VNPAY');
+    }
+};
+export const createOrderVoucher = async (voucherData) => {
+    try {
+        console.log('Creating order voucher with data:', voucherData);
+        const response = await api.post('/order-voucher/add', voucherData);
+        console.log('API res (create order voucher):', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating order voucher:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data,
+            requestData: error.config?.data
+        });
+        throw new Error(error.response?.data?.message || 'Không thể tạo order voucher');
+    }
+};
+export const getVoucherByCode = async (voucherCode) => {
+    try {
+        const response = await api.get(`/vouchers/code/${voucherCode}`);
+        return response.data.data || response.data;
+    } catch (error) {
+        console.error('Error fetching voucher:', error);
+        throw new Error(error.response?.data?.message || 'Không tìm thấy voucher');
     }
 };
