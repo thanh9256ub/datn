@@ -57,6 +57,10 @@ public class AuthenticationService {
         var employee = employeeRepository.findByUsername(authenticationRequest.getUsername()).orElseThrow(
                 () -> new AuthenticationException("Employee not existed."));
 
+        if (employee.getStatus() == 0) {
+            throw new AuthenticationException("Tài khoản của bạn đã bị khóa, bạn không có quyền đăng nhập");
+        }
+
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
 
         boolean authentiated = passwordEncoder.matches(authenticationRequest.getPassword(),
@@ -67,7 +71,10 @@ public class AuthenticationService {
             throw new AuthenticationException("Unauthenticated");
         }
 
+
         String token = generateToken(authenticationRequest.getUsername(), employee.getRole().getRoleName());
+
+
 
         return AuthenticationResponse.builder()
                 .token(token)

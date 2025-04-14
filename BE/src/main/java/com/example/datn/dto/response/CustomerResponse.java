@@ -39,6 +39,8 @@ public class CustomerResponse {
 
     Integer roleId;
 
+    Integer status;
+
     String address;
 
     List<AddressResponse> addressList;
@@ -51,6 +53,7 @@ public class CustomerResponse {
         this.gender = customer.getGender();
         this.phone = customer.getPhone();
         this.email = customer.getEmail();
+        this.status = customer.getStatus();
         this.createdAt = customer.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         this.updatedAt = Objects.isNull(customer.getUpdatedAt())
                 ? customer.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))

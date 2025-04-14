@@ -38,5 +38,7 @@ public class CustomerRequest {
 
     Integer roleId;
 
+    Integer status;
+
     List<AddressRequest> address;
 }
