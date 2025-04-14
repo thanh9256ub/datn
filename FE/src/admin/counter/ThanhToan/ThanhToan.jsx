@@ -296,7 +296,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       <p><strong>Tổng tiền hàng:</strong> ${totalAmount.toLocaleString()} VNĐ</p>
       <p><strong>Giảm giá:</strong> ${(totalAmount - finalAmount).toLocaleString()} VNĐ</p>
       <p><strong>Phí vận chuyển:</strong> ${shippingFee.toLocaleString()} VNĐ</p>
-      <p><strong>Thành tiền: ${(finalAmount + shippingFee).toLocaleString()} VNĐ</strong></p>
+      <p><strong>Tổng thanh toán: ${(finalAmount + shippingFee).toLocaleString()} VNĐ</strong></p>
       </div>
       <div class="thank-you">
       Cảm ơn Quý Khách, hẹn gặp lại!
@@ -358,7 +358,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         setTimeout(() => {
           window.location.reload();
         }
-          , 1800);
+          , 1500);
       } else {
         toast.error("Thanh toán thất bại. Vui lòng thử lại!", toastOptions);
       }
@@ -473,10 +473,10 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         setQrImageUrl={setQrImageUrl}
         qrIntervalRef={qrIntervalRef} />
 
-      <h5 style={{ fontWeight: 'bold' }}>Tổng tiền: {totalAmount.toLocaleString()} VND</h5>
+      <h5 style={{ fontWeight: 'bold' }}>Tổng tiền hàng: {totalAmount.toLocaleString()} VND</h5>
       <h5 style={{ fontWeight: 'bold' }}>Giảm giá: {(totalAmount - finalAmount).toLocaleString()} VND</h5>
       <h5 style={{ fontWeight: 'bold' }}>Phí vận chuyển: {shippingFee ? shippingFee.toLocaleString() : 0} VND</h5>
-      <h5 style={{ fontWeight: 'bold' }}>Thanh toán: {(finalAmount + shippingFee).toLocaleString()} VND</h5>
+      <h5 style={{ fontWeight: 'bold' }}>Tổng thanh toán: {(finalAmount + shippingFee).toLocaleString()} VND</h5>
 
       <Row className="mb-3">
         <Col sm={6}>

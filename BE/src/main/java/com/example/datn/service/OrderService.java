@@ -63,8 +63,10 @@ public class OrderService {
     @Autowired
     private WebSocketController webSocketController;
 
+
     @Autowired
     ProductDetailService productDetailService;
+
 
     @Scheduled(cron = "0 0 0 * * ?") // Chạy lúc 00:00 hàng ngày
     @Transactional
@@ -77,14 +79,17 @@ public class OrderService {
 
         List<Order> expiredOrders = repository.findByStatusAndCreatedAtBefore(0, todayMidnight);
 
-        for (Order order : expiredOrders) {
-            List<OrderDetailResponse> orderDetails = orderDetailService.getOrderDetailsByOrderId(order.getId());
-            for (OrderDetailResponse detail : orderDetails) {
-                ProductDetail productDetail = detail.getProductDetail();
-                productDetail.setQuantity(productDetail.getQuantity() + detail.getQuantity());
+
+        for (Order order:expiredOrders   ) {
+            List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(order.getId());
+            for (OrderDetail orderDetail : orderDetails) {
+                ProductDetail productDetail = orderDetail.getProductDetail();
+                productDetail.setQuantity(productDetail.getQuantity() + orderDetail.getQuantity());
+
                 productDetailRepository.save(productDetail);
 
             }
+            orderDetailRepository.deleteAll(orderDetails );
         }
         repository.deleteAll(expiredOrders);
 
