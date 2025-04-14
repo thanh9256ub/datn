@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Modal, Col, InputGroup, Container, Form, Row } from "react-bootstrap";
-import { addEmployee, listEmployee, listRole } from '../service/EmployeeService';
+import { addEmployee, listEmployee, listRole, uploadImageToCloudinary } from '../service/EmployeeService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import Select from 'react-select';
 import { Spinner } from 'react-bootstrap';
@@ -144,8 +144,20 @@ const CreateEmployee = () => {
         setLoading(true);
 
         try {
+            let image = "";
+            if (newEmployee.image) {
+                const imageUrl = await uploadImageToCloudinary(newEmployee.image);
+                if (imageUrl) {
+                    setNewEmployee({ ...newEmployee, image: imageUrl });
+                    image = imageUrl;
+                } else {
+                    // Handle error when uploading image
+                    return;
+                }
+            }
+
             // Gọi API để thêm nhân viên
-            await addEmployee(newEmployee);
+            await addEmployee({ ...newEmployee, image: image });
 
             // Sau khi thêm nhân viên, lấy lại danh sách nhân viên mới
             const response = await listEmployee(1);
@@ -154,15 +166,17 @@ const CreateEmployee = () => {
             setEmployees(response.data.data);
             setTotalPage(response.data.totalPage);
 
+
+
             localStorage.setItem("successMessage", "Thêm nhân viên thành công!");
             // Chuyển hướng đến trang quản lý nhân viên
-            history.push('/admin/employees');
         } catch (error) {
             console.error('Lỗi khi thêm nhân viên:', error);
             alert('Có lỗi xảy ra khi thêm nhân viên. Vui lòng thử lại!');
         } finally {
-                setLoading(false);
+            setLoading(false);
         }
+        history.push('/admin/employees'); 
     };
 
     const toggleShowPassword = () => {
@@ -189,9 +203,9 @@ const CreateEmployee = () => {
                                     <div className="col-md-4 col-12">
                                         <Form.Group className="text-center mb-3">
                                             <label htmlFor="imageUpload" style={{ cursor: 'pointer' }}>
-                                                {"" ? (
+                                                {newEmployee.image ? (
                                                     <img
-                                                        // src={newEmployee.image}
+                                                        src={typeof newEmployee.image === 'string' ? newEmployee.image : URL.createObjectURL(newEmployee.image)}
                                                         alt="Employee"
                                                         style={{
                                                             width: '150px',
@@ -217,7 +231,7 @@ const CreateEmployee = () => {
                                                     </div>
                                                 )}
                                             </label>
-                                            <Form.Control type="file" id="imageUpload" accept="image/*" hidden />
+                                            <Form.Control type="file" id="imageUpload" accept="image/*" hidden onChange={(e) => setNewEmployee({ ...newEmployee, image: e.target.files[0] })} />
                                         </Form.Group>
 
                                         <Form.Group className="mb-3">

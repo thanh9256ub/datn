@@ -9,15 +9,26 @@ const { Option } = Select;
 const { confirm } = Modal;
 
 const Signup = () => {
+
     const [email, setEmail] = useState('');
+
     const [phone, setPhone] = useState('');
+
     const [gender, setGender] = useState(null);
+
     const [fullName, setFullName] = useState('');
+
     const [birthDate, setBirthDate] = useState('');
+
     const history = useHistory();
+
     const [loading, setLoading] = useState(false);
 
+
+
     const handleSignup = (e) => {
+
+
         setLoading(true);
 
         registerCustomer({ email, phone, fullName, gender, birthDate })
@@ -43,23 +54,95 @@ const Signup = () => {
             });
     };
 
-    const showConfirm = () => {
-        confirm({
-            title: 'Xác nhận đăng ký',
-            content: 'Bạn có chắc chắn muốn tạo tài khoản mới với thông tin đã nhập?',
-            okText: 'Đồng ý',
-            cancelText: 'Hủy bỏ',
-            centered: true,
-            onOk() {
-                handleSignup();
-            },
-            onCancel() {
-                console.log('Hủy đăng ký');
-            },
-        });
+
+    const [errors, setErrors] = useState({
+        fullName: '',
+        email: '',
+        phone: '',
+        gender: '',
+        birthDate: '',
+    });
+
+    const validateEmail = (email) => {
+        const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return regex.test(email);
     };
 
+    const validatePhone = (phone) => {
+        const regex = /^[0-9]{10}$/;
+        return regex.test(phone);
+    };
 
+    const validateForm = () => {
+        let isValid = true;
+        const newErrors = { ...errors };
+
+        if (!fullName.trim()) {
+            newErrors.fullName = 'Họ và tên không được để trống';
+            isValid = false;
+        } else {
+            newErrors.fullName = '';
+        }
+
+        if (!email.trim()) {
+            newErrors.email = 'Email không được để trống';
+            isValid = false;
+        } else if (!validateEmail(email)) {
+            newErrors.email = 'Email không hợp lệ';
+            isValid = false;
+        }
+        else {
+            newErrors.email = '';
+        }
+
+        if (!phone.trim()) {
+            newErrors.phone = 'Số điện thoại không được để trống';
+            isValid = false;
+        }
+        else if (!validatePhone(phone)) {
+            newErrors.phone = 'Số điện thoại không hợp lệ ( 10 chữ số)';
+            isValid = false;
+        }
+        else {
+            newErrors.phone = '';
+        }
+
+        if (gender === null) {
+            newErrors.gender = 'Vui lòng chọn giới tính';
+            isValid = false;
+        } else {
+            newErrors.gender = '';
+        }
+
+        if (!birthDate) {
+            newErrors.birthDate = 'Vui lòng chọn ngày sinh';
+            isValid = false;
+        } else {
+            newErrors.birthDate = '';
+        }
+
+        setErrors(newErrors);
+        return isValid;
+    };
+    const showConfirm = () => {
+        const isValid = validateForm();
+
+        if (isValid) {
+            confirm({
+                title: 'Xác nhận đăng ký',
+                content: 'Bạn có chắc chắn muốn tạo tài khoản mới với thông tin đã nhập?',
+                okText: 'Đồng ý',
+                cancelText: 'Hủy bỏ',
+                centered: true,
+                onOk() {
+                    handleSignup();
+                },
+                onCancel() {
+                    console.log('Hủy đăng ký');
+                },
+            });
+        }
+    };
     return (
         <div
             style={{
@@ -139,6 +222,9 @@ const Signup = () => {
                         size="large"
                         style={{ width: '100%' }}
                     />
+                    {errors.fullName && <p style={{ color: 'red' }}>{errors.fullName}</p>}
+
+
                     <Input
                         type="email"
                         placeholder="Email"
@@ -147,6 +233,7 @@ const Signup = () => {
                         size="large"
                         style={{ width: '100%' }}
                     />
+                    {errors.email && <p style={{ color: 'red' }}>{errors.email}</p>}
                     <Input
                         placeholder="Số điện thoại"
                         value={phone}
@@ -154,6 +241,7 @@ const Signup = () => {
                         size="large"
                         style={{ width: '100%' }}
                     />
+                    {errors.phone && <p style={{ color: 'red' }}>{errors.phone}</p>}
                     <Select
                         placeholder="Giới tính"
                         value={gender}
@@ -164,12 +252,14 @@ const Signup = () => {
                         <Option value={1}>Nam</Option>
                         <Option value={0}>Nữ</Option>
                     </Select>
+                    {errors.gender && <p style={{ color: 'red' }}>{errors.gender}</p>}
                     <DatePicker
                         placeholder="Ngày sinh"
                         style={{ width: '100%' }}
                         size="large"
                         onChange={(date, dateString) => setBirthDate(dateString)}
                     />
+                    {errors.birthDate && <p style={{ color: 'red' }}>{errors.birthDate}</p>}
                     <Button
                         type="primary"
                         size="large"

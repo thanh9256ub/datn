@@ -6,6 +6,8 @@ import { fetchOrders, filterOrders } from './OrderService/orderService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faBoxOpen, faTruck, faCheckCircle, faTimesCircle, faHome } from '@fortawesome/free-solid-svg-icons';
 import { faSearch, faDollarSign, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import useWebSocket from '../../hook/useWebSocket';
+import { toast, ToastContainer } from 'react-toastify';
 
 const Orders = () => {
     const [data, setData] = useState([]);
@@ -30,6 +32,8 @@ const Orders = () => {
     const currentItems = Array.isArray(data) ? data.slice(indexOfFirstItem, indexOfLastItem) : [];
     const totalPages = Math.ceil(data.length / itemsPerPage);
 
+    const { messages, isConnected } = useWebSocket("/topic/order-customer");
+
     useEffect(() => {
         localStorage.setItem('currentPage', currentPage);
     }, [currentPage]);
@@ -42,7 +46,7 @@ const Orders = () => {
         try {
             const response = await filterOrders(filterParams);
             if (Array.isArray(response)) {
-                console.log('Dữ liệu từ API:', response); // Debug dữ liệu
+                console.log('Dữ liệu từ API:', response);
                 setData(response);
             } else {
                 console.error('Dữ liệu không hợp lệ:', response);
@@ -62,7 +66,6 @@ const Orders = () => {
         };
     }, []);
 
-    // Làm mới dữ liệu khi quay lại từ OrderDetail
     useEffect(() => {
         if (location.state?.shouldRefresh) {
             console.log('Làm mới dữ liệu từ OrderDetail');
@@ -70,6 +73,14 @@ const Orders = () => {
             history.replace({ ...location, state: { ...location.state, shouldRefresh: false } });
         }
     }, [location, history]);
+
+    useEffect(() => {
+        if (messages.length > 0) {
+            const lastMessage = messages[messages.length - 1];
+            toast.info(lastMessage);
+            fetchData();
+        }
+    }, [messages]);
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
@@ -92,8 +103,7 @@ const Orders = () => {
 
     const calculateTotalPayment = (order) => {
         if (!order) return 0;
-        
-        // Logic đồng bộ với OrderDetail
+
         if (order.orderDetails?.length > 0) {
             const productsTotal = order.orderDetails.reduce(
                 (total, item) => total + (item.totalPrice || 0),
@@ -103,8 +113,7 @@ const Orders = () => {
             const discountValue = order.discountValue || 0;
             return productsTotal + shippingFee - discountValue;
         }
-        
-        // Fallback nếu không có orderDetails
+
         return (order.totalPrice || 0) + (order.shippingFee || 0) - (order.discountValue || 0);
     };
 
@@ -134,14 +143,24 @@ const Orders = () => {
         setSelectedOrder(order);
     };
 
-    const getStatusName = (statusId, orderType) => {
+    const getStatusName = (statusId, orderType, paymentType) => {
         let statusFlow;
-        if (orderType === 0) {
+
+        if (orderType === 0 && paymentType?.paymentTypeName === "Trực tiếp") {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
                 { id: 5, name: "Hoàn tất", color: "#4caf50" },
-                { id: 7, name: "Đã hủy", color: "#ef476f" },
+                { id: 6, name: "Đã hủy", color: "#ef476f" },
+            ];
+        } else if (orderType === 0) {
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 2, name: "Đã xác nhận", color: "#ffd700" },
+                { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
+                { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
+                { id: 5, name: "Hoàn tất", color: "#4caf50" },
+                { id: 6, name: "Đã hủy", color: "#ef476f" },
             ];
         } else {
             statusFlow = [
@@ -153,17 +172,29 @@ const Orders = () => {
                 { id: 6, name: "Đã hủy", color: "#ef476f" },
             ];
         }
+
         const status = statusFlow.find(s => s.id === statusId);
         return status ? { name: status.name, color: status.color } : { name: "Không xác định", color: "#6c757d" };
     };
 
-    const StatusTimeline = ({ status, orderType }) => {
+    const StatusTimeline = ({ status, orderType, paymentType, order }) => {
         let statusFlow;
-        if (orderType === 0) {
+
+        if (orderType === 0 && paymentType?.paymentTypeName === "Trực tiếp") {
             statusFlow = [
                 { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
                 { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+            ];
+        } else if (orderType === 0) {
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
+                { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
+                { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
+                { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         } else {
             statusFlow = [
@@ -176,19 +207,34 @@ const Orders = () => {
             ];
         }
 
-        const currentIndex = statusFlow.findIndex(s => s.id === status);
-        const visibleStatuses = statusFlow.slice(0, currentIndex + 1);
+        let visibleStatuses = [];
+        if (status === 6) {
+            let previousStatusId = statusFlow[0].id;
+            if (order?.statusHistory?.length > 1) {
+                previousStatusId = order.statusHistory[order.statusHistory.length - 2]?.id || statusFlow[0].id;
+            }
+            const previousStatus = statusFlow.find(s => s.id === previousStatusId) || statusFlow[0];
+            if (previousStatus.id !== 6) {
+                visibleStatuses.push(previousStatus);
+            }
+            visibleStatuses.push(statusFlow.find(s => s.id === 6));
+        } else {
+            const currentIndex = statusFlow.findIndex(s => s.id === status);
+            visibleStatuses = statusFlow.slice(0, currentIndex + 1);
+        }
 
         return (
-            <div className="d-flex align-items-center" style={{ gap: "10px" }}>
+            <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
                 {visibleStatuses.map((s, index) => (
                     <React.Fragment key={s.id}>
-                        <div className="d-flex flex-column align-items-center" style={{ gap: "5px" }}>
-                            <FontAwesomeIcon icon={s.icon} style={{ color: s.color, fontSize: "24px" }} />
-                            <span style={{ fontSize: "12px", color: s.color, textAlign: "center" }}>{s.name}</span>
+                        <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
+                            <FontAwesomeIcon icon={s.icon} style={{ color: s.color, fontSize: "36px" }} />
+                            <span style={{ fontSize: "16px", color: s.color, textAlign: "center", fontWeight: "500" }}>
+                                {s.name}
+                            </span>
                         </div>
                         {index < visibleStatuses.length - 1 && (
-                            <div style={{ width: "20px", height: "2px", backgroundColor: s.color }} />
+                            <div style={{ width: "200px", height: "4px", backgroundColor: s.color, borderRadius: "2px" }} />
                         )}
                     </React.Fragment>
                 ))}
@@ -200,19 +246,19 @@ const Orders = () => {
         <div className="container-fluid py-3">
             <div className="card shadow-sm" style={{ borderRadius: '15px', overflow: 'hidden' }}>
                 <div className="card-header bg-white border-bottom-0">
-                    <h2 className="mb-0 fw-bold text-primary">Đơn hàng</h2>
+                    <h2>Danh sách đơn hàng</h2>
                 </div>
                 <div className="card-body border-bottom">
                     <div className="row mb-4">
                         <div className="col-12">
                             <h5 className="fw-semibold">Trạng thái đơn hàng</h5>
-                            {selectedOrder ? (
-                                <>
-                                    <h6 className="text-muted">Đơn hàng: {selectedOrder.orderCode}</h6>
-                                    <StatusTimeline status={selectedOrder.status} orderType={selectedOrder.orderType} />
-                                </>
-                            ) : (
-                                <p className="text-muted">Chọn một đơn hàng để xem trạng thái.</p>
+                            {selectedOrder && (
+                                <StatusTimeline
+                                    status={selectedOrder.status}
+                                    orderType={selectedOrder.orderType}
+                                    paymentType={selectedOrder.paymentType}
+                                    order={selectedOrder} // Added missing order prop
+                                />
                             )}
                         </div>
                     </div>
@@ -374,7 +420,7 @@ const Orders = () => {
                                             <span
                                                 className="badge"
                                                 style={{
-                                                    backgroundColor: statusInfo.color,
+                                                    backgroundColor: getStatusName(order.status, order.orderType, order.paymentType).color,
                                                     color: '#fff',
                                                     fontFamily: '"Roboto", sans-serif',
                                                     fontWeight: '500',
@@ -383,11 +429,11 @@ const Orders = () => {
                                                     borderRadius: '12px',
                                                     borderWidth: '1px',
                                                     borderStyle: 'solid',
-                                                    borderColor: statusInfo.color,
+                                                    borderColor: getStatusName(order.status, order.orderType, order.paymentType).color,
                                                     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
                                                 }}
                                             >
-                                                {statusInfo.name}
+                                                {getStatusName(order.status, order.orderType, order.paymentType).name}
                                             </span>
                                         </td>
                                         <td className="py-3 px-4">
@@ -448,6 +494,8 @@ const Orders = () => {
                     transform: translateY(-1px);
                 }
             `}</style>
+
+            <ToastContainer />
         </div>
     );
 };

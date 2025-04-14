@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react'
-import { Button, Modal, Col, InputGroup, Container, Form } from "react-bootstrap";
-import { addEmployee, getEmployee, listEmployee, listRole, updateEmployee } from '../service/EmployeeService';
+import { Form } from "react-bootstrap";
+import { getEmployee, listEmployee, listRole, updateEmployee, uploadImageToCloudinary } from '../service/EmployeeService';
 import { useParams, useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import Select from 'react-select';
 import { Spinner } from 'react-bootstrap';
@@ -28,13 +28,28 @@ const UpdateEmployee = () => {
 
     const [detail, setDetail] = useState({});
 
+    const [birthDateError, setBirthDateError] = useState('');
 
     const [loading, setLoading] = useState(false);
+
+    const [fullNameError, setFullNameError] = useState('');
+
+    const [addressError, setAddressError] = useState('');
+
+    const [usernameError, setUsernameError] = useState('');
+
+    const [emailError, setEmailError] = useState('');
+
+    const [phoneError, setPhoneError] = useState('');
+
+    const [roleIdError, setRoleIdError] = useState('');
 
 
     useEffect(() => {
         const fetchEmployee = async () => {
             try {
+
+
                 const response = await getEmployee(id);
                 console.log(response.data);
                 setDetail(response.data);
@@ -45,11 +60,100 @@ const UpdateEmployee = () => {
         fetchEmployee();
     }, [id]);
 
+
+
+
     const handleUpdate = async (id, employee) => {
         if (window.confirm('Bạn có chắc chắn muốn cập nhật thông tin nhân viên này?')) {
+
+            setFullNameError('');
+
+            setAddressError('');
+
+            setUsernameError('');
+
+            setEmailError('');
+
+            setPhoneError('');
+
+            setRoleIdError('');
+
+            setBirthDateError('');
+
+            let isValid = true;
+
+            if (!detail.fullName) {
+                setFullNameError('Vui lòng nhập tên nhân viên.');
+                isValid = false;
+            }
+
+            if (!detail.address) {
+                setAddressError('Vui lòng nhập địa chỉ.');
+                isValid = false;
+            }
+
+            if (!detail.username) {
+                setUsernameError('Vui lòng nhập username.');
+                isValid = false;
+            }
+
+            if (!detail.email) {
+                setEmailError('Vui lòng nhập email.');
+                isValid = false;
+            } else if (!/\S+@\S+\.\S+/.test(detail.email)) {
+                setEmailError('Email không hợp lệ.');
+                isValid = false;
+            }
+
+            if (!detail.phone) {
+                setPhoneError('Vui lòng nhập số điện thoại.');
+                isValid = false;
+            } else if (!/^\d{10}$/.test(detail.phone)) {
+                setPhoneError('Số điện thoại không hợp lệ (10 chữ số).');
+                isValid = false;
+            }
+
+            if (!detail.roleId) {
+                setRoleIdError('Vui lòng chọn vai trò.');
+                isValid = false;
+            }
+
+            if (!detail.birthDate) {
+                setBirthDateError('Vui lòng chọn ngày sinh.');
+                isValid = false;
+            } else {
+                const selectedDate = new Date(detail.birthDate);
+                const currentYear = new Date().getFullYear(); // Sử dụng năm hiện tại
+                const minBirthYear = currentYear - 18;
+
+                const selectedYear = selectedDate.getFullYear();
+
+                if (selectedYear > minBirthYear) {
+                    setBirthDateError("Tuổi phải từ 18 trở lên.");
+                    isValid = false;
+                }
+            }
+
+            if (!isValid) {
+                return;
+            }
+
+
             setLoading(true);
             try {
-                await updateEmployee(id, employee); // Ensure you wait for the update to finish
+                let image = "" || null;
+                if (detail.image) {
+                    const imageUrl = await uploadImageToCloudinary(detail.image);
+                    if (imageUrl) {
+                        setDetail({ ...detail, image: imageUrl });
+                        image = imageUrl;
+                    } else {
+                        // Handle error when uploading image
+                        return;
+                    }
+                }
+
+                await updateEmployee(id, { ...employee, image }); // Ensure you wait for the update to finish
                 getAllEmployee();
                 localStorage.setItem("successMessage", "Cập nhật nhân viên thành công!");
                 history.push('/admin/employees');
@@ -68,7 +172,7 @@ const UpdateEmployee = () => {
                 setTotalPage(response.data.totalPage);
             }
             else if (response.status === 401) {
-                history.push('/loginNhanVien');
+                history.push('/login-nhan-vien');
             }
         }).catch(error => {
             console.error(error);
@@ -111,9 +215,9 @@ const UpdateEmployee = () => {
                                         <div>
                                             <Form.Group className="text-center">
                                                 <label htmlFor="imageUpload" style={{ cursor: 'pointer' }}>
-                                                    {newEmployee.image ? (
+                                                    {detail.image ? (
                                                         <img
-                                                            src={newEmployee.image}
+                                                            src={typeof detail.image === 'string' ? detail.image : URL.createObjectURL(detail.image)}
                                                             alt="Employee"
                                                             style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover' }}
                                                         />
@@ -123,7 +227,10 @@ const UpdateEmployee = () => {
                                                         </div>
                                                     )}
                                                 </label>
-                                                <Form.Control type="file" id="imageUpload" accept="image/*" hidden />
+                                                <Form.Control type="file" id="imageUpload" accept="image/*" hidden onChange={(e) => {
+                                                    const file = e.target.files[0];
+                                                    setDetail({ ...detail, image: file }); // Cập nhật ảnh mới vào state detail
+                                                }} />
                                             </Form.Group>
 
                                             <Form.Group>
@@ -142,6 +249,8 @@ const UpdateEmployee = () => {
                                                     onChange={(e) => {
                                                         setDetail({ ...detail, fullName: e.target.value });
                                                     }} />
+                                                {fullNameError && <div style={{ color: "red" }}>{fullNameError}</div>}
+
                                             </Form.Group>
 
                                             <Form.Group>
@@ -166,6 +275,8 @@ const UpdateEmployee = () => {
                                                 onChange={(e) => {
                                                     setDetail({ ...detail, email: e.target.value });
                                                 }} />
+                                            {emailError && <div style={{ color: "red" }}>{emailError}</div>}
+
                                         </Form.Group>
 
                                         <Form.Group>
@@ -174,6 +285,8 @@ const UpdateEmployee = () => {
                                                 onChange={(e) => {
                                                     setDetail({ ...detail, username: e.target.value }); // Change to update username
                                                 }} />
+                                            {usernameError && <div style={{ color: "red" }}>{usernameError}</div>}
+
                                         </Form.Group>
 
                                         <Form.Group className="mb-3">
@@ -214,6 +327,8 @@ const UpdateEmployee = () => {
                                                 onChange={(e) => {
                                                     setDetail({ ...detail, address: e.target.value });
                                                 }} />
+                                            {addressError && <div style={{ color: "red" }}>{addressError}</div>}
+
                                         </Form.Group>
                                         <Form.Group>
                                             <label className="form-label">Trạng thái</label>
@@ -234,6 +349,8 @@ const UpdateEmployee = () => {
                                                 onChange={(e) => {
                                                     setDetail({ ...detail, phone: e.target.value });
                                                 }} />
+                                            {phoneError && <div style={{ color: "red" }}>{phoneError}</div>}
+
                                         </Form.Group>
                                         <Form.Group>
                                             <label className="form-label">Ngày tạo</label>

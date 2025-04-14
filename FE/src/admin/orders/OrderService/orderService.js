@@ -68,25 +68,25 @@ export const updateOrderStatus = async (id, newStatus) => {
 // Hàm lấy danh sách OrderDetail theo orderID
 export const fetchOrderDetailsByOrderId = async (orderId) => {
     try {
-      const response = await api.get(`/order-detail/order/${orderId}`);
-      console.log('Raw API response:', response);
-      
-      // Kiểm tra và chuẩn hóa dữ liệu
-      let details = Array.isArray(response.data) ? response.data : [];
-      
-      // Tính toán totalPrice nếu null
-      details = details.map(item => ({
-        ...item,
-        totalPrice: item.totalPrice || (item.price * item.quantity)
-      }));
-      
-      return details;
+        const response = await api.get(`/order-detail/order/${orderId}`);
+        console.log('Raw API response:', response);
+
+        // Kiểm tra và chuẩn hóa dữ liệu
+        let details = Array.isArray(response.data) ? response.data : [];
+
+        // Tính toán totalPrice nếu null
+        details = details.map(item => ({
+            ...item,
+            totalPrice: item.totalPrice || (item.price * item.quantity)
+        }));
+
+        return details;
     } catch (error) {
-      console.error('Error fetching order details:', error);
-      throw error;
+        console.error('Error fetching order details:', error);
+        throw error;
     }
-  };
-  
+};
+
 // Hàm cập nhật toàn bộ danh sách OrderDetail cho một orderId
 export const updateOrderDetails = async (orderId, items) => {
     try {
@@ -100,7 +100,7 @@ export const updateOrderDetails = async (orderId, items) => {
 };
 export const updateOrder = async (id, orderData) => {
     try {
-        const response = await api.put(`/edit/${id}`, orderData);
+        const response = await api.put(`/order/edit/${id}`, orderData);
         console.log('Update Order Response:', response.data);
         return response.data;
     } catch (error) {
@@ -171,6 +171,36 @@ export const updateCustomerInfo = async (orderId, customerData) => {
             status: error.response?.status,
             error: error.response?.data || error.message
         });
+        throw error;
+    }
+};
+export const fetchOrderHistory = async (orderId) => {
+    try {
+        const response = await api.get(`/order-history/order/${orderId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching order history:', error);
+        throw error;
+    }
+};
+
+// Tạo mới lịch sử đơn hàng
+export const createOrderHistory = async (historyData) => {
+    try {
+        const response = await api.post('/order-history/add', historyData);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating order history:', error);
+        throw error;
+    }
+};
+export const updateOrderNote = async (id, noteData) => {
+    try {
+        const response = await api.put(`/order/${id}/note`, noteData);
+        console.log('Update Order Note Response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating order note:', error.response?.data || error.message);
         throw error;
     }
 };
