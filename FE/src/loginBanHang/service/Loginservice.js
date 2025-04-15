@@ -14,7 +14,6 @@ export const getToken = async (username, password) => {
         });
         return response;
     } catch (error) {
-        console.error("Login error:", error);
         throw error;
     }
 };
@@ -29,8 +28,8 @@ export const getTokenCustomer = async (email, password) => {
 
         console.log('Login response:', response.data);
 
-        if (response.data?.message === "NOT_CUSTOMER") {
-            return { data: null }; // Không phải khách hàng
+        if (response.data?.message === "NOT_CUSTOMER" || response.data?.message === "TAI_KHOAN_BI_KHOA") {
+            return { message: response.data.message }; // Không phải khách hàng hoặc tài khoản bị khóa
         }
 
         return response;

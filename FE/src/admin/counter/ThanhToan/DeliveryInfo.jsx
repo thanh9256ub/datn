@@ -205,22 +205,8 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
 
     try {
       if (tempDelivery) {
-        let addressPayload = {};
-        if (!customer) {
-          const response = await addCustomer(newCustomer);
-          setCustomer(response.data.data);
-          console.log(response.data.data.id);
-          addressPayload = {
-            city: customerInfo.province,
-            district: customerInfo.district,
-            ward: customerInfo.ward,
-            detailedAddress: customerInfo.address,
-            customerId: response.data.data.id,
-            status: 1,
-            defaultAddress: true,
-          };
-        } else {
-          addressPayload = {
+       
+       let addressPayload = {
             city: customerInfo.province,
             district: customerInfo.district,
             ward: customerInfo.ward,
@@ -229,11 +215,12 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
             status: 1,
             defaultAddress: true,
           };
+          await addCustomerAddress(addressPayload);
+          toast.success("Địa chỉ đã được lưu thành công ", toastOptions);
         }
 
-        await addCustomerAddress(addressPayload);
-        toast.success("Địa chỉ đã được lưu thành công ", toastOptions);
-      }
+       
+      
 
       toast.success("Đã chuyển qua hình thức giao hàng", toastOptions);
       setDelivery(true);
@@ -395,7 +382,13 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
                 <Form.Check
                   type="checkbox"
                   label="Lưu địa chỉ của khách hàng"
-                  onChange={(e) => setTempDelivery(e.target.checked)}
+                  onChange={(e) => {
+                    if (!customer) {
+                      toast.warn("Vui lòng tạo khách hàng trước khi lưu địa chỉ", toastOptions);
+                      return;
+                    }
+                    setTempDelivery(e.target.checked);
+                  }}
                   checked={tempDelivery}
                 />
               </Col>

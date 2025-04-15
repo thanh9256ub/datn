@@ -76,3 +76,10 @@ export const updateAddressCustomer = async (id, address) => {
     const response = await axios.put(`http://localhost:8080/address/update/${id}`, address)
     return response.data
 }
+
+export const updateCustomerStatus = async (id) => {
+    let token = localStorage.getItem('token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    const response = await axios.put("http://localhost:8080/customer/updateCustomerStatus" + '/' + id)
+    return response.data
+}

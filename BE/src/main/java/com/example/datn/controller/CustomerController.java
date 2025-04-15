@@ -6,6 +6,7 @@ import com.example.datn.dto.request.ForgotPasswordRequest;
 import com.example.datn.dto.response.ApiPagingResponse;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.CustomerResponse;
+import com.example.datn.dto.response.EmployeeResponse;
 import com.example.datn.service.AuthenticationCustomerService;
 import com.example.datn.service.CustomerService;
 import com.nimbusds.jose.JOSEException;
@@ -141,5 +142,18 @@ public class CustomerController {
     @PostMapping("/forgot-password-customer")
     public ResponseEntity<ApiResponse<?>> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) {
         return authenticationCustomerService.forgotPassword(forgotPasswordRequest.getEmail());
+    }
+
+    @PutMapping("/updateCustomerStatus/{id}")
+    public ResponseEntity<ApiResponse<CustomerResponse>> updateCustomerStatus(@PathVariable("id") Integer id) {
+        CustomerResponse customerResponse = customerService.updateCustomerStatus(id);
+
+        ApiResponse<CustomerResponse> apiResponse = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Customer updated successfully",
+                customerResponse
+        );
+
+        return ResponseEntity.ok(apiResponse);
     }
 }

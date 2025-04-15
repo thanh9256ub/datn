@@ -167,7 +167,8 @@ const UpdateCustomer = () => {
                 birthDate: update.birthDate,
                 gender: update.gender,
                 phone: update.phone,
-                email: update.email
+                email: update.email,
+                status: update.status
             };
             updateCustomer(id, updateCustomerInfo).then(data => {
                 localStorage.setItem("successMessage", "Cập nhật khách hàng thành công!");
@@ -244,7 +245,14 @@ const UpdateCustomer = () => {
                                                 </div>
                                             </div>
                                         </Form.Group>
-
+                                        <Form.Group>
+                                            <label className="form-label">Trạng thái</label>
+                                            <Select
+                                                options={[{ value: 1, label: "Đang hoạt động" }, { value: 0, label: "Không hoạt động" }]}
+                                                value={{ value: update.status, label: update.status === 1 ? "Đang hoạt động" : "Không hoạt động" }}
+                                                onChange={(selected) => setUpdate({ ...update, status: selected.value })}
+                                            />
+                                        </Form.Group>
 
                                     </div>
 
@@ -282,6 +290,8 @@ const UpdateCustomer = () => {
                                                     setUpdate({ ...update, phone: e.target.value });
                                                 }} />
                                         </Form.Group>
+
+                             
                                     </div>
 
                                 </div>

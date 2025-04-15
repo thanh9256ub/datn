@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Button, Modal, Col, InputGroup, Container, Form, Alert, Spinner, Pagination } from "react-bootstrap";
-import { addCustomer, listAddress, listCustomer, listRole, updateCustomer, addAddressCustomer } from './service/CustomersService.js';
+import { addCustomer, listAddress, listCustomer, listRole, updateCustomer, addAddressCustomer, updateCustomerStatus } from './service/CustomersService.js';
 import './Customer.css';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min.js';
 import { ToastContainer, toast } from "react-toastify";
@@ -208,6 +208,15 @@ const Customers = () => {
         history.push(`/admin/customers/update/${id}`)
     }
 
+    const handleRemoveStatus = (id) => {
+        if (window.confirm('Bạn có chắc chắn muốn xóa trạng thái khách hàng này?')) {
+            updateCustomerStatus(id).then(data => {
+                getAllCusomers()
+            });
+
+        }
+    };
+
 
     // Thông báo thành công
     const message = localStorage.getItem("successMessage");
@@ -223,7 +232,7 @@ const Customers = () => {
         localStorage.removeItem("successMessage");
     }
 
-    
+
     return (
         <div>
             <h2 style={{ marginLeft: "20px" }}>Danh sách khách hàng</h2>
@@ -289,6 +298,7 @@ const Customers = () => {
                                                     <th>Giới tính</th>
                                                     <th>Số điện thoại</th>
                                                     <th>Địa chỉ</th>
+                                                    <th>Trạng thái</th>
                                                     <th >Hành động</th>
                                                 </tr>
                                             </thead>
@@ -303,6 +313,7 @@ const Customers = () => {
                                                                 <td>{customer.gender ? "Nam" : "Nữ"}</td>
                                                                 <td>{customer.phone}</td>
                                                                 <td>{customer.address}</td>
+                                                                <td>{customer.status ? "Đang hoạt động" : "Không hoạt động"}</td>
                                                                 {/* <td>
                                                             <Button variant="link" onClick={() => handleShow(customer)}>
                                                                 Chi tiết
@@ -310,8 +321,8 @@ const Customers = () => {
                                                         </td> */}
                                                                 <td>
                                                                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                                                        <Button variant="link" onClick={() => handleShow(customer)} style={{ padding: '0px', marginRight: "20px" }}>
-                                                                            <i className='mdi mdi-eye'></i>
+                                                                        <Button variant="link" onClick={() => handleRemoveStatus(customer.id)} style={{ padding: '0px', marginRight: "20px" }}>
+                                                                            <i className='mdi mdi-delete-forever'></i>
                                                                         </Button>
                                                                         <Button variant="link" onClick={() => handleUpdateCustomer(customer.id)} style={{ padding: '0px' }}>
                                                                             <i className='mdi mdi-border-color'></i>
@@ -350,7 +361,7 @@ const Customers = () => {
                                             <i className='mdi mdi-arrow-right-bold'></i>
                                         </button>
                                     </div>
-                                   
+
 
                                     <Modal show={showModal} onHide={handleClose} size='lg'>
                                         <Modal.Header closeButton>
