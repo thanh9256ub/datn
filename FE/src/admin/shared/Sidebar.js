@@ -70,7 +70,7 @@ class Sidebar extends Component {
           <li className="nav-item nav-profile">
             <a href="!#" className="nav-link" onClick={evt => evt.preventDefault()}>
               <div className="nav-profile-image">
-                <img src={require("../../assets/images/faces/face1.jpg")} alt="profile" />
+                <img src={localStorage.getItem("image")} alt="profile" />
                 <span className="login-status online"></span> {/* change to offline or busy as needed */}
               </div>
               <div className="nav-profile-text">

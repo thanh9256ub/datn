@@ -21,4 +21,6 @@ public class AuthenticationCustomerResponse {
     String fullName;
 
     String role;
+
+    String image;
 }

@@ -87,6 +87,7 @@ public class AuthenticationCustomerService {
                 .customerId(customer.getId())
                 .fullName(customer.getFullName())
                 .role(customer.getRole().getRoleName())
+                .image(customer.getImage())
                 .build();
     }
 
