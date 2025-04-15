@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
   }, [authState.token, history]);
 
   const login = (token, userData) => {
-    const { id, email, fullName, role, customerId } = userData; // Thêm customerId vào destructuring
+    const { id, email, fullName, role, customerId, image } = userData; // Thêm customerId vào destructuring
     const newAuthState = {
       token,
       role,
@@ -70,7 +70,8 @@ export const AuthProvider = ({ children }) => {
       email: email || "",
       fullName: fullName || "",
       customerId: customerId || "", // Thêm customerId vào authState
-      isAuthenticated: true
+      isAuthenticated: true,
+      image: image || ""
     };
 
     setAuthState(newAuthState);
@@ -82,6 +83,7 @@ export const AuthProvider = ({ children }) => {
     if (email) localStorage.setItem("email", email);
     if (fullName) localStorage.setItem("fullName", fullName);
     if (customerId) localStorage.setItem("customerId", customerId); // Lưu customerId
+    if (image) localStorage.setItem("image", image); // Lưu image
   };
 
   const logout = () => {
