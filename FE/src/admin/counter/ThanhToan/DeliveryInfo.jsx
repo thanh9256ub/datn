@@ -167,6 +167,11 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
       return;
     }
 
+    if (customerInfo.fullName.length > 255) {
+      toast.error("Họ tên không được vượt quá 255 ký tự ", toastOptions);
+      return;
+    }
+
     if (!customerInfo.phone.trim() || !/^\d{10}$/.test(customerInfo.phone)) {
       toast.error("Số điện thoại phải gồm 10 chữ số ", toastOptions);
       return;
@@ -270,8 +275,8 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
                   style={{ fontWeight: 'bold' }}
                   value={customerInfo.fullName ? customerInfo.fullName : ""}
                   onChange={(e) => {
-                    setNewCustomer({ ...newCustomer, fullName: e.target.value });
-                    setCustomerInfo({ ...customerInfo, fullName: e.target.value })
+                                          setNewCustomer({ ...newCustomer, fullName: e.target.value });
+                      setCustomerInfo({ ...customerInfo, fullName: e.target.value })
                   }}
                 />
               </Col>
