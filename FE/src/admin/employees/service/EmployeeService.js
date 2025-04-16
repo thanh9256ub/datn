@@ -66,6 +66,30 @@ export const updateEmployeeStatus = async (id) => {
 
 
 
+// export const uploadImageToCloudinary = async (imageFile) => {
+//     const formData = new FormData();
+//     formData.append("file", imageFile);
+//     formData.append("upload_preset", "long_preset");
+//     formData.append("cloud_name", "dgj9htnpn");
+
+//     try {
+//         const response = await axios.post('https://api.cloudinary.com/v1_1/dgj9htnpn/image/upload', formData, {
+//             headers: {
+//                 'Content-Type': 'multipart/form-data',
+//             }
+//         });
+
+//         if (response.status === 200) {
+//             return response.data.secure_url;
+//         }
+//     } catch (error) {
+//         console.error("Lỗi khi tải ảnh lên Cloudinary:", error);
+//         alert("Có lỗi xảy ra khi tải ảnh lên Cloudinary.");
+//         return null;
+//     }
+// };
+
+
 export const uploadImageToCloudinary = async (imageFile) => {
     const formData = new FormData();
     formData.append("file", imageFile);
@@ -73,15 +97,27 @@ export const uploadImageToCloudinary = async (imageFile) => {
     formData.append("cloud_name", "dgj9htnpn");
 
     try {
-        const response = await axios.post('https://api.cloudinary.com/v1_1/dgj9htnpn/image/upload', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            }
+        // const response = await axios.post('https://api.cloudinary.com/v1_1/dgj9htnpn/image/upload', formData, {
+        //     headers: {
+        //         'Content-Type': 'multipart/form-data',
+        //     }
+        // });
+
+        // if (response.status === 200) {
+        //     console.log("Ảnh tải lên thành công:", response.data.secure_url);
+        //     return response.data.secure_url;
+        // }
+        const response = await fetch('https://api.cloudinary.com/v1_1/dgj9htnpn/image/upload', {
+            method: "POST",
+            body: formData,
         });
 
-        if (response.status === 200) {
-            return response.data.secure_url;
+        const data = await response.json();
+        if (response.ok) {
+            console.log("Ảnh tải lên thành công:", data.secure_url);
+            return data.secure_url;
         }
+
     } catch (error) {
         console.error("Lỗi khi tải ảnh lên Cloudinary:", error);
         alert("Có lỗi xảy ra khi tải ảnh lên Cloudinary.");

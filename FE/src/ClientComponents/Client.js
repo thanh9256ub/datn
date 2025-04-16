@@ -18,7 +18,6 @@ const Client = () => {
     return (
         <div>
             <Navbar />
-            <div style={{ marginBottom: "70px" }}></div>
             <Switch>
                 <Route exact path="/" component={Shop} />
                 <Route path="/all" component={() => <ShopAllProduct banner={all_banner} />} />

@@ -21,9 +21,9 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
 
 @Service
 public class OrderService {
@@ -63,6 +63,11 @@ public class OrderService {
     @Autowired
     private WebSocketController webSocketController;
 
+
+    @Autowired
+    ProductDetailService productDetailService;
+
+
     @Scheduled(cron = "0 0 0 * * ?") // Chạy lúc 00:00 hàng ngày
     @Transactional
     public void cleanupExpiredOrders() {
@@ -72,28 +77,28 @@ public class OrderService {
                 .withMinute(0)
                 .withSecond(0);
 
-
         List<Order> expiredOrders = repository.findByStatusAndCreatedAtBefore(0, todayMidnight);
+
 
         for (Order order:expiredOrders   ) {
             List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(order.getId());
             for (OrderDetail orderDetail : orderDetails) {
                 ProductDetail productDetail = orderDetail.getProductDetail();
                 productDetail.setQuantity(productDetail.getQuantity() + orderDetail.getQuantity());
+
                 productDetailRepository.save(productDetail);
 
             }
             orderDetailRepository.deleteAll(orderDetails );
         }
-            repository.deleteAll(expiredOrders);
+        repository.deleteAll(expiredOrders);
 
-            webSocketController.notifyOrderDeletion();
+        webSocketController.notifyOrderDeletion();
 
     }
 
     public OrderResponse create(OrderRequest request) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmssS");
-
 
         Order order = mapper.toOrder(request);
         order.setOrderCode("HD" + sdf.format(new Date()));
@@ -108,19 +113,11 @@ public class OrderService {
         return mapper.toListOrders(repository.findAllWithPaymentDetails());
     }
 
-    //    public OrderResponse updateStatus(Integer id, int newStatus) {
-//        Order order = repository.findById(id)
-//                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
-//        order.setStatus(newStatus);
-//        Order updatedOrder = repository.save(order);
-//        return mapper.toOrderResponse(updatedOrder);
-//    }
     @Transactional
     public OrderResponse updateStatus(Integer id, int newStatus) {
         Order order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
 
-        // Nếu trạng thái mới là "Đã xác nhận" (2) và trạng thái hiện tại nhỏ hơn 2
         if (newStatus == 2 && order.getStatus() < 2) {
             List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(id);
             for (OrderDetail detail : orderDetails) {
@@ -133,6 +130,7 @@ public class OrderService {
                 }
                 productDetail.setQuantity(newQuantity);
                 productDetailRepository.save(productDetail);
+                productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
             }
         }
 
@@ -176,7 +174,30 @@ public class OrderService {
 
         return mapper.toOrderResponse(repository.save(order));
     }
+    public OrderResponse updateNote(Integer id, UpdateOrderNoteRequest request) {
+        // Kiểm tra id không null
+        if (Objects.isNull(id)) {
+            throw new IllegalArgumentException("orderId không được để trống");
+        }
 
+        // Tìm đơn hàng
+        Order order = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Đơn hàng không tồn tại với id: " + id));
+
+        // Cập nhật note
+        if (request.getNote() != null) {
+            order.setNote(request.getNote());
+        } else {
+            order.setNote(""); // Đặt note rỗng nếu không có giá trị
+        }
+
+        // Cập nhật thời gian
+        order.setUpdatedAt(LocalDateTime.now().withNano(0));
+
+        // Lưu đơn hàng
+        Order updatedOrder = repository.save(order);
+        return mapper.toOrderResponse(updatedOrder);
+    }
     public List<OrderResponse> filterOrders(
             String orderCode,
             Double minPrice,
@@ -195,8 +216,7 @@ public class OrderService {
             System.out.println("status: " + status);
 
             List<Order> filteredOrders = repository.filterOrders(
-                    orderCode, minPrice, maxPrice, startDate, endDate, status
-            );
+                    orderCode, minPrice, maxPrice, startDate, endDate, status);
 
             System.out.println("Found " + filteredOrders.size() + " orders");
             return mapper.toListOrders(filteredOrders);
@@ -249,16 +269,13 @@ public class OrderService {
         Order order = new Order();
         order.setOrderCode(orderCode);
         order.setCustomer(customer);
-        order.setCustomerName(orderRequest.getCustomerName() != null ?
-                orderRequest.getCustomerName() : customer.getFullName());
-        order.setPhone(orderRequest.getPhone() != null ?
-                orderRequest.getPhone() : customer.getPhone());
+        order.setCustomerName(
+                orderRequest.getCustomerName() != null ? orderRequest.getCustomerName() : customer.getFullName());
+        order.setPhone(orderRequest.getPhone() != null ? orderRequest.getPhone() : customer.getPhone());
         order.setAddress(orderRequest.getAddress());
         order.setNote(orderRequest.getNote());
-        order.setShippingFee(orderRequest.getShippingFee() != null ?
-                orderRequest.getShippingFee() : 0.0);
-        order.setDiscountValue(orderRequest.getDiscountValue() != null ?
-                orderRequest.getDiscountValue() : 0.0);
+        order.setShippingFee(orderRequest.getShippingFee() != null ? orderRequest.getShippingFee() : 0.0);
+        order.setDiscountValue(orderRequest.getDiscountValue() != null ? orderRequest.getDiscountValue() : 0.0);
 
         double totalPrice = selectedItems.stream()
                 .mapToDouble(item -> item.getPrice() * item.getQuantity())
@@ -285,10 +302,13 @@ public class OrderService {
 
         order = repository.save(order);
 
+        webSocketController.sendOrderCustomer(order.getOrderCode(), customer.getFullName());
+
         // Xóa các sản phẩm đã thanh toán khỏi giỏ hàng và lưu thay đổi
         for (OrderRequest.CartItemDTO item : selectedItems) {
             ProductDetail productDetail = productDetailRepository.findById(item.getProductDetailId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi tiết sản phẩm với ID: " + item.getProductDetailId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Không tìm thấy chi tiết sản phẩm với ID: " + item.getProductDetailId()));
 
             OrderDetail orderDetail = new OrderDetail();
             orderDetail.setOrder(order);
@@ -300,9 +320,7 @@ public class OrderService {
             orderDetailRepository.save(orderDetail);
 
             // Xóa sản phẩm khỏi giỏ hàng
-            cart.getItems().removeIf(cartItem ->
-                    cartItem.getProductDetail().getId().equals(item.getProductDetailId())
-            );
+            cart.getItems().removeIf(cartItem -> cartItem.getProductDetail().getId().equals(item.getProductDetailId()));
         }
 
         // Lưu giỏ hàng đã cập nhật vào database
@@ -341,24 +359,27 @@ public class OrderService {
         order.setUpdatedAt(LocalDateTime.now().withNano(0));
 
         order = repository.save(order);
+
+        webSocketController.sendOrderGuest(order.getOrderCode());
+
         for (GuestOrderRequest.CartItemDTO item : request.getCartItems()) {
             ProductDetail productDetail = productDetailRepository.findById(item.getProductDetailId()).orElseThrow(
-                    () -> new ResourceNotFoundException("getProductDetailId not found")
-            );
+                    () -> new ResourceNotFoundException("getProductDetailId not found"));
 
             OrderDetailRequest orderDetailRequest = new OrderDetailRequest(
                     order.getId(),
                     item.getProductDetailId(),
-                    productDetail.getProduct().getProductName() + " - " + productDetail.getColor() + " - " + productDetail.getSize(),
+                    productDetail.getProduct().getProductName() + " - " + productDetail.getColor() + " - "
+                            + productDetail.getSize(),
                     item.getQuantity(),
                     item.getPrice(),
                     item.getTotal_price(),
                     1,
-                    1
-            );
+                    1);
             orderDetailService.create(orderDetailRequest); // Tạo chi tiết đơn hàng
 
         }
+
         return mapper.toOrderResponse(order);
     }
 

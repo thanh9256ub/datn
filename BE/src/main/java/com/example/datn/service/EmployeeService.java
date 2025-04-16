@@ -61,11 +61,15 @@ public class EmployeeService {
     }
 
     public EmployeeResponse createEmployee(EmployeeRequest employeeRequest) {
+
         Employee employee = employeeMapper.toEmployee(employeeRequest);
+
+
         employee.setEmployeeCode("NV.....");
         employee.setCreatedAt(LocalDateTime.now());
         employee.setUpdatedAt(LocalDateTime.now());
         employee.setStatus(1);
+        employee.setImage(employeeRequest.getImage());
         Role role = roleRepository.findById(employeeRequest.getRoleId()).get();
         employee.setRole(role);
 
@@ -89,6 +93,8 @@ public class EmployeeService {
 //        return employeeMapper.toEmployeeResponse(employee);
         return new EmployeeResponse(created);
     }
+
+
 
     public EmployeeResponse getEmployeeById(Integer id) {
 
@@ -115,6 +121,7 @@ public class EmployeeService {
         employee.setAddress(employeeRequest.getAddress());
         employee.setEmail(employeeRequest.getEmail());
         employee.setUsername(employeeRequest.getUsername());
+        employee.setImage(employeeRequest.getImage());
         employee.setStatus(employeeRequest.getStatus());
 //        employeeMapper.updateEmployee(employee, employeeRequest);
 

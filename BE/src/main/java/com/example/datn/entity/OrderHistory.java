@@ -1,12 +1,6 @@
 package com.example.datn.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,21 +13,25 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "lich_su_don_hang")
+@Table(name = "order_history")
 public class OrderHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "id_don_hang")
+    @JoinColumn(name = "order_id")
     private Order order;
 
-    private String bieu_tuong;
+    @Column(name = "icon")
+    private String icon;
 
-    private String mo_ta;
+    @Column(name = "description")
+    private String description;
 
-    private LocalDateTime thoi_gian_thay_doi;
+    @Column(name = "change_time")
+    private LocalDateTime change_time;
 
 }
