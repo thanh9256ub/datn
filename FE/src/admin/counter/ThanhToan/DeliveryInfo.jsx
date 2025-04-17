@@ -162,7 +162,7 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
 
   const handleSaveModal = async () => {
     // Validation
-    if (!customerInfo.fullName.trim()) { // Changed from customerInfo.name to customerInfo.fullName
+    if (!customerInfo.fullName.trim()) {
       toast.error("Họ tên không được để trống ", toastOptions);
       return;
     }
@@ -172,8 +172,8 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
       return;
     }
 
-    if (!customerInfo.phone.trim() || !/^\d{10}$/.test(customerInfo.phone)) {
-      toast.error("Số điện thoại phải gồm 10 chữ số ", toastOptions);
+    if (!customerInfo.phone.trim() || !/^0\d{9}$/.test(customerInfo.phone)) {
+      toast.error("Số điện thoại phải bắt đầu bằng số 0 và gồm 10 chữ số ", toastOptions);
       return;
     }
 
@@ -194,6 +194,11 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
 
     if (!customerInfo.address.trim()) {
       toast.error("Địa chỉ cụ thể không được để trống ", toastOptions);
+      return;
+    }
+
+    if (customerInfo.address.length > 255) {
+      toast.error("Địa chỉ cụ thể không được vượt quá 255 ký tự ", toastOptions);
       return;
     }
     clearInterval(qrIntervalRef.current);
@@ -369,7 +374,13 @@ const DeliveryInfo = ({ delivery, setDelivery, onSave, customer, setCustomer, cu
                   style={{ fontWeight: 'bold' }}
                   placeholder="Nhập địa chỉ cụ thể"
                   value={customerInfo.address}
-                  onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 255) {
+                      setCustomerInfo({ ...customerInfo, address: e.target.value });
+                    } else {
+                      toast.warn("Địa chỉ cụ thể không được vượt quá 255 ký tự", toastOptions);
+                    }
+                  }}
                 />
               </Col>
             </Row>

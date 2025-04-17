@@ -60,16 +60,17 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
 
   const handleSearchCustomer = async () => {
     // Validate phone number length
-    if (phoneNumber.length !== 10) {
-      toast.error("Số điện thoại phải có đúng 10 chữ số ", toastOptions);
-      return;
-    }
+    if (!phoneNumber.trim() || !/^0\d{9}$/.test(phoneNumber)) {
+          toast.error("Số điện thoại phải bắt đầu bằng số 0 và gồm 10 chữ số ", toastOptions);
+          return;
+        }
 
     try {
 
       const response = await fetchCustomers();
       const customer = response.data.data.find(c => c.phone === phoneNumber);
-
+     
+     console.log("customer", customer)
       if (!customer) {
         toast.error("Không tìm thấy khách hàng", toastOptions);
         return;
@@ -94,18 +95,28 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
       return;
     }
 
+    if (newCustomer.fullName.length > 255) {
+      toast.error("Họ tên không được vượt quá 255 ký tự ", toastOptions);
+      return;
+    }
+
     if (!newCustomer.phone.trim() || !/^\d+$/.test(newCustomer.phone)) {
       toast.error("Số điện thoại không hợp lệ ", toastOptions);
       return;
     }
 
-    if (newCustomer.phone.length !== 10) {
-      toast.error("Số điện thoại phải có đúng 10 chữ số ", toastOptions);
+   if (!newCustomer.email.trim() || !/^0\d{9}$/.test(phoneNumber)) {
+      toast.error("Số điện thoại phải bắt đầu bằng số 0 và gồm 10 chữ số ", toastOptions);
       return;
     }
 
     if (!newCustomer.email.trim() || !/\S+@\S+\.\S+/.test(newCustomer.email)) {
       toast.error("Email không hợp lệ ", toastOptions);
+      return;
+    }
+    
+    if (newCustomer.email.length > 255) {
+      toast.error("Email không được vượt quá 255 ký tự ", toastOptions);
       return;
     }
 
@@ -121,6 +132,11 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
 
     if (!selectedProvince || !selectedDistrict || !selectedWard || !newCustomer.address) {
       toast.error("Vui lòng nhập đầy đủ địa chỉ ", toastOptions);
+      return;
+    }
+
+    if (newCustomer.address.length > 255) {
+      toast.error("Địa chỉ cụ thể không được vượt quá 255 ký tự ", toastOptions);
       return;
     }
 
@@ -175,7 +191,9 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
           <Button variant="primary" onClick={() => {
             setShowAddCustomerModal(true)
 
-            setQrImageUrl(null);
+            clearInterval(qrIntervalRef.current);
+                qrIntervalRef.current = null;
+                setQrImageUrl(null);
           }}>
             Thêm khách hàng
           </Button>
