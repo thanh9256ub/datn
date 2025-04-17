@@ -22,15 +22,20 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> getAll();
 
     @Query("SELECT o FROM Order o WHERE " +
-            "(:orderCode IS NULL OR LOWER(o.orderCode) LIKE LOWER(CONCAT('%', :orderCode, '%'))) " +
-            "AND (:minPrice IS NULL OR o.totalPrice >= :minPrice) " +
-            "AND (:maxPrice IS NULL OR o.totalPrice <= :maxPrice) " +
+            "(:search IS NULL OR :search = '' OR " +
+            "LOWER(o.orderCode) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(o.phone) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(o.customerName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+            "AND (:minPrice IS NULL OR " +
+            "(o.totalPrice + COALESCE(o.shippingFee, 0) - COALESCE(o.discountValue, 0)) >= :minPrice) " +
+            "AND (:maxPrice IS NULL OR " +
+            "(o.totalPrice + COALESCE(o.shippingFee, 0) - COALESCE(o.discountValue, 0)) <= :maxPrice) " +
             "AND (:startDate IS NULL OR o.createdAt >= :startDate) " +
             "AND (:endDate IS NULL OR o.createdAt <= :endDate) " +
             "AND (:status IS NULL OR o.status = :status) " +
             "AND o.status <> 0 " +
             "ORDER BY o.updatedAt DESC")
-    List<Order> filterOrders(@Param("orderCode") String orderCode,
+    List<Order> filterOrders(@Param("search") String search,
                              @Param("minPrice") Double minPrice,
                              @Param("maxPrice") Double maxPrice,
                              @Param("startDate") LocalDateTime startDate,

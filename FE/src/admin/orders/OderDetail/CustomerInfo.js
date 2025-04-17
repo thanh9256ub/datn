@@ -8,7 +8,8 @@ import {
     FormControl,
     Row,
     Col,
-    Spinner
+    Spinner,
+    Alert
 } from 'react-bootstrap';
 import {
     fetchProvinces,
@@ -22,6 +23,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
     const [provinces, setProvinces] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
+    const [errors, setErrors] = useState({});
 
     const [formData, setFormData] = useState({
         customerName: customer.customerName || '',
@@ -70,6 +72,53 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
         }
     };
 
+    const validateForm = () => {
+        const newErrors = {};
+
+        // Validate customerName (cho phép ký tự tiếng Việt)
+        if (!formData.customerName.trim()) {
+            newErrors.customerName = "Tên khách hàng không được để trống";
+        } else if (formData.customerName.length > 100) {
+            newErrors.customerName = "Tên khách hàng không được vượt quá 100 ký tự";
+        } else if (!/^[\p{L}\s]+$/u.test(formData.customerName.trim())) {
+            newErrors.customerName = "Tên khách hàng chỉ được chứa chữ cái và khoảng trắng";
+        }
+
+        // Validate phone
+        if (!formData.phone.trim()) {
+            newErrors.phone = "Số điện thoại không được để trống";
+        } else if (!/^\d{10}$/.test(formData.phone.trim())) {
+            newErrors.phone = "Số điện thoại phải có đúng 10 chữ số và không chứa ký tự đặc biệt";
+        }
+
+        // Validate addressDetail (cho phép ký tự tiếng Việt và dấu /)
+        if (!formData.addressDetail.trim()) {
+            newErrors.addressDetail = "Địa chỉ chi tiết không được để trống";
+        } else if (formData.addressDetail.length > 255) {
+            newErrors.addressDetail = "Địa chỉ chi tiết không được vượt quá 255 ký tự";
+        } else if (!/^[\p{L}\p{N}\s\/]+$/u.test(formData.addressDetail.trim())) {
+            newErrors.addressDetail = "Địa chỉ chi tiết chỉ được chứa chữ, số, khoảng trắng và dấu /";
+        }
+
+        // Validate province
+        if (!formData.province) {
+            newErrors.province = "Vui lòng chọn tỉnh/thành phố";
+        }
+
+        // Validate district
+        if (!formData.district) {
+            newErrors.district = "Vui lòng chọn quận/huyện";
+        }
+
+        // Validate ward
+        if (!formData.ward) {
+            newErrors.ward = "Vui lòng chọn phường/xã";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleWardChange = (wardName) => {
         const selectedWard = wards.find(w => w.WARDS_NAME === wardName);
         setFormData(prev => ({
@@ -77,6 +126,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
             ward: wardName,
             wardId: selectedWard?.WARDS_ID || ''
         }));
+        setErrors(prev => ({ ...prev, ward: null }));
     };
 
     const handleProvinceChange = async (provinceName) => {
@@ -95,6 +145,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
                     ward: '',
                     wardId: ''
                 }));
+                setErrors(prev => ({ ...prev, province: null, district: null, ward: null }));
             }
         } catch (error) {
             console.error('Error loading districts:', error);
@@ -117,6 +168,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
                     ward: '',
                     wardId: ''
                 }));
+                setErrors(prev => ({ ...prev, district: null, ward: null }));
             }
         } catch (error) {
             console.error('Error loading wards:', error);
@@ -131,16 +183,13 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
             return;
         }
 
+        if (!validateForm()) {
+            showNotification("Vui lòng kiểm tra lại thông tin nhập vào!");
+            return;
+        }
+
         setIsLoading(true);
         try {
-            if (!formData.customerName?.trim()) {
-                throw new Error("Vui lòng nhập tên khách hàng");
-            }
-
-            if (!formData.phone?.trim()) {
-                throw new Error("Vui lòng nhập số điện thoại");
-            }
-
             const fullAddress = [
                 formData.addressDetail,
                 formData.ward,
@@ -175,7 +224,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
                         variant="outline-primary"
                         size="sm"
                         onClick={() => setShowModal(true)}
-                        disabled={!canUpdate} // Vô hiệu hóa nút nếu không được phép cập nhật
+                        disabled={!canUpdate}
                     >
                         Cập nhật
                     </Button>
@@ -206,7 +255,11 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
                                         })}
                                         required
                                         disabled={!canUpdate}
+                                        isInvalid={!!errors.customerName}
                                     />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.customerName}
+                                    </Form.Control.Feedback>
                                 </FormGroup>
                             </Col>
                             <Col md={6}>
@@ -221,7 +274,11 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
                                         })}
                                         required
                                         disabled={!canUpdate}
+                                        isInvalid={!!errors.phone}
                                     />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.phone}
+                                    </Form.Control.Feedback>
                                 </FormGroup>
                             </Col>
                         </Row>
@@ -235,6 +292,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
                                         value={formData.province}
                                         onChange={(e) => handleProvinceChange(e.target.value)}
                                         disabled={!canUpdate}
+                                        isInvalid={!!errors.province}
                                     >
                                         <option value="">Chọn tỉnh/thành</option>
                                         {provinces.map(province => (
@@ -246,6 +304,9 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
                                             </option>
                                         ))}
                                     </FormControl>
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.province}
+                                    </Form.Control.Feedback>
                                 </FormGroup>
                             </Col>
                             <Col md={4}>
@@ -256,6 +317,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
                                         value={formData.district}
                                         onChange={(e) => handleDistrictChange(e.target.value)}
                                         disabled={!canUpdate || !formData.province || isLoading}
+                                        isInvalid={!!errors.district}
                                     >
                                         <option value="">Chọn quận/huyện</option>
                                         {districts.map(district => (
@@ -267,6 +329,9 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
                                             </option>
                                         ))}
                                     </FormControl>
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.district}
+                                    </Form.Control.Feedback>
                                 </FormGroup>
                             </Col>
                             <Col md={4}>
@@ -278,6 +343,7 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
                                         onChange={(e) => handleWardChange(e.target.value)}
                                         disabled={!canUpdate || !formData.district || isLoading || wards.length === 0}
                                         required
+                                        isInvalid={!!errors.ward}
                                     >
                                         <option value="">Chọn phường/xã</option>
                                         {wards.map(ward => (
@@ -289,6 +355,9 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
                                             </option>
                                         ))}
                                     </FormControl>
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.ward}
+                                    </Form.Control.Feedback>
                                 </FormGroup>
                             </Col>
                         </Row>
@@ -305,7 +374,11 @@ const CustomerInfo = ({ customer, onUpdate, showNotification, canUpdate }) => {
                                 placeholder="Số nhà, đường..."
                                 required
                                 disabled={!canUpdate}
+                                isInvalid={!!errors.addressDetail}
                             />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.addressDetail}
+                            </Form.Control.Feedback>
                         </FormGroup>
                     </Form>
                 </Modal.Body>

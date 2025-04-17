@@ -96,13 +96,13 @@ public class OrderController {
     }
     @GetMapping("/filter")
     public List<OrderResponse> filterOrders(
-            @RequestParam(required = false) String orderCode,
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) LocalDateTime startDate,
             @RequestParam(required = false) LocalDateTime endDate,
-            @RequestParam(required = false) Integer status) { // Thêm status
-        return service.filterOrders(orderCode, minPrice, maxPrice, startDate, endDate, status);
+            @RequestParam(required = false) Integer status) {
+        return service.filterOrders(search, minPrice, maxPrice, startDate, endDate, status);
     }
 
 

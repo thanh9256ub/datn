@@ -171,30 +171,42 @@ public class OrderDetailService {
     }
     @Transactional
     public List<OrderDetailResponse> updateOrderDetails(Integer orderId, List<OrderDetailRequest> items) {
+        if (items == null || items.isEmpty()) {
+            throw new IllegalArgumentException("Danh sách chi tiết đơn hàng không được để trống");
+        }
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found with id: " + orderId));
 
         List<OrderDetail> currentDetails = repository.findByOrderId(orderId);
-        for (OrderDetail detail : currentDetails) {
-            ProductDetail productDetail = detail.getProductDetail();
-            productDetail.setQuantity(productDetail.getQuantity() + detail.getQuantity());
-            productDetailRepository.save(productDetail);
-            productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
+        if (order.getStatus() >= 2) { // Chỉ hoàn lại nếu đơn hàng đã ở trạng thái 2 trở lên
+            for (OrderDetail detail : currentDetails) {
+                ProductDetail productDetail = detail.getProductDetail();
+                if (detail.getQuantity() < 0) {
+                    throw new IllegalArgumentException("Invalid quantity in existing order detail: " + detail.getId());
+                }
+                productDetail.setQuantity(productDetail.getQuantity() + detail.getQuantity());
+                productDetailRepository.save(productDetail);
+                productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
+            }
         }
 
         repository.deleteByOrderId(orderId);
 
         List<OrderDetail> newDetails = items.stream().map(item -> {
             ProductDetail productDetail = productDetailRepository.findById(item.getProductDetailId())
-                    .orElseThrow(() -> new RuntimeException("ProductDetail not found with id: " + item.getProductDetailId()));
-
+                    .orElseThrow(() -> new IllegalArgumentException("ProductDetail not found with id: " + item.getProductDetailId()));
             if (productDetail.getQuantity() < item.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for product: " + productDetail.getProduct().getProductName());
+                throw new IllegalArgumentException(String.format(
+                        "Insufficient stock for product: %s. Requested: %d, Available: %d",
+                        productDetail.getProduct().getProductName(), item.getQuantity(), productDetail.getQuantity()
+                ));
             }
 
-            productDetail.setQuantity(productDetail.getQuantity() - item.getQuantity());
-            productDetailRepository.save(productDetail);
-            productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
+            if (order.getStatus() >= 2) {
+                productDetail.setQuantity(productDetail.getQuantity() - item.getQuantity());
+                productDetailRepository.save(productDetail);
+                productDetailService.updateTotalQuantity(productDetail.getProduct().getId());
+            }
 
             OrderDetail orderDetail = new OrderDetail();
             orderDetail.setOrder(order);

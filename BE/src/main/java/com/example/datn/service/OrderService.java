@@ -199,7 +199,7 @@ public class OrderService {
         return mapper.toOrderResponse(updatedOrder);
     }
     public List<OrderResponse> filterOrders(
-            String orderCode,
+            String search,
             Double minPrice,
             Double maxPrice,
             LocalDateTime startDate,
@@ -207,16 +207,10 @@ public class OrderService {
             Integer status) {
 
         try {
-            System.out.println("Filtering orders with params:");
-            System.out.println("orderCode: " + orderCode);
-            System.out.println("minPrice: " + minPrice);
-            System.out.println("maxPrice: " + maxPrice);
-            System.out.println("startDate: " + startDate);
-            System.out.println("endDate: " + endDate);
-            System.out.println("status: " + status);
 
             List<Order> filteredOrders = repository.filterOrders(
-                    orderCode, minPrice, maxPrice, startDate, endDate, status);
+                    search != null && !search.trim().isEmpty() ? search.trim() : null,
+                    minPrice, maxPrice, startDate, endDate, status);
 
             System.out.println("Found " + filteredOrders.size() + " orders");
             return mapper.toListOrders(filteredOrders);

@@ -55,9 +55,9 @@ const CartItems = () => {
     const [voucherError, setVoucherError] = useState('');
     const [voucherLoading, setVoucherLoading] = useState(false);
 
-    // Khởi tạo giỏ hàng
+    // Initialize cart
     useEffect(() => {
-        console.log('CartItems được gắn với:', { isGuest, cartId, token, cartItems });
+        console.log('CartItems mounted with:', { isGuest, cartId, token, cartItems });
         const initializeCart = async () => {
             setCartLoading(true);
             try {
@@ -68,7 +68,7 @@ const CartItems = () => {
                         currentCartId = cartData.id;
                         setCartId(currentCartId);
                     }
-                    console.log('Đang tải giỏ hàng từ server với cartId:', currentCartId);
+                    console.log('Loading cart from server with cartId:', currentCartId);
                     await loadCartItems(currentCartId);
                 } else if (isGuest) {
                     const savedCart = localStorage.getItem('cartItems');
@@ -80,7 +80,7 @@ const CartItems = () => {
                 }
                 hasLoadedCart.current = true;
             } catch (error) {
-                console.error('Không thể khởi tạo giỏ hàng:', error);
+                console.error('Failed to initialize cart:', error);
                 message.error('Không thể tải giỏ hàng, vui lòng thử lại sau.');
             } finally {
                 setCartLoading(false);
@@ -107,7 +107,7 @@ const CartItems = () => {
                         });
                     }
                 } catch (error) {
-                    console.error('Không thể tải thông tin khách hàng:', error);
+                    console.error('Failed to load customer profile:', error);
                     message.error('Không thể tải thông tin khách hàng.');
                 }
             } else {
@@ -118,7 +118,17 @@ const CartItems = () => {
         loadCustomerProfile();
     }, [isGuest, token, form]);
 
-    // Tạo URL thanh toán VNPAY và mở cửa sổ mới
+    // Reset voucher when no items are selected
+    useEffect(() => {
+        if (selectedItems.length === 0 && (voucherCode || voucherDiscount > 0)) {
+            setVoucherCode('');
+            setVoucherDiscount(0);
+            setVoucherError('');
+            message.info('Mã giảm giá đã bị xóa vì không có sản phẩm nào được chọn.');
+        }
+    }, [selectedItems, voucherCode, voucherDiscount]);
+
+    // Generate VNPay payment URL and open new window
     const generateVNPayPaymentHandler = async (orderId, totalAmount) => {
         try {
             const response = await generateVNPayPayment(orderId, totalAmount);
@@ -230,7 +240,7 @@ const CartItems = () => {
                 const data = await fetchProvinces();
                 setProvinces(data);
             } catch (error) {
-                message.error('Không thể tải danh sách tỉnh/thành phố');
+                message.error('Không thể tải danh sách tỉnh/thành phố.');
             }
         };
         loadProvinces();
@@ -246,7 +256,7 @@ const CartItems = () => {
                     setWards([]);
                     form.setFieldsValue({ district: undefined, ward: undefined });
                 } catch (error) {
-                    message.error('Không thể tải danh sách quận/huyện');
+                    message.error('Không thể tải danh sách quận/huyện.');
                 }
             };
             loadDistricts();
@@ -262,7 +272,7 @@ const CartItems = () => {
                     setSelectedWard('');
                     form.setFieldsValue({ ward: undefined });
                 } catch (error) {
-                    message.error('Không thể tải danh sách phường/xã');
+                    message.error('Không thể tải danh sách phường/xã.');
                 }
             };
             loadWards();
@@ -291,10 +301,10 @@ const CartItems = () => {
             if (fee !== undefined) {
                 setShippingFee(fee);
             } else {
-                message.warning('Không thể tính phí vận chuyển');
+                message.warning('Không thể tính phí vận chuyển.');
             }
         } catch (error) {
-            message.error('Lỗi khi tính phí vận chuyển');
+            message.error('Lỗi khi tính phí vận chuyển.');
         } finally {
             setShippingLoading(false);
         }
@@ -318,8 +328,8 @@ const CartItems = () => {
                 if (availableStock < item.quantity) {
                     insufficientItems.push({
                         name: item.productDetail?.product?.productName || 'Sản phẩm',
-                        color: item.productDetail?.color?.colorName || 'N/A',
-                        size: item.productDetail?.size?.sizeName || 'N/A',
+                        color: item.productDetail?.color?.colorName || 'Không có',
+                        size: item.productDetail?.size?.sizeName || 'Không có',
                         requested: item.quantity,
                         available: availableStock
                     });
@@ -340,7 +350,7 @@ const CartItems = () => {
             await form.validateFields();
 
             if (selectedItems.length === 0) {
-                message.warning('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+                message.warning('Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
                 return;
             }
 
@@ -358,7 +368,7 @@ const CartItems = () => {
             );
 
             if (validSelectedItems.length === 0) {
-                message.error('Không có sản phẩm hợp lệ nào được chọn để thanh toán');
+                message.error('Không có sản phẩm hợp lệ được chọn để thanh toán.');
                 setLoading(false);
                 return;
             }
@@ -375,10 +385,10 @@ const CartItems = () => {
                     totalPrice: item.total_price || item.price * item.quantity
                 }));
 
-            console.log('Các mục trong giỏ hàng đã chọn trước khi kiểm tra tồn kho:', selectedCartItems);
+            console.log('Selected cart items before stock check:', selectedCartItems);
 
             if (selectedCartItems.length === 0) {
-                message.error('Không có sản phẩm nào để kiểm tra tồn kho');
+                message.error('Không có sản phẩm nào để kiểm tra tồn kho.');
                 setLoading(false);
                 return;
             }
@@ -392,7 +402,7 @@ const CartItems = () => {
                 const errorMessage = insufficientItems.map(item =>
                     `Yêu cầu ${item.requested}, chỉ còn ${item.available}`
                 ).join('\n');
-                message.error(`Không đủ sản phẩm trong kho:\n${errorMessage}`, 5);
+                message.error(`Không đủ hàng trong kho:\n${errorMessage}`, 5);
                 setLoading(false);
                 return;
             }
@@ -411,37 +421,37 @@ const CartItems = () => {
                 paymentMethodId: paymentMethod === 1 ? 3 : 2, // 3: COD, 2: VNPAY
                 paymentTypeId: 2,
                 orderType: 1,
-                status: paymentMethod === 1 ? 1 : 1, // Trạng thái ban đầu là 1
+                status: paymentMethod === 1 ? 1 : 1, // Initial status is 1
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 cartItems: selectedCartItems,
                 customerId: isGuest ? null : customerId
             };
 
-            console.log('Dữ liệu đơn hàng gửi đi:', JSON.stringify(orderData, null, 2));
+            console.log('Order data sent:', JSON.stringify(orderData, null, 2));
             let response;
             let voucherData = null;
-            if (voucherCode && voucherDiscount > 0) {
+            if (!isGuest && voucherCode && voucherDiscount > 0) {
                 voucherData = await getVoucherByCode(voucherCode);
-                // Kiểm tra lại voucher để đảm bảo tính nhất quán
+                // Validate voucher again for consistency
                 if (!voucherData || voucherData.quantity <= 0) {
-                    message.error('Mã khuyến mãi đã hết số lượng hoặc không hợp lệ');
+                    message.error('Mã giảm giá đã hết lượt sử dụng hoặc không hợp lệ.');
                     setLoading(false);
                     return;
                 }
                 const currentDate = new Date();
                 const voucherEndDate = new Date(voucherData.endDate);
                 if (voucherEndDate < currentDate) {
-                    message.error('Mã khuyến mãi đã hết hạn');
+                    message.error('Mã giảm giá đã hết hạn.');
                     setLoading(false);
                     return;
                 }
                 if (getTotalCartAmount() < voucherData.minOrderValue) {
-                    message.error(`Đơn hàng phải có giá trị tối thiểu ${voucherData.minOrderValue.toLocaleString('vi-VN')}₫`);
+                    message.error(`Đơn hàng phải có giá trị tối thiểu ${voucherData.minOrderValue.toLocaleString('vi-VN')}₫ để áp dụng mã này.`);
                     setLoading(false);
                     return;
                 }
-                // Kiểm tra lại giảm giá
+                // Recalculate discount
                 let calculatedDiscount = voucherData.discountValue;
                 if (voucherData.discountType === 1) {
                     calculatedDiscount = (voucherData.discountValue / 100) * getTotalCartAmount();
@@ -458,14 +468,14 @@ const CartItems = () => {
                 response = await createGuestOrder(orderData);
             } else {
                 if (!cartId) {
-                    console.log('Không tìm thấy cartId, đang tạo giỏ hàng mới...');
+                    console.log('CartId not found, creating new cart...');
                     const cartData = await getOrCreateCart(customerId);
                     setCartId(cartData.id);
                     await loadCartItems(cartData.id);
                 } else {
                     const cartDetails = await getCartDetails(cartId);
                     if (!cartDetails.data.length || cartDetails.data[0]?.cart?.customerId !== customerId) {
-                        console.log('Giỏ hàng không khớp với khách hàng, đang tạo giỏ hàng mới...');
+                        console.log('Cart does not match customer, creating new cart...');
                         const cartData = await getOrCreateCart(customerId);
                         setCartId(cartData.id);
                         await loadCartItems(cartData.id);
@@ -476,10 +486,10 @@ const CartItems = () => {
 
             if (response.status === 201) {
                 const orderCode = response.data?.orderCode || response.data?.data?.orderCode;
-                console.log("===Mã đơn hàng===" + orderCode);
+                console.log("===Order Code===" + orderCode);
                 setOrderCode(orderCode);
 
-                // Tạo OrderVoucher nếu voucher được áp dụng
+                // Create OrderVoucher if voucher is applied
                 if (voucherData) {
                     const orderVoucherData = {
                         orderId: response.data?.id || response.data?.data?.id,
@@ -489,7 +499,7 @@ const CartItems = () => {
                     try {
                         await createOrderVoucher(orderVoucherData);
                     } catch (error) {
-                        message.error(error.message || 'Không thể áp dụng mã khuyến mãi do lỗi hệ thống');
+                        message.error(error.message || 'Không thể áp dụng mã giảm giá do lỗi hệ thống.');
                         setLoading(false);
                         return;
                     }
@@ -514,11 +524,11 @@ const CartItems = () => {
                     else localStorage.setItem('cartItems', JSON.stringify(
                         cartItems.filter(item => !validSelectedItems.includes(item.productDetailId || item.productDetail?.id))
                     ));
-                    // Đặt lại trạng thái voucher
+                    // Reset voucher state
                     setVoucherCode('');
                     setVoucherDiscount(0);
                     setVoucherError('');
-                    // Xóa thông tin thanh toán
+                    // Clear payment information
                     form.resetFields();
                     setSelectedProvince('');
                     setSelectedDistrict('');
@@ -527,8 +537,8 @@ const CartItems = () => {
                 }
             }
         } catch (error) {
-            console.error('Lỗi khi đặt hàng:', error);
-            message.error(error.message || 'Đã có lỗi xảy ra khi đặt hàng');
+            console.error('Error placing order:', error);
+            message.error(error.message || 'Có lỗi xảy ra khi đặt hàng.');
         } finally {
             setLoading(false);
             setIsConfirmModalVisible(false);
@@ -548,21 +558,40 @@ const CartItems = () => {
         setIsConfirmModalVisible(false);
     };
 
+    const trimWhitespace = (e) => {
+        const value = e.target.value.trim();
+        e.target.value = value;
+        return value;
+    };
+
+    const validateAddress = (_, value) => {
+        if (value.trim() !== value) {
+            return Promise.reject(new Error('Địa chỉ không được chứa khoảng trắng ở đầu hoặc cuối.'));
+        }
+
+        const specialChars = /[!@#$%^&*()_+\-=\[\]{};':"\\|<>\?~]/;
+        if (specialChars.test(value)) {
+            return Promise.reject(new Error('Địa chỉ không được chứa ký tự đặc biệt.'));
+        }
+
+        return Promise.resolve();
+    };
+
     return (
         <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
             <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 24 }}>
                 <Title level={2} style={{ margin: 0 }}>
                     <ShoppingCartOutlined style={{ color: '#1890ff', marginRight: 8 }} />
-                    Giỏ hàng của bạn
+                    Giỏ Hàng Của Bạn
                     <Badge count={getTotalCartItems()} style={{ marginLeft: 16 }} />
                 </Title>
             </Space>
             <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
-                Lưu ý: Khách hàng chỉ được đặt tối đa 10 sản phẩm, nếu bạn có nhu cầu đặt thêm xin vui lòng liên hệ đến cửa hàng.
+                Lưu ý: Khách hàng có thể đặt tối đa 10 sản phẩm. Vui lòng liên hệ cửa hàng nếu bạn cần đặt thêm.
             </Text>
             <Row gutter={[24, 24]}>
                 <Col xs={24} md={16}>
-                    <Card title={<Text strong>Sản phẩm trong giỏ hàng</Text>} headStyle={{ backgroundColor: '#fafafa' }} bodyStyle={{ padding: 0 }}>
+                    <Card title={<Text strong>Sản Phẩm Trong Giỏ Hàng</Text>} headStyle={{ backgroundColor: '#fafafa' }} bodyStyle={{ padding: 0 }}>
                         {cartLoading ? (
                             <Spin tip="Đang tải giỏ hàng..." style={{ padding: '48px 0', width: '100%' }} />
                         ) : cartItems.length > 0 ? (
@@ -571,6 +600,9 @@ const CartItems = () => {
                                 dataSource={cartItems}
                                 renderItem={item => {
                                     const itemId = item.id || item.productDetailId || item.productDetail?.id;
+                                    const availableStock = item.productDetail?.quantity || 0;
+                                    const maxQuantity = Math.min(10, availableStock);
+
                                     return (
                                         <List.Item
                                             key={itemId}
@@ -606,14 +638,24 @@ const CartItems = () => {
                                                             <Text>Số lượng:</Text>
                                                             <InputNumber
                                                                 min={1}
-                                                                max={10}
+                                                                max={maxQuantity}
                                                                 value={item.quantity}
-                                                                onChange={(value) => updateQuantity(itemId, value)}
+                                                                onChange={(value) => {
+                                                                    if (value > availableStock) {
+                                                                        message.error(`Số lượng tối đa cho sản phẩm này là ${availableStock}.`);
+                                                                        return;
+                                                                    }
+                                                                    if (value > 10) {
+                                                                        message.error('Số lượng tối đa cho mỗi sản phẩm là 10.');
+                                                                        return;
+                                                                    }
+                                                                    updateQuantity(itemId, value);
+                                                                }}
                                                                 style={{ width: 60 }}
                                                             />
                                                         </Space>
-                                                        <Text>Màu: {item.productDetail?.color?.colorName || 'N/A'}</Text>
-                                                        <Text>Size: {item.productDetail?.size?.sizeName || 'N/A'}</Text>
+                                                        <Text>Màu sắc: {item.productDetail?.color?.colorName || 'Không có'}</Text>
+                                                        <Text>Kích cỡ: {item.productDetail?.size?.sizeName || 'Không có'}</Text>
                                                     </Space>
                                                 }
                                             />
@@ -637,153 +679,217 @@ const CartItems = () => {
                             title={
                                 <Space>
                                     <TagOutlined style={{ color: '#faad14' }} />
-                                    <Text strong>Mã khuyến mãi</Text>
+                                    <Text strong>Mã Giảm Giá</Text>
                                 </Space>
                             }
                             headStyle={{ backgroundColor: '#fffbe6' }}
                         >
-                            <Form.Item>
-                                <Space.Compact style={{ width: '100%' }}>
-                                    <Input
-                                        placeholder="Nhập mã khuyến mãi"
-                                        value={voucherCode}
-                                        onChange={(e) => {
-                                            setVoucherCode(e.target.value);
-                                            setVoucherError('');
-                                        }}
-                                    />
-                                    <Button
-                                        type="primary"
-                                        onClick={async () => {
-                                            if (selectedItems.length === 0) {
-                                                setVoucherError('Vui lòng chọn ít nhất một sản phẩm trước khi áp dụng mã khuyến mãi');
-                                                return;
-                                            }
-
-                                            if (!voucherCode) {
-                                                setVoucherError('Vui lòng nhập mã khuyến mãi');
-                                                return;
-                                            }
-
-                                            setVoucherLoading(true);
-                                            try {
-                                                const voucher = await getVoucherByCode(voucherCode);
-                                                if (!voucher) {
-                                                    setVoucherError('Mã khuyến mãi không hợp lệ');
-                                                    setVoucherDiscount(0);
-                                                    setVoucherLoading(false);
-                                                    return;
-                                                }
-
-                                                if (voucher.quantity <= 0) {
-                                                    setVoucherError('Mã khuyến mãi đã hết số lượng sử dụng');
-                                                    setVoucherDiscount(0);
-                                                    setVoucherLoading(false);
-                                                    return;
-                                                }
-
-                                                const currentDate = new Date();
-                                                const voucherEndDate = new Date(voucher.endDate);
-                                                if (voucherEndDate < currentDate) {
-                                                    setVoucherError('Mã khuyến mãi đã hết hạn');
-                                                    setVoucherDiscount(0);
-                                                    setVoucherLoading(false);
-                                                    return;
-                                                }
-
-                                                const totalCartAmount = getTotalCartAmount();
-                                                if (totalCartAmount < voucher.minOrderValue) {
-                                                    setVoucherError(`Đơn hàng phải có giá trị tối thiểu ${voucher.minOrderValue.toLocaleString('vi-VN')}₫ để áp dụng mã này`);
-                                                    setVoucherDiscount(0);
-                                                    setVoucherLoading(false);
-                                                    return;
-                                                }
-
-                                                let calculatedDiscount = 0;
-                                                if (voucher.discountType === 0) {
-                                                    calculatedDiscount = voucher.discountValue;
-                                                } else if (voucher.discountType === 1) {
-                                                    calculatedDiscount = (voucher.discountValue / 100) * totalCartAmount;
-                                                    if (voucher.maxDiscountValue && calculatedDiscount > voucher.maxDiscountValue) {
-                                                        calculatedDiscount = voucher.maxDiscountValue;
-                                                        message.info(`Giảm giá đã được giới hạn ở mức tối đa ${voucher.maxDiscountValue.toLocaleString('vi-VN')}₫`);
-                                                    }
-                                                } else {
-                                                    setVoucherError('Loại giảm giá không hợp lệ');
-                                                    setVoucherDiscount(0);
-                                                    setVoucherLoading(false);
-                                                    return;
-                                                }
-
-                                                setVoucherDiscount(calculatedDiscount);
-                                                message.success('Áp dụng mã khuyến mãi thành công!');
+                            {isGuest ? (
+                                <Text type="secondary">Vui lòng đăng nhập để sử dụng mã giảm giá.</Text>
+                            ) : (
+                                <Form.Item>
+                                    <Space.Compact style={{ width: '100%' }}>
+                                        <Input
+                                            placeholder="Nhập mã giảm giá"
+                                            value={voucherCode}
+                                            onChange={(e) => {
+                                                const trimmedValue = e.target.value.trim();
+                                                setVoucherCode(trimmedValue);
                                                 setVoucherError('');
-                                            } catch (error) {
-                                                if (error.response && error.response.status === 404) {
-                                                    setVoucherError('Mã khuyến mãi không tồn tại');
-                                                } else {
-                                                    setVoucherError(error.message || 'Có lỗi khi kiểm tra mã khuyến mãi');
+                                            }}
+                                            onBlur={(e) => {
+                                                const trimmedValue = e.target.value.trim();
+                                                setVoucherCode(trimmedValue);
+                                                form.setFieldsValue({ voucherCode: trimmedValue });
+                                            }}
+                                        />
+                                        <Button
+                                            type="primary"
+                                            onClick={async () => {
+                                                if (selectedItems.length === 0) {
+                                                    setVoucherError('Vui lòng chọn ít nhất một sản phẩm trước khi áp dụng mã giảm giá.');
+                                                    return;
                                                 }
-                                                setVoucherDiscount(0);
-                                            } finally {
-                                                setVoucherLoading(false);
-                                            }
-                                        }}
-                                        loading={voucherLoading}
-                                    >
-                                        Áp dụng
-                                    </Button>
-                                </Space.Compact>
-                                {voucherError && <Text type="danger" style={{ display: 'block', marginTop: 8 }}>{voucherError}</Text>}
-                                {voucherDiscount > 0 && (
-                                    <Alert
-                                        message={`Đã áp dụng giảm giá ${voucherDiscount.toLocaleString('vi-VN')}₫`}
-                                        type="success"
-                                        showIcon
-                                        style={{ marginTop: 12 }}
-                                    />
-                                )}
-                            </Form.Item>
+
+                                                if (!voucherCode) {
+                                                    setVoucherError('Vui lòng nhập mã giảm giá.');
+                                                    return;
+                                                }
+
+                                                setVoucherLoading(true);
+                                                try {
+                                                    const voucher = await getVoucherByCode(voucherCode);
+                                                    if (!voucher) {
+                                                        setVoucherError('Mã giảm giá không hợp lệ.');
+                                                        setVoucherDiscount(0);
+                                                        setVoucherLoading(false);
+                                                        return;
+                                                    }
+
+                                                    if (voucher.quantity <= 0) {
+                                                        setVoucherError('Mã giảm giá đã hết lượt sử dụng.');
+                                                        setVoucherDiscount(0);
+                                                        setVoucherLoading(false);
+                                                        return;
+                                                    }
+
+                                                    const currentDate = new Date();
+                                                    const voucherEndDate = new Date(voucher.endDate);
+                                                    if (voucherEndDate < currentDate) {
+                                                        setVoucherError('Mã giảm giá đã hết hạn.');
+                                                        setVoucherDiscount(0);
+                                                        setVoucherLoading(false);
+                                                        return;
+                                                    }
+
+                                                    const totalCartAmount = getTotalCartAmount();
+                                                    if (totalCartAmount < voucher.minOrderValue) {
+                                                        setVoucherError(`Đơn hàng phải có giá trị tối thiểu ${voucher.minOrderValue.toLocaleString('vi-VN')}₫ để áp dụng mã này.`);
+                                                        setVoucherDiscount(0);
+                                                        setVoucherLoading(false);
+                                                        return;
+                                                    }
+
+                                                    let calculatedDiscount = 0;
+                                                    if (voucher.discountType === 0) {
+                                                        calculatedDiscount = voucher.discountValue;
+                                                    } else if (voucher.discountType === 1) {
+                                                        calculatedDiscount = (voucher.discountValue / 100) * totalCartAmount;
+                                                        if (voucher.maxDiscountValue && calculatedDiscount > voucher.maxDiscountValue) {
+                                                            calculatedDiscount = voucher.maxDiscountValue;
+                                                            message.info(`Giảm giá tối đa được giới hạn ở ${voucher.maxDiscountValue.toLocaleString('vi-VN')}₫.`);
+                                                        }
+                                                    } else {
+                                                        setVoucherError('Loại giảm giá không hợp lệ.');
+                                                        setVoucherDiscount(0);
+                                                        setVoucherLoading(false);
+                                                        return;
+                                                    }
+
+                                                    setVoucherDiscount(calculatedDiscount);
+                                                    message.success('Áp dụng mã giảm giá thành công!');
+                                                    setVoucherError('');
+                                                } catch (error) {
+                                                    if (error.response && error.response.status === 404) {
+                                                        setVoucherError('Mã giảm giá không tồn tại.');
+                                                    } else {
+                                                        setVoucherError(error.message || 'Lỗi khi kiểm tra mã giảm giá.');
+                                                    }
+                                                    setVoucherDiscount(0);
+                                                } finally {
+                                                    setVoucherLoading(false);
+                                                }
+                                            }}
+                                            loading={voucherLoading}
+                                        >
+                                            Áp Dụng
+                                        </Button>
+                                    </Space.Compact>
+                                    {voucherError && <Text type="danger" style={{ display: 'block', marginTop: 8 }}>{voucherError}</Text>}
+                                    {voucherDiscount > 0 && (
+                                        <Alert
+                                            message={`Đã áp dụng giảm giá ${voucherDiscount.toLocaleString('vi-VN')}₫`}
+                                            type="success"
+                                            showIcon
+                                            style={{ marginTop: 12 }}
+                                        />
+                                    )}
+                                </Form.Item>
+                            )}
                         </Card>
-                        <Card title={<Text strong>Thông tin thanh toán</Text>} headStyle={{ backgroundColor: '#fafafa' }}>
+                        <Card title={<Text strong>Thông Tin Thanh Toán</Text>} headStyle={{ backgroundColor: '#fafafa' }}>
                             <Form form={form} layout="vertical" initialValues={{ remember: true }}>
                                 <Space direction="vertical" size="small" style={{ width: '100%' }}>
                                     <Form.Item
                                         name="name"
-                                        label="Họ tên"
-                                        rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
+                                        label="Họ và Tên"
+                                        rules={[
+                                            { required: true, message: 'Vui lòng nhập họ và tên.' },
+                                            { max: 100, message: 'Họ và tên không được vượt quá 100 ký tự.' },
+                                            {
+                                                validator: (_, value) =>
+                                                    value && value.trim() === value
+                                                        ? Promise.resolve()
+                                                        : Promise.reject(new Error('Không được chứa khoảng trắng ở đầu hoặc cuối.'))
+                                            }
+                                        ]}
                                         style={{ marginBottom: 12 }}
                                     >
-                                        <Input prefix={<UserOutlined />} placeholder="Nguyễn Văn A" />
+                                        <Input
+                                            prefix={<UserOutlined />}
+                                            placeholder="Nguyễn Văn A"
+                                            maxLength={100}
+                                            onBlur={(e) => {
+                                                const trimmedValue = trimWhitespace(e);
+                                                form.setFieldsValue({ name: trimmedValue });
+                                            }}
+                                        />
                                     </Form.Item>
+
                                     <Form.Item
                                         name="phone"
-                                        label="Số điện thoại"
-                                        rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
+                                        label="Số Điện Thoại"
+                                        rules={[
+                                            { required: true, message: 'Vui lòng nhập số điện thoại.' },
+                                            {
+                                                pattern: /^[0-9]{10}$/,
+                                                message: 'Số điện thoại phải gồm 10 chữ số và không chứa ký tự đặc biệt.'
+                                            },
+                                            {
+                                                validator: (_, value) =>
+                                                    value && value.trim() === value
+                                                        ? Promise.resolve()
+                                                        : Promise.reject(new Error('Không được chứa khoảng trắng ở đầu hoặc cuối.'))
+                                            }
+                                        ]}
                                         style={{ marginBottom: 12 }}
                                     >
-                                        <Input prefix={<PhoneOutlined />} placeholder="0987654321" />
+                                        <Input
+                                            prefix={<PhoneOutlined />}
+                                            placeholder="0987654321"
+                                            maxLength={10}
+                                            onBlur={(e) => {
+                                                const trimmedValue = trimWhitespace(e);
+                                                form.setFieldsValue({ phone: trimmedValue });
+                                            }}
+                                        />
                                     </Form.Item>
+
                                     <Form.Item
                                         name="email"
                                         label="Email"
                                         rules={[
-                                            { required: true, message: 'Vui lòng nhập email' },
-                                            { type: 'email', message: 'Email không hợp lệ' }
+                                            { required: true, message: 'Vui lòng nhập email.' },
+                                            { type: 'email', message: 'Định dạng email không hợp lệ.' },
+                                            { max: 50, message: 'Email không được vượt quá 50 ký tự.' },
+                                            {
+                                                validator: (_, value) =>
+                                                    value && value.trim() === value
+                                                        ? Promise.resolve()
+                                                        : Promise.reject(new Error('Không được chứa khoảng trắng ở đầu hoặc cuối.'))
+                                            }
                                         ]}
                                         style={{ marginBottom: 12 }}
                                     >
-                                        <Input placeholder="example@email.com" type="email" />
+                                        <Input
+                                            placeholder="vidu@email.com"
+                                            type="email"
+                                            maxLength={50}
+                                            onBlur={(e) => {
+                                                const trimmedValue = trimWhitespace(e);
+                                                form.setFieldsValue({ email: trimmedValue });
+                                            }}
+                                        />
                                     </Form.Item>
 
                                     <Form.Item
                                         name="province"
-                                        label="Tỉnh/Thành"
-                                        rules={[{ required: true, message: 'Vui lòng chọn tỉnh/thành' }]}
+                                        label="Tỉnh/Thành Phố"
+                                        rules={[{ required: true, message: 'Vui lòng chọn tỉnh/thành phố.' }]}
                                         style={{ marginBottom: 12 }}
                                     >
                                         <Select
-                                            placeholder="Chọn tỉnh/thành"
+                                            placeholder="Chọn tỉnh/thành phố"
                                             onChange={value => setSelectedProvince(value)}
                                             loading={!provinces.length}
                                             suffixIcon={<EnvironmentOutlined />}
@@ -797,7 +903,7 @@ const CartItems = () => {
                                     <Form.Item
                                         name="district"
                                         label="Quận/Huyện"
-                                        rules={[{ required: true, message: 'Vui lòng chọn quận/huyện' }]}
+                                        rules={[{ required: true, message: 'Vui lòng chọn quận/huyện.' }]}
                                         style={{ marginBottom: 12 }}
                                     >
                                         <Select
@@ -816,7 +922,7 @@ const CartItems = () => {
                                     <Form.Item
                                         name="ward"
                                         label="Phường/Xã"
-                                        rules={[{ required: true, message: 'Vui lòng chọn phường/xã' }]}
+                                        rules={[{ required: true, message: 'Vui lòng chọn phường/xã.' }]}
                                         style={{ marginBottom: 12 }}
                                     >
                                         <Select
@@ -834,22 +940,38 @@ const CartItems = () => {
 
                                     <Form.Item
                                         name="address"
-                                        label="Địa chỉ"
-                                        rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
+                                        label="Địa Chỉ"
+                                        rules={[
+                                            { required: true, message: 'Vui lòng nhập địa chỉ.' },
+                                            { validator: validateAddress }
+                                        ]}
                                         style={{ marginBottom: 12 }}
                                     >
-                                        <Input prefix={<EnvironmentOutlined />} placeholder="Số nhà, tên đường" />
+                                        <Input
+                                            prefix={<EnvironmentOutlined />}
+                                            placeholder="Số nhà, tên đường"
+                                            onBlur={(e) => {
+                                                const trimmedValue = e.target.value.trim();
+                                                form.setFieldsValue({ address: trimmedValue });
+                                            }}
+                                            onChange={(e) => {
+                                                const cleanedValue = e.target.value.replace(/\s+/g, ' ');
+                                                if (cleanedValue !== e.target.value) {
+                                                    form.setFieldsValue({ address: cleanedValue });
+                                                }
+                                            }}
+                                        />
                                     </Form.Item>
 
-                                    <Form.Item name="note" label="Ghi chú" style={{ marginBottom: 16 }}>
-                                        <TextArea rows={2} placeholder="Ghi chú về đơn hàng..." style={{ resize: 'none' }} />
+                                    <Form.Item name="note" label="Ghi Chú" style={{ marginBottom: 16 }}>
+                                        <TextArea rows={2} placeholder="Ghi chú cho đơn hàng..." style={{ resize: 'none' }} />
                                     </Form.Item>
 
-                                    <Divider orientation="left" style={{ marginTop: 0 }}>Phương thức thanh toán</Divider>
+                                    <Divider orientation="left" style={{ marginTop: 0 }}>Phương Thức Thanh Toán</Divider>
 
                                     <Form.Item
                                         name="paymentMethod"
-                                        rules={[{ required: true, message: 'Vui lòng chọn phương thức thanh toán' }]}
+                                        rules={[{ required: true, message: 'Vui lòng chọn phương thức thanh toán.' }]}
                                         initialValue={1}
                                         style={{ marginBottom: 16 }}
                                     >
@@ -862,13 +984,13 @@ const CartItems = () => {
                                                 <Radio value={1} style={{ whiteSpace: 'nowrap' }}>
                                                     <Space size="small">
                                                         <MoneyCollectOutlined />
-                                                        <Text>Thanh toán khi nhận hàng </Text>
+                                                        <Text>Thanh toán khi nhận hàng</Text>
                                                     </Space>
                                                 </Radio>
                                                 <Radio value={2} style={{ whiteSpace: 'nowrap' }}>
                                                     <Space size="small">
                                                         <CreditCardOutlined />
-                                                        <Text>Thanh toán qua VNPAY</Text>
+                                                        <Text>Thanh toán qua VNPay</Text>
                                                     </Space>
                                                 </Radio>
                                             </Space>
@@ -912,18 +1034,18 @@ const CartItems = () => {
                                     icon={<ShoppingCartOutlined />}
                                     disabled={cartItems.length === 0 || selectedItems.length === 0}
                                 >
-                                    Đặt hàng
+                                    Đặt Hàng
                                 </Button>
                             </Space>
                         </Card>
                     </Space>
                 </Col>
                 <Modal
-                    title="Xác nhận đặt hàng"
+                    title="Xác Nhận Đơn Hàng"
                     visible={isConfirmModalVisible}
                     onOk={handleConfirmOk}
                     onCancel={handleConfirmCancel}
-                    okText="Xác nhận"
+                    okText="Xác Nhận"
                     cancelText="Hủy"
                     confirmLoading={isConfirmModalLoading}
                     okButtonProps={{ disabled: isConfirmModalLoading }}
@@ -931,7 +1053,7 @@ const CartItems = () => {
                     <Text>Bạn có chắc chắn muốn đặt đơn hàng này không?</Text>
                     <Divider />
                     <Row justify="space-between">
-                        <Text>Tổng tiền hàng:</Text>
+                        <Text>Tạm tính:</Text>
                         <Text strong>{getTotalCartAmount().toLocaleString('vi-VN')}₫</Text>
                     </Row>
                     <Row justify="space-between">
@@ -940,7 +1062,7 @@ const CartItems = () => {
                     </Row>
                     {voucherDiscount > 0 && (
                         <Row justify="space-between">
-                            <Text>Giảm giá (mã khuyến mãi):</Text>
+                            <Text>Giảm giá (mã giảm giá):</Text>
                             <Text strong>-{voucherDiscount.toLocaleString('vi-VN')}₫</Text>
                         </Row>
                     )}
@@ -953,7 +1075,7 @@ const CartItems = () => {
                 </Modal>
 
                 <Modal
-                    title="Cảm ơn bạn đã đặt hàng"
+                    title="Cảm Ơn Bạn Đã Đặt Hàng"
                     visible={thankYouModalVisible}
                     onOk={() => setThankYouModalVisible(false)}
                     onCancel={() => setThankYouModalVisible(false)}
@@ -970,10 +1092,10 @@ const CartItems = () => {
                 >
                     <div style={{ textAlign: 'center' }}>
                         <CheckCircleOutlined style={{ fontSize: 48, color: '#52c41a', marginBottom: 16 }} />
-                        <Title level={4} style={{ marginBottom: 8 }}>Đơn hàng của bạn đã được tiếp nhận!</Title>
+                        <Title level={4} style={{ marginBottom: 8 }}>Đơn hàng của bạn đã được nhận!</Title>
                         <Text style={{ display: 'block', marginBottom: 16 }}>
                             Mã đơn hàng: <strong>{orderCode}</strong><br />
-                            Vui lòng kiểm tra email để biết thêm thông tin về đơn hàng.
+                            Vui lòng kiểm tra email để xem chi tiết đơn hàng.
                         </Text>
                     </div>
                 </Modal>
