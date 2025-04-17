@@ -331,8 +331,8 @@ const ProductVariantList = ({
                                     value={selectedVariant.quantity}
                                     onChange={(e) => {
                                         const newValue = e.target.value === "" ? "" : Number(e.target.value);
-                                        if (newValue > 1000000000) {
-                                            toast.error("Số lượng quá lớn, vui lòng nhập lại giá trị");
+                                        if (newValue > 1000000) {
+                                            toast.error("Số lượng không được vượt quá 1 triệu");
                                             return;
                                         }
                                         setSelectedVariant({ ...selectedVariant, quantity: newValue });
@@ -346,10 +346,16 @@ const ProductVariantList = ({
                                 <Form.Control
                                     type="number"
                                     value={selectedVariant.price}
-                                    onChange={(e) =>
-                                        setSelectedVariant({ ...selectedVariant, price: e.target.value })
+                                    onChange={(e) => {
+                                        const newValue = e.target.value === "" ? "" : Number(e.target.value);
+                                        if (newValue > 100000000) {
+                                            toast.error("Giá không được vượt quá 100 triệu");
+                                            return;
+                                        }
+                                        setSelectedVariant({ ...selectedVariant, price: newValue });
                                     }
-                                    disabled
+                                    }
+                                // disabled
                                 />
                             </Form.Group>
                         </Form>
@@ -362,7 +368,7 @@ const ProductVariantList = ({
                         onClick={handleUpdateVariant}
                         disabled={isSaving}
                     >
-                        {isSaving ? "Đang lưu..." : "Sửa"}</Button>
+                        {isSaving ? "Đang lưu..." : "Lưu"}</Button>
                 </Modal.Footer>
             </Modal>
         </div>

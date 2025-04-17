@@ -546,7 +546,7 @@ const ShopAllProduct = (props) => {
                                                             width: '100%',
                                                             height: '100%',
                                                             objectFit: 'contain',
-                                                            padding: 24
+                                                            padding: 0
                                                         }}
                                                     />
                                                     {product.isBestSeller && (
@@ -609,7 +609,7 @@ const ShopAllProduct = (props) => {
                                                         <Tag
                                                             key={index}
                                                             style={{
-                                                                backgroundColor: color.color.colorCode,
+                                                                backgroundColor: color.color.colorCode || getColorCode(color.color.colorName),
                                                                 color: '#fff',
                                                                 marginRight: 8,
                                                                 borderRadius: '50%',

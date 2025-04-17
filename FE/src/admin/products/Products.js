@@ -210,91 +210,81 @@ const Products = () => {
         }
     };
 
-    // const handleImportExcel = async (event) => {
-    //     const file = event.target.files[0];
-    //     if (!file) {
-    //         toast.error("Vui lòng chọn một tệp Excel!");
-    //         return;
-    //     }
-
-    //     const formData = new FormData();
-    //     formData.append("file", file);
-
-    //     try {
-    //         const response = await fetch("http://localhost:8080/products/import-excel", {
-    //             method: "POST",
-    //             headers: {
-    //                 "Authorization": `Bearer ${localStorage.getItem("token")}`
-    //             },
-    //             body: formData
-    //         });
-
-    //         let result;
-    //         try {
-    //             result = await response.json();
-    //         } catch (jsonError) {
-    //             result = { error: "Lỗi không xác định từ server." };
-    //         }
-
-    //         if (result.error) {
-    //             toast.error(result.error); // Hiển thị lỗi từ API
-    //             return;
-    //         }
-
-    //         console.log("Response Data:", result);
-
-    //         if (result && Array.isArray(result.errors) && result.errors.length > 0) {
-    //             result.errors.forEach(error => toast.error(error));
-
-    //             Swal.fire({
-    //                 title: "Có lỗi trong file Excel!",
-    //                 text: "Các sản phẩm không lỗi đã được nhập. Bạn có muốn tải file chứa các sản phẩm bị lỗi không?",
-    //                 icon: "warning",
-    //                 showCancelButton: true,
-    //                 confirmButtonText: "Tải ngay",
-    //                 cancelButtonText: "Không"
-    //             }).then((willDownload) => {
-    //                 if (willDownload.isConfirmed) {
-    //                     const link = document.createElement("a");
-    //                     link.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + result.file;
-    //                     link.download = "DanhSachLoi.xlsx";
-    //                     document.body.appendChild(link);
-    //                     link.click();
-    //                     document.body.removeChild(link);
-
-    //                     // Hiển thị toast thông báo tải file thành công
-    //                     toast.success("Tải file lỗi thành công!");
-    //                 }
-    //             });
-    //         } else {
-    //             toast.success("Nhập file Excel thành công!");
-    //             fetchProducts();
-    //         }
-
-    //     } catch (error) {
-    //         console.error(error);
-    //         toast.error("Lỗi khi nhập file Excel!");
-    //     }
-    // };
+    const MAX_ROWS = 200;
     const handleFileSelect = (event) => {
         const files = Array.from(event.target.files);
-
         if (files.length === 0) {
             toast.error("Vui lòng chọn ít nhất một tệp Excel!");
             return;
         }
 
-        // Giới hạn tối đa 2 file
         if (selectedFiles.length + files.length > 2) {
             toast.error("Chỉ được chọn tối đa 2 file Excel!");
             return;
         }
 
-        // Thêm file mới vào danh sách
-        const newFiles = [...selectedFiles, ...files];
-        setSelectedFiles(newFiles);
-        setShowFileManagerModal(true);
-        event.target.value = ''; // Reset input file
+        let validFiles = [];
+
+        files.forEach((file) => {
+            const isDuplicate = selectedFiles.some(
+                existingFile =>
+                    existingFile.name === file.name &&
+                    existingFile.size === file.size
+            );
+
+            if (isDuplicate) {
+                toast.error(`File "${file.name}" đã được chọn trước đó! Vui lòng không chọn lại.`);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    if (workbook.SheetNames.length === 0) {
+                        toast.error(`File ${file.name} không có sheet nào.`);
+                        return;
+                    }
+
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                    if (jsonData.length <= 1) {
+                        toast.error(`File ${file.name} không có dữ liệu.`);
+                        return;
+                    }
+
+                    // const headers = jsonData[0];
+                    // if (!headers || headers.length === 0) {
+                    //     toast.error(`File ${file.name} không có dòng tiêu đề.`);
+                    //     return;
+                    // }
+
+                    if (jsonData.length - 1 > MAX_ROWS) {
+                        toast.error(`Vượt quá giới hạn ${MAX_ROWS} dòng dữ liệu`);
+                        return;
+                    }
+
+                    validFiles.push(file);
+
+                    if (validFiles.length + selectedFiles.length <= 2) {
+                        setSelectedFiles(prev => [...prev, ...validFiles]);
+                        setShowFileManagerModal(true);
+                    }
+                } catch (error) {
+                    console.error("Lỗi khi đọc file:", error);
+                    toast.error(`File ${file.name} không đúng định dạng Excel.`);
+                }
+            };
+            reader.onerror = () => {
+                toast.error(`Lỗi khi đọc file ${file.name}`);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        event.target.value = ''; // reset input file
     };
 
     const handlePreviewFile = (file) => {
@@ -330,61 +320,110 @@ const Products = () => {
         }
 
         try {
+            // Kiểm tra lại định dạng file trước khi gửi
             for (const file of selectedFiles) {
-                const formData = new FormData();
-                formData.append("file", file);
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data);
 
-                const response = await fetch("http://localhost:8080/products/import-excel", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${localStorage.getItem("token")}`
-                    },
-                    body: formData
-                });
-
-                let result;
-                try {
-                    result = await response.json();
-                } catch (jsonError) {
-                    result = { error: "Lỗi không xác định từ server." };
+                if (workbook.SheetNames.length === 0) {
+                    toast.error(`File ${file.name} không có sheet nào.`);
+                    return;
                 }
 
-                if (result.error) {
-                    toast.error(result.error);
-                    continue;
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                if (jsonData.length <= 1) {
+                    toast.error(`File ${file.name} không có dữ liệu hoặc thiếu dòng tiêu đề.`);
+                    return;
                 }
 
-                if (result && Array.isArray(result.errors) && result.errors.length > 0) {
-                    result.errors.forEach(error => toast.error(error));
-
-                    await Swal.fire({
-                        title: "Có lỗi trong file Excel!",
-                        text: "Các sản phẩm không lỗi đã được nhập. Bạn có muốn tải file chứa các sản phẩm bị lỗi không?",
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonText: "Tải ngay",
-                        cancelButtonText: "Không"
-                    }).then((willDownload) => {
-                        if (willDownload.isConfirmed) {
-                            const link = document.createElement("a");
-                            link.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + result.file;
-                            link.download = "DanhSachLoi.xlsx";
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            toast.success("Tải file lỗi thành công!");
-                        }
-                    });
+                const headers = jsonData[0];
+                if (!headers || headers.length === 0) {
+                    toast.error(`File ${file.name} không có dòng tiêu đề.`);
+                    return;
                 }
             }
 
-            toast.success("Nhập file Excel thành công!");
+            const confirmResult = await Swal.fire({
+                title: "Xác nhận nhập file",
+                text: `Bạn có chắc chắn muốn nhập ${selectedFiles.length} file Excel này?`,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Đồng ý",
+                cancelButtonText: "Hủy",
+            });
+
+            if (!confirmResult.isConfirmed) return;
+
+            // Xử lý từng file
+            for (const file of selectedFiles) {
+                try {
+                    const formData = new FormData();
+                    formData.append("file", file);
+
+                    const response = await fetch("http://localhost:8080/products/import-excel", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${localStorage.getItem("token")}`
+                        },
+                        body: formData
+                    });
+
+                    let result;
+                    try {
+                        result = await response.json();
+                    } catch (jsonError) {
+                        console.error("Lỗi parse JSON:", jsonError);
+                        result = { error: "Lỗi không xác định từ server." };
+                    }
+
+                    if (!response.ok) {
+                        // Hiển thị thông báo lỗi cụ thể từ backend
+                        const errorMsg = result.error || "Lỗi khi nhập file Excel";
+                        toast.error(`${file.name}: ${errorMsg}`);
+                        continue;
+                    }
+
+                    // Xử lý kết quả thành công hoặc có lỗi dữ liệu
+                    if (result && Array.isArray(result.errors) && result.errors.length > 0) {
+                        result.errors.forEach(error => toast.error(`${file.name}: ${error}`));
+
+                        await Swal.fire({
+                            title: "Có lỗi trong file Excel!",
+                            text: "Các sản phẩm không lỗi đã được nhập. Bạn có muốn tải file chứa các sản phẩm bị lỗi không?",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonText: "Tải ngay",
+                            cancelButtonText: "Không"
+                        }).then((willDownload) => {
+                            if (willDownload.isConfirmed && result.file) {
+                                const link = document.createElement("a");
+                                link.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + result.file;
+                                link.download = `DanhSachLoi_${file.name}`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                toast.success("Đã tải file lỗi thành công!");
+                            }
+                        });
+                    } else {
+                        toast.success(`${file.name}: Nhập thành công!`);
+                    }
+                } catch (error) {
+                    console.error(`Lỗi khi xử lý file ${file.name}:`, error);
+                    toast.error(`${file.name}: Lỗi khi xử lý file`);
+                }
+            }
+
             setSelectedFiles([]);
             setShowFileManagerModal(false);
             fetchProducts();
         } catch (error) {
-            console.error(error);
-            toast.error("Lỗi khi nhập file Excel!");
+            console.error("Lỗi tổng quát:", error);
+            toast.error("Đã xảy ra lỗi trong quá trình xử lý");
         }
     };
 
@@ -441,37 +480,6 @@ const Products = () => {
             </div>
             {localStorage.getItem("role") === "ADMIN" && (
                 <div style={{ display: "flex", gap: 8, justifyContent: "flex-start" }}>
-                    {/* <div style={{ position: "relative", display: "inline-block" }}>
-                        <label style={{
-                            cursor: "pointer",
-                            display: "inline-block",
-                            position: "relative"
-                        }}
-                            onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
-                            onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
-                        >
-                            <div style={{ cursor: "pointer", textDecoration: "none" }}>
-                                <i className='mdi mdi-format-vertical-align-bottom'></i>Nhập Excel
-                            </div>
-                            <input
-                                type="file"
-                                accept=".xlsx, .xls"
-                                onChange={handleImportExcel}
-                                style={{
-                                    position: "absolute",
-                                    left: 0,
-                                    top: 0,
-                                    width: "100%",
-                                    height: "100%",
-                                    opacity: 0,
-                                    cursor: "pointer",
-                                    pointerEvents: "none"
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
-                                onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
-                            />
-                        </label>
-                    </div> */}
                     <div style={{ position: "relative", display: "inline-block" }}>
                         <label style={{
                             cursor: "pointer",
@@ -750,7 +758,10 @@ const Products = () => {
 
             <Modal
                 show={showFileManagerModal}
-                onHide={() => setShowFileManagerModal(false)}
+                onHide={() => {
+                    setSelectedFiles([]);
+                    setShowFileManagerModal(false)
+                }}
                 size="lg"
                 centered
             >

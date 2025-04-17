@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
     const { id, email, fullName, role, customerId } = userData; // Thêm customerId vào destructuring
     const newAuthState = {
       token,
-      role,
+      role: role || "",
       id: id || "",
       email: email || "",
       fullName: fullName || "",

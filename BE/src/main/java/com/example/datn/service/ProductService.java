@@ -336,14 +336,67 @@ public class ProductService {
         }
     }
 
+    private boolean isValidExcelFormat(Row headerRow) {
+        if (headerRow == null) {
+            return false;
+        }
+        // Danh sách các tiêu đề cột bắt buộc theo đúng thứ tự
+        String[] expectedHeaders = {
+                "Tên sản phẩm",
+                "Thương hiệu",
+                "Danh mục",
+                "Chất liệu",
+                "Mô tả",
+                "Màu sắc",
+                "Kích cỡ",
+                "Số lượng",
+                "Giá"
+        };
+
+        // Kiểm tra số lượng cột
+        if (headerRow.getPhysicalNumberOfCells() < expectedHeaders.length) {
+            return false;
+        }
+
+        // Kiểm tra từng tiêu đề cột
+        for (int i = 0; i < expectedHeaders.length; i++) {
+            Cell cell = headerRow.getCell(i);
+            if (cell == null) {
+                return false;
+            }
+
+            String cellValue = getCellValueAsString(headerRow.getCell(i));
+            if (!expectedHeaders[i].equalsIgnoreCase(cellValue.trim())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     @Transactional
     public ResponseEntity<?> importProductsFromExcel(MultipartFile file) throws IOException {
         Workbook workbook = new XSSFWorkbook(file.getInputStream());
         Sheet sheet = workbook.getSheetAt(0);
 
-        if (sheet.getPhysicalNumberOfRows() == 0 || sheet.getLastRowNum() == 0) {
+        if (sheet.getPhysicalNumberOfRows() <= 1) {
             workbook.close();
-            return ResponseEntity.ok(Map.of("error", "Không có dữ liệu trong file Excel."));
+            return ResponseEntity.ok(Map.of("error", "File Excel không có dữ liệu! Vui lòng chọn file khác."));
+        }
+
+        Row headerRow = sheet.getRow(0);
+//        if (headerRow == null) {
+//            workbook.close();
+//            return ResponseEntity.badRequest().body(Map.of(
+//                    "error", "Không tìm thấy dòng tiêu đề trong file Excel"
+//            ));
+//        }
+
+        if (!isValidExcelFormat(headerRow)) {
+            workbook.close();
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "File Excel không đúng định dạng."
+            ));
         }
 
         List<ProductDetail> productDetails = new ArrayList<>();
@@ -472,6 +525,7 @@ public class ProductService {
             } else {
                 productDetail.setQuantity(productDetail.getQuantity() + quantity);
                 productDetail.setStatus(productDetail.getQuantity() > 0 ? 1 : 0);
+                productDetail.setPrice(price);
             }
 
             productDetails.add(productDetail);

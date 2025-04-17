@@ -52,7 +52,7 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                     <table className='table'>
                         <thead>
                             <tr>
-                                <th>Danh sách ảnh theo màu</th>
+                                <th>Bộ ảnh theo màu</th>
                                 <th>Màu sắc</th>
                                 <th>Kích cỡ</th>
                                 <th>Số lượng</th>
@@ -148,7 +148,7 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                                     type="number"
                                                     value={variant.quantity ?? ''}
                                                     min={0}
-                                                    max={10000}
+                                                    max={1000000}
                                                     onChange={(e) => {
                                                         handleInputChange(originalIndex, 'quantity', e.target.value);
                                                     }}
@@ -164,7 +164,7 @@ const ListAutoVariant = ({ variantList, setVariantList, handleInputChange, handl
                                                         handleInputChange(originalIndex, 'price', e.target.value);
                                                     }}
                                                     style={{ width: '150px' }}
-                                                    disabled={id}
+                                                // disabled={id}
                                                 />
                                             </td>
                                             <td>

@@ -10,7 +10,6 @@ const SearchProducts = ({ filters, setFilters, fetchFilteredProducts }) => {
     const statusOptions = [
         { value: '1', label: 'Đang bán' },
         { value: '0', label: 'Hết hàng' },
-        { value: '2', label: 'Ngừng bán' }
     ];
 
     const handleFilterChange = (e) => {

@@ -7,15 +7,8 @@ import com.example.datn.service.VoucherService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import java.io.IOException;
 import java.util.List;
@@ -43,6 +36,28 @@ public class VoucherController {
     public ResponseEntity<ApiResponse<List<VoucherResponse>>> getAll(){
 
         List<VoucherResponse> list = voucherService.getAll();
+
+        ApiResponse<List<VoucherResponse>> response = new ApiResponse<>(HttpStatus.OK.value(),
+                "Voucher retrieved successfully", list);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<VoucherResponse>>> getActive(){
+
+        List<VoucherResponse> list = voucherService.getActive();
+
+        ApiResponse<List<VoucherResponse>> response = new ApiResponse<>(HttpStatus.OK.value(),
+                "Voucher retrieved successfully", list);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/bin")
+    public ResponseEntity<ApiResponse<List<VoucherResponse>>> getBin(){
+
+        List<VoucherResponse> list = voucherService.getBin();
 
         ApiResponse<List<VoucherResponse>> response = new ApiResponse<>(HttpStatus.OK.value(),
                 "Voucher retrieved successfully", list);
@@ -83,6 +98,19 @@ public class VoucherController {
         ApiResponse<VoucherResponse> response = new ApiResponse<>(
                 HttpStatus.OK.value(),
                 "Voucher retrieved successfully",
+                voucherResponse
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/delete-or-restore")
+    public ResponseEntity<ApiResponse<List<VoucherResponse>>> deleteOrRestore(@RequestBody List<Integer> vcIds) {
+        List<VoucherResponse> voucherResponse = voucherService.deleteOrRestoreVoucher(vcIds);
+
+        ApiResponse<List<VoucherResponse>> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Successfully",
                 voucherResponse
         );
 

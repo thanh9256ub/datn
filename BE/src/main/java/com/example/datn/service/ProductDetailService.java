@@ -192,6 +192,7 @@ public class ProductDetailService {
                     () -> new ResourceNotFoundException("Product Detail not found with ID: " + request.getId()));
 
             productDetail.setQuantity(request.getQuantity());
+            productDetail.setPrice(request.getPrice());
             productDetail.setStatus(request.getStatus());
 
             return productDetail;
