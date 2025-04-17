@@ -82,6 +82,7 @@ public class AuthenticationService {
                 .idEmployee(employee.getId())
                 .fullName(employee.getFullName())
                 .role(employee.getRole().getRoleName())
+                .image(employee.getImage())
                 .build();
     }
 

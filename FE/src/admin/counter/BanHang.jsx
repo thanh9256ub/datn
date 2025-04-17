@@ -225,7 +225,7 @@ const BanHang = () => {
     axios.get('http://localhost:8080/product-detail')
       .then(response => {
         const productDetails = response.data.data;
-        const selectedProductDetail = productDetails.find(product => product.id === selectedProduct.id);
+        const selectedProductDetail = productDetails.find(product => product.id === selectedProduct.id&& product.status  ===  1);
 
         if (!selectedProduct || quantity <= 0) {
           toast.error("Vui lòng nhập lại số lượng", toastOptions);
@@ -310,7 +310,9 @@ const BanHang = () => {
           return;
         }
 
-        if (newQuantity < 0 || item.productDetail.quantity + item.quantity < newQuantity) return;
+        if (newQuantity < 0 || item.productDetail.quantity + item.quantity < newQuantity) {
+          toast.warn("Số lượng quá giới hạn "+item.productDetail.quantity + item.quantity, toastOptions);
+          return;}
         axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
           .then(response => {
             fetchProducts();
@@ -339,18 +341,36 @@ const BanHang = () => {
         setIsQrReaderVisible(true);
       }, 2000);
 
-      axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoiceId}&productID=${data.text}&purchaseQuantity=1`)
+      fetchProducts();
+      axios.get('http://localhost:8080/product-detail')
         .then(response => {
-          // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
-          fetchProducts();
-          fetchOrderItems();
-          toast.success("Thêm sản phẩm thành công ", toastOptions);
-          clearInterval(qrIntervalRef.current);
-          qrIntervalRef.current = null;
-          setQrImageUrl(null);
+          const productDetails = response.data.data;
+          const selectedProductDetail = productDetails.find(product => product.id === data.text && product.status  ===  1);
+  
+          if (!selectedProductDetail || selectedProductDetail.quantity < 1 || selectedProductDetail.quantity === 0) {
+            toast.error("Không tìm thấy sản phẩm ", toastOptions);
+            
+            return;
+          }
+          axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoiceId}&productID=${data.text}&purchaseQuantity=1`)
+          .then(response => {
+            // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
+            fetchProducts();
+            fetchOrderItems();
+            toast.success("Thêm sản phẩm thành công ", toastOptions);
+            clearInterval(qrIntervalRef.current);
+            qrIntervalRef.current = null;
+            setQrImageUrl(null);
+          })
+          .catch(error => {
+          });
+         
         })
         .catch(error => {
+          console.error('Error fetching products:', error);
+          toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm", toastOptions);
         });
+     
     }
   };
 

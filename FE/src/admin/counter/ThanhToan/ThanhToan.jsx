@@ -96,6 +96,10 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng thêm sản phẩm trước khi chọn QR  ", toastOptions);
       return;
     }
+    if (finalAmount >20000000 ) {
+      toast.warn("Tổng thanh toán không được quá 20.000.000", toastOptions);
+      return;
+    }
     if (promo.voucherCode) {
     fetchPromoCodes().then(response => {
       const promoCodes = response.data.data || [];
@@ -358,7 +362,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         setTimeout(() => {
           window.location.reload();
         }
-          , 1500);
+          , 1200);
       } else {
         toast.error("Thanh toán thất bại. Vui lòng thử lại!", toastOptions);
       }
@@ -471,7 +475,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         totalAmount={totalAmount}
         idOrder={idOrder}
         setQrImageUrl={setQrImageUrl}
-        qrIntervalRef={qrIntervalRef} />
+        qrIntervalRef={qrIntervalRef}
+        customer={customer} />
 
       <h5 style={{ fontWeight: 'bold' }}>Tổng tiền hàng: {totalAmount.toLocaleString()} VND</h5>
       <h5 style={{ fontWeight: 'bold' }}>Giảm giá: {(totalAmount - finalAmount).toLocaleString()} VND</h5>

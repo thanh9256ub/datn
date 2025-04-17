@@ -133,7 +133,7 @@ const Navbar = () => {
               <Dropdown alignRight>
                 <Dropdown.Toggle className="nav-link">
                   <div className="nav-profile-img">
-                    <img src={avt} alt="user" />
+                    <img src={localStorage.getItem('image')} alt="user" />
                     <span className="availability-status online"></span>
                   </div>
                   <div className="nav-profile-text">
