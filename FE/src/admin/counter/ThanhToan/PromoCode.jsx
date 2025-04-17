@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, InputGroup, Form, Button, Modal, Table, Pagination } from 'react-bootstrap';
+import { Row, Col, InputGroup, Form, Button, Modal, Table } from 'react-bootstrap';
 import { toast } from "react-toastify";
-import { fetchPromoCodes } from '../api'; // Correct the relative path
-import { toastOptions } from '../constants'; // Import constants
+import { fetchPromoCodes } from '../api'; // Ensure fetchPromoCodes is a named export
+import { toastOptions } from '../constants'; // Ensure toastOptions is a named export
 
 const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrIntervalRef, customer }) => {
   const [isPromoModalVisible, setIsPromoModalVisible] = useState(false);
   const [promoCodes, setPromoCodes] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [voucherCodeSearchTerm, setVoucherCodeSearchTerm] = useState("");
-  const [discountTypeFilter, setDiscountTypeFilter] = useState("all");
-  const itemsPerPage = 5;
+  const [currentPage, setCurrentPage] = useState(1); // Current page state
+  const [searchName, setSearchName] = useState(""); // Search by name
+  const [searchCode, setSearchCode] = useState(""); // Search by code
+  const [filterDiscountType, setFilterDiscountType] = useState(""); // Filter by discount type
+  const itemsPerPage = 5; // Number of items per page
 
   useEffect(() => {
     fetchPromoCodes()
@@ -51,16 +51,18 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrInt
   const handleClosePromoModal = () => setIsPromoModalVisible(false);
 
   const handleSelectPromoCode = (promo) => {
+    
     if (totalAmount < promo.minOrderValue) {
       toast.warn("Đơn hàng chưa đủ điều kiệnkiện", toastOptions);
       return;
     }
     setPromo(promo);
+    
     setIsPromoModalVisible(false);
     toast.success("Chọn mã giảm giá thành công ", toastOptions);
     clearInterval(qrIntervalRef.current);
-    qrIntervalRef.current = null;
-    setQrImageUrl(null);
+        qrIntervalRef.current = null;
+        setQrImageUrl(null);
   };
 
   const handlePageChange = (pageNumber) => {
@@ -68,13 +70,11 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrInt
   };
 
   const filteredPromoCodes = promoCodes.filter((promo) => {
-    const matchesSearchTerm = promo.voucherName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesVoucherCode = promo.voucherCode.toLowerCase().includes(voucherCodeSearchTerm.toLowerCase());
-    const matchesDiscountType =
-      discountTypeFilter === "all" ||
-      (discountTypeFilter === "percent" && promo.discountType === 1) ||
-      (discountTypeFilter === "vnd" && promo.discountType !== 1);
-    return matchesSearchTerm && matchesVoucherCode && matchesDiscountType;
+    return (
+      promo.voucherName.toLowerCase().includes(searchName.toLowerCase()) &&
+      promo.voucherCode.toLowerCase().includes(searchCode.toLowerCase()) &&
+      (filterDiscountType === "" || promo.discountType === parseInt(filterDiscountType))
+    );
   });
 
   const paginatedPromoCodes = filteredPromoCodes.slice(
@@ -102,32 +102,46 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrInt
           <Modal.Title style={{ fontWeight: 'bold' }}>Chọn Mã Khuyến Mãi</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ overflowX: 'auto' }}>
-          <Form.Control
-            type="text"
-            placeholder="Tìm kiếm theo tên"
-            className="mb-3"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Form.Control
-            type="text"
-            placeholder="Tìm kiếm theo mã"
-            className="mb-3"
-            value={voucherCodeSearchTerm}
-            onChange={(e) => setVoucherCodeSearchTerm(e.target.value)}
-          />
-          <Form.Select
-            className="mb-3"
-            value={discountTypeFilter}
-            onChange={(e) => setDiscountTypeFilter(e.target.value)}
-          >
-            <option value="all">Tất cả</option>
-            <option value="percent">%</option>
-            <option value="vnd">VNĐ</option>
-          </Form.Select>
-          <Table bordered hover>
+          <Row className="mb-3">
+            <Col>
+              <Form.Control
+                type="text"
+                placeholder="Tìm kiếm theo tên"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value.trimStart())}
+              />
+            </Col>
+            <Col>
+              <Form.Control
+                type="text"
+                placeholder="Tìm kiếm theo mã"
+                value={searchCode}
+                onChange={(e) => setSearchCode(e.target.value.trimStart())}
+              />
+            </Col>
+            <Col>
+              <Form.Control
+                as="select"
+                value={filterDiscountType}
+                onChange={(e) => setFilterDiscountType(e.target.value)}
+                style={{
+                
+                  fontWeight: "bold",
+                  color: "black", // Ensure text color is always visible
+                  backgroundColor: "white",   // Ensure background color is not faint
+                }}
+              >
+                <option value="">Tất cả</option>
+                <option value="1">%</option>
+                <option value="0">VNĐ</option>
+              </Form.Control>
+            </Col>
+          </Row>
+          <div style={{ height: '275px' }}>
+          <Table  bordered hover >
             <thead>
               <tr>
+                <th style={{ fontWeight: 'bold' }}>STT</th> 
                 <th style={{ fontWeight: 'bold' }}>Mã</th>
                 <th style={{ fontWeight: 'bold' }}>Tên</th>
                 <th style={{ fontWeight: 'bold' }}>Điều kiện</th>
@@ -138,7 +152,9 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrInt
             </thead>
             <tbody>
               {paginatedPromoCodes.map((promo, index) => (
-                <tr key={index} onClick={() => handleSelectPromoCode(promo)}>
+                <tr key={index} onClick={() => handleSelectPromoCode(promo)} 
+                >
+                  <td style={{ fontWeight: 'bold' }}>{(currentPage - 1) * itemsPerPage + index + 1}</td> 
                   <td style={{ fontWeight: 'bold' }}>{promo.voucherCode}</td>
                   <td style={{ fontWeight: 'bold' }}>{promo.voucherName}</td>
                   <td style={{ fontWeight: 'bold' }}>{promo.minOrderValue}</td>
@@ -147,21 +163,25 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrInt
                   </td>
                   <td style={{ fontWeight: 'bold' }}>{promo.quantity}</td>
                   <td style={{ fontWeight: 'bold' }}>{promo.maxDiscountValue}</td>
+                 
                 </tr>
               ))}
             </tbody>
           </Table>
-          <Pagination className="justify-content-center mt-3">
-            {Array.from({ length: Math.ceil(filteredPromoCodes.length / itemsPerPage) }, (_, index) => (
-              <Pagination.Item
-                key={index + 1}
-                active={index + 1 === currentPage}
-                onClick={() => handlePageChange(index + 1)}
+          </div>
+          <div className="pagination">
+            {Array.from({ length: Math.ceil(filteredPromoCodes.length / itemsPerPage) }, (_, i) => (
+              <Button
+                key={i}
+                variant={i + 1 === currentPage ? "primary" : "secondary"}
+                onClick={() => handlePageChange(i + 1)}
+                style={{ height: "30px", width: "30px",padding: "8px", margin: "0 2px" }}
+             
               >
-                {index + 1}
-              </Pagination.Item>
+                {i + 1}
+              </Button>
             ))}
-          </Pagination>
+          </div>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="dark" onClick={handleClosePromoModal}>
