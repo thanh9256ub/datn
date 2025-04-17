@@ -32,15 +32,19 @@ const Login = () => {
             // Thử đăng nhập với tư cách khách hàng trước
             try {
                 const customerResponse = await getTokenCustomer(username, password);
-                if (customerResponse.status === 200) {
-                    const { token, email, fullName, role, customerId } = customerResponse.data.data;
+                if (customerResponse.message === "TAI_KHOAN_BI_KHOA") {
+                    setError('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với quản trị viên để biết thêm chi tiết.');
+                    return;
+                } else if (customerResponse.status === 200) {
+                    const { token, email, fullName, role, customerId,image } = customerResponse.data.data;
                     console.log("Data customer: ", customerResponse.data.data)
 
                     authLogin(token, {
                         email,
                         fullName,
                         role,
-                        customerId
+                        customerId,
+                        image
                         // id: customerId nếu có
                     });
 
@@ -59,12 +63,13 @@ const Login = () => {
 
             const employeeResponse = await getToken(username, password);
             if (employeeResponse.status === 200) {
-                const { token, idEmployee, fullName, role } = employeeResponse.data.data;
+                const { token, idEmployee, fullName, role , image} = employeeResponse.data.data;
 
                 authLogin(token, {
                     id: idEmployee,
                     fullName,
-                    role
+                    role,
+                    image
                 });
 
                 notification.success({
@@ -83,7 +88,10 @@ const Login = () => {
                 throw new Error('Đăng nhập thất bại');
             }
         } catch (error) {
-            setError('Tên đăng nhập hoặc mật khẩu không đúng');
+            if (error.status && error.status === 401) {
+                setError(error.response.data.data || 'Tên đăng nhập hoặc mật khẩu không đúng');
+            } else
+                setError('Tên đăng nhập hoặc mật khẩu không đúng');
         } finally {
             setLoading(false);
         }
