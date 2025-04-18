@@ -7,6 +7,7 @@ import useWebSocket from "../../hook/useWebSocket";
 import { Button } from "react-bootstrap";
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
+import Swal from "sweetalert2";
 
 dayjs.extend(isBetween);
 
@@ -105,6 +106,17 @@ const Vouchers = () => {
     if (selectedVouchers.length === 0) return;
 
     try {
+      const confirmResult = await Swal.fire({
+        title: "Xác nhận",
+        text: "Bạn có chắc chắn muốn xoá voucher này không?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Đồng ý",
+        cancelButtonText: "Hủy",
+      });
+
+      if (!confirmResult.isConfirmed) return;
+
       await deleteOrRestoreVoucher(selectedVouchers);
       notification.success({ message: "Xóa voucher thành công" });
       setSelectedVouchers([]); // Reset danh sách đã chọn
@@ -118,6 +130,17 @@ const Vouchers = () => {
     if (selectedDeletedVouchers.length === 0) return;
 
     try {
+      const confirmResult = await Swal.fire({
+        title: "Xác nhận",
+        text: "Bạn có chắc chắn muốn khôi phục voucher này không?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Đồng ý",
+        cancelButtonText: "Hủy",
+      });
+
+      if (!confirmResult.isConfirmed) return;
+
       await deleteOrRestoreVoucher(selectedDeletedVouchers);
       notification.success({ message: "Khôi phục voucher thành công" });
       setSelectedDeletedVouchers([]);
@@ -357,9 +380,7 @@ const Vouchers = () => {
             <hr />
             <p><strong>Mã khuyến mại:</strong> <b>{selectedVoucher.voucherCode}</b></p>
             <p><strong>Tên khuyến mại:</strong> {selectedVoucher.voucherName}</p>
-            {selectedVoucher.minOrderValue != 0 &&
-              <p><strong>Giá trị hoá đơn tối thiểu:</strong> {selectedVoucher.minOrderValue.toLocaleString()}</p>
-            }
+            <p><strong>Giá trị hoá đơn tối thiểu:</strong> {selectedVoucher.minOrderValue.toLocaleString()}</p>
             <p><strong>Loại giảm giá:</strong> {selectedVoucher.discountType === 0 ? 'Theo số tiền' : 'Theo %'}</p>
             <p><strong>Số lượng:</strong> {selectedVoucher.quantity}</p>
             <p><strong>Giá trị giảm:</strong> {selectedVoucher.discountType === 0 ? `${selectedVoucher.discountValue.toLocaleString()}` : `${selectedVoucher.discountValue}%`}</p>

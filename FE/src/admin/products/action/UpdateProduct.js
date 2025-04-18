@@ -250,11 +250,11 @@ const UpdateProduct = () => {
 
             await handleImagesForProductColors(id);
 
-            localStorage.setItem("successMessage", "Sản phẩm đã được cập nhật thành công!");
+            localStorage.setItem("successMessage", "Sản phẩm đã được sửa thành công!");
             history.push('/admin/products');
         } catch (error) {
-            console.error("Lỗi khi cập nhật sản phẩm:", error);
-            alert("Cập nhật sản phẩm thất bại!");
+            console.error("Lỗi khi chỉnh sửa sản phẩm:", error);
+            alert("Chỉnh sửa sản phẩm thất bại!");
         }
     };
 
@@ -432,6 +432,7 @@ const UpdateProduct = () => {
                                                         }}
                                                         placeholder='Nhập tên sản phẩm'
                                                         required
+                                                        disabled={id}
                                                         maxLength={255}
                                                         style={{
                                                             fontSize: '16px',
@@ -442,13 +443,13 @@ const UpdateProduct = () => {
                                             </Form.Group>
                                         </div>
                                         <div className="col-md-12">
-                                            <BrandContainer brandId={brandId} setBrandId={setBrandId} />
+                                            <BrandContainer brandId={brandId} setBrandId={setBrandId} id={id} />
                                         </div>
                                         <div className="col-md-12">
-                                            <CategoryContainer categoryId={categoryId} setCategoryId={setCategoryId} />
+                                            <CategoryContainer categoryId={categoryId} setCategoryId={setCategoryId} id={id} />
                                         </div>
                                         <div className="col-md-12">
-                                            <MaterialContainer materialId={materialId} setMaterialId={setMaterialId} />
+                                            <MaterialContainer materialId={materialId} setMaterialId={setMaterialId} id={id} />
                                         </div>
                                     </div>
                                     <div className="col-md-4" style={{ display: 'grid', placeItems: 'center' }}>

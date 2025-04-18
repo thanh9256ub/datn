@@ -4,6 +4,7 @@ import { createColor, getColors, updateColor, updateStatus } from './service/Col
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Switch from 'react-switch';
+import Swal from 'sweetalert2';
 
 const Colors = () => {
 
@@ -68,9 +69,29 @@ const Colors = () => {
             }
 
             if (colorId) {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn sửa màu sắc này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
                 await updateColor(colorId, { colorCode, colorName, description: desc })
                 toast.success("Sửa màu sắc thành công!");
             } else {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn thêm màu sắc này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
                 await createColor({ colorCode, colorName, description: desc });
                 toast.success("Thêm màu sắc thành công!");
             }

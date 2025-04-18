@@ -4,7 +4,7 @@ import { Button, Form, Modal } from 'react-bootstrap';
 import CategorySelect from '../select/CategorySelect';
 import { toast } from 'react-toastify';
 
-const CategoryContainer = ({ categoryId, setCategoryId }) => {
+const CategoryContainer = ({ categoryId, setCategoryId, id }) => {
     const [showModal, setShowModal] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState("");
     const [refresh, setRefresh] = useState(false);
@@ -40,7 +40,7 @@ const CategoryContainer = ({ categoryId, setCategoryId }) => {
             <Form.Group className="row d-flex align-items-center">
                 <label className="col-sm-3 col-form-label">Danh mục:</label>
                 <div className='col-md-7'>
-                    <CategorySelect categoryId={categoryId} setCategoryId={setCategoryId} refresh={refresh} />
+                    <CategorySelect categoryId={categoryId} setCategoryId={setCategoryId} refresh={refresh} id={id} />
                 </div>
                 <div className="col-sm-2">
                     <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon" onClick={() => setShowModal(true)}>

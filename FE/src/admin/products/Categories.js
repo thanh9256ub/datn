@@ -4,6 +4,7 @@ import { createCategory, getCategories, updateCategory, updateStatus } from './s
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Switch from 'react-switch';
+import Swal from 'sweetalert2';
 
 const Categories = () => {
 
@@ -42,10 +43,30 @@ const Categories = () => {
 
         try {
             if (categoryId) {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn sửa danh mục này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
                 console.log("Đang cập nhật danh mục:", categoryId, categoryName, desc);
                 await updateCategory(categoryId, { categoryName, description: desc })
                 toast.success("Sửa danh mục thành công!");
             } else {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn thêm danh mục này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
                 await createCategory({ categoryName, description: desc });
                 toast.success("Thêm danh mục thành công!");
             }

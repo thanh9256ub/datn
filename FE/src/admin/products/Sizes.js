@@ -4,6 +4,7 @@ import { createSize, getSizes, updateSize, updateStatus } from './service/SizeSe
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Switch from 'react-switch';
+import Swal from 'sweetalert2';
 
 const Sizes = () => {
 
@@ -54,10 +55,32 @@ const Sizes = () => {
             }
 
             if (sizeId) {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn sửa kích cỡ này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
+
                 console.log("Đang cập nhật kích cỡ:", sizeId, sizeName, desc);
                 await updateSize(sizeId, { sizeName, description: desc })
                 toast.success("Sửa kích cỡ thành công!");
             } else {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn thêm kích cỡ không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
+
                 await createSize({ sizeName, description: desc });
                 toast.success("Thêm kích cỡ thành công!");
             }

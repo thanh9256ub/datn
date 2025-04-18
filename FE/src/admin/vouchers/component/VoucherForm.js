@@ -3,7 +3,7 @@ import { Form } from "react-bootstrap";
 import { DatePicker } from "antd";
 import Select from "react-select";
 
-const VoucherForm = ({ id, formData, handleChange, handleDiscountTypeChange, handleDateChange, handleSubmit }) => {
+const VoucherForm = ({ id, formData, handleChange, handleDiscountTypeChange, handleDateChange, handleSubmit, isSubmitting, errors }) => {
     const discountOptions = [
         { value: 0, label: "Theo số tiền" },
         { value: 1, label: "Theo %" }
@@ -27,7 +27,7 @@ const VoucherForm = ({ id, formData, handleChange, handleDiscountTypeChange, han
                 </div>
                 <div className="col-md-6">
                     <Form.Group className="row">
-                        <label className="col-sm-3 col-form-label">Giá trị tối thiểu:</label>
+                        <label className="col-sm-3 col-form-label">Giá trị hoá đơn tối thiểu:</label>
                         <div className="col-sm-9">
                             <Form.Control type="number" name="minOrderValue" value={formData.minOrderValue} onChange={handleChange} />
                         </div>
@@ -79,7 +79,16 @@ const VoucherForm = ({ id, formData, handleChange, handleDiscountTypeChange, han
                     <Form.Group className="row">
                         <label className="col-sm-3 col-form-label">Ngày bắt đầu:</label>
                         <div className="col-sm-9">
-                            <DatePicker showTime format="DD/MM/YYYY HH:mm:ss" value={formData.startDate} onChange={(date) => handleDateChange("startDate", date)} className="form-control" />
+                            <DatePicker
+                                showTime
+                                format="DD/MM/YYYY HH:mm:ss"
+                                value={formData.startDate}
+                                onChange={(date) => handleDateChange("startDate", date)}
+                                className={`form-control ${errors?.startDate ? 'is-invalid' : ''}`}
+                            />
+                            {errors?.startDate && (
+                                <div className="invalid-feedback d-block">{errors.startDate}</div>
+                            )}
                         </div>
                     </Form.Group>
                 </div>
@@ -87,13 +96,31 @@ const VoucherForm = ({ id, formData, handleChange, handleDiscountTypeChange, han
                     <Form.Group className="row">
                         <label className="col-sm-3 col-form-label">Ngày kết thúc:</label>
                         <div className="col-sm-9">
-                            <DatePicker showTime format="DD/MM/YYYY HH:mm:ss" value={formData.endDate} onChange={(date) => handleDateChange("endDate", date)} className="form-control" />
+                            <DatePicker
+                                showTime
+                                format="DD/MM/YYYY HH:mm:ss"
+                                value={formData.endDate}
+                                onChange={(date) => handleDateChange("endDate", date)}
+                                className={`form-control ${errors?.endDate ? 'is-invalid' : ''}`}
+                            />
+                            {errors?.endDate && (
+                                <div className="invalid-feedback d-block">{errors.endDate}</div>
+                            )}
                         </div>
                     </Form.Group>
                 </div>
             </div>
 
-            <button type="submit" className="btn btn-primary">Lưu</button>
+            <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                {isSubmitting ? (
+                    <>
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Đang xử lý...
+                    </>
+                ) : (
+                    'Lưu'
+                )}
+            </button>
         </form>
     );
 };

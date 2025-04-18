@@ -4,6 +4,7 @@ import { createBrand, getBrands, updateBrand, updateStatus } from './service/Bra
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Switch from 'react-switch';
+import Swal from 'sweetalert2';
 
 const Brands = () => {
 
@@ -42,10 +43,31 @@ const Brands = () => {
 
         try {
             if (brandId) {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn sửa thương hiệu này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
+
                 console.log("Đang cập nhật thương hiệu:", brandId, brandName, desc);
                 await updateBrand(brandId, { brandName, description: desc })
                 toast.success("Sửa thương hiệu thành công!");
             } else {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn thêm thương hiệu này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
                 await createBrand({ brandName, description: desc });
                 toast.success("Thêm thương hiệu thành công!");
             }

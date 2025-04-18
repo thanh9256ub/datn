@@ -4,6 +4,7 @@ import { createMaterial, getMaterials, updateMaterial, updateStatus } from './se
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Switch from 'react-switch';
+import Swal from 'sweetalert2';
 
 const Materials = () => {
 
@@ -42,10 +43,30 @@ const Materials = () => {
 
         try {
             if (materialId) {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn sửa chất liệu này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
                 console.log("Đang cập nhật chất liệu:", materialId, materialName, desc);
                 await updateMaterial(materialId, { materialName, description: desc })
                 toast.success("Sửa chất liệu thành công!");
             } else {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn thêm chất liệu này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
                 await createMaterial({ materialName, description: desc });
                 toast.success("Thêm chất liệu thành công!");
             }
