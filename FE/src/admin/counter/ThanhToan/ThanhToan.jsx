@@ -40,7 +40,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     } else if (promo.voucherCode) {
       setPromo({});
     }
-    setFinalAmount(totalAmount - calculatedDiscount);
+    const calculatedFinalAmount = totalAmount - calculatedDiscount;
+    setFinalAmount(calculatedFinalAmount < 0 ? 0 : calculatedFinalAmount); // Ensure finalAmount is not less than 0
   }, [totalAmount, promo]);
 
   useEffect(() => {
@@ -184,14 +185,18 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   const handleCashPayment = () => {
 
     if (!idOrder) {
-      toast.warn("Vui lòng chọn hóa đơn trước khi chọn QR ", toastOptions);
+      toast.warn("Vui lòng chọn hóa đơn trước khi chọn tiền mặt", toastOptions);
       return;
     }
+   
     if (totalAmount === 0) {
-      toast.warn("Vui lòng thêm sản phẩm trước khi chọn QR  ", toastOptions);
+      toast.warn("Vui lòng thêm sản phẩm trước khi chọn tiền mặt", toastOptions);
       return;
     }
-
+    if (finalAmount >20000000 ) {
+      toast.warn("Tổng thanh toán không được quá 20.000.000", toastOptions);
+      return;
+    }
     setQrImageUrl("");
     if (qrIntervalRef.current) {
       clearInterval(qrIntervalRef.current); // Clear the interval
@@ -199,7 +204,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     }
     setPaymen(1);
     setIsCashPayment(true);
-    setChange(0); // Reset change to avoid validation errors
+    setChange(-1); // Reset change to avoid validation errors
     setCashPaid(''); // Reset cashPaid input
     toast.info("Đã chọn phương thức thanh toán Tiền mặt ", toastOptions);
   };
@@ -373,7 +378,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   };
 
   const handleConfirmPayment = () => {
-    console.log("Khách hàng:", customerInfo.fullName);
+   
     if (!idOrder) {
       toast.warn("Vui lòng chọn hóa đơn trước khi thanh toán ", toastOptions);
       return;
@@ -386,9 +391,13 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Hãy chọn phương thức thanh toán ", toastOptions);
       return;
     }
-
+   
+    if (paymen === 1 && (cashPaid===undefined|| cashPaid === "")) {
+      toast.warn("Tiền khách đưa không được để trống ", toastOptions);
+      return;
+    }
     if (paymen === 1 && (change < 0 || change === undefined)) {
-      toast.warn("Tiền thừa không được nhỏ hơn 0 ", toastOptions);
+      toast.warn("Tiền thừa không được nhỏ hơn 0", toastOptions);
       return;
     }
     if (!isPaymentEnabled) {
