@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -80,7 +81,7 @@ public class OrderService {
         List<Order> expiredOrders = repository.findByStatusAndCreatedAtBefore(0, todayMidnight);
 
 
-        for (Order order:expiredOrders   ) {
+        for (Order order : expiredOrders) {
             List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(order.getId());
             for (OrderDetail orderDetail : orderDetails) {
                 ProductDetail productDetail = orderDetail.getProductDetail();
@@ -89,7 +90,7 @@ public class OrderService {
                 productDetailRepository.save(productDetail);
 
             }
-            orderDetailRepository.deleteAll(orderDetails );
+            orderDetailRepository.deleteAll(orderDetails);
         }
         repository.deleteAll(expiredOrders);
 
@@ -174,6 +175,7 @@ public class OrderService {
 
         return mapper.toOrderResponse(repository.save(order));
     }
+
     public OrderResponse updateNote(Integer id, UpdateOrderNoteRequest request) {
         // Kiểm tra id không null
         if (Objects.isNull(id)) {
@@ -198,6 +200,7 @@ public class OrderService {
         Order updatedOrder = repository.save(order);
         return mapper.toOrderResponse(updatedOrder);
     }
+
     public List<OrderResponse> filterOrders(
             String search,
             Double minPrice,
@@ -446,5 +449,25 @@ public class OrderService {
             default:
                 return "PENDING"; // Trạng thái khác coi như đang chờ xử lý
         }
+    }
+
+    public int countOrdersWithStatus5Today() {
+
+        return repository.countOrdersWithStatus5Today();
+    }
+
+    public int countOrdersWithStatus2Today() {
+
+        return repository.countOrdersWithStatus2Today();
+    }
+
+    public Integer getTotalQuantityOfTodayOrdersWithStatus5() {
+
+        return repository.getTotalQuantityOfTodayOrdersWithStatus5();
+    }
+
+    public BigDecimal getTotalNetPriceOfTodayOrdersWithStatus5() {
+
+        return repository.getTotalNetPriceOfTodayOrdersWithStatus5();
     }
 }

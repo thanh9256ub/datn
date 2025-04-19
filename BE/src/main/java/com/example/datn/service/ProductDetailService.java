@@ -3,6 +3,7 @@ package com.example.datn.service;
 import com.example.datn.controller.WebSocketController;
 import com.example.datn.dto.request.ProductDetailRequest;
 import com.example.datn.dto.response.ProductDetailResponse;
+import com.example.datn.dto.response.ProductResponse;
 import com.example.datn.entity.Color;
 import com.example.datn.entity.Product;
 import com.example.datn.entity.ProductDetail;
@@ -13,8 +14,10 @@ import com.example.datn.repository.ProductRepository;
 import com.example.datn.repository.ColorRepository;
 import com.example.datn.repository.ProductDetailRepository;
 import com.example.datn.repository.SizeRepository;
+import com.example.datn.specification.ProductSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -308,5 +311,13 @@ public class ProductDetailService {
                 productRepository.save(product);
             }
         }
+    }
+    public List<ProductDetailResponse> searchProductDetailAI(String name) {
+        Specification<ProductDetail> spec = Specification
+                .where(ProductSpecification.hasColor(name))
+                .or(ProductSpecification.hasPrice(name))
+                .or(ProductSpecification.hasSize(name))
+               .and(ProductSpecification.hasStatusPDTwo());
+        return mapper.toListProductDetail(repository.findAll( spec));
     }
 }
