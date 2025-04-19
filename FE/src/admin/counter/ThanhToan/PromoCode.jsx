@@ -24,7 +24,7 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrInt
           const discountB = b.discountType === 1 
             ? Math.min((totalAmount * b.discountValue) / 100, b.maxDiscountValue) 
             : b.discountValue;
-          return discountB - discountA; // Sort by highest applicable discount
+          return discountB - discountA; 
         });
         setPromoCodes(sortedPromoCodes);
       })
@@ -42,7 +42,7 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrInt
       return;
     }
     if (totalAmount===0) {
-      toast.warn("Vui lòng chọn hóa đơn trước khi chọn mã giảm giá ", toastOptions);
+      toast.warn("Vui lòng thêm sản trước khi chọn mã giảm giá ", toastOptions);
       return;
     }
     setIsPromoModalVisible(true);
@@ -127,8 +127,8 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrInt
                 style={{
                 
                   fontWeight: "bold",
-                  color: "black", // Ensure text color is always visible
-                  backgroundColor: "white",   // Ensure background color is not faint
+                  color: "black", 
+                  backgroundColor: "white",   
                 }}
               >
                 <option value="">Tất cả</option>

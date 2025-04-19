@@ -62,5 +62,5 @@ export const handleCassoWebhook = () =>
     },
   });
 
-export const fetchCassoTransactions = () =>
-  axios.post(`${API_BASE_URL}/counter/casso/transactions`);
+  export const fetchCassoTransactions = () =>
+    axios.post(`${API_BASE_URL}/counter/casso/transactions`);
