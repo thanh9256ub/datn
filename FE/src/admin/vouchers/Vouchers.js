@@ -234,47 +234,44 @@ const Vouchers = () => {
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-        <Search
-          placeholder="Tìm kiếm theo tên hoặc mã"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ width: 300 }}
-        />
-        <Select
-          placeholder="Loại giảm giá"
-          style={{ width: 150 }}
-          allowClear
-          onChange={(value) => setDiscountTypeFilter(value)}
-        >
-          <Option value={null}>Tất cả</Option>
-          <Option value={0}>Theo số tiền</Option>
-          <Option value={1}>Theo %</Option>
-        </Select>
-
-        <RangePicker
-          style={{ width: 250 }}
-          placeholder={['Ngày bắt đầu', 'Ngày kết thúc']}
-          onChange={(dates) => setDateRange(dates)}
-          format="DD/MM/YYYY"
-        />
-        <button
-          type="button"
-          className="btn btn-gradient-warning btn-sm mr-2"
+        <div style={{ cursor: "pointer", textDecoration: "none" }}
+          onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
+          onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
           onClick={showBinModal}
         >
           <DeleteOutlined /> Thùng rác
-        </button>
-        {isConnected ? (
-          <Badge status="success" text={<><WifiOutlined /> Đang kết nối</>} />
-        ) : (
-          <Badge status="error" text={<><DisconnectOutlined /> Mất kết nối</>} />
-        )}
+        </div>
       </div>
 
       <div className="row">
         <div className="col-lg-12 grid-margin stretch-card">
           <div className="card">
             <div className="card-body">
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 26 }}>
+                <Search
+                  placeholder="Tìm kiếm theo tên hoặc mã"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{ width: 300 }}
+                />
+                <Select
+                  placeholder="Loại giảm giá"
+                  style={{ width: 150 }}
+                  allowClear
+                  onChange={(value) => setDiscountTypeFilter(value)}
+                >
+                  <Option value={null}>Tất cả</Option>
+                  <Option value={0}>Theo số tiền</Option>
+                  <Option value={1}>Theo %</Option>
+                </Select>
+
+                <RangePicker
+                  style={{ width: 250 }}
+                  placeholder={['Ngày bắt đầu', 'Ngày kết thúc']}
+                  onChange={(dates) => setDateRange(dates)}
+                  format="DD/MM/YYYY"
+                />
+              </div>
               {loading ? (
                 <p>Đang tải dữ liệu...</p>
               ) : (

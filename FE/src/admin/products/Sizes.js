@@ -15,12 +15,15 @@ const Sizes = () => {
     const [desc, setDesc] = useState("")
     const [sizeId, setSizeId] = useState(null)
     const [submitLoading, setSubmitLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("")
+    const [filteredSizes, setFilteredSizes] = useState([])
 
     const fetchSizes = async () => {
         try {
             setLoading(true);
             const response = await getSizes();
             setSizes(response.data.data);
+            setFilteredSizes(response.data.data);
         } catch (err) {
             setError('Đã xảy ra lỗi khi tải kích cỡ.');
         } finally {
@@ -31,6 +34,17 @@ const Sizes = () => {
     useEffect(() => {
         fetchSizes()
     }, [])
+
+    useEffect(() => {
+        if (searchTerm.trim() === "") {
+            setFilteredSizes(sizes);
+        } else {
+            const filtered = sizes.filter(size =>
+                size.sizeName.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            setFilteredSizes(filtered);
+        }
+    }, [searchTerm, sizes])
 
     const handleAddSize = async (e) => {
         e.preventDefault();
@@ -129,7 +143,7 @@ const Sizes = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Thông tin kích cỡ</h4>
+                            <h4 className="card-title">{sizeId ? "Sửa kích cỡ" : "Thêm kích cỡ"}</h4>
                             <div style={{ marginBottom: '20px' }}></div>
                             <hr />
                             <form className="forms-sample" onSubmit={handleAddSize}>
@@ -137,6 +151,7 @@ const Sizes = () => {
                                     <label htmlFor="exampleInputUsername1">Tên kích cỡ</label>
                                     <Form.Control type="text" placeholder="Nhập tên kích cỡ" size="lg"
                                         value={sizeName}
+                                        maxLength={255}
                                         onChange={(e) => setSizeName(e.target.value)}
                                     />
                                 </Form.Group>
@@ -150,14 +165,14 @@ const Sizes = () => {
                                 <button type="submit" className="btn btn-gradient-primary mr-2" disabled={submitLoading}>
                                     {submitLoading ? (
                                         <Spinner animation="border" size="sm" />
-                                    ) : sizeId ? "Edit" : "Submit"}
+                                    ) : sizeId ? "Sửa" : "Lưu"}
                                 </button>
                                 <button type='button' className="btn btn-light"
                                     onClick={() => {
                                         setSizeName("");
                                         setDesc("");
                                         setSizeId(null);
-                                    }}>Cancel</button>
+                                    }}>Huỷ</button>
                             </form>
                         </div>
                     </div>
@@ -165,7 +180,17 @@ const Sizes = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Danh sách kích cỡ</h4>
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h4 className="card-title mb-0">Danh sách kích cỡ</h4>
+                                <Form.Group className="mb-0" style={{ width: '250px' }}>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Tìm kiếm theo tên..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </Form.Group>
+                            </div>
                             {loading ? (
                                 <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
                                     <Spinner animation="border" variant="primary" />
@@ -186,8 +211,8 @@ const Sizes = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {sizes.length > 0 ? (
-                                                sizes.map((size, index) => (
+                                            {filteredSizes.length > 0 ? (
+                                                filteredSizes.map((size, index) => (
                                                     <tr key={size.id}
                                                         onClick={() => handleEditSize(size)}
                                                         style={{ cursor: "pointer" }}

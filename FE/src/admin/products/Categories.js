@@ -8,19 +8,22 @@ import Swal from 'sweetalert2';
 
 const Categories = () => {
 
-    const [categorys, setCategories] = useState([])
+    const [categories, setCategories] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [categoryName, setCategoryName] = useState("")
     const [desc, setDesc] = useState("")
     const [categoryId, setCategoryId] = useState(null)
     const [submitLoading, setSubmitLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("")
+    const [filteredCategories, setFilteredCategories] = useState([])
 
     const fetchCategories = async () => {
         try {
             setLoading(true);
             const response = await getCategories();
             setCategories(response.data.data);
+            setFilteredCategories(response.data.data);
         } catch (err) {
             setError('Đã xảy ra lỗi khi tải danh mục.');
         } finally {
@@ -31,6 +34,17 @@ const Categories = () => {
     useEffect(() => {
         fetchCategories()
     }, [])
+
+    useEffect(() => {
+        if (searchTerm.trim() === "") {
+            setFilteredCategories(categories);
+        } else {
+            const filtered = categories.filter(category =>
+                category.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            setFilteredCategories(filtered);
+        }
+    }, [searchTerm, categories])
 
     const handleAddCategory = async (e) => {
         e.preventDefault();
@@ -115,7 +129,7 @@ const Categories = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Thông tin danh mục</h4>
+                            <h4 className="card-title">{categoryId ? "Sửa danh mục" : "Thêm danh mục"}</h4>
                             <div style={{ marginBottom: '20px' }}></div>
                             <hr />
                             <form className="forms-sample" onSubmit={handleAddCategory}>
@@ -123,6 +137,7 @@ const Categories = () => {
                                     <label htmlFor="exampleInputUsername1">Tên danh mục</label>
                                     <Form.Control type="text" placeholder="Nhập tên danh mục" size="lg"
                                         value={categoryName}
+                                        maxLength={255}
                                         onChange={(e) => setCategoryName(e.target.value)}
                                     />
                                 </Form.Group>
@@ -136,14 +151,14 @@ const Categories = () => {
                                 <button type="submit" className="btn btn-gradient-primary mr-2" disabled={submitLoading}>
                                     {submitLoading ? (
                                         <Spinner animation="border" size="sm" />
-                                    ) : categoryId ? "Edit" : "Submit"}
+                                    ) : categoryId ? "Sửa" : "Lưu"}
                                 </button>
                                 <button type='button' className="btn btn-light"
                                     onClick={() => {
                                         setCategoryName("");
                                         setDesc("");
                                         setCategoryId(null);
-                                    }}>Cancel</button>
+                                    }}>Huỷ</button>
                             </form>
                         </div>
                     </div>
@@ -151,7 +166,17 @@ const Categories = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Danh sách danh mục</h4>
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h4 className="card-title mb-0">Danh sách danh mục</h4>
+                                <Form.Group className="mb-0" style={{ width: '250px' }}>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Tìm kiếm theo tên..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </Form.Group>
+                            </div>
                             {loading ? (
                                 <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
                                     <Spinner animation="border" variant="primary" />
@@ -172,8 +197,8 @@ const Categories = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {categorys.length > 0 ? (
-                                                categorys.map((category, index) => (
+                                            {filteredCategories.length > 0 ? (
+                                                filteredCategories.map((category, index) => (
                                                     <tr key={category.id}
                                                         onClick={() => handleEditCategory(category)}
                                                         style={{ cursor: "pointer" }}
