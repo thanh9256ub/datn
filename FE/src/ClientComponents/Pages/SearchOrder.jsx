@@ -22,11 +22,16 @@ export const SearchOrder = () => {
       setOrder(null);
       setOrderDetails([]);
 
-      // 1. Tìm order bằng orderCode
-      const orderData = await fetchOrderByCode(values.orderCode);
+      const orderCode = values.orderCode.trim();
+
+      if (!orderCode) {
+        setError('Mã đơn hàng không hợp lệ');
+        return;
+      }
+
+      const orderData = await fetchOrderByCode(orderCode);
       setOrder(orderData);
 
-      // 2. Nếu tìm thấy order, lấy danh sách orderDetails
       if (orderData && orderData.id) {
         const details = await fetchOrderDetailsByOrderId(orderData.id);
         setOrderDetails(details);
@@ -121,7 +126,24 @@ export const SearchOrder = () => {
         <Form form={form} layout="inline" onFinish={onSearch}>
           <Form.Item
             name="orderCode"
-            rules={[{ required: true, message: 'Vui lòng nhập mã đơn hàng' }]}
+            rules={[
+              {
+                required: true,
+                message: 'Vui lòng nhập mã đơn hàng'
+              },
+              {
+                pattern: /^[a-zA-Z0-9]+$/,
+                message: 'Mã đơn hàng không được chứa ký tự đặc biệt hoặc khoảng trắng'
+              },
+              {
+                validator: (_, value) => {
+                  if (value && value.trim() === '') {
+                    return Promise.reject('Mã đơn hàng không được chỉ chứa khoảng trắng');
+                  }
+                  return Promise.resolve();
+                }
+              }
+            ]}
             style={{ flex: 1 }}
           >
             <Input
@@ -129,17 +151,6 @@ export const SearchOrder = () => {
               size="large"
               style={{ minWidth: 300 }}
             />
-          </Form.Item>
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              icon={<SearchOutlined />}
-              size="large"
-              loading={loading}
-            >
-              Tra cứu
-            </Button>
           </Form.Item>
         </Form>
       </Card>

@@ -175,26 +175,21 @@ public class OrderService {
         return mapper.toOrderResponse(repository.save(order));
     }
     public OrderResponse updateNote(Integer id, UpdateOrderNoteRequest request) {
-        // Kiểm tra id không null
         if (Objects.isNull(id)) {
             throw new IllegalArgumentException("orderId không được để trống");
         }
 
-        // Tìm đơn hàng
         Order order = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Đơn hàng không tồn tại với id: " + id));
 
-        // Cập nhật note
         if (request.getNote() != null) {
             order.setNote(request.getNote());
         } else {
-            order.setNote(""); // Đặt note rỗng nếu không có giá trị
+            order.setNote("");
         }
 
-        // Cập nhật thời gian
         order.setUpdatedAt(LocalDateTime.now().withNano(0));
 
-        // Lưu đơn hàng
         Order updatedOrder = repository.save(order);
         return mapper.toOrderResponse(updatedOrder);
     }

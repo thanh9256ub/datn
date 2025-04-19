@@ -178,7 +178,7 @@ public class OrderDetailService {
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with id: " + orderId));
 
         List<OrderDetail> currentDetails = repository.findByOrderId(orderId);
-        if (order.getStatus() >= 2) { // Chỉ hoàn lại nếu đơn hàng đã ở trạng thái 2 trở lên
+        if (order.getStatus() >= 2) {
             for (OrderDetail detail : currentDetails) {
                 ProductDetail productDetail = detail.getProductDetail();
                 if (detail.getQuantity() < 0) {

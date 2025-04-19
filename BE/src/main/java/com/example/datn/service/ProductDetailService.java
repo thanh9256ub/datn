@@ -121,25 +121,6 @@ public class ProductDetailService {
         repository.save(productDetail);
         return mapper.toProductDetailResponse(productDetail);
     }
-
-    //    public void updateTotalQuantity(Integer productId) {
-//
-//        Integer updatedTotalQuantity = repository.sumQuantityByProductId(productId);
-//
-//        Product product = productRepository.findById(productId).orElseThrow(
-//                () -> new ResourceNotFoundException("Product not found with ID: " + productId));
-//
-//        product.setTotalQuantity(updatedTotalQuantity);
-//        product.setStatus(updatedTotalQuantity > 0 ? 1 : 0);
-//        Product savedProduct = productRepository.save(product);
-//
-//        // Gửi thông báo realtime sau khi cập nhật thành công
-//        webSocketController.sendProductUpdate(
-//                savedProduct.getProductCode(),
-//                savedProduct.getTotalQuantity()
-//        );
-//
-//    }
     public void updateTotalQuantity(Integer productId) {
         Product product = productRepository.findById(productId).orElseThrow(
                 () -> new ResourceNotFoundException("Product not found with ID: " + productId));

@@ -92,7 +92,7 @@ const Policy = () => {
                             size="small"
                             dataSource={[
                                 'Chỉ áp dụng khi khách hàng đã đăng nhập tài khoản',
-                                'Mỗi mã giảm giá chỉ sử dụng 1 lần',
+                                'Mã khuyến mãi có thể sử dụng được nhiều lần',
                                 'Không áp dụng đồng thời nhiều mã giảm giá cho 1 đơn hàng',
                                 'Có hiệu lực trong thời gian quy định'
                             ]}
