@@ -97,8 +97,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng thêm sản phẩm trước khi chọn QR  ", toastOptions);
       return;
     }
-    if (finalAmount >20000000 ) {
-      toast.warn("Tổng thanh toán không được quá 20.000.000", toastOptions);
+    if (finalAmount >1000000000 ) {
+      toast.warn("Tổng thanh toán không được quá 1000000000", toastOptions);
       return;
     }
     if (promo.voucherCode) {
@@ -193,8 +193,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng thêm sản phẩm trước khi chọn tiền mặt", toastOptions);
       return;
     }
-    if (finalAmount >20000000 ) {
-      toast.warn("Tổng thanh toán không được quá 20.000.000", toastOptions);
+    if (finalAmount >1000000000  ) {
+      toast.warn("Tổng thanh toán không được quá 1000000000", toastOptions);
       return;
     }
     setQrImageUrl("");
@@ -528,14 +528,14 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
               <Form.Group controlId="formCashPaid">
                 <Form.Label style={{ fontWeight: 'bold' }}>Tiền khách trả</Form.Label>
                 <Form.Control
-                  type="number"
-                  min="0" // Ensure the input value is >= 0
+                  type="tel"
+                  min="0" 
                   value={cashPaid}
                   style={{ fontWeight: 'bold' }}
                   onChange={(e) => {
-                    // Prevent negative values
-                    setCashPaid(e.target.value);
-                    setChange(e.target.value - (finalAmount + shippingFee));
+                    const onlyNumbers = e.target.value.replace(/\D/g, '');
+                    setCashPaid(onlyNumbers);
+                    setChange(onlyNumbers - (finalAmount + shippingFee));
                   }}
                   placeholder="Nhập số tiền khách trả"
                 />
@@ -547,8 +547,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
               <Form.Group controlId="formChange">
                 <Form.Label style={{ fontWeight: 'bold' }}>Tiền thừa</Form.Label>
                 <Form.Control
-                  type="number"
-                  value={change < 0 ? 0 : change}
+                  type="text"
+                  value={change < 0 ? "0" : change.toLocaleString()} // Format the number
                   style={{ fontWeight: 'bold' }}
                   readOnly
                   placeholder="Tiền thừa"

@@ -4,6 +4,7 @@ import com.example.datn.entity.Color;
 import com.example.datn.entity.Product;
 import com.example.datn.entity.ProductDetail;
 import com.example.datn.entity.Size;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -49,4 +50,5 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail,Int
     @Query("SELECT p FROM ProductDetail p WHERE p.product.id <> :id AND p.product.status <> 2")
     List<ProductDetail> findAllExceptId(@Param("id") Integer id);
 
+    List<ProductDetail> findAll(Specification<ProductDetail> spec);
 }

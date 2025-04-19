@@ -14,9 +14,12 @@ const ChatBot = () => {
 
     const [shoeKeywords, setShoeKeywords] = useState([]);
     const [brandKeywords, setBrandKeywords] = useState([]);
-    const [colorKeywords, setColorKeywords] = useState(['màu', 'color']);
-    const [sizeKeywords, setSizeKeywords] = useState(['size', 'kích cỡ']);
-    const [priceKeywords, setPriceKeywords] = useState(['giá', 'price']);
+    const [colorKeywords, setColorKeywords] = useState([]);
+    const [sizeKeywords, setSizeKeywords] = useState([]);
+    const [priceKeywords, setPriceKeywords] = useState([]);
+    const [descriptionKeywords, setDescriptionKeywords] = useState([]);
+    const [materialKeywords, setMaterialKeywords] = useState([]);
+    const [categoryKeywords, setCategoryKeywords] = useState([]);
     const ai = new GoogleGenAI({ apiKey: "AIzaSyBJy-DswHgXLYZvyXhh3p49aZzdXTeCl-s" });
 
     const storeInfo = {
@@ -27,22 +30,41 @@ const ChatBot = () => {
         email: "H2TL@fpt.edu.vn"
     };
 
-    const storeKeywords = ['địa chỉ', 'giờ mở cửa', 'số điện thoại', 'liên hệ', 'email', 'thông tin', 'cửa hàng', 'shop', 'h2tl'];
+    const storeKeywords = ['địa chỉ', 'giờ mở cửa', 'số điện thoại', 'liên hệ', 'email', 'thông tin', 'cửa hàng', 'h2tl'];
 
     useEffect(() => {
         const fetchShoeKeywords = async () => {
             try {
-                const response = await axios.get(`${BASE_URL}/product-detail/products/list`);
-                const productNames = response.data.data.map(item => item.product.productName);
+                const response = await axios.get(`${BASE_URL}/product-detail`);
+                
+                const productNames = Array.from(new Set(response.data.data.map(item => item.product?.productName || '')));
                 setShoeKeywords(productNames);
-                const brandNames = response.data.data.map(item => item.product.brand.brandName);
+
+                const brandNames = Array.from(new Set(response.data.data.map(item => item.product?.brand?.brandName || '')));
                 setBrandKeywords(brandNames);
-                const colorNames  = response.data.data.map(item => item.brand.brandName);
-                colorKeywords(colorNames);
-                const sizeNames   = response.data.data.map(item => item.brand.brandName);
-                sizeKeywords(sizeNames);
-                const priceNames  = response.data.data.map(item => item.brand.brandName);
+
+                const colorNames = Array.from(new Set(response.data.data.map(item => item.color?.colorName || '')));
+                setColorKeywords(colorNames);
+
+                const sizeNames = Array.from(new Set(response.data.data.map(item => item.size?.sizeName || '')));
+                setSizeKeywords(sizeNames);
+
+                const priceNames = Array.from(new Set(response.data.data.map(item => item.price?.price || '')));
                 setPriceKeywords(priceNames);
+
+                const descriptionNames = Array.from(new Set(response.data.data.map(item => item.product?.description || '')));
+                setDescriptionKeywords(descriptionNames);
+
+                const materialNames = Array.from(new Set(response.data.data.map(item => item.product?.material?.materialName || '')));
+                setMaterialKeywords(materialNames);
+
+                const categoryNames = Array.from(new Set(response.data.data.map(item => item.product?.category?.categoryName || '')));
+                setCategoryKeywords(categoryNames);
+
+                console.log("Category Keywords:", categoryNames);
+                console.log("Material Keywords:", materialNames);
+                console.log("Name  Keywords:", productNames);
+                console.log("brandNames Keywords:", brandNames);
             } catch (error) {
                 console.error("Error fetching shoe keywords:", error);
             }
@@ -50,29 +72,36 @@ const ChatBot = () => {
 
         fetchShoeKeywords();
     }, []);
-
-   
-
-    useEffect(async () => {
-        if (isChatOpen && chatHistory.length === 0) {
-            setChatHistory([{
-                sender: 'ai',
-                message: (
-                    <div>
-                        <p>Xin chào! Tôi là trợ lý ảo của shop giày <strong>{storeInfo.name}</strong>. Tôi có thể giúp gì cho bạn?</p>
-                        <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                            <li>Tìm sản phẩm giày</li>
-                            <li>Thông tin cửa hàng</li>
-                            <li>Hỗ trợ khác</li>
-                        </ul>
-                    </div>
-                )
-            }]);
+    useEffect(() => {
+        const chatBox = document.querySelector('.chat-box'); // hoặc thêm ref
+        if (chatBox) {
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
+    }, [chatHistory]);
+    useEffect(() => {
+        const initializeChatHistory = async () => {
+            if (isChatOpen && chatHistory.length === 0) {
+                setChatHistory([{
+                    sender: 'ai',
+                    message: (
+                        <div>
+                            <p>Xin chào! Tôi là trợ lý ảo của shop giày <strong>{storeInfo.name}</strong>. Tôi có thể giúp gì cho bạn?</p>
+                            <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                                <li>Tìm sản phẩm giày</li>
+                                <li>Thông tin cửa hàng</li>
+                                <li>Hỗ trợ khác</li>
+                            </ul>
+                        </div>
+                    )
+                }]);
+            }
+        };
 
-    }, [isChatOpen]);
+        initializeChatHistory();
+    }, [isChatOpen, chatHistory.length]);
 
     const normalizeText = (text) => {
+        if (!text) return ''; // Return an empty string if text is null or undefined
         return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     };
 
@@ -96,21 +125,36 @@ const ChatBot = () => {
         );
 
         // Tìm từ khóa màu sắc
-        if (colorKeywords.some(keyword => lowerMessage.includes(normalizeText(keyword)))) {
-            return 'color';
-        }
+        const foundColor = colorKeywords.find(color =>
+            lowerMessage.includes(normalizeText(color))
+        );
 
         // Tìm từ khóa kích cỡ
-        if (sizeKeywords.some(keyword => lowerMessage.includes(normalizeText(keyword)))) {
-            return 'size';
-        }
+        const foundSize = sizeKeywords.find(size =>
+            lowerMessage.includes(normalizeText(size))
+        );
 
         // Tìm từ khóa giá cả
-        if (priceKeywords.some(keyword => lowerMessage.includes(normalizeText(keyword)))) {
-            return 'price';
-        }
+        const foundPrice = priceKeywords.find(price =>
+            lowerMessage.includes(normalizeText(price))
+        );
 
-        return foundShoe || foundBrand || null;
+        // Tìm từ khóa mô tả
+        const foundDescription = descriptionKeywords.find(description =>
+            lowerMessage.includes(normalizeText(description))
+        );
+
+        // Tìm từ khóa chất liệu
+        const foundMaterial = materialKeywords.find(material =>
+            lowerMessage.includes(normalizeText(material))
+        );
+
+        // Tìm từ khóa danh mục
+        const foundCategory = categoryKeywords.find(category =>
+            lowerMessage.includes(normalizeText(category))
+        );
+
+        return foundShoe || foundBrand  || foundDescription || foundMaterial || foundCategory|| foundColor || foundSize || foundPrice || null;
     };
 
     // Hàm trả lời thông tin cửa hàng
@@ -145,10 +189,16 @@ const ChatBot = () => {
     // Hàm tìm kiếm giày
     const searchShoes = async (query) => {
         try {
-            const response = await axios.get(`${BASE_URL}/products/search-ai?name=${encodeURIComponent(query)}`);
-            console.log(response.data.data);
-            return response.data?.data || []; // Giả sử API trả về data.data
+            const response = await axios.get(`${BASE_URL}/product-detail/search-ai?name=${encodeURIComponent(query)}`);
+            const responsePD = await axios.get(`${BASE_URL}/products/search-ai?name=${encodeURIComponent(query)}`);
+            console.log("Tìm thấy sản phẩm11:", response.data.data);
+            console.log("Tìm thấy sản phẩm22:", responsePD.data.data);
+            const products = response.data?.data?.map(item => item.product) || [];
+            const uniqueProducts = Array.from(new Set(products.map(product => product.id)))
+                .map(id => products.find(product => product.id === id));
 
+            console.log(uniqueProducts);
+            return responsePD.data?.data?.length > 0 ? responsePD.data.data : uniqueProducts;
         } catch (error) {
             console.error("Error searching shoes:", error);
             return [];
@@ -182,7 +232,7 @@ const ChatBot = () => {
             console.log(shoes);
             if (shoes.length > 0) {
                 // Hiển thị tối đa 3 sản phẩm
-                const topProducts = shoes.slice(0, 3);
+                const topProducts = shoes.slice(0, 5);
                 setChatHistory(prev => [...prev, {
                     sender: 'ai',
                     message: (

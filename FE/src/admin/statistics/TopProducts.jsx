@@ -39,7 +39,7 @@ const TopProducts = () => {
 
   return (
     <div>
-      <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#4a90e2' }}>5 sản phẩm bán nhiều nhất</h2>
+      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>5 sản phẩm bán nhiều nhất</h2>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart
           data={data}
@@ -65,7 +65,7 @@ const TopProducts = () => {
         </BarChart>
       </ResponsiveContainer>
 
-      <h2 style={{ textAlign: 'center', marginTop: '40px', marginBottom: '20px', color: '#50c878' }}>5 sản phẩm sắp hết hàng</h2>
+      <h2 style={{ textAlign: 'center', marginTop: '40px', marginBottom: '20px' }}>5 sản phẩm số lượng ít nhất</h2>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart
           data={lowStockData}

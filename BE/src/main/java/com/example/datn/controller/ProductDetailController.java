@@ -185,4 +185,17 @@ public class ProductDetailController {
 
                 return ResponseEntity.ok(response);
         }
+        @GetMapping("/search-ai")
+        public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> searchProductAI(
+                @RequestParam(value = "name", required = false) String name) {
+
+                List<ProductDetailResponse> list = service.searchProductDetailAI(name);
+
+                ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                        200,
+                        "Products retrieved successfully",
+                        list);
+
+                return ResponseEntity.ok(response);
+        }
 }

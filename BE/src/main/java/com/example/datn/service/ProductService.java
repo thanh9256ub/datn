@@ -140,8 +140,11 @@ public class ProductService {
 
     public List<ProductResponse> searchProductAI(String name) {
         Specification<Product> spec = Specification
-                .where(ProductSpecification.hasName(name))
+                .where(ProductSpecification.hasNameAi (name))
                 .or(ProductSpecification.hasBrandName(name))
+                .or(ProductSpecification.hasCategoryName(name))
+                .or(ProductSpecification.hasMaterialName(name))
+                .or(ProductSpecification.hasDescription(name))
                 .and(ProductSpecification.statusNotTwo());
         return mapper.toListProductResponse(repository.findAll(spec));
     }

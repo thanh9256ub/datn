@@ -127,6 +127,11 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
       return;
     }
 
+    if (new Date(newCustomer.dateOfBirth) > new Date()) {
+      toast.error("Ngày sinh không được lớn hơn thời gian hiện tại ", toastOptions);
+      return;
+    }
+
     if (!selectedProvince || !selectedDistrict || !selectedWard || !newCustomer.address) {
       toast.error("Vui lòng nhập đầy đủ địa chỉ ", toastOptions);
       return;
@@ -143,9 +148,13 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
       toast.error("Số điện thoại đã tồn tại ", toastOptions);
       return;
     }
-
+    const customer2 = response.data.data.find(c => c.email  === newCustomer.email);
+    if ( customer2) {
+      toast.error("Email đã tồn tại ", toastOptions);
+      return;
+    }
     try {
-      const responseCustomer = await addCustomer({
+        const responseCustomer = await addCustomer({
         fullName: newCustomer.fullName,
         phone: newCustomer.phone,
         birthDate: newCustomer.dateOfBirth,
@@ -291,11 +300,14 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
                 <Form.Group className="mb-3">
                   <Form.Label style={{ fontWeight: 'bold' }}>Email</Form.Label>
                   <Form.Control
-                    type="email"
+                    type="tel"
                     style={{ fontWeight: 'bold' }}
                     placeholder="Nhập email"
                     value={newCustomer.email}
-                    onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+                    onChange={(e) => {
+                      const validEmail = e.target.value.replace(/[^a-zA-Z0-9@._-]/g, ''); // Allow only letters, numbers, and valid email characters
+                      setNewCustomer({ ...newCustomer, email: validEmail });
+                    }}
                   />
                 </Form.Group>
                 <Form.Group className="mb-3" >
