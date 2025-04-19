@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getActive, getBrands } from '../service/BrandService';
 import Select from 'react-select';
 
-const BrandSelect = ({ brandId, setBrandId, refresh }) => {
+const BrandSelect = ({ brandId, setBrandId, refresh, id }) => {
     const [brandOptions, setBrandOptions] = useState([]);
     const [selectedBrand, setSelectedBrand] = useState(null);
 
@@ -68,6 +68,7 @@ const BrandSelect = ({ brandId, setBrandId, refresh }) => {
                 onChange={handleBrandChange}
                 isClearable
                 placeholder="Thương hiệu..."
+                isDisabled={id}
             />
         </div>
     );

@@ -68,7 +68,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
     try {
 
       const response = await fetchCustomers();
-      const customer = response.data.data.find(c => c.phone === phoneNumber);
+      const customer = response.data.data.find(c => c.phone === phoneNumber&& c.status === 1);
      
      console.log("customer", customer)
       if (!customer) {
@@ -100,12 +100,9 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
       return;
     }
 
-    if (!newCustomer.phone.trim() || !/^\d+$/.test(newCustomer.phone)) {
-      toast.error("Số điện thoại không hợp lệ ", toastOptions);
-      return;
-    }
+  
 
-   if (!newCustomer.email.trim() || !/^0\d{9}$/.test(phoneNumber)) {
+   if (!newCustomer.phone.trim() || !/^0\d{9}$/.test(newCustomer.phone)) {
       toast.error("Số điện thoại phải bắt đầu bằng số 0 và gồm 10 chữ số ", toastOptions);
       return;
     }
@@ -130,6 +127,11 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
       return;
     }
 
+    if (new Date(newCustomer.dateOfBirth) > new Date()) {
+      toast.error("Ngày sinh không được lớn hơn thời gian hiện tại ", toastOptions);
+      return;
+    }
+
     if (!selectedProvince || !selectedDistrict || !selectedWard || !newCustomer.address) {
       toast.error("Vui lòng nhập đầy đủ địa chỉ ", toastOptions);
       return;
@@ -146,9 +148,13 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
       toast.error("Số điện thoại đã tồn tại ", toastOptions);
       return;
     }
-
+    const customer2 = response.data.data.find(c => c.email  === newCustomer.email);
+    if ( customer2) {
+      toast.error("Email đã tồn tại ", toastOptions);
+      return;
+    }
     try {
-      const responseCustomer = await addCustomer({
+        const responseCustomer = await addCustomer({
         fullName: newCustomer.fullName,
         phone: newCustomer.phone,
         birthDate: newCustomer.dateOfBirth,
@@ -275,7 +281,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
                     style={{ fontWeight: 'bold' }}
                     placeholder="Nhập họ tên"
                     value={newCustomer.fullName}
-                    onChange={(e) => setNewCustomer({ ...newCustomer, fullName: e.target.value })}
+                    onChange={(e) => setNewCustomer({ ...newCustomer, fullName: e.target.value.trimStart() })}
                   />
                 </Form.Group>
                 <Form.Group className="mb-3">
@@ -294,11 +300,14 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
                 <Form.Group className="mb-3">
                   <Form.Label style={{ fontWeight: 'bold' }}>Email</Form.Label>
                   <Form.Control
-                    type="email"
+                    type="tel"
                     style={{ fontWeight: 'bold' }}
                     placeholder="Nhập email"
                     value={newCustomer.email}
-                    onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+                    onChange={(e) => {
+                      const validEmail = e.target.value.replace(/[^a-zA-Z0-9@._-]/g, ''); // Allow only letters, numbers, and valid email characters
+                      setNewCustomer({ ...newCustomer, email: validEmail });
+                    }}
                   />
                 </Form.Group>
                 <Form.Group className="mb-3" >
@@ -387,7 +396,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
                     style={{ fontWeight: 'bold' }}
                     placeholder="Nhập địa chỉ chi tiết"
                     value={newCustomer.address}
-                    onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
+                    onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value.trimStart() })}
                   />
                 </Form.Group>
               </Col>

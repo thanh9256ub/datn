@@ -11,7 +11,6 @@ import { fetchSizesByColor, fetchImagesByProductColor, fetchProductDetailByAttri
 
 import chooseSize from '../../assets/images/choose-size/size-shoe.jpeg';
 import useWebSocket from '../../hook/useWebSocket';
-import { toast } from 'react-toastify';
 
 const { Text, Title } = Typography;
 
@@ -135,7 +134,10 @@ const ProductDisplay = ({ product, productColors }) => {
                     }
 
                     // Xử lý sizes
-                    const availableSizes = sizeResponse || [];
+                    const availableSizes = (sizeResponse || []).sort((a, b) => {
+                        // Nếu sizeName là số: ví dụ "36", "37", "38"
+                        return parseInt(a.sizeName) - parseInt(b.sizeName);
+                    });
                     setSizes(availableSizes);
 
                     // Chỉ hiển thị cảnh báo nếu không có size và đã chọn màu
@@ -297,7 +299,7 @@ const ProductDisplay = ({ product, productColors }) => {
                             <div style={{ padding: '8px 0' }}>
                                 <Row gutter={[12, 12]} justify="start">
                                     {(images.length > 0 ? images : [{ image: product.image }]).map((img, index) => (
-                                        <Col key={index} xs={8} sm={6} md={4} lg={6}>
+                                        <Col key={index} xs={6} sm={4} md={3} lg={4}>
                                             <div
                                                 style={{
                                                     cursor: 'pointer',
@@ -307,7 +309,7 @@ const ProductDisplay = ({ product, productColors }) => {
                                                     aspectRatio: '1/1',
                                                     backgroundColor: lightBg,
                                                     transition: 'all 0.3s',
-                                                    position: 'relative'
+                                                    position: 'relat*ive'
                                                 }}
                                                 onClick={() => img.image && setMainImage(img.image)}
                                             >

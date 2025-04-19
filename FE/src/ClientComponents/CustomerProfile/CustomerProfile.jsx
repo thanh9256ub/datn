@@ -95,7 +95,8 @@ const CustomerProfile = () => {
             maxWidth: 1600,
             margin: '0 auto',
             padding: '24px 16px',
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            marginTop: 70
         }}>
             <Card
                 bordered={false}

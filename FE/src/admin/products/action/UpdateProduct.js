@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
 import { useParams, useHistory } from 'react-router-dom';
-import { getImagesByProductColor, getProductById, getProductColorsByProductId, updateProduct, uploadImageToCloudinary } from '../service/ProductService';
+import { getImagesByProductColor, getProductById, getProductColorsByProductId, getProductList, updateProduct, uploadImageToCloudinary } from '../service/ProductService';
 import { getProductDetailByProductId, updateProductDetails } from '../service/ProductDetailService';
 import BrandContainer from '../components/BrandContainer';
 import CategoryContainer from '../components/CategoryContainer';
@@ -33,6 +33,9 @@ const UpdateProduct = () => {
     const [errors, setErrors] = useState({});
 
     const [colorImages, setColorImages] = useState({});
+
+    const [products, setProducts] = useState([]);
+    const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -94,27 +97,101 @@ const UpdateProduct = () => {
         fetchProduct();
     }, [id]);
 
+    useEffect(() => {
+        getProductList()
+            .then((response) => {
+                console.log("API response:", response.data);
+                const productsData = response.data.data;
+
+                if (Array.isArray(productsData)) {
+                    setProducts(productsData);
+                } else {
+                    setProducts([]);
+                }
+            })
+            .catch((error) => {
+                console.error("Lỗi khi tải danh sách sản phẩm:", error);
+                setProducts([]);
+            });
+    }, []);
+
+    useEffect(() => {
+        if (productName.trim() === "") {
+            setErrorMessage("");
+            return;
+        }
+
+        const exists = products.some(product => product.productName.toLowerCase() === productName.toLowerCase() && product.id != id);
+
+        if (exists) {
+            setErrorMessage("Tên sản phẩm đã tồn tại!");
+        } else {
+            setErrorMessage("");
+        }
+    }, [productName, products]);
+
     // const handleInputChange = (index, field, value) => {
     //     const updatedVariants = [...variantList];
-    //     updatedVariants[index] = { ...updatedVariants[index], [field]: value };
+    //     const updatedVariant = { ...updatedVariants[index], [field]: value };
+
+    //     if (field === "quantity") {
+    //         updatedVariant.quantityChanged = true;
+    //     }
+
+    //     if (field === "price") {
+    //         updatedVariant.priceChanged = true;
+    //     }
+
+    //     updatedVariants[index] = updatedVariant;
     //     setVariantList(updatedVariants);
     // };
     const handleInputChange = (index, field, value) => {
+        const maxQuantity = 1000000;
+        const maxPrice = 100000000;
+
+        if (value === '') {
+            const updatedVariants = [...variantList];
+            updatedVariants[index] = {
+                ...updatedVariants[index],
+                [field]: '',
+                // Giữ lại các trạng thái changed
+                quantityChanged: field === 'quantity' ? true : updatedVariants[index].quantityChanged,
+                priceChanged: field === 'price' ? true : updatedVariants[index].priceChanged
+            };
+            setVariantList(updatedVariants);
+            return;
+        }
+
+        const numericValue = parseFloat(value);
+        if (isNaN(numericValue)) {
+            return;
+        }
+
+        if (field === 'quantity') {
+            if (numericValue > maxQuantity) {
+                value = maxQuantity.toString();
+            } else if (numericValue < 0) {
+                value = "0";
+            }
+        } else if (field === 'price') {
+            if (numericValue > maxPrice) {
+                value = maxPrice.toString();
+            } else if (numericValue < 0) {
+                value = "0";
+            }
+        }
+
         const updatedVariants = [...variantList];
-        const updatedVariant = { ...updatedVariants[index], [field]: value };
+        updatedVariants[index] = {
+            ...updatedVariants[index],
+            [field]: value,
+            // Đánh dấu đã thay đổi
+            quantityChanged: field === 'quantity' ? true : updatedVariants[index].quantityChanged,
+            priceChanged: field === 'price' ? true : updatedVariants[index].priceChanged
+        };
 
-        if (field === "quantity") {
-            updatedVariant.quantityChanged = true;
-        }
-
-        if (field === "price") {
-            updatedVariant.priceChanged = true;
-        }
-
-        updatedVariants[index] = updatedVariant;
         setVariantList(updatedVariants);
     };
-
 
     const saveProduct = async () => {
         const result = await Swal.fire({
@@ -163,7 +240,7 @@ const UpdateProduct = () => {
                     sizeId: variant.size?.id || variant.size,
                     quantity: Number(variant.quantity),
                     price: Number(variant.price),
-                    status: variant.status === 0 ? 0 : 1
+                    status: variant.quantity === 0 ? 0 : 1
                 }));
 
                 console.log("Dữ liệu gửi lên API updateProductDetails:", formattedVariants);
@@ -173,11 +250,11 @@ const UpdateProduct = () => {
 
             await handleImagesForProductColors(id);
 
-            localStorage.setItem("successMessage", "Sản phẩm đã được cập nhật thành công!");
+            localStorage.setItem("successMessage", "Sản phẩm đã được sửa thành công!");
             history.push('/admin/products');
         } catch (error) {
-            console.error("Lỗi khi cập nhật sản phẩm:", error);
-            alert("Cập nhật sản phẩm thất bại!");
+            console.error("Lỗi khi chỉnh sửa sản phẩm:", error);
+            alert("Chỉnh sửa sản phẩm thất bại!");
         }
     };
 
@@ -226,7 +303,7 @@ const UpdateProduct = () => {
         const files = Array.from(event.target.files);
 
         if (files.length > 6) {
-            alert("Bạn chỉ có thể chọn tối đa 6 ảnh.");
+            toast.error("Bạn chỉ có thể chọn tối đa 6 ảnh.");
             return;
         }
 
@@ -269,7 +346,7 @@ const UpdateProduct = () => {
                 //     newErrors[`price_${index}`] = `${variantInfo}: Giá phải lớn hơn 0`;
                 // }
 
-                if (!variant.quantity) {
+                if (variant.quantity == null || variant.quantity === '') {
                     newErrors[`quantity_${index}`] = `${variantInfo}: Chưa nhập số lượng`;
                 } else if (variant.quantity < 0) {
                     newErrors[`quantity_${index}`] = `${variantInfo}: Số lượng phải lớn hơn 0`;
@@ -341,18 +418,38 @@ const UpdateProduct = () => {
                                             <Form.Group className="row">
                                                 <label className="col-sm-3 col-form-label">Tên sản phẩm:</label>
                                                 <div className="col-sm-9">
-                                                    <Form.Control type="text" value={productName} onChange={(e) => setProductName(e.target.value)} required />
+                                                    <Form.Control
+                                                        type="text"
+                                                        value={productName}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            if (value.length <= 255) {
+                                                                setProductName(value);
+                                                                setErrorMessage("");
+                                                            } else {
+                                                                setErrorMessage("Tên sản phẩm không được vượt quá 255 ký tự.");
+                                                            }
+                                                        }}
+                                                        placeholder='Nhập tên sản phẩm'
+                                                        required
+                                                        disabled={id}
+                                                        maxLength={255}
+                                                        style={{
+                                                            fontSize: '16px',
+                                                        }}
+                                                    />
+                                                    {errorMessage && <small style={{ color: "red" }}>{errorMessage}</small>}
                                                 </div>
                                             </Form.Group>
                                         </div>
                                         <div className="col-md-12">
-                                            <BrandContainer brandId={brandId} setBrandId={setBrandId} />
+                                            <BrandContainer brandId={brandId} setBrandId={setBrandId} id={id} />
                                         </div>
                                         <div className="col-md-12">
-                                            <CategoryContainer categoryId={categoryId} setCategoryId={setCategoryId} />
+                                            <CategoryContainer categoryId={categoryId} setCategoryId={setCategoryId} id={id} />
                                         </div>
                                         <div className="col-md-12">
-                                            <MaterialContainer materialId={materialId} setMaterialId={setMaterialId} />
+                                            <MaterialContainer materialId={materialId} setMaterialId={setMaterialId} id={id} />
                                         </div>
                                     </div>
                                     <div className="col-md-4" style={{ display: 'grid', placeItems: 'center' }}>

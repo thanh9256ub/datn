@@ -17,3 +17,15 @@ export const getVoucherById = (id) => {
 export const updateVoucher = (id, voucher) => {
     return axios.put(`${BASE_URL}/edit/${id}`, voucher);
 }
+
+export const deleteOrRestoreVoucher = (vcIds) => {
+    return axios.patch(`${BASE_URL}/delete-or-restore`, vcIds)
+}
+
+export const getBin = () => {
+    return axios.get(`${BASE_URL}/bin`)
+}
+
+export const getActive = () => {
+    return axios.get(`${BASE_URL}/active`)
+}

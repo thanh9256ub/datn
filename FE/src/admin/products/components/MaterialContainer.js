@@ -4,7 +4,7 @@ import { getMaterials, createMaterial } from '../service/MaterialService';
 import MaterialSelect from '../select/MaterialSelect';
 import { toast } from 'react-toastify';
 
-const MaterialContainer = ({ materialId, setMaterialId }) => {
+const MaterialContainer = ({ materialId, setMaterialId, id }) => {
     const [showModal, setShowModal] = useState(false);
     const [newMaterialName, setNewMaterialName] = useState("");
     const [refresh, setRefresh] = useState(false);
@@ -41,7 +41,7 @@ const MaterialContainer = ({ materialId, setMaterialId }) => {
             <Form.Group className="row d-flex align-items-center">
                 <label className="col-sm-3 col-form-label">Chất liệu:</label>
                 <div className="col-sm-7">
-                    <MaterialSelect materialId={materialId} setMaterialId={setMaterialId} refresh={refresh} />
+                    <MaterialSelect materialId={materialId} setMaterialId={setMaterialId} refresh={refresh} id={id} />
                 </div>
                 <div className="col-sm-2">
                     <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon" onClick={() => setShowModal(true)}>

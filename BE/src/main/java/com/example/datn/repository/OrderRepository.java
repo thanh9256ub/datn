@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.awt.print.Pageable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -126,4 +127,24 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     List<Order> findByStatusAndCreatedAtBefore(Integer status, LocalDateTime yesterday);
 
+    @Query(value = "SELECT COUNT(*) FROM [order] WHERE [status] = 5 AND CONVERT(DATE, updated_at) = CONVERT(DATE, GETDATE())", nativeQuery = true)
+    int countOrdersWithStatus5Today();
+
+    @Query(value = "SELECT COUNT(*) FROM [order] WHERE [status] = 2  AND CONVERT(DATE, updated_at) = CONVERT(DATE, GETDATE())", nativeQuery = true)
+    int countOrdersWithStatus2Today();
+
+    @Query(value = "SELECT SUM(od.quantity) " +
+            "FROM order_detail od " +
+            "JOIN [order] o ON od.order_id = o.id " +
+            "WHERE o.[status] = 5 " +
+            "AND CONVERT(DATE, o.updated_at) = CONVERT(DATE, GETDATE())",
+            nativeQuery = true)
+    Integer getTotalQuantityOfTodayOrdersWithStatus5();
+
+    @Query(value = "SELECT SUM(total_price - shipping_fee) " +
+            "FROM [order] " +
+            "WHERE [status] = 5 " +
+            "AND CONVERT(DATE, updated_at) = CONVERT(DATE, GETDATE())",
+            nativeQuery = true)
+    BigDecimal getTotalNetPriceOfTodayOrdersWithStatus5();
 }

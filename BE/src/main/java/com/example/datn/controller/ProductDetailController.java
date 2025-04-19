@@ -51,6 +51,21 @@ public class ProductDetailController {
                 return ResponseEntity.ok(response);
         }
 
+        @GetMapping("bin-details/{productId}")
+        public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getBinDetails(
+                @PathVariable("productId") Integer productId
+        ) {
+
+                List<ProductDetailResponse> responseList = service.getBin(productId);
+
+                ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Retrieved successfully",
+                        responseList);
+
+                return ResponseEntity.ok(response);
+        }
+
         @GetMapping("/{productId}")
         public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getProductDetailsByProductId(
                         @PathVariable("productId") Integer productId) {
@@ -148,6 +163,12 @@ public class ProductDetailController {
                 return ResponseEntity.ok(productDetailResponse);
         }
 
+        @PostMapping("/delete-or-restore")
+        public ResponseEntity<List<ProductDetailResponse>> restoreProductDetails(@RequestBody List<Integer> pdIds) {
+                List<ProductDetailResponse> responses = service.deleteAndRestoreProductDetails(pdIds);
+                return ResponseEntity.ok(responses);
+        }
+
         @PostMapping("/check-stock")
         public ResponseEntity<ApiResponse<Map<Integer, Integer>>> checkStockAvailability(
                 @RequestBody List<Map<String, Integer>> checkStockRequests) {
@@ -182,6 +203,19 @@ public class ProductDetailController {
                         200,
                         "List product detail related by id: " + productId,
                         productDetails);
+
+                return ResponseEntity.ok(response);
+        }
+        @GetMapping("/search-ai")
+        public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> searchProductAI(
+                @RequestParam(value = "name", required = false) String name) {
+
+                List<ProductDetailResponse> list = service.searchProductDetailAI(name);
+
+                ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                        200,
+                        "Products retrieved successfully",
+                        list);
 
                 return ResponseEntity.ok(response);
         }

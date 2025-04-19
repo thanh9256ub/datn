@@ -92,7 +92,7 @@ const RelatedProducts = ({ relatedProducts = [], currentProductId }) => {
                                                 width: '100%',
                                                 height: '100%',
                                                 objectFit: 'contain',
-                                                padding: 24
+                                                padding: 0
                                             }}
                                         />
                                     </div>

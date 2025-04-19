@@ -233,7 +233,17 @@ const Bin = () => {
                                                                 onChange={() => handleSelectProduct(product.id)}
                                                             />
                                                         </td>
-                                                        <td><span>img.png</span></td>
+                                                        <td>
+                                                            {product.mainImage != "image.png" ? (
+                                                                <img
+                                                                    src={product.mainImage}
+                                                                    alt="Product"
+                                                                    style={{ width: '100px', height: 'auto', cursor: 'pointer', borderRadius: '5%', objectFit: 'contain' }}
+                                                                />
+                                                            ) : (
+                                                                <span>No Image</span>
+                                                            )}
+                                                        </td>
                                                         <td>{product.productName}</td>
                                                         <td>{product.brand.brandName}</td>
                                                         <td>{product.category.categoryName}</td>
