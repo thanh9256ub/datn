@@ -312,12 +312,21 @@ public class ProductDetailService {
             }
         }
     }
-    public List<ProductDetailResponse> searchProductDetailAI(String name) {
-        Specification<ProductDetail> spec = Specification
-                .where(ProductSpecification.hasColor(name))
-                .or(ProductSpecification.hasPrice(name))
-                .or(ProductSpecification.hasSize(name))
-               .and(ProductSpecification.hasStatusPDTwo());
-        return mapper.toListProductDetail(repository.findAll( spec));
+
+    public List<ProductDetailResponse> searchProducts(
+            String query,
+            String brand,
+            String color,
+            String size,
+            Double minPrice,
+            Double maxPrice,
+            String category,
+            String material
+    ) {
+        Specification<ProductDetail> spec = ProductSpecification.searchProducts(
+                query, brand, color, size, minPrice, maxPrice, category, material
+        );
+
+        return mapper.toListProductDetail(repository.findAll(spec));
     }
 }
