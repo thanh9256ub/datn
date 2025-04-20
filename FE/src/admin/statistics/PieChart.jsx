@@ -67,8 +67,7 @@ const PieChartChild = ({ title, apiUrl, categoryNames, colors }) => {
 
 const PieChartComponent = () => {
   return (
-    <div>
-      
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px' }}>
       <PieChartChild
         title="Thống kê loại đơn hàng"
         apiUrl="http://localhost:8080/order/order-sell-counts"
