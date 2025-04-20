@@ -19,22 +19,20 @@ export const fetchOrders = async () => {
         throw error;
     }
 };// Hàm lọc đơn hàng
-export const filterOrders = async ({ orderCode, minPrice, maxPrice, startDate, endDate, status }) => {
+export const filterOrders = async ({ search, minPrice, maxPrice, startDate, endDate, status }) => {
     try {
-        // Format dates to match backend expectations
         const params = {
-            orderCode: orderCode || undefined,
+            search: search || undefined,
             minPrice: minPrice || undefined,
             maxPrice: maxPrice || undefined,
-            status: status || undefined
+            status: status || undefined,
         };
 
-        // Only include dates if they are provided
         if (startDate) {
-            params.startDate = `${startDate}T00:00:00`; // Add time component for LocalDateTime
+            params.startDate = `${startDate}T00:00:00`;
         }
         if (endDate) {
-            params.endDate = `${endDate}T23:59:59`; // Add time component for LocalDateTime
+            params.endDate = `${endDate}T23:59:59`;
         }
 
         const response = await api.get('/order/filter', { params });

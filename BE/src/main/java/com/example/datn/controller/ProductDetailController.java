@@ -51,6 +51,21 @@ public class ProductDetailController {
                 return ResponseEntity.ok(response);
         }
 
+        @GetMapping("bin-details/{productId}")
+        public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getBinDetails(
+                @PathVariable("productId") Integer productId
+        ) {
+
+                List<ProductDetailResponse> responseList = service.getBin(productId);
+
+                ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Retrieved successfully",
+                        responseList);
+
+                return ResponseEntity.ok(response);
+        }
+
         @GetMapping("/{productId}")
         public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getProductDetailsByProductId(
                         @PathVariable("productId") Integer productId) {
@@ -146,6 +161,12 @@ public class ProductDetailController {
         public ResponseEntity<ProductDetailResponse> deleteAndRestoreProductDetail(@PathVariable("id") Integer pdId){
                 ProductDetailResponse productDetailResponse = service.deleteAndRestoreProductDetail(pdId);
                 return ResponseEntity.ok(productDetailResponse);
+        }
+
+        @PostMapping("/delete-or-restore")
+        public ResponseEntity<List<ProductDetailResponse>> restoreProductDetails(@RequestBody List<Integer> pdIds) {
+                List<ProductDetailResponse> responses = service.deleteAndRestoreProductDetails(pdIds);
+                return ResponseEntity.ok(responses);
         }
 
         @PostMapping("/check-stock")

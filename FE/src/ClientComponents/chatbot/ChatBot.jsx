@@ -292,7 +292,7 @@ const ChatBot = () => {
     };
 
     return (
-        <div>
+        <div style={{ zIndex: 2, position: 'absolute', top: 0 }}>
             {!isChatOpen && (
                 <div
                     style={{

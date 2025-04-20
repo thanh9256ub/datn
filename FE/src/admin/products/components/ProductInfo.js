@@ -27,8 +27,8 @@ const ProductInfo = ({ product }) => {
                     <img
                         src={product.mainImage === "image.png" ? "" : product.mainImage}
                         style={{
-                            width: '100px',
-                            height: '100px',
+                            width: '100%',
+                            height: '100%',
                             objectFit: 'cover',
                             objectPosition: 'center'
                         }}

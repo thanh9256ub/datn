@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getActive, getMaterials } from '../service/MaterialService';
 import Select from 'react-select';
 
-const MaterialSelect = ({ materialId, setMaterialId, refresh }) => {
+const MaterialSelect = ({ materialId, setMaterialId, refresh, id }) => {
     const [materialOptions, setMaterialOptions] = useState([]);
     const [selectedMaterial, setSelectedMaterial] = useState(null);
 
@@ -63,6 +63,7 @@ const MaterialSelect = ({ materialId, setMaterialId, refresh }) => {
                 onChange={handleMaterialChange}
                 isClearable
                 placeholder="Chất liệu..."
+                isDisabled={id}
             />
         </div>
     );

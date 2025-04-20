@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { getActive, getCategories } from '../service/CategoryService';
 import Select from 'react-select';
 
-const CategorySelect = ({ categoryId, setCategoryId, refresh }) => {
+const CategorySelect = ({ categoryId, setCategoryId, refresh, id }) => {
     const [categoryOptions, setCategoryOptions] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
 
@@ -63,6 +63,7 @@ const CategorySelect = ({ categoryId, setCategoryId, refresh }) => {
                 onChange={handleCategoryChange}
                 isClearable
                 placeholder="Danh mục..."
+                isDisabled={id}
             />
         </div>
     )

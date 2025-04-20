@@ -4,7 +4,7 @@ import { getBrands, createBrand } from '../service/BrandService';
 import { Button, Form, Modal } from 'react-bootstrap';
 import BrandSelect from '../select/BrandSelect';
 
-const BrandContainer = ({ brandId, setBrandId }) => {
+const BrandContainer = ({ brandId, setBrandId, id }) => {
     const [showModal, setShowModal] = useState(false);
     const [newBrandName, setNewBrandName] = useState("");
     const [refresh, setRefresh] = useState(false);
@@ -42,7 +42,7 @@ const BrandContainer = ({ brandId, setBrandId }) => {
             <Form.Group className="row d-flex align-items-center">
                 <label className="col-sm-3 col-form-label">Thương hiệu:</label>
                 <div className="col-sm-7">
-                    <BrandSelect brandId={brandId} setBrandId={setBrandId} refresh={refresh} />
+                    <BrandSelect brandId={brandId} setBrandId={setBrandId} refresh={refresh} id={id} />
                 </div>
                 <div className="col-sm-2">
                     <button type="button" className="btn btn-outline-secondary btn-rounded btn-icon" onClick={() => setShowModal(true)}>

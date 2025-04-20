@@ -372,7 +372,26 @@ const OrderDetail = () => {
             setShowUpdateModal(false);
             return;
         }
+
+        if (updatedCart.length === 0) {
+            showNotification("Giỏ hàng không được để trống!");
+            setShowUpdateModal(false);
+            return;
+        }
+
         try {
+            for (const item of updatedCart) {
+                const product = availableProducts.find(p => p.id === item.productDetail.id);
+                if (!product) {
+                    showNotification(`Sản phẩm ${item.productDetail.product.productName} không tồn tại trong danh sách sản phẩm!`);
+                    return;
+                }
+                if (product.quantity < item.quantity) {
+                    showNotification(`Số lượng tồn kho của ${item.productDetail.product.productName} không đủ! Còn lại: ${product.quantity}`);
+                    return;
+                }
+            }
+
             const itemsToUpdate = updatedCart.map(item => ({
                 orderId: parseInt(orderId),
                 productDetailId: item.productDetail.id,
@@ -387,10 +406,9 @@ const OrderDetail = () => {
             setOrderDetails(updatedDetails);
             setUpdatedCart(updatedDetails);
 
-            // Lưu lịch sử đơn hàng
             const historyData = {
                 orderId: orderId,
-                icon: "product-update", // Icon mới để phân biệt hành động
+                icon: "product-update",
                 description: `Cập nhật danh sách sản phẩm: ${updatedCart.length} sản phẩm`,
                 change_time: new Date().toISOString(),
             };
@@ -401,10 +419,10 @@ const OrderDetail = () => {
             showNotification("Cập nhật danh sách sản phẩm thành công!");
             history.replace(location.pathname, { ...location.state, shouldRefresh: true });
         } catch (error) {
-            showNotification("Lỗi khi cập nhật danh sách sản phẩm: " + error.message);
+            console.error('Error updating order details:', error.response?.data || error.message);
+            showNotification(`Lỗi khi cập nhật danh sách sản phẩm: ${error.response?.data?.message || error.message}`);
         }
     };
-
     const filteredProducts = availableProducts.filter(product => {
         const price = product.price || 0;
         return (

@@ -136,8 +136,8 @@ const CreateProduct = () => {
     };
 
     const handleInputChange = (index, field, value) => {
-        const maxQuantity = 10000;
-        const maxPrice = 10000000;
+        const maxQuantity = 1000000;
+        const maxPrice = 100000000;
 
         if (value === '') {
             const updatedVariants = [...variantList];
@@ -167,70 +167,6 @@ const CreateProduct = () => {
         updatedVariants[index] = { ...updatedVariants[index], [field]: value };
         setVariantList(updatedVariants);
     };
-
-    //Cách 3:
-    // const handleRemoveVariant = (index) => {
-    //     setVariantList(prevVariants => {
-    //         const updatedVariants = [...prevVariants];
-    //         const removedVariant = updatedVariants[index];
-
-    //         updatedVariants.splice(index, 1);
-
-    //         const remainingVariantsWithColor = updatedVariants.filter(v => v.colorId === removedVariant.colorId);
-    //         if (remainingVariantsWithColor.length === 0) {
-    //             setColorIds(prev => prev.filter(c => c.value !== removedVariant.colorId));
-    //             setColorImages(prev => {
-    //                 const newColorImages = { ...prev };
-    //                 delete newColorImages[removedVariant.colorId];
-    //                 return newColorImages;
-    //             });
-    //         } else {
-    //             if (index === 0 && colorImages[removedVariant.colorId]) {
-    //                 const nextVariant = remainingVariantsWithColor[0];
-    //                 setColorImages(prev => ({
-    //                     ...prev,
-    //                     [nextVariant.colorId]: prev[removedVariant.colorId]
-    //                 }));
-    //             }
-    //         }
-
-
-    //         const remainingVariantsWithSize = updatedVariants.some(v => v.sizeId === removedVariant.sizeId);
-    //         if (!remainingVariantsWithSize) {
-    //             setSizeIds(prev => prev.filter(s => s.value !== removedVariant.sizeId));
-    //         }
-
-    //         if (updatedVariants.length === 0) {
-    //             setColorImages({});
-    //         }
-
-    //         return updatedVariants;
-    //     });
-    // };
-
-    // const handleRemoveVariant = (index) => {
-    //     setVariantList(prevVariants => {
-    //         let updatedVariants = [...prevVariants];
-    //         const removedVariant = updatedVariants[index];
-
-    //         updatedVariants.splice(index, 1);
-
-    //         const hasSameColor = updatedVariants.some(v => v.colorId === removedVariant.colorId);
-
-    //         if (!hasSameColor) {
-    //             updatedVariants = updatedVariants.map(v =>
-    //                 v.colorId === removedVariant.colorId ? { ...v, imageUrls: [] } : v
-    //             );
-    //         }
-
-    //         const remainingVariantsWithSize = updatedVariants.some(v => v.sizeId === removedVariant.sizeId);
-    //         if (!remainingVariantsWithSize) {
-    //             setSizeIds(prev => prev.filter(s => s.value !== removedVariant.sizeId));
-    //         }
-
-    //         return updatedVariants;
-    //     });
-    // };
 
     const handleRemoveVariant = (index) => {
         setVariantList(prevVariants => {
@@ -270,29 +206,12 @@ const CreateProduct = () => {
         const files = Array.from(event.target.files);
 
         if (files.length > 6) {
-            alert("Bạn chỉ có thể chọn tối đa 6 ảnh.");
+            toast.error("Bạn chỉ có thể chọn tối đa 6 ảnh.");
             return;
         }
 
         const imageUrls = files.map(file => URL.createObjectURL(file));
 
-        // setVariantList(prevVariants => {
-        //     const updatedVariants = prevVariants.map((variant, idx) =>
-        //         idx === index
-        //             ? { ...variant, images: files, imageUrls }
-        //             : variant
-        //     );
-        //     return updatedVariants;
-        // });
-        // setVariantList(prevVariants => {
-        //     const selectedColorId = prevVariants[index].colorId;
-
-        //     return prevVariants.map(variant =>
-        //         variant.colorId === selectedColorId
-        //             ? { ...variant, imageUrls, images: files }
-        //             : variant
-        //     );
-        // });
         setVariantList(prevVariants => {
             const selectedColorId = prevVariants[index].colorId;
             let updatedVariants = [...prevVariants];
@@ -507,15 +426,15 @@ const CreateProduct = () => {
         }
 
         if (!isEmpty(commonQuantity)) {
-            if (isExceedLimit(commonQuantity, 10000)) {
-                toast.error("Số lượng quá lớn! Vui lòng nhập giá trị từ 0 đến 1000.");
+            if (isExceedLimit(commonQuantity, 1000000)) {
+                toast.error("Số lượng quá lớn! Vui lòng nhập giá trị từ 0 đến 1 triệu.");
                 return;
             }
         }
 
         if (!isEmpty(commonPrice)) {
-            if (isExceedLimit(commonPrice, 10000000)) {
-                toast.error("Giá quá lớn! Vui lòng nhập giá trị từ 0 đến 10 triệu.");
+            if (isExceedLimit(commonPrice, 100000000)) {
+                toast.error("Giá quá lớn! Vui lòng nhập giá trị từ 0 đến 100 triệu.");
                 return;
             }
         }
@@ -552,7 +471,7 @@ const CreateProduct = () => {
         if (!sizeIds.length) newErrors.sizeIds = "Vui lòng chọn ít nhất một kích cỡ!";
 
         variantList.forEach((variant, index) => {
-            const variantInfo = `Biến thể (Màu: ${variant.color}, Size: ${variant.size})`;
+            const variantInfo = `Biến thể (Màu: ${variant.color.colorName}, Size: ${variant.size.sizeName})`;
 
             if (!variant.colorId) newErrors[`colorId_${index}`] = `${variantInfo}: Chưa chọn màu sắc`;
             if (!variant.sizeId) newErrors[`sizeId_${index}`] = `${variantInfo}: Chưa chọn kích cỡ`;
@@ -629,9 +548,18 @@ const CreateProduct = () => {
                                                     <Form.Control
                                                         type="text"
                                                         value={productName || ""}
-                                                        onChange={(e) => setProductName(e.target.value)}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            if (value.length <= 255) {
+                                                                setProductName(value);
+                                                                setErrorMessage("");
+                                                            } else {
+                                                                setErrorMessage("Tên sản phẩm không được vượt quá 255 ký tự.");
+                                                            }
+                                                        }}
                                                         placeholder='Nhập tên sản phẩm'
                                                         required
+                                                        maxLength={255}
                                                         style={{
                                                             fontSize: '16px',
                                                         }}
@@ -709,7 +637,6 @@ const CreateProduct = () => {
                                         setVariantList={setVariantList}
                                         errors={errors}
                                     />
-                                    {errors.variantList && <small className="text-danger">{errors.variantList}</small>}
                                 </div>
                             </div>
                             <hr />

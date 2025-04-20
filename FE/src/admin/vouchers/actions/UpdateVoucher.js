@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { useParams, useHistory } from "react-router-dom";
-import { getVoucherById, updateVoucher } from "../service/VoucherService";
+import { getVoucherById, getVouchers, updateVoucher } from "../service/VoucherService";
 import VoucherForm from "../component/VoucherForm";
 import Swal from "sweetalert2";
 import dayjs from "dayjs";
@@ -10,6 +10,9 @@ const UpdateVoucher = () => {
     const { id } = useParams();
     const history = useHistory();
     const [formData, setFormData] = useState(null);
+    const [existingVouchers, setExistingVouchers] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         getVoucherById(id)
@@ -31,20 +34,58 @@ const UpdateVoucher = () => {
             });
     }, [id]);
 
-    const handleChange = (e) => {
-        let { name, value } = e.target;
-
-        if (name === "discountValue") {
-            value = parseFloat(value) || 0;
-
-            if (formData.discountType === 1 && value > 100) {
-                value = 100;
+    useEffect(() => {
+        const fetchVouchers = async () => {
+            try {
+                const vouchers = await getVouchers();
+                setExistingVouchers(vouchers.data.data);
+            } catch (error) {
+                console.error("Error fetching vouchers:", error);
             }
-        }
+        };
 
-        setFormData({ ...formData, [name]: value });
+        fetchVouchers();
+    }, []);
+
+    const checkVoucherNameExists = (name) => {
+        return existingVouchers.some(
+            (voucher) => voucher.voucherName.toLowerCase() === name.toLowerCase().trim() && voucher.id != id
+        );
     };
 
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+
+        // Kiểm tra chỉ cho các trường hợp có giá trị là số (ví dụ: discountValue)
+        if (name === "discountValue" && (value === "" || parseFloat(value) >= 0)) {
+            setFormData((prev) => {
+                let updatedData = { ...prev, [name]: value };
+
+                // Nếu có '--' hoặc giá trị âm, không cập nhật state
+                if (value.includes("--") || parseFloat(value) < 0) {
+                    return prev; // Ngừng cập nhật nếu có '--' hoặc giá trị âm
+                }
+
+                // Nếu chọn "Theo số tiền", cập nhật maxDiscountValue = discountValue
+                if (name === "discountValue" && prev.discountType === 0) {
+                    updatedData.maxDiscountValue = value;
+                }
+
+                // Nếu là giảm giá theo %, giới hạn discountValue tối đa là 100
+                if (name === "discountValue" && prev.discountType === 1) {
+                    updatedData.discountValue = value === "" ? "" : Math.min(parseFloat(value), 100);
+                }
+
+                return updatedData;
+            });
+        } else {
+            // Cập nhật thông thường cho các trường khác như tên voucher
+            setFormData((prev) => ({
+                ...prev,
+                [name]: value,
+            }));
+        }
+    };
 
     const handleDiscountTypeChange = (selectedOption) => {
         setFormData({
@@ -56,7 +97,13 @@ const UpdateVoucher = () => {
     };
 
     const handleDateChange = (name, date) => {
-        setFormData({ ...formData, [name]: date });
+        if (!date) {
+            setFormData(prev => ({ ...prev, [name]: null }));
+            setErrors(prev => ({ ...prev, [name]: "Vui lòng chọn ngày" }));
+            return;
+        }
+        setFormData(prev => ({ ...prev, [name]: date }));
+        setErrors(prev => ({ ...prev, [name]: "" })); // Clear error khi có giá trị
     };
 
     const calculateStatus = (startDate, endDate) => {
@@ -68,6 +115,10 @@ const UpdateVoucher = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setErrors({}); // Reset errors trước khi validate
+
+        // Validate các trường
+        const newErrors = {};
 
         if (formData.voucherName.trim() === '') {
             toast.error("Vui lòng nhập tên voucher");
@@ -79,22 +130,62 @@ const UpdateVoucher = () => {
             return;
         }
 
-        if (formData.startDate.isAfter(formData.endDate)) {
-            toast.error("Ngày bắt đầu không được lớn hơn ngày kết thúc!");
+        if (formData.quantity <= 0) {
+            toast.error("Số lượng không được để trống và số lượng phải lớn hơn 0");
             return;
         }
 
-        if (!formData.startDate || !formData.endDate) {
-            toast.error("Vui lòng chọn ngày bắt đầu và ngày kết thúc!");
+        if (!formData.startDate) {
+            newErrors.startDate = "Vui lòng chọn ngày bắt đầu";
+        }
+
+        if (!formData.endDate) {
+            newErrors.endDate = "Vui lòng chọn ngày kết thúc";
+        }
+
+        // Chỉ kiểm tra isAfter nếu cả 2 ngày đều có giá trị
+        if (formData.startDate && formData.endDate) {
+            if (formData.startDate.isAfter(formData.endDate)) {
+                newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
+            }
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+
+        if (checkVoucherNameExists(formData.voucherName)) {
+            toast.error("Tên voucher đã tồn tại");
+            return;
+        }
+
+        if (formData.minOrderValue === '') {
+            toast.error("Không để trống giá trị hoá đơn tối thiểu");
+            return;
+        }
+
+        if (formData.maxDiscountValue === '') {
+            toast.error("Không để trống giảm giá tối đa");
+            return;
+        }
+
+        if (formData.minOrderValue > 100000000) {
+            toast.error("Giá trị hoá đơn tối thiểu quá lớn vui lòng nhập lại");
+            return;
+        }
+
+        if (formData.discountType === 1 && formData.maxDiscountValue > 100000000) {
+            toast.error("Giảm giá tối đa quá lớn vui lòng nhập lại");
             return;
         }
 
         const confirmResult = await Swal.fire({
             title: "Xác nhận",
-            text: "Bạn có chắc chắn muốn cập nhật voucher này không?",
+            text: "Bạn có chắc chắn muốn chỉnh sửa voucher này không?",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Có, cập nhật!",
+            confirmButtonText: "Có, chỉnh sửa!",
             cancelButtonText: "Hủy",
         });
 
@@ -111,9 +202,9 @@ const UpdateVoucher = () => {
             console.log("Data: ", updatedFormData);
             await updateVoucher(id, updatedFormData);
             setTimeout(() => history.push("/admin/vouchers"), 1000);
-            toast.success("Cập nhật voucher thành công!");
+            toast.success("Chỉnh sửa voucher thành công!");
         } catch (error) {
-            toast.error("Cập nhật voucher thất bại!");
+            toast.error("Chỉnh sửa voucher thất bại!");
         }
     };
 
@@ -133,6 +224,7 @@ const UpdateVoucher = () => {
                                 handleDiscountTypeChange={handleDiscountTypeChange}
                                 handleDateChange={handleDateChange}
                                 handleSubmit={handleSubmit}
+                                errors={errors}
                             />
                             <ToastContainer />
                         </div>
