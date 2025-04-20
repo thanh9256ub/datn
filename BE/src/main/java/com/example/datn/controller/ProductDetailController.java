@@ -206,17 +206,25 @@ public class ProductDetailController {
 
                 return ResponseEntity.ok(response);
         }
+
         @GetMapping("/search-ai")
         public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> searchProductAI(
-                @RequestParam(value = "name", required = false) String name) {
+                @RequestParam(value = "query", required = false) String query,
+                @RequestParam(value = "brandName", required = false) String brand,
+                @RequestParam(value = "colorName", required = false) String color,
+                @RequestParam(value = "sizeName", required = false) String size,
+                @RequestParam(value = "minPrice", required = false) Double minPrice,
+                @RequestParam(value = "maxPrice", required = false) Double maxPrice,
+                @RequestParam(value = "categoryName", required = false) String category,
+                @RequestParam(value = "materialName", required = false) String material) {
 
-                List<ProductDetailResponse> list = service.searchProductDetailAI(name);
+                List<ProductDetailResponse> results = service.searchProducts(
+                        query, brand, color, size, minPrice, maxPrice, category, material);
 
-                ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                return ResponseEntity.ok(new ApiResponse<>(
                         200,
                         "Products retrieved successfully",
-                        list);
-
-                return ResponseEntity.ok(response);
+                        results
+                ));
         }
 }
