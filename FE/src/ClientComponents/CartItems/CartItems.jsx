@@ -807,10 +807,18 @@ const CartItems = () => {
                                             { required: true, message: 'Vui lòng nhập họ và tên.' },
                                             { max: 100, message: 'Họ và tên không được vượt quá 100 ký tự.' },
                                             {
-                                                validator: (_, value) =>
-                                                    value && value.trim() === value
-                                                        ? Promise.resolve()
-                                                        : Promise.reject(new Error('Không được chứa khoảng trắng ở đầu hoặc cuối.'))
+                                                validator: (_, value) => {
+                                                    if (!value) {
+                                                        return Promise.reject(new Error('Vui lòng nhập họ và tên.'));
+                                                    }
+                                                    if (value.trim() !== value) {
+                                                        return Promise.reject(new Error('Không được chứa khoảng trắng ở đầu hoặc cuối.'));
+                                                    }
+                                                    if (/[@#$%^&*]/.test(value)) {
+                                                        return Promise.reject(new Error('Họ và tên không được chứa ký tự đặc biệt'));
+                                                    }
+                                                    return Promise.resolve();
+                                                }
                                             }
                                         ]}
                                         style={{ marginBottom: 12 }}
