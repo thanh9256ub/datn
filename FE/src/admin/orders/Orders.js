@@ -173,10 +173,9 @@ const Orders = () => {
 
         if (orderType === 0 && paymentType?.paymentTypeName === "Trực tiếp") {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
-                { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
+
                 { id: 5, name: "Hoàn tất", color: "#4caf50" },
-                { id: 6, name: "Đã hủy", color: "#ef476f" },
+
             ];
         } else if (orderType === 0) {
             statusFlow = [
@@ -207,10 +206,9 @@ const Orders = () => {
 
         if (orderType === 0 && paymentType?.paymentTypeName === "Trực tiếp") {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
-                { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
-                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
-                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" }
+
             ];
         } else if (orderType === 0) {
             statusFlow = [

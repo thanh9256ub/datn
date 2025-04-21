@@ -3,7 +3,7 @@ import { useLocation, useParams, useHistory } from 'react-router-dom';
 import { Card, Table, Button, Row, Col, Toast, Modal, Form, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faClock, faBoxOpen, faTruck, faHome, faCheckCircle, faTimesCircle, faPrint, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { fetchOrderDetailsByOrderId, updateOrderStatus, updateCustomerInfo, updateOrderDetails, fetchOrderHistory, createOrderHistory, updateOrderNote } from '../OrderService/orderService';
+import { fetchOrderDetailsByOrderId, updateOrderStatus, updateCustomerInfo, updateOrderDetails, fetchOrderHistory, createOrderHistory, updateOrderNote, restoreProductQuantity } from '../OrderService/orderService';
 import { Image } from 'react-bootstrap';
 import CustomerInfo from './CustomerInfo';
 import axios from 'axios';
@@ -13,6 +13,7 @@ const OrderDetail = () => {
     const location = useLocation();
     const { orderId } = useParams();
     const [orderDetails, setOrderDetails] = useState([]);
+    const [initialOrderDetails, setInitialOrderDetails] = useState([]);
     const [order, setOrder] = useState(location.state?.order);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
@@ -31,6 +32,7 @@ const OrderDetail = () => {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [orderHistory, setOrderHistory] = useState([]);
+    const [additionalPayment, setAdditionalPayment] = useState(0);
     const [note, setNote] = useState("");
     const { fullName } = useAuth();
 
@@ -50,24 +52,29 @@ const OrderDetail = () => {
                         console.log('Order Status:', response[0].order.status);
                         setOrder(response[0].order);
                         setOrderDetails(validOrderDetails);
+                        setInitialOrderDetails(validOrderDetails); // Lưu danh sách ban đầu
                         setUpdatedCart(validOrderDetails);
                     } else if (!Array.isArray(response) && response.order) {
                         const validOrderDetails = (response.orderDetails || []).filter(item => item && item.price != null && item.totalPrice != null);
                         console.log('Order Status:', response.order.status);
                         setOrder(response.order);
                         setOrderDetails(validOrderDetails);
+                        setInitialOrderDetails(validOrderDetails);
                         setUpdatedCart(validOrderDetails);
                     } else {
                         setOrderDetails([]);
+                        setInitialOrderDetails([]);
                         setUpdatedCart([]);
                     }
                 } else {
                     setOrderDetails([]);
+                    setInitialOrderDetails([]);
                     setUpdatedCart([]);
                 }
             } catch (error) {
                 if (!isMounted) return;
                 setOrderDetails([]);
+                setInitialOrderDetails([]);
                 setUpdatedCart([]);
             }
         };
@@ -179,9 +186,7 @@ const OrderDetail = () => {
     const getNextStatus = (currentStatus) => {
         if (isCounterOrderWithCashPayment()) {
             const statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận" },
-                { id: 2, name: "Đã tiếp nhận" },
-                { id: 5, name: "Hoàn tất" },
+                { id: 5, name: "Hoàn tất" }
             ];
             const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
             return currentIndex < statusFlow.length - 1 ? statusFlow[currentIndex + 1].id : currentStatus;
@@ -312,12 +317,26 @@ const OrderDetail = () => {
             return;
         }
 
+        if (!note.trim()) {
+            showNotification("Vui lòng nhập ghi chú lý do hủy đơn hàng!");
+            return;
+        }
+
         try {
+            const currentStatus = order.status;
+
+            for (const item of orderDetails) {
+                const productDetailId = item.productDetail.id;
+                const quantityToRestore = item.quantity;
+
+                await restoreProductQuantity(productDetailId, quantityToRestore);
+            }
+
             const updateResponse = await updateOrderStatus(order.id, 6);
             console.log('Cancel Response:', updateResponse);
 
             const noteData = {
-                note: note || "Đơn hàng đã bị hủy",
+                note: note.trim(),
             };
             console.log('Note Data for updateOrderNote:', noteData);
             await updateOrderNote(order.id, noteData);
@@ -325,8 +344,9 @@ const OrderDetail = () => {
             const historyData = {
                 orderId: order.id,
                 icon: "cancel",
-                description: note || "Đơn hàng đã bị hủy",
+                description: note.trim(),
                 change_time: new Date().toISOString(),
+                previousStatus: currentStatus,
             };
             console.log('Cancel History Data:', historyData);
             await createOrderHistory(historyData);
@@ -335,7 +355,7 @@ const OrderDetail = () => {
             setOrderDetails(updatedDetails);
             setOrder(updatedDetails[0]?.order);
 
-            showNotification("Đơn hàng đã được hủy thành công!");
+            showNotification("Đơn hàng đã được hủy thành công và số lượng sản phẩm đã được khôi phục!");
             setShowCancelModal(false);
             setNote("");
         } catch (error) {
@@ -457,6 +477,23 @@ const OrderDetail = () => {
             setOrderDetails(updatedDetails);
             setUpdatedCart(updatedDetails);
 
+            // Tính toán "Cần thanh toán thêm" cho đơn hàng thanh toán chuyển khoản
+            let additionalPaymentValue = 0;
+            if (order.paymentType.paymentTypeName !== "Trực tiếp") {
+                updatedCart.forEach(item => {
+                    const initialItem = initialOrderDetails.find(initial => initial.productDetail.id === item.productDetail.id);
+                    if (!initialItem) {
+                        // Sản phẩm mới, thêm toàn bộ totalPrice
+                        additionalPaymentValue += item.totalPrice;
+                    } else if (item.quantity > initialItem.quantity) {
+                        // Số lượng tăng, tính giá trị tăng thêm
+                        const extraQuantity = item.quantity - initialItem.quantity;
+                        additionalPaymentValue += extraQuantity * item.price;
+                    }
+                });
+            }
+            setAdditionalPayment(additionalPaymentValue);
+
             const historyData = {
                 orderId: orderId,
                 icon: "product-update",
@@ -474,6 +511,7 @@ const OrderDetail = () => {
             showNotification(`Lỗi khi cập nhật danh sách sản phẩm: ${error.response?.data?.message || error.message}`);
         }
     };
+
     const filteredProducts = availableProducts.filter(product => {
         const price = product.price || 0;
         return (
@@ -605,14 +643,13 @@ const OrderDetail = () => {
 
         if (order.orderType === 0 && order.paymentType.paymentTypeName === "Trực tiếp") {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
-                { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
+
                 { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
-                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+
             ];
         } else if (order.orderType === 0) {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
+                { id: 1, name: "Chờ xác nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
@@ -621,7 +658,7 @@ const OrderDetail = () => {
             ];
         } else {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
+                { id: 1, name: "Chờ xác nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
@@ -630,20 +667,20 @@ const OrderDetail = () => {
             ];
         }
 
-        let visibleStatuses = [];
         if (status === 6) {
-            const lastStatusBeforeCancel = order.statusHistory && order.statusHistory.length > 1
-                ? order.statusHistory[order.statusHistory.length - 2]
-                : statusFlow[0];
-            const currentIndex = statusFlow.findIndex(s => s.id === lastStatusBeforeCancel.id) || 0;
-            visibleStatuses = [
-                statusFlow[currentIndex],
-                statusFlow.find(s => s.id === 6)
-            ];
-        } else {
-            const currentIndex = statusFlow.findIndex(s => s.id === status);
-            visibleStatuses = statusFlow.slice(0, currentIndex + 1);
+            const canceledStatus = statusFlow.find(s => s.id === 6);
+            return (
+                <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
+                    <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
+                        <FontAwesomeIcon icon={canceledStatus.icon} style={{ color: canceledStatus.color, fontSize: "36px" }} />
+                        <span style={{ fontSize: "16px", color: canceledStatus.color, textAlign: "center" }}>{canceledStatus.name}</span>
+                    </div>
+                </div>
+            );
         }
+
+        const currentIndex = statusFlow.findIndex(s => s.id === status);
+        const visibleStatuses = statusFlow.slice(0, currentIndex + 1);
 
         return (
             <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
@@ -668,6 +705,39 @@ const OrderDetail = () => {
         } else {
             return order.status < 4;
         }
+    };
+
+    const getOrderStatusInfo = (status, orderType, paymentTypeName) => {
+        let statusFlow;
+
+        if (orderType === 0 && paymentTypeName === "Trực tiếp") {
+            statusFlow = [
+
+                { id: 5, name: "Hoàn tất", color: "#4caf50" },
+
+            ];
+        } else if (orderType === 0) {
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 2, name: "Đã xác nhận", color: "#ffd700" },
+                { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
+                { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
+                { id: 5, name: "Hoàn tất", color: "#4caf50" },
+                { id: 6, name: "Đã hủy", color: "#ef476f" },
+            ];
+        } else {
+            statusFlow = [
+                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 2, name: "Đã xác nhận", color: "#ffd700" },
+                { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
+                { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
+                { id: 5, name: "Hoàn tất", color: "#4caf50" },
+                { id: 6, name: "Đã hủy", color: "#ef476f" },
+            ];
+        }
+
+        const statusInfo = statusFlow.find(s => s.id === status);
+        return statusInfo ? { name: statusInfo.name, color: statusInfo.color } : { name: "Không xác định", color: "#6c757d" };
     };
 
     const getStatusName = (icon, orderType) => {
@@ -803,7 +873,9 @@ const OrderDetail = () => {
                                     {getOrderTypeName(order.orderType).name}
                                 </span>
                             </p>
-                            <p><strong>Trạng thái:</strong> <span className="badge" style={{ backgroundColor: statusInfo.color, color: '#fff' }}>{statusInfo.name}</span></p>
+                            <p><strong>Trạng thái:</strong> <span className="badge" style={{ backgroundColor: getOrderStatusInfo(order.status, order.orderType, order.paymentType?.paymentTypeName).color, color: '#fff' }}>
+                                {getOrderStatusInfo(order.status, order.orderType, order.paymentType?.paymentTypeName).name}
+                            </span></p>
                             <p><strong>Loại thanh toán:</strong> <span className="badge bg-info text-white">{order.paymentType?.paymentTypeName || 'Không xác định'}</span></p>
                             <p><strong>Phương thức thanh toán:</strong> <span className="badge bg-info text-white">{order.paymentMethod.paymentMethodName}</span></p>
                             <p><strong>Ghi chú:</strong> {order.note || 'Không có'}</p>
@@ -914,6 +986,9 @@ const OrderDetail = () => {
                             <p><strong>Phí vận chuyển:</strong> {order.shippingFee.toLocaleString()} VNĐ</p>
                             <p><strong>Giảm giá:</strong> {order.discountValue.toLocaleString()} VNĐ</p>
                             <h5 className="fw-bold text-danger"><strong>Tổng thanh toán:</strong> {calculateTotalPayment().toLocaleString()} VNĐ</h5>
+                            {order.paymentType.paymentTypeName !== "Trực tiếp" && additionalPayment > 0 && (
+                                <p className="mt-2"><strong>Cần thanh toán thêm:</strong> {additionalPayment.toLocaleString()} VNĐ</p>
+                            )}
                         </Card.Body>
                     </Card>
                 </Col>
@@ -938,44 +1013,49 @@ const OrderDetail = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {updatedCart.map(item => (
-                                            <tr key={item.id}>
-                                                <td>{item.productDetail?.product?.productName} - {item.productDetail?.color?.colorName} - {item.productDetail?.size?.sizeName}</td>
-                                                <td>
-                                                    <div className="d-flex align-items-center">
-                                                        <Button
-                                                            variant="outline-secondary"
-                                                            size="sm"
-                                                            onClick={() => handleDecreaseQuantity(item.id)}
-                                                            disabled={item.quantity <= 1}
-                                                        >
-                                                            -
-                                                        </Button>
-                                                        <Form.Control
-                                                            type="number"
-                                                            value={item.quantity}
-                                                            readOnly
-                                                            className="mx-2 text-center"
-                                                            style={{ width: '60px' }}
-                                                        />
-                                                        <Button
-                                                            variant="outline-secondary"
-                                                            size="sm"
-                                                            onClick={() => handleIncreaseQuantity(item.id)}
-                                                            disabled={item.quantity >= item.productDetail.quantity}
-                                                        >
-                                                            +
-                                                        </Button>
-                                                    </div>
-                                                </td>
-                                                <td>{item.totalPrice.toLocaleString()} VNĐ</td>
-                                                <td>
-                                                    <Button variant="danger" size="sm" onClick={() => handleRemoveItem(item.id)}>
-                                                        <FontAwesomeIcon icon={faTrash} />
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {updatedCart.map(item => {
+                                            const isInitialItem = initialOrderDetails.some(initial => initial.id === item.id); // Kiểm tra sản phẩm ban đầu
+                                            return (
+                                                <tr key={item.id}>
+                                                    <td>{item.productDetail?.product?.productName} - {item.productDetail?.color?.colorName} - {item.productDetail?.size?.sizeName}</td>
+                                                    <td>
+                                                        <div className="d-flex align-items-center">
+                                                            <Button
+                                                                variant="outline-secondary"
+                                                                size="sm"
+                                                                onClick={() => handleDecreaseQuantity(item.id)}
+                                                                disabled={item.quantity <= 1}
+                                                            >
+                                                                -
+                                                            </Button>
+                                                            <Form.Control
+                                                                type="number"
+                                                                value={item.quantity}
+                                                                readOnly
+                                                                className="mx-2 text-center"
+                                                                style={{ width: '60px' }}
+                                                            />
+                                                            <Button
+                                                                variant="outline-secondary"
+                                                                size="sm"
+                                                                onClick={() => handleIncreaseQuantity(item.id)}
+                                                                disabled={item.quantity >= item.productDetail.quantity}
+                                                            >
+                                                                +
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                    <td>{item.totalPrice.toLocaleString()} VNĐ</td>
+                                                    <td>
+                                                        {!isInitialItem && ( // Chỉ hiển thị nút xóa nếu không phải sản phẩm ban đầu
+                                                            <Button variant="danger" size="sm" onClick={() => handleRemoveItem(item.id)}>
+                                                                <FontAwesomeIcon icon={faTrash} />
+                                                            </Button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </Table>
                             </div>
@@ -1105,21 +1185,29 @@ const OrderDetail = () => {
                 <Modal.Body>
                     <p>Bạn có chắc chắn muốn hủy đơn hàng #{order.orderCode} không? Hành động này không thể hoàn tác.</p>
                     <Form.Group controlId="cancelNote">
-                        <Form.Label>Ghi chú hủy đơn</Form.Label>
+                        <Form.Label>Ghi chú hủy đơn <span className="text-danger">*</span></Form.Label>
                         <Form.Control
                             as="textarea"
                             rows={3}
                             value={note}
                             onChange={(e) => setNote(e.target.value)}
-                            placeholder="Nhập lý do hủy đơn (tùy chọn)"
+                            placeholder="Nhập lý do hủy đơn (bắt buộc)"
+                            required
                         />
+                        <Form.Text className="text-muted">
+                            Vui lòng nhập lý do hủy đơn hàng. Trường này là bắt buộc.
+                        </Form.Text>
                     </Form.Group>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowCancelModal(false)}>
                         Hủy bỏ
                     </Button>
-                    <Button variant="danger" onClick={handleCancelOrder}>
+                    <Button
+                        variant="danger"
+                        onClick={handleCancelOrder}
+                        disabled={!note.trim()} // Vô hiệu hóa nếu note trống
+                    >
                         Xác nhận hủy
                     </Button>
                 </Modal.Footer>

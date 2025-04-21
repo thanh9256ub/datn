@@ -202,4 +202,14 @@ export const updateOrderNote = async (id, noteData) => {
         throw error;
     }
 };
+export const restoreProductQuantity = async (productDetailId, quantity) => {
+    try {
+        const response = await api.put(`/product-detail/${productDetailId}/restore`, { quantity });
+        console.log('Restore Product Quantity Response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error restoring product quantity:', error.response?.data || error.message);
+        throw error;
+    }
+};
 export default api;

@@ -66,6 +66,30 @@ public class ProductDetailController {
                 return ResponseEntity.ok(response);
         }
 
+        @PutMapping("/{pdId}/restore")
+        public ResponseEntity<ApiResponse<ProductDetailResponse>> restoreProductQuantity(
+                @PathVariable("pdId") Integer pdId,
+                @RequestBody Map<String, Integer> request) {
+
+                // Kiểm tra quantity trong request
+                Integer quantity = request.get("quantity");
+                if (quantity == null) {
+                        throw new IllegalArgumentException("Số lượng khôi phục (quantity) là bắt buộc");
+                }
+
+                // Gọi service để khôi phục số lượng
+                ProductDetailResponse response = service.restoreProductQuantity(pdId, quantity);
+
+                // Tạo phản hồi
+                ApiResponse<ProductDetailResponse> apiResponse = new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Khôi phục số lượng tồn kho thành công",
+                        response
+                );
+
+                return ResponseEntity.ok(apiResponse);
+        }
+
         @GetMapping("/{productId}")
         public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getProductDetailsByProductId(
                         @PathVariable("productId") Integer productId) {
