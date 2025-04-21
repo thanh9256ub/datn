@@ -356,6 +356,37 @@ const OrderDetail = () => {
         setUpdatedCart(prev => prev.filter(item => item.id !== orderDetailId));
     };
 
+    const handleIncreaseQuantity = (itemId) => {
+        setUpdatedCart(prev => prev.map(item => {
+            if (item.id === itemId) {
+                const product = availableProducts.find(p => p.id === item.productDetail.id);
+                if (!product || item.quantity >= product.quantity) {
+                    showNotification(`Số lượng tồn kho của ${item.productDetail.product.productName} không đủ!`);
+                    return item;
+                }
+                return {
+                    ...item,
+                    quantity: item.quantity + 1,
+                    totalPrice: item.price * (item.quantity + 1)
+                };
+            }
+            return item;
+        }));
+    };
+
+    const handleDecreaseQuantity = (itemId) => {
+        setUpdatedCart(prev => prev.map(item => {
+            if (item.id === itemId && item.quantity > 1) {
+                return {
+                    ...item,
+                    quantity: item.quantity - 1,
+                    totalPrice: item.price * (item.quantity - 1)
+                };
+            }
+            return item;
+        }));
+    };
+
     const handleSelectProduct = (product) => {
         const existingItem = updatedCart.find(item => item.productDetail.id === product.id);
         if (existingItem) {
@@ -910,7 +941,33 @@ const OrderDetail = () => {
                                         {updatedCart.map(item => (
                                             <tr key={item.id}>
                                                 <td>{item.productDetail?.product?.productName} - {item.productDetail?.color?.colorName} - {item.productDetail?.size?.sizeName}</td>
-                                                <td>{item.quantity}</td>
+                                                <td>
+                                                    <div className="d-flex align-items-center">
+                                                        <Button
+                                                            variant="outline-secondary"
+                                                            size="sm"
+                                                            onClick={() => handleDecreaseQuantity(item.id)}
+                                                            disabled={item.quantity <= 1}
+                                                        >
+                                                            -
+                                                        </Button>
+                                                        <Form.Control
+                                                            type="number"
+                                                            value={item.quantity}
+                                                            readOnly
+                                                            className="mx-2 text-center"
+                                                            style={{ width: '60px' }}
+                                                        />
+                                                        <Button
+                                                            variant="outline-secondary"
+                                                            size="sm"
+                                                            onClick={() => handleIncreaseQuantity(item.id)}
+                                                            disabled={item.quantity >= item.productDetail.quantity}
+                                                        >
+                                                            +
+                                                        </Button>
+                                                    </div>
+                                                </td>
                                                 <td>{item.totalPrice.toLocaleString()} VNĐ</td>
                                                 <td>
                                                     <Button variant="danger" size="sm" onClick={() => handleRemoveItem(item.id)}>
@@ -1167,45 +1224,61 @@ const OrderDetail = () => {
                     <div className="progress-bar" />
                 </Toast.Body>
             </Toast>
-
             <style jsx>{`
-                .custom-toast {
-                    background-color: #f8f9fa;
-                    border: 1px solid #e9ecef;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-                }
+    .custom-toast {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
 
-                .custom-toast .toast-body {
-                    position: relative;
-                    font-size: 16px;
-                    color: #333;
-                }
+    .custom-toast .toast-body {
+        position: relative;
+        font-size: 16px;
+        color: #333;
+    }
 
-                .progress-bar {
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 4px;
-                    background-color: #4caf50;
-                    animation: progress 3s linear forwards;
-                }
+    .progress-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background-color: #4caf50;
+        animation: progress 3s linear forwards;
+    }
 
-                @keyframes progress {
-                    from {
-                        width: 100%;
-                    }
-                    to {
-                        width: 0%;
-                    }
-                }
+    @keyframes progress {
+        from {
+            width: 100%;
+        }
+        to {
+            width: 0%;
+        }
+    }
 
-                .large-modal {
-                    max-width: 90%;
-                    width: 90%;
-                }
-            `}</style>
+    .large-modal {
+        max-width: 90%;
+        width: 90%;
+    }
+
+    /* Style cho nút cộng trừ */
+    .btn-outline-secondary {
+        padding: 0.25rem 0.5rem;
+        font-size: 1rem;
+        min-width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .form-control.text-center {
+        padding: 0.25rem;
+        font-size: 1rem;
+        height: 30px;
+    }
+`}</style>
         </div>
     );
 };
