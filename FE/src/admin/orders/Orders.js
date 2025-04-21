@@ -230,21 +230,20 @@ const Orders = () => {
             ];
         }
 
-        let visibleStatuses = [];
         if (status === 6) {
-            let previousStatusId = statusFlow[0].id;
-            if (order?.statusHistory?.length > 1) {
-                previousStatusId = order.statusHistory[order.statusHistory.length - 2]?.id || statusFlow[0].id;
-            }
-            const previousStatus = statusFlow.find(s => s.id === previousStatusId) || statusFlow[0];
-            if (previousStatus.id !== 6) {
-                visibleStatuses.push(previousStatus);
-            }
-            visibleStatuses.push(statusFlow.find(s => s.id === 6));
-        } else {
-            const currentIndex = statusFlow.findIndex(s => s.id === status);
-            visibleStatuses = statusFlow.slice(0, currentIndex + 1);
+            const canceledStatus = statusFlow.find(s => s.id === 6);
+            return (
+                <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
+                    <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
+                        <FontAwesomeIcon icon={canceledStatus.icon} style={{ color: canceledStatus.color, fontSize: "36px" }} />
+                        <span style={{ fontSize: "16px", color: canceledStatus.color, textAlign: "center" }}>{canceledStatus.name}</span>
+                    </div>
+                </div>
+            );
         }
+
+        const currentIndex = statusFlow.findIndex(s => s.id === status);
+        const visibleStatuses = statusFlow.slice(0, currentIndex + 1);
 
         return (
             <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
@@ -252,9 +251,7 @@ const Orders = () => {
                     <React.Fragment key={s.id}>
                         <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
                             <FontAwesomeIcon icon={s.icon} style={{ color: s.color, fontSize: "36px" }} />
-                            <span style={{ fontSize: "16px", color: s.color, textAlign: "center", fontWeight: "500" }}>
-                                {s.name}
-                            </span>
+                            <span style={{ fontSize: "16px", color: s.color, textAlign: "center" }}>{s.name}</span>
                         </div>
                         {index < visibleStatuses.length - 1 && (
                             <div style={{ width: "200px", height: "4px", backgroundColor: s.color, borderRadius: "2px" }} />
