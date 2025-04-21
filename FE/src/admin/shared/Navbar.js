@@ -30,6 +30,7 @@ const Navbar = () => {
     if (path === '/') setActiveMenu('shop');
     else if (path === '/all') setActiveMenu('all');
     else if (path === '/policy') setActiveMenu('policy');
+    else if (path === '/description') setActiveMenu('description');
     else if (path === '/lookup') setActiveMenu('lookup');
   }, [location]);
 
@@ -58,6 +59,7 @@ const Navbar = () => {
     { key: 'shop', label: <Trans>Trang chủ</Trans>, path: '/' },
     { key: 'all', label: <Trans>Sản phẩm</Trans>, path: '/all' },
     { key: 'policy', label: <Trans>Chính sách</Trans>, path: '/policy' },
+    { key: 'description', label: <Trans>Về chúng tôi</Trans>, path: '/description' },
     { key: 'lookup', label: <Trans>Tra cứu</Trans>, path: '/lookup' },
   ];
 

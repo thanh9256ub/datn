@@ -9,59 +9,6 @@ const { Panel } = Collapse;
 const Policy = () => {
     return (
         <div className="policy-page" style={{ maxWidth: 1200, margin: '0 auto', padding: '100px' }}>
-            <Card style={{ marginBottom: 24 }}>
-                <Row gutter={24} align="middle">
-                    <Col xs={24} md={12}>
-                        <Title level={2} style={{ color: '#1890ff' }}>H2TL SNEAKER</Title>
-                        <Paragraph style={{ fontSize: 16 }}>
-                            <Text strong>H2TL Sneaker</Text> tự hào là địa chỉ uy tín hàng đầu chuyên phân phối các dòng giày sneaker nam chính hãng với chất lượng đẳng cấp và giá cả hợp lý.
-                            Với phương châm "<Text strong>Chất lượng tạo nên đẳng cấp</Text>", chúng tôi cam kết mang đến cho khách hàng những sản phẩm tốt nhất cùng trải nghiệm mua sắm hoàn hảo.
-                        </Paragraph>
-                        <Divider orientation="left">Thông tin cửa hàng</Divider>
-                        <List
-                            itemLayout="horizontal"
-                            dataSource={[
-                                {
-                                    icon: <EnvironmentOutlined />,
-                                    title: 'Địa chỉ',
-                                    content: 'Số 123, đường ABC, phường XYZ, quận 1, TP.HCM'
-                                },
-                                {
-                                    icon: <PhoneOutlined />,
-                                    title: 'Hotline',
-                                    content: '1900 1234 - 0987 654 321'
-                                },
-                                {
-                                    icon: <MailOutlined />,
-                                    title: 'Email',
-                                    content: 'support@h2tlsneaker.com'
-                                },
-                                {
-                                    icon: <ClockCircleOutlined />,
-                                    title: 'Giờ mở cửa',
-                                    content: '8:00 - 21:00 tất cả các ngày trong tuần'
-                                }
-                            ]}
-                            renderItem={item => (
-                                <List.Item>
-                                    <List.Item.Meta
-                                        avatar={item.icon}
-                                        title={item.title}
-                                        description={item.content}
-                                    />
-                                </List.Item>
-                            )}
-                        />
-                    </Col>
-                    <Col xs={24} md={12}>
-                        <Image
-                            src={image}
-                            alt="Cửa hàng H2TL Sneaker"
-                            preview={false}
-                        />
-                    </Col>
-                </Row>
-            </Card>
             <Card>
                 <Title level={2} style={{ textAlign: 'center', marginBottom: 24 }}>
                     CHÍNH SÁCH MUA HÀNG
