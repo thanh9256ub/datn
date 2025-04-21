@@ -30,13 +30,13 @@ const ChatBot = () => {
         email: "H2TL@fpt.edu.vn"
     };
 
-    const storeKeywords = ['địa chỉ', 'giờ mở cửa', 'số điện thoại', 'liên hệ', 'email', 'thông tin', 'cửa hàng', 'h2tl'];
+    const storeKeywords = ['địa chỉ', 'giờ mở cửa', 'số điện thoại', 'liên hệ', 'email', 'thông tin shop', 'thông tin cửa hàng'];
 
     useEffect(() => {
         const fetchShoeKeywords = async () => {
             try {
                 const response = await axios.get(`${BASE_URL}/product-detail`);
-                
+
                 const productNames = Array.from(new Set(response.data.data.map(item => item.product?.productName || '')));
                 setShoeKeywords(productNames);
 
@@ -72,12 +72,22 @@ const ChatBot = () => {
 
         fetchShoeKeywords();
     }, []);
+
     useEffect(() => {
-        const chatBox = document.querySelector('.chat-box'); // hoặc thêm ref
-        if (chatBox) {
-            chatBox.scrollTop = chatBox.scrollHeight;
+        if (isChatOpen) {
+            // Đợi một chút để DOM render xong rồi mới cuộn
+            setTimeout(() => {
+                const chatBox = document.getElementById('chat-box-container');
+                if (chatBox) {
+                    chatBox.scrollTo({
+                        top: chatBox.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            }, 100);
         }
-    }, [chatHistory]);
+    }, [isChatOpen, chatHistory]);
+
     useEffect(() => {
         const initializeChatHistory = async () => {
             if (isChatOpen && chatHistory.length === 0) {
@@ -101,8 +111,8 @@ const ChatBot = () => {
     }, [isChatOpen, chatHistory.length]);
 
     const normalizeText = (text) => {
-        if (!text) return ''; // Return an empty string if text is null or undefined
-        return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (!text) return '';
+        return text.toLowerCase();
     };
 
     // Hàm trích xuất từ khóa tìm kiếm từ câu hỏi
@@ -114,47 +124,181 @@ const ChatBot = () => {
             return 'store_info';
         }
 
-        // Tìm thương hiệu trong câu hỏi
+        // Object chứa tất cả thông tin trích xuất
+        const searchConditions = {
+            type: 'combined',
+            shoe: null,
+            brand: null,
+            color: null,
+            size: null,
+            price: null
+        };
+
+        const pricePatterns = [
+            {
+                regex: /(giá|gia)\s*(\d+)(?:\s*(tr|triệu|nghìn|k|000))?\s*(trở lên|lên)/i,
+                type: 'above'
+            },
+            {
+                regex: /(giá|gia)\s*(\d+)(?:\s*(tr|triệu|nghìn|k|000))?\s*(trở xuống|xuống)/i,
+                type: 'below'
+            },
+            {
+                regex: /(giá dưới|dưới|duoi|gia duoi|trở xuống)\s*(\d+)(?:\s*(tr|triệu|nghìn|k|000))?/i,
+                type: 'below'
+            },
+            {
+                regex: /(giá trên|trên|tren|gia tren|trở lên)\s*(\d+)(?:\s*(tr|triệu|nghìn|k|000))?/i,
+                type: 'above'
+            },
+            {
+                regex: /(khoảng giá|khoang gia|giá|gia|tầm|tam)\s*(\d+)(?:\s*(tr|triệu|nghìn|k|000))?/i,
+                type: 'around'
+            },
+            {
+                regex: /(từ|tu)\s*(\d+)(?:\s*(tr|triệu|nghìn|k|000))?\s*(đến|den)\s*(\d+)(?:\s*(tr|triệu|nghìn|k|000))?/i,
+                type: 'range'
+            },
+            {
+                regex: /(khoảng|khoang|tầm|tam)\s*(\d+)(?:\s*(tr|triệu|nghìn|k|000))?\s*-\s*(\d+)(?:\s*(tr|triệu|nghìn|k|000))?/i,
+                type: 'range'
+            },
+            {
+                regex: /(từ|tu)\s*(\d+)(?:\s*(tr|triệu|nghìn|k|000))?\s*(trở lên|lên)/i,
+                type: 'above'
+            },
+            {
+                regex: /(từ|tu)\s*(\d+)(?:\s*(tr|triệu|nghìn|k|000))?\s*(trở xuống|xuống)/i,
+                type: 'below'
+            }
+        ];
+
+        for (const pattern of pricePatterns) {
+            const match = lowerMessage.match(pattern.regex);
+            if (match) {
+                let minValue, maxValue;
+
+                if (pattern.type === 'range') {
+                    // Xử lý trường hợp "từ X đến Y"
+                    if (match[1] === 'từ' || match[1] === 'tu') {
+                        minValue = parseFloat(match[2]);
+                        const minUnit = match[3] ? match[3].toLowerCase() : null;
+                        maxValue = parseFloat(match[5]);
+                        const maxUnit = match[6] ? match[6].toLowerCase() : null;
+
+                        // Chuyển đổi đơn vị cho minValue
+                        if (minUnit === 'tr' || minUnit === 'triệu') {
+                            minValue *= 1000000;
+                        } else if (minUnit === 'k' || minUnit === 'nghìn' || minUnit === '000') {
+                            minValue *= 1000;
+                        } else if (!minUnit && minValue < 1000) {
+                            minValue *= 1000;
+                        }
+
+                        // Chuyển đổi đơn vị cho maxValue
+                        if (maxUnit === 'tr' || maxUnit === 'triệu') {
+                            maxValue *= 1000000;
+                        } else if (maxUnit === 'k' || maxUnit === 'nghìn' || maxUnit === '000') {
+                            maxValue *= 1000;
+                        } else if (!maxUnit && maxValue < 1000) {
+                            maxValue *= 1000;
+                        }
+                    }
+                    // Xử lý trường hợp "khoảng X-Y"
+                    else {
+                        minValue = parseFloat(match[2]);
+                        const minUnit = match[3] ? match[3].toLowerCase() : null;
+                        maxValue = parseFloat(match[4]);
+                        const maxUnit = match[5] ? match[5].toLowerCase() : null;
+
+                        // Chuyển đổi đơn vị cho minValue
+                        if (minUnit === 'tr' || minUnit === 'triệu') {
+                            minValue *= 1000000;
+                        } else if (minUnit === 'k' || minUnit === 'nghìn' || minUnit === '000') {
+                            minValue *= 1000;
+                        } else if (!minUnit && minValue < 1000) {
+                            minValue *= 1000;
+                        }
+
+                        // Chuyển đổi đơn vị cho maxValue
+                        if (maxUnit === 'tr' || maxUnit === 'triệu') {
+                            maxValue *= 1000000;
+                        } else if (maxUnit === 'k' || maxUnit === 'nghìn' || maxUnit === '000') {
+                            maxValue *= 1000;
+                        } else if (!maxUnit && maxValue < 1000) {
+                            maxValue *= 1000;
+                        }
+                    }
+
+                    searchConditions.price = {
+                        type: 'price',
+                        priceType: 'range',
+                        minValue: minValue,
+                        maxValue: maxValue
+                    };
+                } else {
+                    let value = parseFloat(match[2]);
+                    const unit = match[3] ? match[3].toLowerCase() : null;
+
+                    // Chuyển đổi đơn vị
+                    if (unit === 'tr' || unit === 'triệu') {
+                        value *= 1000000;
+                    } else if (unit === 'k' || unit === 'nghìn' || unit === '000') {
+                        value *= 1000;
+                    } else if (!unit && value < 1000) {
+                        value *= 1000;
+                    }
+
+                    searchConditions.price = {
+                        type: 'price',
+                        priceType: pattern.type,
+                        value: value
+                    };
+                }
+                break;
+            }
+        }
+
+        // 2. Trích xuất thương hiệu
         const foundBrand = brandKeywords.find(brand =>
             lowerMessage.includes(normalizeText(brand))
         );
+        if (foundBrand) {
+            searchConditions.brand = foundBrand;
+        }
 
-        // Tìm từ khóa giày
+        // 3. Trích xuất tên giày
         const foundShoe = shoeKeywords.find(shoe =>
             lowerMessage.includes(normalizeText(shoe))
         );
+        if (foundShoe) {
+            searchConditions.shoe = foundShoe;
+        }
 
-        // Tìm từ khóa màu sắc
+        // 4. Trích xuất màu sắc
         const foundColor = colorKeywords.find(color =>
             lowerMessage.includes(normalizeText(color))
         );
+        if (foundColor) {
+            searchConditions.color = foundColor;
+        }
 
-        // Tìm từ khóa kích cỡ
-        const foundSize = sizeKeywords.find(size =>
-            lowerMessage.includes(normalizeText(size))
-        );
+        // 5. Trích xuất kích cỡ
+        const sizeRegex = /(?:size|kích cỡ|cỡ)\s*(\d+)/i;
+        const sizeMatch = lowerMessage.match(sizeRegex);
+        if (sizeMatch) {
+            const foundSize = sizeKeywords.find(size => size === sizeMatch[1]);
+            if (foundSize) {
+                searchConditions.size = foundSize;
+            }
+        }
 
-        // Tìm từ khóa giá cả
-        const foundPrice = priceKeywords.find(price =>
-            lowerMessage.includes(normalizeText(price))
-        );
+        // Kiểm tra nếu có ít nhất một điều kiện thì trả về
+        if (searchConditions.brand || searchConditions.shoe || searchConditions.color || searchConditions.size || searchConditions.price) {
+            return searchConditions;
+        }
 
-        // Tìm từ khóa mô tả
-        const foundDescription = descriptionKeywords.find(description =>
-            lowerMessage.includes(normalizeText(description))
-        );
-
-        // Tìm từ khóa chất liệu
-        const foundMaterial = materialKeywords.find(material =>
-            lowerMessage.includes(normalizeText(material))
-        );
-
-        // Tìm từ khóa danh mục
-        const foundCategory = categoryKeywords.find(category =>
-            lowerMessage.includes(normalizeText(category))
-        );
-
-        return foundShoe || foundBrand  || foundDescription || foundMaterial || foundCategory|| foundColor || foundSize || foundPrice || null;
+        return null;
     };
 
     // Hàm trả lời thông tin cửa hàng
@@ -186,19 +330,78 @@ const ChatBot = () => {
         }
     };
 
-    // Hàm tìm kiếm giày
     const searchShoes = async (query) => {
         try {
-            const response = await axios.get(`${BASE_URL}/product-detail/search-ai?name=${encodeURIComponent(query)}`);
-            const responsePD = await axios.get(`${BASE_URL}/products/search-ai?name=${encodeURIComponent(query)}`);
-            console.log("Tìm thấy sản phẩm11:", response.data.data);
-            console.log("Tìm thấy sản phẩm22:", responsePD.data.data);
-            const products = response.data?.data?.map(item => item.product) || [];
-            const uniqueProducts = Array.from(new Set(products.map(product => product.id)))
-                .map(id => products.find(product => product.id === id));
+            let params = {};
 
-            console.log(uniqueProducts);
-            return responsePD.data?.data?.length > 0 ? responsePD.data.data : uniqueProducts;
+            if (query && query.type === 'combined') {
+                if (query.shoe) {
+                    params.productName = query.shoe;
+                }
+                if (query.brand) {
+                    params.brandName = query.brand;
+                }
+                if (query.color) {
+                    params.colorName = query.color;
+                }
+                if (query.size) {
+                    params.sizeName = query.size;
+                }
+                if (query.price) {
+                    if (query.price.priceType === 'below') {
+                        params.maxPrice = query.price.value;
+                    } else if (query.price.priceType === 'above') {
+                        params.minPrice = query.price.value;
+                    } else if (query.price.priceType === 'around') {
+                        params.minPrice = query.price.value * 0.8;
+                        params.maxPrice = query.price.value * 1.2;
+                    } else if (query.price.priceType === 'range') {
+                        params.minPrice = query.price.minValue;
+                        params.maxPrice = query.price.maxValue;
+                    }
+                }
+            } else if (query) {
+                params.query = query;
+            }
+
+            // Thêm debug để kiểm tra params trước khi gửi request
+            console.log("Search params:", params);
+
+            const response = await axios.get(`${BASE_URL}/product-detail/search-ai`, {
+                params: params
+            });
+
+            console.log("Raw products:", response.data?.data);
+
+            const productDetails = response.data?.data || [];
+
+            // Nhóm các chi tiết theo product.id và giữ nguyên các thông tin chi tiết
+            const groupedProducts = productDetails.reduce((acc, item) => {
+                if (!item || !item.product || !item.product.id) return acc;
+
+                const existingProduct = acc.find(p => p.product.id === item.product.id);
+                const variant = {
+                    color: item.color || {}, // Giữ nguyên toàn bộ thông tin màu sắc
+                    size: item.size || {},   // Giữ nguyên toàn bộ thông tin size
+                    price: item.price,
+                    quantity: item.quantity
+                };
+
+                if (existingProduct) {
+                    existingProduct.variants.push(variant);
+                    // Cập nhật thông tin nếu cần
+                    existingProduct.product = { ...item.product };
+                } else {
+                    acc.push({
+                        product: { ...item.product }, // Sao chép thông tin sản phẩm
+                        variants: [variant]        // Thêm variant đầu tiên
+                    });
+                }
+                return acc;
+            }, []);
+
+            console.log("Grouped products with variants:", groupedProducts);
+            return groupedProducts;
         } catch (error) {
             console.error("Error searching shoes:", error);
             return [];
@@ -228,45 +431,157 @@ const ChatBot = () => {
         }
 
         if (searchQuery) {
-            const shoes = await searchShoes(searchQuery);
-            console.log(shoes);
-            if (shoes.length > 0) {
-                // Hiển thị tối đa 3 sản phẩm
-                const topProducts = shoes.slice(0, 5);
+            let responseMessage = '';
+            let products = [];
+
+            if (searchQuery.type === 'combined') {
+                // Tạo thông báo phản hồi chi tiết
+                responseMessage = 'Tìm thấy sản phẩm phù hợp với:';
+                if (searchQuery.shoe) responseMessage += ` sản phẩm "${searchQuery.shoe}"`;
+                if (searchQuery.brand) responseMessage += ` hãng ${searchQuery.brand}`;
+                if (searchQuery.color) responseMessage += ` màu ${searchQuery.color}`;
+                if (searchQuery.size) responseMessage += ` size ${searchQuery.size}`;
+                if (searchQuery.price) {
+                    if (searchQuery.price.priceType === 'below') {
+                        responseMessage += ` giá dưới ${searchQuery.price.value.toLocaleString()} VND`;
+                    } else if (searchQuery.price.priceType === 'above') {
+                        responseMessage += ` giá trên ${searchQuery.price.value.toLocaleString()} VND`;
+                    } else if (searchQuery.price.priceType === 'around') {
+                        responseMessage += ` giá khoảng ${searchQuery.price.value.toLocaleString()} VND`;
+                    } else if (searchQuery.price.priceType === 'range') {
+                        responseMessage += ` giá từ ${searchQuery.price.minValue.toLocaleString()} đến ${searchQuery.price.maxValue.toLocaleString()} VND`;
+                    }
+                }
+
+                products = await searchShoes(searchQuery);
+            }
+            // Xử lý tìm kiếm theo giá đơn lẻ
+            else if (typeof searchQuery === 'object' && searchQuery.type === 'price') {
+                products = await searchShoes(searchQuery);
+
+                if (searchQuery.priceType === 'below') {
+                    responseMessage = `Các sản phẩm có giá dưới ${searchQuery.value.toLocaleString()} VND:`;
+                } else if (searchQuery.priceType === 'above') {
+                    responseMessage = `Các sản phẩm có giá trên ${searchQuery.value.toLocaleString()} VND:`;
+                } else if (searchQuery.priceType === 'around') {
+                    responseMessage = `Các sản phẩm trong khoảng giá ${(searchQuery.value * 0.8).toLocaleString()} - ${(searchQuery.value * 1.2).toLocaleString()} VND:`;
+                } else if (searchQuery.priceType === 'range') {
+                    responseMessage = `Các sản phẩm trong khoảng giá ${searchQuery.minValue.toLocaleString()} - ${searchQuery.maxValue.toLocaleString()} VND:`;
+                }
+            }
+            // Xử lý tìm kiếm đơn giản (theo tên, thương hiệu, màu sắc...)
+            else {
+                products = await searchShoes(searchQuery);
+                responseMessage = `Tìm thấy ${products.length} sản phẩm phù hợp với "${searchQuery}":`;
+            }
+            if (products.length > 0) {
+                const topProducts = products.slice(0, 3); // Giới hạn hiển thị 3 sản phẩm
                 setChatHistory(prev => [...prev, {
                     sender: 'ai',
                     message: (
-                        <div>
-                            <p>Tìm thấy {shoes.length} sản phẩm phù hợp:</p>
-                            {topProducts.map(product => (
-                                <div key={product.id} style={{ marginBottom: '10px' }}>
-                                    <a
-                                        href={`/product/${product.id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{ color: '#1890ff', textDecoration: 'underline' }}
-                                    >
+                        <div style={{ maxWidth: '100%' }}>
+                            <p style={{ marginBottom: '10px', fontWeight: 'bold' }}>{responseMessage}</p>
+                            {topProducts.map(({ product, variants }) => (
+                                <div key={product.id} style={{
+                                    marginBottom: '15px',
+                                    border: '1px solid #e8e8e8',
+                                    borderRadius: '8px',
+                                    padding: '10px',
+                                    backgroundColor: '#fafafa'
+                                }}>
+                                    <div style={{ display: 'flex', margin: '8px 0' }}>
                                         <img
                                             src={product.mainImage || 'https://via.placeholder.com/150?text=Ảnh+phụ'}
-                                            // alt={product.productName}
                                             style={{
-                                                width: '100%',
-                                                height: '100%',
+                                                width: '80px',
+                                                height: '80px',
                                                 objectFit: 'cover',
-                                                padding: 4
+                                                borderRadius: '4px',
+                                                marginRight: '10px'
                                             }}
+                                            alt={product.productName}
                                         />
-                                        {product.productName} - {product.material.materialName}
-                                    </a>
+                                        <div>
+                                            <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>
+                                                {product.productName}
+                                            </h4>
+                                            <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#666' }}>
+                                                Thương hiệu: {product.brand?.brandName || 'Không rõ'}
+                                            </p>
+                                            <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>
+                                                Danh mục: {product.category?.categoryName || 'Không rõ'}
+                                            </p>
+                                            <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>
+                                                Chất liệu: {product.material?.materialName || 'Không rõ'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Hiển thị các phiên bản có sẵn */}
+                                    <div style={{ marginTop: '10px' }}>
+                                        <p style={{ marginBottom: '5px', fontSize: '12px', fontWeight: 'bold' }}>
+                                            Các phiên bản có sẵn:
+                                        </p>
+                                        {variants.slice(0, 3).map((variant, index) => (
+                                            <div key={index} style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                fontSize: '12px',
+                                                padding: '3px 0',
+                                                borderBottom: '1px dashed #eee'
+                                            }}>
+                                                <span>Màu: {variant.color?.colorName || 'Không xác định'}</span>
+                                                <span>Size: {variant.size?.sizeName || 'Không xác định'}</span>
+                                                <span style={{ fontWeight: 'bold' }}>
+                                                    {variant.price?.toLocaleString() || 'Liên hệ'}đ
+                                                </span>
+                                            </div>
+                                        ))}
+
+                                        {variants.length > 3 && (
+                                            <p style={{
+                                                margin: '5px 0 0',
+                                                fontSize: '11px',
+                                                color: '#666',
+                                                fontStyle: 'italic'
+                                            }}>
+                                                Và {variants.length - 3} phiên bản khác...
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <Button
+                                        type="primary"
+                                        size="small"
+                                        style={{
+                                            marginTop: '10px',
+                                            width: '100%',
+                                            fontSize: '12px'
+                                        }}
+                                        onClick={() => window.open(`/product/${product.id}`, '_blank')}
+                                    >
+                                        Xem chi tiết
+                                    </Button>
                                 </div>
                             ))}
+
+                            {products.length > 3 && (
+                                <p style={{
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    color: '#666',
+                                    marginTop: '10px'
+                                }}>
+                                    Và {products.length - 3} sản phẩm khác...
+                                </p>
+                            )}
                         </div>
                     )
                 }]);
             } else {
                 setChatHistory(prev => [...prev, {
                     sender: 'ai',
-                    message: `Hiện không có sản phẩm "${searchQuery}" trong cửa hàng. Bạn muốn xem các sản phẩm khác không?`
+                    message: `Không tìm thấy sản phẩm phù hợp. Bạn muốn tìm sản phẩm khác không?`
                 }]);
             }
             setLoading(false);
@@ -289,6 +604,16 @@ const ChatBot = () => {
         }
 
         setLoading(false);
+
+        setTimeout(() => {
+            const chatBox = document.getElementById('chat-box-container');
+            if (chatBox) {
+                chatBox.scrollTo({
+                    top: chatBox.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }, 50);
     };
 
     return (
@@ -348,6 +673,7 @@ const ChatBot = () => {
                         />
                     </div>
                     <div
+                        id="chat-box-container"
                         style={{
                             flex: 1,
                             padding: '10px',
