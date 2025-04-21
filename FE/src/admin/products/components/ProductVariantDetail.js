@@ -40,7 +40,7 @@ const ProductVariantDetail = ({ selectedVariant, setSelectedVariant, colorImages
                 )}
             </div>
             <hr />
-            <div style={{ height: "150px" }}>
+            <div style={{ height: "155px" }}>
                 {colorImages.length > 0 && (
                     <div style={{
                         marginBottom: "20px",

@@ -9,7 +9,7 @@ const { Title, Paragraph, Text } = Typography;
 const Description = () => {
 
     return (
-        <Layout style={{ background: '#fff' }}>
+        <Layout style={{ background: '#fff', marginTop: "70px" }}>
             <Content style={{ padding: '40px 20px', maxWidth: 1200, margin: '0 auto' }}>
                 {/* Header Section */}
                 <Row justify="center" style={{ marginBottom: 40 }}>
@@ -101,7 +101,7 @@ const Description = () => {
                                 type="primary"
                                 size="large"
                                 icon={<ShopOutlined />}
-                                href="/products"
+                                href="/all"
                                 style={{ borderRadius: 8 }}
                             >
                                 Khám Phá Sản Phẩm

@@ -112,3 +112,22 @@ export const searchProducts = (filters, page, size) => {
 export const getBin = (page, size) => {
     return axios.get(`${BASE_URL}/bin?page=${page}&size=${size}`)
 }
+
+export const fetchShopInitialData = () => {
+    return axios.get(`${BASE_URL}/shop-initial-data`);
+};
+
+// Thêm hàm mới để gọi API lấy màu sắc theo danh sách productId
+export const fetchProductColorsByProductList = async (productIds) => {
+    try {
+        const response = await axios.get('/product-color/by-products', {
+            params: {
+                productIds: productIds.join(',')
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching product colors:', error);
+        return {};
+    }
+};

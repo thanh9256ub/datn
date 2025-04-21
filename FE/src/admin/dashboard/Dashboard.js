@@ -212,7 +212,7 @@ export class Dashboard extends Component {
           <hr style={{ width: '50%', margin: '10px auto', border: '#00000' }} />
         </div>
         <div className="row">
-          <div className="col-md-3 stretch-card grid-margin">
+          <div className="col-md-3 stretch-card grid-margin" style={{ paddingRight: "2px" }}>
             <div className="card bg-gradient-danger card-img-holder text-white">
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
@@ -221,7 +221,7 @@ export class Dashboard extends Component {
               </div>
             </div>
           </div>
-          <div className="col-md-3 stretch-card grid-margin">
+          <div className="col-md-3 stretch-card grid-margin" style={{ paddingRight: "2px" }}>
             <div className="card bg-gradient-info card-img-holder text-white">
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
@@ -230,7 +230,7 @@ export class Dashboard extends Component {
               </div>
             </div>
           </div>
-          <div className="col-md-3 stretch-card grid-margin">
+          <div className="col-md-3 stretch-card grid-margin" style={{ paddingRight: "2px" }}>
             <div className="card bg-gradient-success card-img-holder text-white">
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
