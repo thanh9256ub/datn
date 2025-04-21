@@ -17,12 +17,12 @@ const Orders = () => {
     const [itemsPerPage] = useState(5);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [filters, setFilters] = useState({
-        orderCode: '',
+        search: '',
         minPrice: '',
         maxPrice: '',
         startDate: '',
         endDate: '',
-        status: ''
+        status: '',
     });
     const history = useHistory();
     const location = useLocation();
@@ -44,6 +44,7 @@ const Orders = () => {
 
     const fetchData = async (filterParams = filters) => {
         try {
+            console.log('Sending filter params:', filterParams); // Log params for debugging
             const response = await filterOrders(filterParams);
             if (Array.isArray(response)) {
                 console.log('Dữ liệu từ API:', response);
@@ -84,10 +85,31 @@ const Orders = () => {
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
-        setFilters(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        if (name === 'search') {
+            const sanitizedValue = value.replace(/[^a-zA-Z0-9]/g, '');
+            setFilters((prev) => ({
+                ...prev,
+                [name]: sanitizedValue,
+            }));
+        } else if (name === 'minPrice' || name === 'maxPrice') {
+            if (value === '' || (Number(value) >= 0 && !/\s/.test(value))) {
+                setFilters((prev) => ({
+                    ...prev,
+                    [name]: value,
+                }));
+            }
+        } else {
+            setFilters((prev) => ({
+                ...prev,
+                [name]: value,
+            }));
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === ' ') {
+            e.preventDefault();
+        }
     };
 
     const handleFilterSubmit = (e) => {
@@ -95,8 +117,11 @@ const Orders = () => {
         setCurrentPage(1);
         const formattedFilters = {
             ...filters,
+            search: filters.search.trim() || undefined,
+            minPrice: filters.minPrice ? Number(filters.minPrice) : undefined,
+            maxPrice: filters.maxPrice ? Number(filters.maxPrice) : undefined,
             startDate: filters.startDate || undefined,
-            endDate: filters.endDate || undefined
+            endDate: filters.endDate || undefined,
         };
         fetchData(formattedFilters);
     };
@@ -119,22 +144,22 @@ const Orders = () => {
 
     const handleResetFilters = () => {
         setFilters({
-            orderCode: '',
+            search: '',
             minPrice: '',
             maxPrice: '',
             startDate: '',
             endDate: '',
-            status: ''
+            status: '',
         });
         setCurrentPage(1);
-        fetchData();
+        fetchData({});
     };
 
     const handleNavigate = (orderId) => {
         const order = data.find(order => order.id === orderId);
         history.push({
             pathname: `/admin/order-detail/orders/${orderId}`,
-            state: { order }
+            state: { order },
         });
     };
 
@@ -148,10 +173,9 @@ const Orders = () => {
 
         if (orderType === 0 && paymentType?.paymentTypeName === "Trực tiếp") {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
-                { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
+
                 { id: 5, name: "Hoàn tất", color: "#4caf50" },
-                { id: 6, name: "Đã hủy", color: "#ef476f" },
+
             ];
         } else if (orderType === 0) {
             statusFlow = [
@@ -182,10 +206,9 @@ const Orders = () => {
 
         if (orderType === 0 && paymentType?.paymentTypeName === "Trực tiếp") {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
-                { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
-                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
-                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" }
+
             ];
         } else if (orderType === 0) {
             statusFlow = [
@@ -207,21 +230,20 @@ const Orders = () => {
             ];
         }
 
-        let visibleStatuses = [];
         if (status === 6) {
-            let previousStatusId = statusFlow[0].id;
-            if (order?.statusHistory?.length > 1) {
-                previousStatusId = order.statusHistory[order.statusHistory.length - 2]?.id || statusFlow[0].id;
-            }
-            const previousStatus = statusFlow.find(s => s.id === previousStatusId) || statusFlow[0];
-            if (previousStatus.id !== 6) {
-                visibleStatuses.push(previousStatus);
-            }
-            visibleStatuses.push(statusFlow.find(s => s.id === 6));
-        } else {
-            const currentIndex = statusFlow.findIndex(s => s.id === status);
-            visibleStatuses = statusFlow.slice(0, currentIndex + 1);
+            const canceledStatus = statusFlow.find(s => s.id === 6);
+            return (
+                <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
+                    <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
+                        <FontAwesomeIcon icon={canceledStatus.icon} style={{ color: canceledStatus.color, fontSize: "36px" }} />
+                        <span style={{ fontSize: "16px", color: canceledStatus.color, textAlign: "center" }}>{canceledStatus.name}</span>
+                    </div>
+                </div>
+            );
         }
+
+        const currentIndex = statusFlow.findIndex(s => s.id === status);
+        const visibleStatuses = statusFlow.slice(0, currentIndex + 1);
 
         return (
             <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
@@ -229,9 +251,7 @@ const Orders = () => {
                     <React.Fragment key={s.id}>
                         <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
                             <FontAwesomeIcon icon={s.icon} style={{ color: s.color, fontSize: "36px" }} />
-                            <span style={{ fontSize: "16px", color: s.color, textAlign: "center", fontWeight: "500" }}>
-                                {s.name}
-                            </span>
+                            <span style={{ fontSize: "16px", color: s.color, textAlign: "center" }}>{s.name}</span>
                         </div>
                         {index < visibleStatuses.length - 1 && (
                             <div style={{ width: "200px", height: "4px", backgroundColor: s.color, borderRadius: "2px" }} />
@@ -257,7 +277,7 @@ const Orders = () => {
                                     status={selectedOrder.status}
                                     orderType={selectedOrder.orderType}
                                     paymentType={selectedOrder.paymentType}
-                                    order={selectedOrder} // Added missing order prop
+                                    order={selectedOrder}
                                 />
                             )}
                         </div>
@@ -272,10 +292,10 @@ const Orders = () => {
                                         <FontAwesomeIcon icon={faSearch} className="text-muted" />
                                     </InputGroup.Text>
                                     <Form.Control
-                                        name="orderCode"
-                                        value={filters.orderCode}
+                                        name="search"
+                                        value={filters.search}
                                         onChange={handleFilterChange}
-                                        placeholder="Tìm kiếm đơn hàng..."
+                                        placeholder="Tìm theo mã đơn, số điện thoại, hoặc tên khách hàng..."
                                         className="border-0 py-2"
                                         style={{ boxShadow: "none", backgroundColor: "#f8f9fa" }}
                                     />
@@ -287,8 +307,11 @@ const Orders = () => {
                                         name="minPrice"
                                         value={filters.minPrice}
                                         onChange={handleFilterChange}
+                                        onKeyDown={handleKeyDown}
                                         placeholder="Từ giá"
                                         type="number"
+                                        min="0"
+                                        step="1"
                                         className="border-0 py-2 text-center"
                                         style={{ boxShadow: "none", backgroundColor: "#f8f9fa" }}
                                     />
@@ -297,8 +320,11 @@ const Orders = () => {
                                         name="maxPrice"
                                         value={filters.maxPrice}
                                         onChange={handleFilterChange}
+                                        onKeyDown={handleKeyDown}
                                         placeholder="Đến giá"
                                         type="number"
+                                        min="0"
+                                        step="1"
                                         className="border-0 py-2 text-center"
                                         style={{ boxShadow: "none", backgroundColor: "#f8f9fa" }}
                                     />
@@ -352,7 +378,7 @@ const Orders = () => {
                                     value={filters.status}
                                     onChange={handleFilterChange}
                                     className="shadow-sm rounded-pill"
-                                    style={{ backgroundColor: "#f8f9fa" }}
+                                    style={{ boxShadow: "none", backgroundColor: "#f8f9fa" }}
                                 >
                                     <option value="">Tất cả</option>
                                     <option value="1">Chờ tiếp nhận</option>
@@ -382,7 +408,7 @@ const Orders = () => {
                                 <th className="py-3 px-4">Ngày đặt hàng</th>
                                 <th className="py-3 px-4">Tổng tiền</th>
                                 <th className="py-3 px-4">Trạng thái</th>
-                                <th className="py-3 px-4">Actions</th>
+                                <th className="py-3 px-4">Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -454,10 +480,10 @@ const Orders = () => {
                                                         width: '26px',
                                                         height: '26px',
                                                         filter: 'grayscale(50%) opacity(0.7)',
-                                                        transition: 'all 0.3s ease'
+                                                        transition: 'all 0.3s ease',
                                                     }}
-                                                    onMouseEnter={(e) => e.currentTarget.style.filter = 'grayscale(0%) opacity(1)'}
-                                                    onMouseLeave={(e) => e.currentTarget.style.filter = 'grayscale(50%) opacity(0.7)'}
+                                                    onMouseEnter={(e) => (e.currentTarget.style.filter = 'grayscale(0%) opacity(1)')}
+                                                    onMouseLeave={(e) => (e.currentTarget.style.filter = 'grayscale(50%) opacity(0.7)')}
                                                 />
                                             </Button>
                                         </td>
@@ -468,7 +494,7 @@ const Orders = () => {
                     </Table>
                     <Pagination className="justify-content-center">
                         <Pagination.Prev disabled={currentPage === 1} onClick={prevPage} />
-                        {[...Array(totalPages).keys()].map(number => (
+                        {[...Array(totalPages).keys()].map((number) => (
                             <Pagination.Item
                                 key={number + 1}
                                 active={number + 1 === currentPage}

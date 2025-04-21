@@ -4,6 +4,7 @@ import { createBrand, getBrands, updateBrand, updateStatus } from './service/Bra
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Switch from 'react-switch';
+import Swal from 'sweetalert2';
 
 const Brands = () => {
 
@@ -14,12 +15,15 @@ const Brands = () => {
     const [desc, setDesc] = useState("")
     const [brandId, setBrandId] = useState(null)
     const [submitLoading, setSubmitLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("")
+    const [filteredBrands, setFilteredBrands] = useState([])
 
     const fetchBrands = async () => {
         try {
             setLoading(true);
             const response = await getBrands();
             setBrands(response.data.data);
+            setFilteredBrands(response.data.data);
         } catch (err) {
             setError('Đã xảy ra lỗi khi tải thương hiệu.');
         } finally {
@@ -30,6 +34,17 @@ const Brands = () => {
     useEffect(() => {
         fetchBrands()
     }, [])
+
+    useEffect(() => {
+        if (searchTerm.trim() === "") {
+            setFilteredBrands(brands);
+        } else {
+            const filtered = brands.filter(brand =>
+                brand.brandName.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            setFilteredBrands(filtered);
+        }
+    }, [searchTerm, brands])
 
     const handleAddBrand = async (e) => {
         e.preventDefault();
@@ -42,10 +57,31 @@ const Brands = () => {
 
         try {
             if (brandId) {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn sửa thương hiệu này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
+
                 console.log("Đang cập nhật thương hiệu:", brandId, brandName, desc);
                 await updateBrand(brandId, { brandName, description: desc })
                 toast.success("Sửa thương hiệu thành công!");
             } else {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn thêm thương hiệu này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
                 await createBrand({ brandName, description: desc });
                 toast.success("Thêm thương hiệu thành công!");
             }
@@ -94,7 +130,7 @@ const Brands = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Thông tin thương hiệu</h4>
+                            <h4 className="card-title">{brandId ? "Sửa thương hiệu" : "Thêm thương hiệu"}</h4>
                             <div style={{ marginBottom: '20px' }}></div>
                             <hr />
                             <form className="forms-sample" onSubmit={handleAddBrand}>
@@ -102,6 +138,7 @@ const Brands = () => {
                                     <label htmlFor="exampleInputUsername1">Tên thương hiệu</label>
                                     <Form.Control type="text" placeholder="Nhập tên thương hiệu" size="lg"
                                         value={brandName}
+                                        maxLength={255}
                                         onChange={(e) => setBrandName(e.target.value)}
                                     />
                                 </Form.Group>
@@ -115,14 +152,14 @@ const Brands = () => {
                                 <button type="submit" className="btn btn-gradient-primary mr-2" disabled={submitLoading}>
                                     {submitLoading ? (
                                         <Spinner animation="border" size="sm" />
-                                    ) : brandId ? "Edit" : "Submit"}
+                                    ) : brandId ? "Sửa" : "Lưu"}
                                 </button>
                                 <button type='button' className="btn btn-light"
                                     onClick={() => {
                                         setBrandName("");
                                         setDesc("");
                                         setBrandId(null);
-                                    }}>Cancel</button>
+                                    }}>Huỷ</button>
                             </form>
                         </div>
                     </div>
@@ -130,7 +167,17 @@ const Brands = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Danh sách thương hiệu</h4>
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h4 className="card-title mb-0">Danh sách thương hiệu</h4>
+                                <Form.Group className="mb-0" style={{ width: '250px' }}>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Tìm kiếm theo tên..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </Form.Group>
+                            </div>
                             {loading ? (
                                 <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
                                     <Spinner animation="border" variant="primary" />
@@ -151,8 +198,8 @@ const Brands = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {brands.length > 0 ? (
-                                                brands.map((brand, index) => (
+                                            {filteredBrands.length > 0 ? (
+                                                filteredBrands.map((brand, index) => (
                                                     <tr key={brand.id}
                                                         onClick={() => handleEditBrand(brand)}
                                                         style={{ cursor: "pointer" }}

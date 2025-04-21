@@ -4,6 +4,7 @@ import { createColor, getColors, updateColor, updateStatus } from './service/Col
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Switch from 'react-switch';
+import Swal from 'sweetalert2';
 
 const Colors = () => {
 
@@ -15,12 +16,15 @@ const Colors = () => {
     const [desc, setDesc] = useState("")
     const [colorId, setColorId] = useState(null)
     const [submitLoading, setSubmitLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("")
+    const [filteredColors, setFilteredColors] = useState([])
 
     const fetchColors = async () => {
         try {
             setLoading(true);
             const response = await getColors();
             setColors(response.data.data);
+            setFilteredColors(response.data.data);
         } catch (err) {
             setError('Đã xảy ra lỗi khi tải màu sắc.');
         } finally {
@@ -31,6 +35,17 @@ const Colors = () => {
     useEffect(() => {
         fetchColors()
     }, [])
+
+    useEffect(() => {
+        if (searchTerm.trim() === "") {
+            setFilteredColors(colors);
+        } else {
+            const filtered = colors.filter(color =>
+                color.colorName.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            setFilteredColors(filtered);
+        }
+    }, [searchTerm, colors])
 
     const handleAddColor = async (e) => {
         e.preventDefault();
@@ -68,9 +83,29 @@ const Colors = () => {
             }
 
             if (colorId) {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn sửa màu sắc này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
                 await updateColor(colorId, { colorCode, colorName, description: desc })
                 toast.success("Sửa màu sắc thành công!");
             } else {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn thêm màu sắc này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
                 await createColor({ colorCode, colorName, description: desc });
                 toast.success("Thêm màu sắc thành công!");
             }
@@ -120,7 +155,7 @@ const Colors = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Thông tin màu sắc</h4>
+                            <h4 className="card-title">{colorId ? "Sửa màu sắc" : "Thêm màu sắc"}</h4>
                             <div style={{ marginBottom: '20px' }}></div>
                             <hr />
                             <form className="forms-sample" onSubmit={handleAddColor}>
@@ -137,6 +172,7 @@ const Colors = () => {
                                     <label htmlFor="exampleInputUsername1">Tên màu sắc</label>
                                     <Form.Control type="text" placeholder="Nhập tên màu sắc" size="lg"
                                         value={colorName}
+                                        maxLength={255}
                                         onChange={(e) => setColorName(e.target.value)}
                                     />
                                 </Form.Group>
@@ -150,14 +186,14 @@ const Colors = () => {
                                 <button type="submit" className="btn btn-gradient-primary mr-2" disabled={submitLoading}>
                                     {submitLoading ? (
                                         <Spinner animation="border" size="sm" />
-                                    ) : colorId ? "Sửa" : "Thêm"}
+                                    ) : colorId ? "Sửa" : "Lưu"}
                                 </button>
                                 <button type='button' className="btn btn-light"
                                     onClick={() => {
                                         setColorName("");
                                         setDesc("");
                                         setColorId(null);
-                                    }}>Cancel</button>
+                                    }}>Huỷ</button>
                             </form>
                         </div>
                     </div>
@@ -165,7 +201,17 @@ const Colors = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Danh sách màu sắc</h4>
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h4 className="card-title mb-0">Danh sách màu sắc</h4>
+                                <Form.Group className="mb-0" style={{ width: '250px' }}>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Tìm kiếm theo tên..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </Form.Group>
+                            </div>
                             {loading ? (
                                 <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
                                     <Spinner animation="border" variant="primary" />
@@ -187,8 +233,8 @@ const Colors = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {colors.length > 0 ? (
-                                                colors.map((color, index) => (
+                                            {filteredColors.length > 0 ? (
+                                                filteredColors.map((color, index) => (
                                                     <tr key={color.id}
                                                         onClick={() => handleEditColor(color)}
                                                         style={{ cursor: "pointer" }}

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "antd/dist/reset.css";
-import { createVoucher } from "../service/VoucherService";
+import { createVoucher, getVouchers } from "../service/VoucherService";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
@@ -10,6 +10,10 @@ import VoucherForm from "../component/VoucherForm";
 
 const CreateVoucher = () => {
   const history = useHistory();
+
+  const [existingVouchers, setExistingVouchers] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
     voucherName: "",
@@ -21,6 +25,25 @@ const CreateVoucher = () => {
     startDate: dayjs(),
     endDate: dayjs(),
   });
+
+  useEffect(() => {
+    const fetchVouchers = async () => {
+      try {
+        const vouchers = await getVouchers();
+        setExistingVouchers(vouchers.data.data);
+      } catch (error) {
+        console.error("Error fetching vouchers:", error);
+      }
+    };
+
+    fetchVouchers();
+  }, []);
+
+  const checkVoucherNameExists = (name) => {
+    return existingVouchers.some(
+      (voucher) => voucher.voucherName.toLowerCase() === name.toLowerCase().trim()
+    );
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,7 +89,13 @@ const CreateVoucher = () => {
   };
 
   const handleDateChange = (name, date) => {
-    setFormData((prev) => ({ ...prev, [name]: date }));
+    if (!date) {
+      setFormData(prev => ({ ...prev, [name]: null }));
+      setErrors(prev => ({ ...prev, [name]: "Vui lòng chọn ngày" }));
+      return;
+    }
+    setFormData(prev => ({ ...prev, [name]: date }));
+    setErrors(prev => ({ ...prev, [name]: "" })); // Clear error khi có giá trị
   };
 
   const calculateStatus = (startDate, endDate) => {
@@ -78,29 +107,77 @@ const CreateVoucher = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({});
+
+    const newErrors = {};
 
     if (formData.voucherName.trim() === '') {
-      toast.error("Vui lòng nhập tên voucher");
+      toast.error("Tên khuyến mại không được để trống. Vui lòng nhập tên khuyến mãi");
       return;
     }
 
     if (formData.quantity <= 0) {
-      toast.error("Số lượng phải lớn hơn 0");
+      toast.error("Số lượng không được để trống và số lượng phải lớn hơn 0");
+      return;
+    }
+
+    if (formData.quantity > 10000000) {
+      toast.error("Số lượng voucher quá lớn vui lòng nhập lại");
+      return;
+    }
+
+    if (formData.discountValue > 100000000) {
+      toast.error("Giá trị giảm quá lớn vui lòng nhập lại");
       return;
     }
 
     if (formData.discountValue <= 0) {
-      toast.error("Giá trị giảm phải lớn hơn 0");
+      toast.error("Giá trị giảm không được để trống và giá trị giảm phải lớn hơn 0");
       return;
     }
 
-    if (formData.startDate.isAfter(formData.endDate)) {
-      toast.error("Ngày bắt đầu không được lớn hơn ngày kết thúc!");
+    if (!formData.startDate) {
+      newErrors.startDate = "Vui lòng chọn ngày bắt đầu";
+    }
+
+    if (!formData.endDate) {
+      newErrors.endDate = "Vui lòng chọn ngày kết thúc";
+    }
+
+    // Chỉ kiểm tra isAfter nếu cả 2 ngày đều có giá trị
+    if (formData.startDate && formData.endDate) {
+      if (formData.startDate.isAfter(formData.endDate)) {
+        newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    if (!formData.startDate || !formData.endDate) {
-      toast.error("Vui lòng chọn ngày bắt đầu và ngày kết thúc!");
+    if (checkVoucherNameExists(formData.voucherName)) {
+      toast.error("Tên voucher đã tồn tại");
+      return;
+    }
+
+    if (formData.minOrderValue === '') {
+      toast.error("Không để trống giá trị hoá đơn tối thiểu");
+      return;
+    }
+
+    if (formData.maxDiscountValue === '') {
+      toast.error("Không để trống giảm giá tối đa");
+      return;
+    }
+
+    if (formData.minOrderValue > 100000000) {
+      toast.error("Giá trị hoá đơn tối thiểu quá lớn vui lòng nhập lại");
+      return;
+    }
+
+    if (formData.discountType === 1 && formData.maxDiscountValue > 100000000) {
+      toast.error("Giảm giá tối đa quá lớn vui lòng nhập lại");
       return;
     }
 
@@ -115,6 +192,8 @@ const CreateVoucher = () => {
 
     if (!confirmResult.isConfirmed) return;
 
+    setIsLoading(true);
+
     const updatedFormData = {
       ...formData,
       startDate: formData.startDate.add(7, "hour"),
@@ -128,6 +207,8 @@ const CreateVoucher = () => {
       toast.success("Tạo voucher thành công!");
     } catch (error) {
       toast.error("Tạo voucher thất bại!");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -145,7 +226,10 @@ const CreateVoucher = () => {
                 handleChange={handleChange}
                 handleDiscountTypeChange={handleDiscountTypeChange}
                 handleDateChange={handleDateChange}
-                handleSubmit={handleSubmit} />
+                handleSubmit={handleSubmit}
+                isSubmitting={isLoading}
+                errors={errors}
+              />
             </div>
           </div>
         </div>

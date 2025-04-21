@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { deleteAndRestoreProducts, getProducts, searchProducts, updateStatus } from './service/ProductService';
 import { useHistory } from 'react-router-dom';
-import { Alert, Dropdown, Modal, Pagination, Spinner } from 'react-bootstrap';
+import { Alert, Dropdown, ListGroup, Modal, Pagination, Spinner } from 'react-bootstrap';
 import Switch from 'react-switch';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import SearchProducts from './action/SearchProducts';
 import Swal from 'sweetalert2';
 import useWebSocket from '../../hook/useWebSocket';
+import * as XLSX from 'xlsx';
+import { Badge, Button } from 'antd';
 
 const Products = () => {
     const [products, setProducts] = useState([]);
@@ -33,6 +35,13 @@ const Products = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [pageSize, setPageSize] = useState(5);
     const [selectedProducts, setSelectedProducts] = useState([]);
+
+    const [showFileManagerModal, setShowFileManagerModal] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [previewData, setPreviewData] = useState([]);
+    const [previewHeaders, setPreviewHeaders] = useState([]);
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
+    const [currentPreviewFile, setCurrentPreviewFile] = useState(null);
 
     const fetchProducts = async (page = currentPage, size = pageSize) => {
         setLoading(true);
@@ -201,71 +210,220 @@ const Products = () => {
         }
     };
 
-
-    const handleImportExcel = async (event) => {
-        const file = event.target.files[0];
-        if (!file) {
-            toast.error("Vui lòng chọn một tệp Excel!");
+    const MAX_ROWS = 200;
+    const handleFileSelect = (event) => {
+        const files = Array.from(event.target.files);
+        if (files.length === 0) {
+            toast.error("Vui lòng chọn ít nhất một tệp Excel!");
             return;
         }
 
-        const formData = new FormData();
-        formData.append("file", file);
+        if (selectedFiles.length + files.length > 2) {
+            toast.error("Chỉ được chọn tối đa 2 file Excel!");
+            return;
+        }
 
-        try {
-            const response = await fetch("http://localhost:8080/products/import-excel", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`
-                },
-                body: formData
-            });
+        let validFiles = [];
 
-            let result;
-            try {
-                result = await response.json();
-            } catch (jsonError) {
-                result = { error: "Lỗi không xác định từ server." };
-            }
+        files.forEach((file) => {
+            const isDuplicate = selectedFiles.some(
+                existingFile =>
+                    existingFile.name === file.name &&
+                    existingFile.size === file.size
+            );
 
-            if (result.error) {
-                toast.error(result.error); // Hiển thị lỗi từ API
+            if (isDuplicate) {
+                toast.error(`File "${file.name}" đã được chọn trước đó! Vui lòng không chọn lại.`);
                 return;
             }
 
-            console.log("Response Data:", result);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
 
-            if (result && Array.isArray(result.errors) && result.errors.length > 0) {
-                result.errors.forEach(error => toast.error(error));
-
-                Swal.fire({
-                    title: "Có lỗi trong file Excel!",
-                    text: "Các sản phẩm không lỗi đã được nhập. Bạn có muốn tải file chứa các sản phẩm bị lỗi không?",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: "Tải ngay",
-                    cancelButtonText: "Không"
-                }).then((willDownload) => {
-                    if (willDownload.isConfirmed) {
-                        const link = document.createElement("a");
-                        link.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + result.file;
-                        link.download = "DanhSachLoi.xlsx";
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-
-                        // Hiển thị toast thông báo tải file thành công
-                        toast.success("Tải file lỗi thành công!");
+                    if (workbook.SheetNames.length === 0) {
+                        toast.error(`File ${file.name} không có sheet nào.`);
+                        return;
                     }
-                });
-            } else {
-                toast.success("Nhập file Excel thành công!");
-                fetchProducts();
+
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                    if (jsonData.length <= 1) {
+                        toast.error(`File ${file.name} không có dữ liệu.`);
+                        return;
+                    }
+
+                    // const headers = jsonData[0];
+                    // if (!headers || headers.length === 0) {
+                    //     toast.error(`File ${file.name} không có dòng tiêu đề.`);
+                    //     return;
+                    // }
+
+                    if (jsonData.length - 1 > MAX_ROWS) {
+                        toast.error(`Vượt quá giới hạn ${MAX_ROWS} dòng dữ liệu`);
+                        return;
+                    }
+
+                    validFiles.push(file);
+
+                    if (validFiles.length + selectedFiles.length <= 2) {
+                        setSelectedFiles(prev => [...prev, ...validFiles]);
+                        setShowFileManagerModal(true);
+                    }
+                } catch (error) {
+                    console.error("Lỗi khi đọc file:", error);
+                    toast.error(`File ${file.name} không đúng định dạng Excel.`);
+                }
+            };
+            reader.onerror = () => {
+                toast.error(`Lỗi khi đọc file ${file.name}`);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        event.target.value = ''; // reset input file
+    };
+
+    const handlePreviewFile = (file) => {
+        setCurrentPreviewFile(file);
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+            if (jsonData.length > 0) {
+                setPreviewHeaders(jsonData[0]);
+                setPreviewData(jsonData.slice(1)); // Lấy tất cả dòng dữ liệu
+                setShowPreviewModal(true);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    };
+
+    const handleRemoveFile = (index) => {
+        const updatedFiles = [...selectedFiles];
+        updatedFiles.splice(index, 1);
+        setSelectedFiles(updatedFiles);
+    };
+
+    const handleConfirmImport = async () => {
+        if (selectedFiles.length === 0) {
+            toast.error("Vui lòng chọn ít nhất một file Excel!");
+            return;
+        }
+
+        try {
+            // Kiểm tra lại định dạng file trước khi gửi
+            for (const file of selectedFiles) {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data);
+
+                if (workbook.SheetNames.length === 0) {
+                    toast.error(`File ${file.name} không có sheet nào.`);
+                    return;
+                }
+
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                if (jsonData.length <= 1) {
+                    toast.error(`File ${file.name} không có dữ liệu hoặc thiếu dòng tiêu đề.`);
+                    return;
+                }
+
+                const headers = jsonData[0];
+                if (!headers || headers.length === 0) {
+                    toast.error(`File ${file.name} không có dòng tiêu đề.`);
+                    return;
+                }
             }
 
+            const confirmResult = await Swal.fire({
+                title: "Xác nhận nhập file",
+                text: `Bạn có chắc chắn muốn nhập ${selectedFiles.length} file Excel này?`,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Đồng ý",
+                cancelButtonText: "Hủy",
+            });
+
+            if (!confirmResult.isConfirmed) return;
+
+            // Xử lý từng file
+            for (const file of selectedFiles) {
+                try {
+                    const formData = new FormData();
+                    formData.append("file", file);
+
+                    const response = await fetch("http://localhost:8080/products/import-excel", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${localStorage.getItem("token")}`
+                        },
+                        body: formData
+                    });
+
+                    let result;
+                    try {
+                        result = await response.json();
+                    } catch (jsonError) {
+                        console.error("Lỗi parse JSON:", jsonError);
+                        result = { error: "Lỗi không xác định từ server." };
+                    }
+
+                    if (!response.ok) {
+                        // Hiển thị thông báo lỗi cụ thể từ backend
+                        const errorMsg = result.error || "Lỗi khi nhập file Excel";
+                        toast.error(`${file.name}: ${errorMsg}`);
+                        continue;
+                    }
+
+                    // Xử lý kết quả thành công hoặc có lỗi dữ liệu
+                    if (result && Array.isArray(result.errors) && result.errors.length > 0) {
+                        result.errors.forEach(error => toast.error(`${file.name}: ${error}`));
+
+                        await Swal.fire({
+                            title: "Có lỗi trong file Excel!",
+                            text: "Các sản phẩm không lỗi đã được nhập. Bạn có muốn tải file chứa các sản phẩm bị lỗi không?",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonText: "Tải ngay",
+                            cancelButtonText: "Không"
+                        }).then((willDownload) => {
+                            if (willDownload.isConfirmed && result.file) {
+                                const link = document.createElement("a");
+                                link.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + result.file;
+                                link.download = `DanhSachLoi_${file.name}`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                toast.success("Đã tải file lỗi thành công!");
+                            }
+                        });
+                    } else {
+                        toast.success(`${file.name}: Nhập thành công!`);
+                    }
+                } catch (error) {
+                    console.error(`Lỗi khi xử lý file ${file.name}:`, error);
+                    toast.error(`${file.name}: Lỗi khi xử lý file`);
+                }
+            }
+
+            setSelectedFiles([]);
+            setShowFileManagerModal(false);
+            fetchProducts();
         } catch (error) {
-            console.error(error);
-            toast.error("Lỗi khi nhập file Excel!");
+            console.error("Lỗi tổng quát:", error);
+            toast.error("Đã xảy ra lỗi trong quá trình xử lý");
         }
     };
 
@@ -337,7 +495,8 @@ const Products = () => {
                             <input
                                 type="file"
                                 accept=".xlsx, .xls"
-                                onChange={handleImportExcel}
+                                onChange={handleFileSelect}
+                                multiple
                                 style={{
                                     position: "absolute",
                                     left: 0,
@@ -348,8 +507,6 @@ const Products = () => {
                                     cursor: "pointer",
                                     pointerEvents: "none"
                                 }}
-                                onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
-                                onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
                             />
                         </label>
                     </div>
@@ -597,6 +754,132 @@ const Products = () => {
                         style={{ width: '100%', height: 'auto' }}
                     />
                 </Modal.Body>
+            </Modal>
+
+            <Modal
+                show={showFileManagerModal}
+                onHide={() => {
+                    setSelectedFiles([]);
+                    setShowFileManagerModal(false)
+                }}
+                size="lg"
+                centered
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Quản lý file Excel ({selectedFiles.length}/2)</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {selectedFiles.length > 0 ? (
+                        <ListGroup>
+                            {selectedFiles.map((file, index) => (
+                                <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <Badge bg="secondary" className="me-2">{index + 1}</Badge>.
+                                        {file.name}
+                                    </div>
+                                    <div>
+                                        <Button
+                                            variant="outline-primary"
+                                            size="sm"
+                                            className="me-2"
+                                            onClick={() => handlePreviewFile(file)}
+                                        >
+                                            <i className="mdi mdi-eye"></i> Xem trước
+                                        </Button>
+                                        <Button
+                                            variant="outline-danger"
+                                            size="sm"
+                                            onClick={() => handleRemoveFile(index)}
+                                        >
+                                            <i className="mdi mdi-delete"></i> Xóa
+                                        </Button>
+                                    </div>
+                                </ListGroup.Item>
+                            ))}
+                        </ListGroup>
+                    ) : (
+                        <div className="text-center py-4">
+                            <p>Chưa có file nào được chọn</p>
+                            <Button
+                                variant="primary"
+                                onClick={() => document.querySelector('input[type="file"]').click()}
+                            >
+                                <i className="mdi mdi-plus"></i> Chọn file
+                            </Button>
+                        </div>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button
+                        variant="secondary"
+                        onClick={() => document.querySelector('input[type="file"]').click()}
+                    >
+                        <i className="mdi mdi-plus"></i> Thêm file
+                    </Button>
+                    <Button
+                        variant="danger"
+                        onClick={() => setSelectedFiles([])}
+                        disabled={selectedFiles.length === 0}
+                    >
+                        <i className="mdi mdi-delete"></i> Xóa tất cả
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={handleConfirmImport}
+                        disabled={selectedFiles.length === 0}
+                    >
+                        <i className="mdi mdi-upload"></i> Nhập {selectedFiles.length} file
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Modal xem trước file */}
+            <Modal
+                show={showPreviewModal}
+                onHide={() => setShowPreviewModal(false)}
+                size="xl"
+                centered
+                scrollable // Thêm thuộc tính này để có thể scroll khi nội dung dài
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Xem trước: {currentPreviewFile?.name}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {previewData.length > 0 ? (
+                        <div className="table-responsive" style={{ maxHeight: '70vh' }}>
+                            <table className="table table-bordered table-hover">
+                                <thead style={{ position: 'sticky', top: 0, background: 'white', zIndex: 1 }}>
+                                    <tr>
+                                        {previewHeaders.map((header, index) => (
+                                            <th key={index}>{header}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {previewData.map((row, rowIndex) => (
+                                        <tr key={rowIndex}>
+                                            {row.map((cell, cellIndex) => (
+                                                <td key={cellIndex}>{cell}</td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            <div className="text-center mt-2">
+                                <small>Tổng số dòng: {previewData.length}</small>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-center py-4">
+                            <p>Không có dữ liệu để hiển thị</p>
+                        </div>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowPreviewModal(false)}>
+                        Đóng
+                    </Button>
+                </Modal.Footer>
             </Modal>
 
             <ToastContainer />

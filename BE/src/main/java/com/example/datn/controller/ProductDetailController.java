@@ -51,6 +51,45 @@ public class ProductDetailController {
                 return ResponseEntity.ok(response);
         }
 
+        @GetMapping("bin-details/{productId}")
+        public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getBinDetails(
+                @PathVariable("productId") Integer productId
+        ) {
+
+                List<ProductDetailResponse> responseList = service.getBin(productId);
+
+                ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Retrieved successfully",
+                        responseList);
+
+                return ResponseEntity.ok(response);
+        }
+
+        @PutMapping("/{pdId}/restore")
+        public ResponseEntity<ApiResponse<ProductDetailResponse>> restoreProductQuantity(
+                @PathVariable("pdId") Integer pdId,
+                @RequestBody Map<String, Integer> request) {
+
+                // Kiểm tra quantity trong request
+                Integer quantity = request.get("quantity");
+                if (quantity == null) {
+                        throw new IllegalArgumentException("Số lượng khôi phục (quantity) là bắt buộc");
+                }
+
+                // Gọi service để khôi phục số lượng
+                ProductDetailResponse response = service.restoreProductQuantity(pdId, quantity);
+
+                // Tạo phản hồi
+                ApiResponse<ProductDetailResponse> apiResponse = new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Khôi phục số lượng tồn kho thành công",
+                        response
+                );
+
+                return ResponseEntity.ok(apiResponse);
+        }
+
         @GetMapping("/{productId}")
         public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getProductDetailsByProductId(
                         @PathVariable("productId") Integer productId) {
@@ -148,6 +187,12 @@ public class ProductDetailController {
                 return ResponseEntity.ok(productDetailResponse);
         }
 
+        @PostMapping("/delete-or-restore")
+        public ResponseEntity<List<ProductDetailResponse>> restoreProductDetails(@RequestBody List<Integer> pdIds) {
+                List<ProductDetailResponse> responses = service.deleteAndRestoreProductDetails(pdIds);
+                return ResponseEntity.ok(responses);
+        }
+
         @PostMapping("/check-stock")
         public ResponseEntity<ApiResponse<Map<Integer, Integer>>> checkStockAvailability(
                 @RequestBody List<Map<String, Integer>> checkStockRequests) {
@@ -184,5 +229,26 @@ public class ProductDetailController {
                         productDetails);
 
                 return ResponseEntity.ok(response);
+        }
+
+        @GetMapping("/search-ai")
+        public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> searchProductAI(
+                @RequestParam(value = "query", required = false) String query,
+                @RequestParam(value = "brandName", required = false) String brand,
+                @RequestParam(value = "colorName", required = false) String color,
+                @RequestParam(value = "sizeName", required = false) String size,
+                @RequestParam(value = "minPrice", required = false) Double minPrice,
+                @RequestParam(value = "maxPrice", required = false) Double maxPrice,
+                @RequestParam(value = "categoryName", required = false) String category,
+                @RequestParam(value = "materialName", required = false) String material) {
+
+                List<ProductDetailResponse> results = service.searchProducts(
+                        query, brand, color, size, minPrice, maxPrice, category, material);
+
+                return ResponseEntity.ok(new ApiResponse<>(
+                        200,
+                        "Products retrieved successfully",
+                        results
+                ));
         }
 }

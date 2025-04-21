@@ -19,22 +19,20 @@ export const fetchOrders = async () => {
         throw error;
     }
 };// Hàm lọc đơn hàng
-export const filterOrders = async ({ orderCode, minPrice, maxPrice, startDate, endDate, status }) => {
+export const filterOrders = async ({ search, minPrice, maxPrice, startDate, endDate, status }) => {
     try {
-        // Format dates to match backend expectations
         const params = {
-            orderCode: orderCode || undefined,
+            search: search || undefined,
             minPrice: minPrice || undefined,
             maxPrice: maxPrice || undefined,
-            status: status || undefined
+            status: status || undefined,
         };
 
-        // Only include dates if they are provided
         if (startDate) {
-            params.startDate = `${startDate}T00:00:00`; // Add time component for LocalDateTime
+            params.startDate = `${startDate}T00:00:00`;
         }
         if (endDate) {
-            params.endDate = `${endDate}T23:59:59`; // Add time component for LocalDateTime
+            params.endDate = `${endDate}T23:59:59`;
         }
 
         const response = await api.get('/order/filter', { params });
@@ -201,6 +199,16 @@ export const updateOrderNote = async (id, noteData) => {
         return response.data;
     } catch (error) {
         console.error('Error updating order note:', error.response?.data || error.message);
+        throw error;
+    }
+};
+export const restoreProductQuantity = async (productDetailId, quantity) => {
+    try {
+        const response = await api.put(`/product-detail/${productDetailId}/restore`, { quantity });
+        console.log('Restore Product Quantity Response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error restoring product quantity:', error.response?.data || error.message);
         throw error;
     }
 };

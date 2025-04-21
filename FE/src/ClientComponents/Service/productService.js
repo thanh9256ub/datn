@@ -497,7 +497,9 @@ export const getVoucherByCode = async (voucherCode) => {
         const response = await api.get(`/vouchers/code/${voucherCode}`);
         return response.data.data || response.data;
     } catch (error) {
-        console.error('Error fetching voucher:', error);
-        throw new Error(error.response?.data?.message || 'Không tìm thấy voucher');
+        if (error.response && error.response.status === 404) {
+            throw new Error('Mã khuyến mãi không tồn tại');
+        }
+        throw new Error('Có lỗi khi kiểm tra mã khuyến mãi');
     }
 };

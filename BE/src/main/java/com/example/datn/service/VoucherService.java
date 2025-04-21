@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,7 +34,11 @@ public class VoucherService {
     private WebSocketController webSocketController;
 
     public List<VoucherResponse> getAll() {
-        return mapper.listResponse(voucherRepository.findAll());
+        return mapper.listResponse(voucherRepository.findByStatusNot(4));
+    }
+
+    public List<VoucherResponse> getActive() {
+        return mapper.listResponse(voucherRepository.findByStatus(1));
     }
 
     @Scheduled(cron = "0 * * * * *")
@@ -44,10 +49,24 @@ public class VoucherService {
         List<Voucher> updatedVouchers = new ArrayList<>();
 
         for (Voucher v : vouchers) {
-            Integer oldStatus = v.getStatus();
-            Integer newStatus = (v.getStartDate().isBefore(now) && v.getEndDate().isAfter(now)) ? 1 :
-                    (v.getEndDate().isBefore(now)) ? 0 : 2;
+            // Bỏ qua các voucher đã bị xóa (status = 4)
+            if (v.getStatus() == 4) {
+                continue;
+            }
 
+            Integer oldStatus = v.getStatus();
+            Integer newStatus;
+
+            // Kiểm tra nếu voucher đang hoạt động (status = 1) và hết số lượng
+            if (v.getStatus() == 1 && v.getQuantity() <= 0) {
+                newStatus = 3; // Chuyển sang trạng thái hết số lượng
+            } else {
+                // Kiểm tra thời gian như bình thường cho các trường hợp khác
+                newStatus = (v.getStartDate().isBefore(now) && v.getEndDate().isAfter(now)) ? 1 :
+                        (v.getEndDate().isBefore(now)) ? 0 : 2;
+            }
+
+            // Chỉ cập nhật nếu trạng thái thay đổi
             if (!oldStatus.equals(newStatus)) {
                 v.setStatus(newStatus);
                 updatedVouchers.add(v);
@@ -99,7 +118,7 @@ public class VoucherService {
 
         voucher.setVoucherCode(generateUniqueVoucher());
         voucher.setMinOrderValue(request.getMinOrderValue());
-voucher.setMaxDiscountValue(request.getMaxDiscountValue());
+        voucher.setMaxDiscountValue(request.getMaxDiscountValue());
         Voucher created = voucherRepository.save(voucher);
 
         return mapper.voucherResponse(created);
@@ -111,6 +130,12 @@ voucher.setMaxDiscountValue(request.getMaxDiscountValue());
                 () -> new ResourceNotFoundException("Voucher id is not exists with given id: " + id));
 
         return mapper.voucherResponse(voucher);
+    }
+
+    public List<VoucherResponse> getBin() {
+        List<Voucher> vouchers = voucherRepository.findByStatus(4);
+
+        return mapper.listResponse(vouchers);
     }
 
     public VoucherResponse updateVoucher(Integer id, VoucherRequest request) {
@@ -125,18 +150,55 @@ voucher.setMaxDiscountValue(request.getMaxDiscountValue());
 
 
     public void updateVoucherStatus0() {
-        for ( Voucher voucher :voucherRepository.findAll()) {
-            if (voucher.getQuantity()==0&& voucher.getStatus()==1){
+        for (Voucher voucher : voucherRepository.findAll()) {
+            if (voucher.getQuantity() == 0 && voucher.getStatus() == 1) {
                 voucher.setStatus(3);
                 voucherRepository.save(voucher);
             }
         }
 
     }
+
     public VoucherResponse getVoucherByCode(String voucherCode) {
         Voucher voucher = voucherRepository.findByVoucherCode(voucherCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Voucher not found with code: " + voucherCode));
 
         return mapper.voucherResponse(voucher);
+    }
+
+    public List<VoucherResponse> deleteOrRestoreVoucher(List<Integer> vcIds) {
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Voucher> vouchers = voucherRepository.findAllById(vcIds);
+
+        for (Voucher v : vouchers) {
+            if (v.getStatus() != 4) {
+                // Xóa voucher (chuyển sang status = 4)
+                v.setStatus(4);
+            } else {
+                // Khôi phục voucher
+                Integer restoredStatus;
+
+                // Kiểm tra thời gian để xác định status
+                if (v.getStartDate().isBefore(now) && v.getEndDate().isAfter(now)) {
+                    // Nếu trong thời gian hoạt động
+                    restoredStatus = (v.getQuantity() <= 0) ? 3 : 1; // Kiểm tra số lượng
+                } else if (v.getEndDate().isBefore(now)) {
+                    // Nếu đã hết hạn
+                    restoredStatus = 0;
+                } else {
+                    // Nếu chưa đến thời gian hoạt động
+                    restoredStatus = 2;
+                }
+
+                v.setStatus(restoredStatus);
+            }
+        }
+
+        List<Voucher> savedVouchers = voucherRepository.saveAll(vouchers);
+
+        return savedVouchers.stream()
+                .map(mapper::voucherResponse)
+                .collect(Collectors.toList());
     }
 }

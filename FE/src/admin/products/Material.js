@@ -4,6 +4,7 @@ import { createMaterial, getMaterials, updateMaterial, updateStatus } from './se
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Switch from 'react-switch';
+import Swal from 'sweetalert2';
 
 const Materials = () => {
 
@@ -14,12 +15,15 @@ const Materials = () => {
     const [desc, setDesc] = useState("")
     const [materialId, setMaterialId] = useState(null)
     const [submitLoading, setSubmitLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("")
+    const [filteredMaterials, setFilteredMaterials] = useState([])
 
     const fetchMaterials = async () => {
         try {
             setLoading(true);
             const response = await getMaterials();
             setMaterials(response.data.data);
+            setFilteredMaterials(response.data.data);
         } catch (err) {
             setError('Đã xảy ra lỗi khi tải chất liệu.');
         } finally {
@@ -30,6 +34,17 @@ const Materials = () => {
     useEffect(() => {
         fetchMaterials()
     }, [])
+
+    useEffect(() => {
+        if (searchTerm.trim() === "") {
+            setFilteredMaterials(materials);
+        } else {
+            const filtered = materials.filter(material =>
+                material.materialName.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            setFilteredMaterials(filtered);
+        }
+    }, [searchTerm, materials])
 
     const handleAddMaterial = async (e) => {
         e.preventDefault();
@@ -42,10 +57,30 @@ const Materials = () => {
 
         try {
             if (materialId) {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn sửa chất liệu này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
                 console.log("Đang cập nhật chất liệu:", materialId, materialName, desc);
                 await updateMaterial(materialId, { materialName, description: desc })
                 toast.success("Sửa chất liệu thành công!");
             } else {
+                const confirmResult = await Swal.fire({
+                    title: "Xác nhận",
+                    text: "Bạn có chắc chắn muốn thêm chất liệu này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                });
+
+                if (!confirmResult.isConfirmed) return;
                 await createMaterial({ materialName, description: desc });
                 toast.success("Thêm chất liệu thành công!");
             }
@@ -94,7 +129,7 @@ const Materials = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Thông tin chất liệu</h4>
+                            <h4 className="card-title">{materialId ? "Sửa chất liệu" : "Thêm chất liệu"}</h4>
                             <div style={{ marginBottom: '20px' }}></div>
                             <hr />
                             <form className="forms-sample" onSubmit={handleAddMaterial}>
@@ -102,6 +137,7 @@ const Materials = () => {
                                     <label htmlFor="exampleInputUsername1">Tên chất liệu</label>
                                     <Form.Control type="text" placeholder="Nhập tên chất liệu" size="lg"
                                         value={materialName}
+                                        maxLength={255}
                                         onChange={(e) => setMaterialName(e.target.value)}
                                     />
                                 </Form.Group>
@@ -115,14 +151,14 @@ const Materials = () => {
                                 <button type="submit" className="btn btn-gradient-primary mr-2" disabled={submitLoading}>
                                     {submitLoading ? (
                                         <Spinner animation="border" size="sm" />
-                                    ) : materialId ? "Edit" : "Submit"}
+                                    ) : materialId ? "Sửa" : "Lưu"}
                                 </button>
                                 <button type='button' className="btn btn-light"
                                     onClick={() => {
                                         setMaterialName("");
                                         setDesc("");
                                         setMaterialId(null);
-                                    }}>Cancel</button>
+                                    }}>Huỷ</button>
                             </form>
                         </div>
                     </div>
@@ -130,7 +166,17 @@ const Materials = () => {
                 <div className="col-lg-6 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
-                            <h4 className="card-title">Danh sách chất liệu</h4>
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h4 className="card-title mb-0">Danh sách chất liệu</h4>
+                                <Form.Group className="mb-0" style={{ width: '250px' }}>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Tìm kiếm theo tên..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </Form.Group>
+                            </div>
                             {loading ? (
                                 <div className="d-flex justify-content-center align-items-center" style={{ height: '150px' }}>
                                     <Spinner animation="border" variant="primary" />
@@ -151,8 +197,8 @@ const Materials = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {materials.length > 0 ? (
-                                                materials.map((material, index) => (
+                                            {filteredMaterials.length > 0 ? (
+                                                filteredMaterials.map((material, index) => (
                                                     <tr key={material.id}
                                                         onClick={() => handleEditMaterial(material)}
                                                         style={{ cursor: "pointer" }}

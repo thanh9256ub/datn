@@ -4,6 +4,7 @@ import com.example.datn.entity.Color;
 import com.example.datn.entity.Product;
 import com.example.datn.entity.ProductDetail;
 import com.example.datn.entity.Size;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,9 +17,17 @@ import java.util.Optional;
 public interface ProductDetailRepository extends JpaRepository<ProductDetail,Integer> {
     List<ProductDetail> findByProductId(Integer productId);
 
-    List<ProductDetail> findByProductIdAndColorId(Integer productId, Integer colorId);
-     
-    @Query("SELECT COALESCE(SUM(pd.quantity), 0) FROM ProductDetail pd WHERE pd.product.id = :productId")
+    List<ProductDetail> findByProductIdAndStatusNot(Integer productId, Integer status);
+
+    List<ProductDetail> findByProductIdAndStatus(Integer productId, Integer status);
+
+
+    List<ProductDetail> findByProductIdAndColorIdAndStatusNot(Integer productId, Integer colorId, Integer status);
+
+    @Query("SELECT COALESCE(SUM(pd.quantity), 0) " +
+            "FROM ProductDetail pd " +
+            "WHERE pd.product.id = :productId " +
+            "AND pd.status <> 2")
     Integer sumQuantityByProductId(@Param("productId") Integer productId);
 
     Optional<ProductDetail> findByProductAndColorAndSize(Product product, Color color, Size size);
@@ -40,7 +49,7 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail,Int
             @Param("sizeId") Integer sizeId
     );
 
-    Optional<ProductDetail> findByProduct_IdAndColor_IdAndSize_Id(Integer pId, Integer colorId, Integer sizeId);
+    Optional<ProductDetail> findByProduct_IdAndColor_IdAndSize_IdAndStatusNot(Integer pId, Integer colorId, Integer sizeId, Integer status);
 
     List<ProductDetail> findByStatusNot(Integer status);
 
@@ -49,4 +58,5 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail,Int
     @Query("SELECT p FROM ProductDetail p WHERE p.product.id <> :id AND p.product.status <> 2")
     List<ProductDetail> findAllExceptId(@Param("id") Integer id);
 
+    List<ProductDetail> findAll(Specification<ProductDetail> spec);
 }

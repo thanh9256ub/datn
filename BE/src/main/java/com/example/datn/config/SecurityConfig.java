@@ -63,7 +63,8 @@ public class SecurityConfig {
                                     "customer/**",
                                     "/mail/send-order-confirmation",
                                     "/vnpay/payment",
-                                    "/vnpay-return","/order-voucher/add")
+                                    "/vnpay-return",
+                                    "/order-voucher/add")
                             .permitAll()
                             .requestMatchers("/address/**", "/role/**")
                             .hasAnyRole("CUSTOMER", "EMPLOYEE", "ADMIN")

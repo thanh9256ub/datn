@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
@@ -96,13 +97,13 @@ public class OrderController {
     }
     @GetMapping("/filter")
     public List<OrderResponse> filterOrders(
-            @RequestParam(required = false) String orderCode,
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) LocalDateTime startDate,
             @RequestParam(required = false) LocalDateTime endDate,
-            @RequestParam(required = false) Integer status) { // Thêm status
-        return service.filterOrders(orderCode, minPrice, maxPrice, startDate, endDate, status);
+            @RequestParam(required = false) Integer status) {
+        return service.filterOrders(search, minPrice, maxPrice, startDate, endDate, status);
     }
 
 
@@ -158,6 +159,22 @@ public class OrderController {
     public Object[] getRevenueTotal() {
         return service.getRevenueTotal();
         //tong
+    }
+    @GetMapping("/dashboard-status5")
+    public int countOrdersWithStatus5Today() {
+        return service.countOrdersWithStatus5Today();
+    }
+    @GetMapping("/dashboard-status2")
+    public int countOrdersWithStatus2Today() {
+        return service.countOrdersWithStatus2Today();
+    }
+    @GetMapping("/dashboard-product")
+    public Integer getTotalQuantityOfTodayOrdersWithStatus5() {
+        return service.getTotalQuantityOfTodayOrdersWithStatus5();
+    }
+    @GetMapping("/dashboard-revenue")
+    public BigDecimal getTotalNetPriceOfTodayOrdersWithStatus5() {
+        return service.getTotalNetPriceOfTodayOrdersWithStatus5();
     }
     @PostMapping("/checkout/{cartId}")
     public ResponseEntity<ApiResponse<OrderResponse>> checkout(

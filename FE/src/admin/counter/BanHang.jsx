@@ -124,13 +124,16 @@ const BanHang = () => {
   }, [messages]);
 
   const addInvoice = () => {
-    if (!canAdd) return;
+    if (!canAdd || invoices.length >= 10) { // Prevent creating more than 10 invoices
+      toast.warn("Chỉ được tạo tối đa 10 hóa đơn", toastOptions);
+      return;
+    }
 
     const newInvoice = { employeeId: localStorage.getItem("id"), orderType: 0, status: 0 };
 
     axios.post('http://localhost:8080/order/add', newInvoice)
       .then(response => {
-        toast.success("Tạo hóa đơn thành công thành công ", toastOptions); 
+        toast.success("Tạo hóa đơn thành công", toastOptions);
         const createdInvoice = response.data.data;
         setInvoices([createdInvoice, ...invoices]); // Add the new invoice to the top of the list
         setSelectedInvoiceId(createdInvoice.id); // Select the newly created invoice
@@ -225,7 +228,7 @@ const BanHang = () => {
     axios.get('http://localhost:8080/product-detail')
       .then(response => {
         const productDetails = response.data.data;
-        const selectedProductDetail = productDetails.find(product => product.id === selectedProduct.id);
+        const selectedProductDetail = productDetails.find(product => product.id === selectedProduct.id&& product.status  ===  1);
 
         if (!selectedProduct || quantity <= 0) {
           toast.error("Vui lòng nhập lại số lượng", toastOptions);
@@ -310,7 +313,9 @@ const BanHang = () => {
           return;
         }
 
-        if (newQuantity < 0 || item.productDetail.quantity + item.quantity < newQuantity) return;
+        if (newQuantity < 0 || item.productDetail.quantity + item.quantity < newQuantity) {
+          toast.warn("Quá số lượng trong kho  ", toastOptions);
+          return;}
         axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
           .then(response => {
             fetchProducts();
@@ -333,24 +338,45 @@ const BanHang = () => {
     }
 
     if (data && selectedInvoiceId) {
-      console.log("Đã quét mã QR:", data.text);
+     
       setIsQrReaderVisible(false);
       setTimeout(() => {
         setIsQrReaderVisible(true);
       }, 2000);
 
-      axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoiceId}&productID=${data.text}&purchaseQuantity=1`)
+      fetchProducts();
+      axios.get('http://localhost:8080/product-detail')
         .then(response => {
-          // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
-          fetchProducts();
-          fetchOrderItems();
-          toast.success("Thêm sản phẩm thành công ", toastOptions);
-          clearInterval(qrIntervalRef.current);
-          qrIntervalRef.current = null;
-          setQrImageUrl(null);
+          
+          const productDetails = response.data.data;
+          const selectedProductDetail = productDetails.find(product => product.id === Number(data.text) && product.status === 1);
+          console.log("Đã quét mã QR:", productDetails);
+         
+
+          if (!selectedProductDetail || selectedProductDetail.quantity < 1 || selectedProductDetail.quantity === 0) {
+            toast.error("Không tìm thấy sản phẩm ", toastOptions);
+            
+            return;
+          }
+          axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoiceId}&productID=${data.text}&purchaseQuantity=1`)
+          .then(response => {
+            // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
+            fetchProducts();
+            fetchOrderItems();
+            toast.success("Thêm sản phẩm thành công ", toastOptions);
+            clearInterval(qrIntervalRef.current);
+            qrIntervalRef.current = null;
+            setQrImageUrl(null);
+          })
+          .catch(error => {
+          });
+         
         })
         .catch(error => {
+          console.error('Error fetching products:', error);
+          toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm", toastOptions);
         });
+     
     }
   };
 
@@ -429,7 +455,7 @@ const BanHang = () => {
 
   const filteredProducts = availableProducts.filter(product => {
     return (
-      product.product.productName.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      product.product.productName.toLowerCase().includes(searchTerm.trim().toLowerCase()) &&
       (selectedColor ? product.color.colorName === selectedColor : true) &&
       (selectedSize ? product.size.sizeName === selectedSize : true) &&
       (selectedBrand ? product.product.brand.brandName === selectedBrand : true) &&
@@ -502,6 +528,7 @@ const BanHang = () => {
                   <Table hover >
                     <thead>
                       <tr>
+                      <th style={{ fontWeight: 'bold' }}>STT</th> 
                         <th style={{ fontWeight: 'bold' }}>Sản phẩm </th>
 
 
@@ -512,8 +539,9 @@ const BanHang = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {currentCartItems.map(item => (
-                        <tr key={item.id}>
+                      {currentCartItems.map((item,index) => (
+                        <tr key={index}>
+                          <td style={{ fontWeight: 'bold' }}>{index + 1}</td> 
                           <td style={{ fontWeight: 'bold' }}>{item.productDetail.product.productName} - {item.productDetail.color.colorName} - {item.productDetail.size.sizeName}</td>
 
 
@@ -601,7 +629,7 @@ const BanHang = () => {
                       type="text"
                       placeholder="Tìm kiếm sản phẩm"
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={(e) => setSearchTerm(e.target.value.trimStart())} // Trim leading whitespace
                       style={{
                         marginRight: "10px",
                         marginBottom: "10px",
@@ -739,6 +767,7 @@ const BanHang = () => {
                   <Table hover>
                     <thead>
                       <tr>
+                      <th style={{ fontWeight: 'bold' }}>STT</th> 
                         <th style={{ fontWeight: 'bold' }}>Hình ảnh  </th>
                         <th style={{ fontWeight: 'bold' }}>Sản phẩm </th>
                         <th style={{ fontWeight: 'bold' }}>Giá (VND)</th>
@@ -746,8 +775,10 @@ const BanHang = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {currentProducts.map(product => (
-                        <tr key={product.id} onClick={(() => handleSelectProduct(product))}>
+                      {currentProducts.map((product,index) => (
+                        
+                        <tr key={index} onClick={(() => handleSelectProduct(product))}>
+                          <td style={{ fontWeight: 'bold' }}>{index + 1}</td> 
                           <td style={{ fontWeight: 'bold' }} >{product.product.mainImage != "image.png" ? (
                             <img
                               src={product.product.mainImage}

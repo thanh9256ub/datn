@@ -10,6 +10,10 @@ export const getProductDetailByProductId = (id) => {
     return axios.get(`${BASE_URL}/${id}`)
 }
 
+export const getBinDetails = (id) => {
+    return axios.get(`${BASE_URL}/bin-details/${id}`)
+}
+
 export const updateProductDetail = (pdId, productDetail) => {
     return axios.put(`${BASE_URL}/${pdId}`, productDetail);
 }
@@ -29,3 +33,11 @@ export const updateQR = async (pdId) => {
         return null;
     }
 };
+
+export const deleteOrRestoreProductDetails = (ids) => {
+    return axios.post(`${BASE_URL}/delete-or-restore`, ids);
+};
+
+export const deleteOrRestoreProductDetail = (id) => {
+    return axios.patch(`${BASE_URL}/update-status/${id}`)
+}

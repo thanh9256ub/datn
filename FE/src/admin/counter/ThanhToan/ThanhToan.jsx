@@ -40,7 +40,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     } else if (promo.voucherCode) {
       setPromo({});
     }
-    setFinalAmount(totalAmount - calculatedDiscount);
+    const calculatedFinalAmount = totalAmount - calculatedDiscount;
+    setFinalAmount(calculatedFinalAmount < 0 ? 0 : calculatedFinalAmount); // Ensure finalAmount is not less than 0
   }, [totalAmount, promo]);
 
   useEffect(() => {
@@ -94,6 +95,10 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     }
     if (totalAmount === 0) {
       toast.warn("Vui lòng thêm sản phẩm trước khi chọn QR  ", toastOptions);
+      return;
+    }
+    if (finalAmount >1000000000 ) {
+      toast.warn("Tổng thanh toán không được quá 1000000000", toastOptions);
       return;
     }
     if (promo.voucherCode) {
@@ -180,14 +185,18 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   const handleCashPayment = () => {
 
     if (!idOrder) {
-      toast.warn("Vui lòng chọn hóa đơn trước khi chọn QR ", toastOptions);
+      toast.warn("Vui lòng chọn hóa đơn trước khi chọn tiền mặt", toastOptions);
       return;
     }
+   
     if (totalAmount === 0) {
-      toast.warn("Vui lòng thêm sản phẩm trước khi chọn QR  ", toastOptions);
+      toast.warn("Vui lòng thêm sản phẩm trước khi chọn tiền mặt", toastOptions);
       return;
     }
-
+    if (finalAmount >1000000000  ) {
+      toast.warn("Tổng thanh toán không được quá 1000000000", toastOptions);
+      return;
+    }
     setQrImageUrl("");
     if (qrIntervalRef.current) {
       clearInterval(qrIntervalRef.current); // Clear the interval
@@ -195,7 +204,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     }
     setPaymen(1);
     setIsCashPayment(true);
-    setChange(0); // Reset change to avoid validation errors
+    setChange(-1); // Reset change to avoid validation errors
     setCashPaid(''); // Reset cashPaid input
     toast.info("Đã chọn phương thức thanh toán Tiền mặt ", toastOptions);
   };
@@ -358,7 +367,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         setTimeout(() => {
           window.location.reload();
         }
-          , 1500);
+          , 1200);
       } else {
         toast.error("Thanh toán thất bại. Vui lòng thử lại!", toastOptions);
       }
@@ -369,7 +378,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   };
 
   const handleConfirmPayment = () => {
-    console.log("Khách hàng:", customerInfo.fullName);
+   
     if (!idOrder) {
       toast.warn("Vui lòng chọn hóa đơn trước khi thanh toán ", toastOptions);
       return;
@@ -382,9 +391,13 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Hãy chọn phương thức thanh toán ", toastOptions);
       return;
     }
-
+   
+    if (paymen === 1 && (cashPaid===undefined|| cashPaid === "")) {
+      toast.warn("Tiền khách đưa không được để trống ", toastOptions);
+      return;
+    }
     if (paymen === 1 && (change < 0 || change === undefined)) {
-      toast.warn("Tiền thừa không được nhỏ hơn 0 ", toastOptions);
+      toast.warn("Tiền thừa không được nhỏ hơn 0", toastOptions);
       return;
     }
     if (!isPaymentEnabled) {
@@ -471,7 +484,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         totalAmount={totalAmount}
         idOrder={idOrder}
         setQrImageUrl={setQrImageUrl}
-        qrIntervalRef={qrIntervalRef} />
+        qrIntervalRef={qrIntervalRef}
+        customer={customer} />
 
       <h5 style={{ fontWeight: 'bold' }}>Tổng tiền hàng: {totalAmount.toLocaleString()} VND</h5>
       <h5 style={{ fontWeight: 'bold' }}>Giảm giá: {(totalAmount - finalAmount).toLocaleString()} VND</h5>
@@ -514,14 +528,14 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
               <Form.Group controlId="formCashPaid">
                 <Form.Label style={{ fontWeight: 'bold' }}>Tiền khách trả</Form.Label>
                 <Form.Control
-                  type="number"
-                  min="0" // Ensure the input value is >= 0
+                  type="tel"
+                  min="0" 
                   value={cashPaid}
                   style={{ fontWeight: 'bold' }}
                   onChange={(e) => {
-                    // Prevent negative values
-                    setCashPaid(e.target.value);
-                    setChange(e.target.value - (finalAmount + shippingFee));
+                    const onlyNumbers = e.target.value.replace(/\D/g, '');
+                    setCashPaid(onlyNumbers);
+                    setChange(onlyNumbers - (finalAmount + shippingFee));
                   }}
                   placeholder="Nhập số tiền khách trả"
                 />
@@ -533,8 +547,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
               <Form.Group controlId="formChange">
                 <Form.Label style={{ fontWeight: 'bold' }}>Tiền thừa</Form.Label>
                 <Form.Control
-                  type="number"
-                  value={change < 0 ? 0 : change}
+                  type="text"
+                  value={change < 0 ? "0" : change.toLocaleString()} // Format the number
                   style={{ fontWeight: 'bold' }}
                   readOnly
                   placeholder="Tiền thừa"

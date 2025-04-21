@@ -1,13 +1,15 @@
-import React, { Component, useState } from 'react';
+import React, { Component } from 'react';
 import DatePicker from "react-datepicker";
 import circle from '../../assets/images/dashboard/circle.svg';
-// import { ToastContainer, toast } from "react-toastify";
-// import 'react-toastify/dist/ReactToastify.css';
-
-// import "react-datepicker/dist/react-datepicker.css";
-
-
-
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+import "react-datepicker/dist/react-datepicker.css";
+import {
+  fetchDashboardStatus5,
+  fetchDashboardStatus2,
+  fetchDashboardProduct,
+  fetchDashboardRevenue
+} from '../dashboard/api';
 
 export class Dashboard extends Component {
   handleChange = date => {
@@ -15,6 +17,7 @@ export class Dashboard extends Component {
       startDate: date
     });
   };
+
   constructor(props) {
     super(props)
     this.state = {
@@ -103,15 +106,42 @@ export class Dashboard extends Component {
         }
       ],
       inputValue: '',
+      dashboardStatus5: null,
+      dashboardStatus2: null,
+      dashboardProduct: null,
+      dashboardRevenue: null
     }
     this.statusChangedHandler = this.statusChangedHandler.bind(this);
     this.addTodo = this.addTodo.bind(this);
     this.removeTodo = this.removeTodo.bind(this);
     this.inputChangeHandler = this.inputChangeHandler.bind(this);
   }
-  statusChangedHandler(event, id) {
 
-    //const todoIndex = this.state.todos.findIndex( t => t.id === id );
+  componentDidMount() {
+    this.fetchDashboardData();
+  }
+
+  fetchDashboardData = async () => {
+    try {
+      const [status5, status2, product, revenue] = await Promise.all([
+        fetchDashboardStatus5(),
+        fetchDashboardStatus2(),
+        fetchDashboardProduct(),
+        fetchDashboardRevenue()
+      ]);
+
+      this.setState({
+        dashboardStatus5: status5.data,
+        dashboardStatus2: status2.data,
+        dashboardProduct: product.data,
+        dashboardRevenue: revenue.data
+      });
+    } catch (error) {
+      toast.error("Failed to fetch dashboard data");
+    }
+  };
+
+  statusChangedHandler(event, id) {
     const todo = { ...this.state.todos[id] };
     todo.isCompleted = event.target.checked;
 
@@ -131,7 +161,6 @@ export class Dashboard extends Component {
       id: todos.length ? todos[todos.length - 1].id + 1 : 1,
       task: this.state.inputValue,
       isCompleted: false
-
     })
 
     this.setState({
@@ -156,6 +185,8 @@ export class Dashboard extends Component {
   }
 
   render() {
+    const { dashboardStatus5, dashboardStatus2, dashboardProduct, dashboardRevenue } = this.state;
+
     return (
       <div>
         <div className="page-header">
@@ -163,45 +194,57 @@ export class Dashboard extends Component {
             <span className="page-title-icon bg-gradient-primary text-white mr-2">
               <i className="mdi mdi-home"></i>
             </span> Dashboard </h3>
-          <nav aria-label="breadcrumb">
-            <ul className="breadcrumb">
-              <li className="breadcrumb-item active" aria-current="page">
-                <span></span>Overview <i className="mdi mdi-alert-circle-outline icon-sm text-primary align-middle"></i>
-              </li>
-            </ul>
-          </nav>
+        </div>
+
+        <div className="greeting-container" style={{ textAlign: 'center', margin: '20px 0' }}>
+        <h1 style={{ color: '#00000 ', fontWeight: 'bold' }}>
+
+            🌟 Chào mừng <span style={{ color: '#6C5CE7' }}>{localStorage.getItem("fullName")}</span> đã quay trở lại! 🌟
+          </h1>
+          <p style={{ fontSize: '18px', color: '#555' }}>
+            Chúc bạn một ngày làm việc hiệu quả và tràn đầy năng lượng!
+          </p>
+        </div>
+        <div style={{ textAlign: 'center', margin: '30px 0' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#00000' }}>
+            Thông tin cửa hàng hôm nay
+          </h2>
+          <hr style={{ width: '50%', margin: '10px auto', border: '#00000' }} />
         </div>
         <div className="row">
-          <div className="col-md-4 stretch-card grid-margin">
+          <div className="col-md-3 stretch-card grid-margin">
             <div className="card bg-gradient-danger card-img-holder text-white">
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
-                <h4 className="font-weight-normal mb-3">Weekly Sales <i className="mdi mdi-chart-line mdi-24px float-right"></i>
-                </h4>
-                <h2 className="mb-5">$ 15,0000</h2>
-                <h6 className="card-text">Increased by 60%</h6>
+                <h4 className="font-weight-normal mb-3">Đơn hàng hoàn thành <i className="mdi mdi-chart-line mdi-24px float-right"></i></h4>
+                <h2 className="mb-5">{dashboardStatus5 || 'Loading...'}</h2>
               </div>
             </div>
           </div>
-          <div className="col-md-4 stretch-card grid-margin">
+          <div className="col-md-3 stretch-card grid-margin">
             <div className="card bg-gradient-info card-img-holder text-white">
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
-                <h4 className="font-weight-normal mb-3">Weekly Orders <i className="mdi mdi-bookmark-outline mdi-24px float-right"></i>
-                </h4>
-                <h2 className="mb-5">45,6334</h2>
-                <h6 className="card-text">Decreased by 10%</h6>
+                <h4 className="font-weight-normal mb-3">Đơn hàng xác nhận <i className="mdi mdi-bookmark-outline mdi-24px float-right"></i></h4>
+                <h2 className="mb-5">{dashboardStatus2 || 'Loading...'}</h2>
               </div>
             </div>
           </div>
-          <div className="col-md-4 stretch-card grid-margin">
+          <div className="col-md-3 stretch-card grid-margin">
             <div className="card bg-gradient-success card-img-holder text-white">
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
-                <h4 className="font-weight-normal mb-3">Visitors Online <i className="mdi mdi-diamond mdi-24px float-right"></i>
-                </h4>
-                <h2 className="mb-5">95,5741</h2>
-                <h6 className="card-text">Increased by 5%</h6>
+                <h4 className="font-weight-normal mb-3">Sản phẩm đã bán <i className="mdi mdi-diamond mdi-24px float-right"></i></h4>
+                <h2 className="mb-5">{dashboardProduct || 'Loading...'}</h2>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3 stretch-card grid-margin">
+            <div className="card bg-gradient-warning card-img-holder text-white">
+              <div className="card-body">
+                <img src={circle} className="card-img-absolute" alt="circle" />
+                <h4 className="font-weight-normal mb-3">Doanh thu <i className="mdi mdi-cash mdi-24px float-right"></i></h4>
+                <h2 className="mb-5">{dashboardRevenue || 'Loading...'}</h2>
               </div>
             </div>
           </div>
@@ -219,37 +262,16 @@ export class Dashboard extends Component {
           <div className="col-lg-7 grid-margin stretch-card">
             <div className="card">
               <div className="card-body">
-                <h4 className="card-title">Recent Updates</h4>
-                <div className="d-flex">
-                  <div className="d-flex align-items-center mr-4 text-muted font-weight-light">
-                    <i className="mdi mdi-account-outline icon-sm mr-2"></i>
-                    <span>jack Menqu</span>
-                  </div>
-                  <div className="d-flex align-items-center text-muted font-weight-light">
-                    <i className="mdi mdi-clock icon-sm mr-2"></i>
-                    <span>October 3rd, 2018</span>
-                  </div>
-                </div>
-                <div className="row mt-3">
-                  <div className="col-6 pr-1">
-                    <img src={require("../../assets/images/dashboard/img_1.jpg")} className="mb-2 mw-100 w-100 rounded" alt="face" />
-                    <img src={require("../../assets/images/dashboard/img_4.jpg")} className="mw-100 w-100 rounded" alt="face" />
-                  </div>
-                  <div className="col-6 pl-1">
-                    <img src={require("../../assets/images/dashboard/img_2.jpg")} className="mb-2 mw-100 w-100 rounded" alt="face" />
-                    <img src={require("../../assets/images/dashboard/img_3.jpg")} className="mw-100 w-100 rounded" alt="face " />
-                  </div>
-                </div>
-                <div className="d-flex mt-5 align-items-start">
-                  <img src={require("../../assets/images/faces/face3.jpg")} className="img-sm rounded-circle mr-3" alt="face" />
-                  <div className="mb-0 flex-grow">
-                    <h5 className="mr-2 mb-2">School Website - Authentication Module.</h5>
-                    <p className="mb-0 font-weight-light">It is a long established fact that a reader will be distracted by the readable content of a page.</p>
-                  </div>
-                  <div className="ml-auto">
-                    <i className="mdi mdi-heart-outline text-muted"></i>
-                  </div>
-                </div>
+                <h4 className="card-title">Ghi chú </h4>
+                <p style={{ fontSize: '16px', color: '#555', marginBottom: '20px' }}>
+                  Xin chào {localStorage.getItem("fullName")}, hôm nay là một ngày tuyệt vời để đạt được những mục tiêu mới! 
+                  Hãy xem qua thống kê doanh số để nắm bắt tình hình. 
+                  Với sự nỗ lực và cống hiến của bạn, thành công sẽ luôn đồng hành!
+                </p>
+                <p style={{ fontSize: '14px', color: '#777', marginBottom: '20px' }}>
+                  "Thành công không phải là điểm đến, mà là hành trình. Hãy tiếp tục tiến bước và làm nên điều kỳ diệu!"
+                </p>
+                <canvas id="visit-sale-chart" height="100"></canvas>
               </div>
             </div>
           </div>
@@ -258,54 +280,5 @@ export class Dashboard extends Component {
     );
   }
 }
-// const ListItem = (props) => {
 
-//   const [successMessage, setSuccessMessage] = useState("");
-
-//   const [error, setError] = useState(null);
-
-//   const [loading, setLoading] = useState(true);
-
-
-//   // Thông báo
-//   const message = localStorage.getItem("successMessage");
-//   if (message) {
-//     toast.success(message, {
-//       position: "top-right",
-//       autoClose: 3000,
-//       hideProgressBar: false,
-//       closeOnClick: true,
-//       pauseOnHover: true,
-//       draggable: true
-//     });
-//     localStorage.removeItem("successMessage");
-//   }
-
-//   return (
-//     <div>
-//       <li className={(props.isCompleted ? 'completed' : null)}>
-//         {successMessage && (
-//           <Alert variant="success" onClose={() => setSuccessMessage("")} dismissible>
-//             {successMessage}
-//           </Alert>
-//         )}
-//         {error ? (
-//           <div className="text-danger">{error}</div>
-//         ) : (
-//           <div className="form-check">
-//             <label htmlFor="" className="form-check-label">
-//               <input className="checkbox" type="checkbox"
-//                 checked={props.isCompleted}
-//                 onChange={props.changed}
-//               /> {props.children} <i className="input-helper"></i>
-//             </label>
-//           </div>
-//         )}
-//         <i className="remove mdi mdi-close-circle-outline" onClick={props.remove}></i>
-
-//       </li>
-//       <ToastContainer />
-//     </div>
-//   )
-// };
 export default Dashboard;
