@@ -9,6 +9,7 @@ import {
 import {
     LockOutlined,
 } from '@ant-design/icons';
+import axios from 'axios';
 
 const { Title } = Typography;
 
@@ -20,23 +21,19 @@ const CustomerChangePassword = ({ setLoading, customerId, form, loading }) => {
 
                 <Form
                     layout="vertical"
-                    onFinish={async (values) => {
+                    onFinish={async (allPassword) => {
                         try {
-                            setLoading(true);
-                            const response = await fetch(`/api/customers/${customerId}/change-password`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(values),
-                            });
-
-                            if (!response.ok) throw new Error('Đổi mật khẩu thất bại');
-
+                            let token = localStorage.getItem('token');
+                            const body = {
+                                oldPassword: allPassword.currentPassword,
+                                newPassword: allPassword.newPassword,
+                            }
+                            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                            const response = await axios.post("http://localhost:8080/customer/change-password-customer", body)
                             message.success('Đổi mật khẩu thành công');
                             form.resetFields();
                         } catch (error) {
-                            message.error(error.message);
+                            message.error(error.response.data.message);
                         } finally {
                             setLoading(false);
                         }

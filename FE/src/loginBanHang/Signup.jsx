@@ -4,6 +4,7 @@ import { registerCustomer } from './service/Loginservice';
 import { Typography, Input, Button, Select, Spin, Space, DatePicker, notification, Modal } from 'antd';
 import logo from '../assets/images/logo_h2tl.png'
 
+
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { confirm } = Modal;
@@ -28,7 +29,6 @@ const Signup = () => {
 
     const handleSignup = (e) => {
 
-
         setLoading(true);
 
         registerCustomer({ email, phone, fullName, gender, birthDate })
@@ -37,12 +37,17 @@ const Signup = () => {
                 if (response.status === 200) {
                     notification.success({
                         message: 'Đăng ký thành công',
-                        description: 'Tài khoản của bạn đã được tạo. Vui lòng đăng nhập!',
+                        description: 'Vui lòng kiểm tra email lấy mật khẩu đăng nhập!',
                         placement: 'topRight',
-                        duration: 3
+                        duration: 3,
                     });
-                    history.push('/login');
-                } else {
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 5000);
+                } else if (response.data.status === 400) {
+                    alert('Email hoặc số điện thoại đã tồn tại');
+                }
+                else {
                     alert(response.data.message);
                 }
             })
@@ -66,12 +71,14 @@ const Signup = () => {
     const validateEmail = (email) => {
         const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         return regex.test(email);
+
     };
 
     const validatePhone = (phone) => {
         const regex = /^[0-9]{10}$/;
         return regex.test(phone);
     };
+
 
     const validateForm = () => {
         let isValid = true;
@@ -80,7 +87,24 @@ const Signup = () => {
         if (!fullName.trim()) {
             newErrors.fullName = 'Họ và tên không được để trống';
             isValid = false;
-        } else {
+        }
+        else if (fullName.length < 5) {
+            newErrors.fullName = 'Họ và tên phải có ít nhất 5 ký tự';
+            isValid = false;
+        
+        } else if (fullName.length > 50) {
+            newErrors.fullName = 'Họ và tên không được quá 50 ký tự';
+            isValid = false;
+        }
+        
+        // họ và tên viết được cả dấu
+        else if (!/^[\p{L}\s]+$/u.test(fullName)) {
+            newErrors.fullName = 'Họ và tên không hợp lệ ';
+            isValid = false;
+        }
+
+        else {
+
             newErrors.fullName = '';
         }
 
@@ -91,8 +115,10 @@ const Signup = () => {
             newErrors.email = 'Email không hợp lệ';
             isValid = false;
         }
+
         else {
             newErrors.email = '';
+
         }
 
         if (!phone.trim()) {
@@ -103,6 +129,17 @@ const Signup = () => {
             newErrors.phone = 'Số điện thoại không hợp lệ ( 10 chữ số)';
             isValid = false;
         }
+        // sô điện thoại được bắt đầu bằng 0
+        else if (!/^[0][0-9]{9}$/.test(phone)) {
+            newErrors.phone = 'Số điện thoại phải bắt đầu bằng 0';
+            isValid = false;
+        }
+        // số điện thoại không được có ký tự đặc biệt
+        else if (!/^[0-9]+$/.test(phone)) {
+            newErrors.phone = 'Số điện thoại không hợp lệ';
+            isValid = false;
+        }
+
         else {
             newErrors.phone = '';
         }
@@ -117,7 +154,18 @@ const Signup = () => {
         if (!birthDate) {
             newErrors.birthDate = 'Vui lòng chọn ngày sinh';
             isValid = false;
-        } else {
+        } 
+        // phai lớn hơn 18 tuổi
+        else if (new Date(birthDate) > new Date(new Date().setFullYear(new Date().getFullYear() - 15))) {
+            newErrors.birthDate = 'Đủ 15 tuổi trở lên';
+            isValid = false;
+        }
+        // ngày sinh không được nhỏ hơn 1900
+        else if (new Date(birthDate) < new Date('1900-01-01')) {
+            newErrors.birthDate = 'Ngày sinh không hợp lệ';
+            isValid = false;
+        }
+        else {
             newErrors.birthDate = '';
         }
 
@@ -135,6 +183,7 @@ const Signup = () => {
                 cancelText: 'Hủy bỏ',
                 centered: true,
                 onOk() {
+
                     handleSignup();
                 },
                 onCancel() {

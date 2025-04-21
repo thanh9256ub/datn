@@ -1,8 +1,6 @@
 package com.example.datn.controller;
 
-import com.example.datn.dto.request.ChangePasswordRequest;
-import com.example.datn.dto.request.EmployeeRequest;
-import com.example.datn.dto.request.ForgotPasswordRequest;
+import com.example.datn.dto.request.*;
 import com.example.datn.dto.response.ApiPagingResponse;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.EmployeeResponse;
@@ -125,8 +123,46 @@ public class EmployeeController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<?>> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest){
+    public ResponseEntity<ApiResponse<?>> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) {
         return authenticationService.forgotPassword(forgotPasswordRequest.getEmail());
     }
 
+    @PostMapping("/exists-email")
+    public ResponseEntity<ApiResponse<Boolean>> existsEmail(@RequestBody ExistsEmail existsEmail) {
+        Boolean email = employeeService.existsEmail(existsEmail.getEmail());
+
+        ApiResponse<Boolean> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Email is exists",
+                email
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/exists-username")
+    public ResponseEntity<ApiResponse<Boolean>> existsUsername(@RequestBody ExistsUsername existsUsername){
+        Boolean username = employeeService.exitstsUsername(existsUsername.getUsername());
+
+        ApiResponse<Boolean> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Username is exists",
+                username
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/exists-phone")
+    public ResponseEntity<ApiResponse<Boolean>> existsPhone(@RequestBody ExistsPhone existsPhone){
+        Boolean phone = employeeService.existsPhone(existsPhone.getPhone());
+
+        ApiResponse<Boolean> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Phone is exists",
+                phone
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

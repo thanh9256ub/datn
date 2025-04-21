@@ -1,8 +1,6 @@
 package com.example.datn.controller;
 
-import com.example.datn.dto.request.ChangePasswordRequest;
-import com.example.datn.dto.request.CustomerRequest;
-import com.example.datn.dto.request.ForgotPasswordRequest;
+import com.example.datn.dto.request.*;
 import com.example.datn.dto.response.ApiPagingResponse;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.CustomerResponse;
@@ -155,5 +153,33 @@ public class CustomerController {
         );
 
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/exists-email")
+    public ResponseEntity<ApiResponse<Boolean>> existsEmail(@RequestBody ExistsEmail existsEmail) {
+
+        Boolean email = customerService.existsEmail(existsEmail.getEmail());
+
+        ApiResponse<Boolean> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Email is exists",
+                email
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/exists-phone")
+    public ResponseEntity<ApiResponse<Boolean>> existsPhone(@RequestBody ExistsPhone existsPhone) {
+
+        Boolean phone = customerService.existsPhone(existsPhone.getPhone());
+
+        ApiResponse<Boolean> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Phone is exists",
+                phone
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

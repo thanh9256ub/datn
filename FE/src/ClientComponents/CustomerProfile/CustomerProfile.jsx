@@ -30,6 +30,7 @@ const CustomerProfile = () => {
     const [editing, setEditing] = useState(false);
     const [form] = Form.useForm();
     const [activeTab, setActiveTab] = useState('1');
+    const [update, setUpdate] = useState({});
 
     useEffect(() => {
         const fetchCustomer = async () => {
@@ -55,7 +56,8 @@ const CustomerProfile = () => {
     const onFinish = async (values) => {
         try {
             setLoading(true);
-            const response = await fetch(`/api/customers/${customerId}`, {
+
+            const response = await fetch(`http://localhost:8080/customer/update/${customerId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -63,8 +65,10 @@ const CustomerProfile = () => {
                 body: JSON.stringify(values),
             });
 
-            if (!response.ok) throw new Error('Update failed');
-
+            if (!response.ok) {
+                throw new Error('Cập nhật thông tin không thành công');
+            }
+            
             const updatedData = await response.json();
             setCustomer(updatedData);
             message.success('Cập nhật thông tin thành công');

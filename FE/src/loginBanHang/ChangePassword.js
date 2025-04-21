@@ -15,7 +15,7 @@ const ChangePassword = () => {
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-
+    const [isCustomer, setIsCustomer] = useState(true); // Assume customer by default
     const handleChangePassword = async () => {
         try {
             // Validate inputs
@@ -37,25 +37,26 @@ const ChangePassword = () => {
             setLoading(true);
             setError(null);
 
-            try {
-                const responseCustomer = await ChangePasswordCustomer(oldPassword, newPassword);
-                if (responseCustomer.status === 200) {
-                    notification.success({
-                        message: 'Thành công',
-                        description: 'Đổi mật khẩu thành công!',
-                        placement: 'topRight',
-                        duration: 2
-                    });
-                    history.push('/');
-                    return;
-                }
-            } catch (error) {
-                setError('Đã xảy ra lỗi khi đổi mật khẩu');
-            } finally {
-                setLoading(false);
-            }
+            // try {
+            //     const responseCustomer = await ChangePasswordCustomer(oldPassword, newPassword);
+            //     if (responseCustomer.status === 200) {
+            //         notification.success({
+            //             message: 'Thành công',
+            //             description: 'Đổi mật khẩu thành công!',
+            //             placement: 'topRight',
+            //             duration: 2
+            //         });
+            //         history.push('/');
+            //         return;
+            //     }
+            // } catch (error) {
+            //     setError('Đã xảy ra lỗi khi đổi mật khẩu');
+            // } finally {
+            //     setLoading(false);
+            // }
 
             // Nếu không phải tài khoản khách hàng, thử với tài khoản nhân viên
+            
             const response = await ListChangePassword(oldPassword, newPassword);
             if (response.status === 200) {
                 notification.success({
@@ -65,12 +66,15 @@ const ChangePassword = () => {
                     duration: 2
                 });
                 history.push('/admin/dashboard');
-                return;
-            } else {
-                setError('Đổi mật khẩu thất bại');
+                
             }
+            
 
         } catch (error) {
+            if (error.response && error.response.status === 400) {
+                setError(error.response.data.message);
+                return;
+            }
             setError('Đã xảy ra lỗi khi đổi mật khẩu');
         } finally {
             setLoading(false);

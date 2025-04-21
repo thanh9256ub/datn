@@ -3,7 +3,7 @@ import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import Select from 'react-select'; // Import react-select
-import { addCustomer } from '../service/CustomersService';
+import { addCustomer, existsEmail, existsPhone } from '../service/CustomersService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import { Spinner } from 'react-bootstrap';
 import "./ActionCustomer.css";
@@ -41,7 +41,9 @@ const CreateCustomer = () => {
 
     const [birthDateError, setBirthDateError] = useState('');
 
-    const handleSaveCustomer = () => {
+    const [typingTimeout, setTypingTimeout] = useState(null);
+
+    const handleSaveCustomer = async () => {
         if (!window.confirm('Bạn có chắc chắn muốn thêm khách hàng?')) return;
 
         setFullNameError('');
@@ -55,8 +57,22 @@ const CreateCustomer = () => {
 
         let isValid = true;
 
+        const nameRegex = /^[a-zA-Z ]*$/;
+
         if (!customer.fullName) {
             setFullNameError('Vui lòng nhập tên khách hàng.');
+            isValid = false;
+        }
+        else if (customer.fullName.length < 2) {
+            setFullNameError('Tên khách hàng phải có ít nhất 2 ký tự.');
+            isValid = false;
+        } else if (customer.fullName.length > 100) {
+            setFullNameError('Tên khách hàng không được vượt quá 100 ký tự.');
+            isValid = false;
+        } 
+        // tên khách hàng phải có dấu
+        else if (!/^[\p{L} ]+$/u.test(customer.fullName)) {
+            setFullNameError('Tên khách hàng không hợp lệ.');
             isValid = false;
         }
 
@@ -66,7 +82,24 @@ const CreateCustomer = () => {
         } else if (!/\S+@\S+\.\S+/.test(customer.email)) {
             setEmailError('Email không hợp lệ.');
             isValid = false;
+        } else if (customer.email.length > 100) {
+            setEmailError('Email không được vượt quá 100 ký tự.');
+            isValid = false;
+        } else if (customer.email.length < 15) {
+            setEmailError('Email phải có ít nhất 15 ký tự.');
+            isValid = false;
+        } else if (customer.email.includes(" ")) {
+            setEmailError('Email không được chứa khoảng trắng.');
+            isValid = false;
         }
+        else {
+            const emailExists = await existsEmail(customer.email);
+            if (emailExists) {
+                setEmailError('Email đã tồn tại.');
+                isValid = false;
+            }
+        }
+
 
         if (!customer.phone) {
             setPhoneError('Vui lòng nhập số điện thoại.');
@@ -74,7 +107,19 @@ const CreateCustomer = () => {
         } else if (!/^\d{10}$/.test(customer.phone)) {
             setPhoneError('Số điện thoại không hợp lệ (10 chữ số).');
             isValid = false;
+        } else if (!/^0\d{9}$/.test(customer.phone)) {
+            setPhoneError('Số điện thoại phải bắt đầu bằng số 0 và có tổng cộng 10 chữ số.');
+            isValid = false;
         }
+        else{
+            const phoneExists = await existsPhone(customer.phone);
+            if (phoneExists) {
+                setPhoneError('Số điện thoại đã tồn tại.');
+                isValid = false;
+            }
+        }
+ 
+
 
         if (!customer.birthDate) {
             setBirthDateError('Vui lòng chọn ngày sinh.');
@@ -141,6 +186,38 @@ const CreateCustomer = () => {
 
             .catch(error => console.error("Lỗi lấy tỉnh/thành phố:", error));
     }, []);
+
+    // useEffect(() => {
+
+    //     // Xoá timeout cũ nếu đang gõ tiếp
+    //     if (typingTimeout) clearTimeout(typingTimeout);
+
+    //     const timeout = setTimeout(() => {
+    //         checkEmailExists(customer.email);
+    //     }, 500); // Đợi 0.5s trước khi gọi API
+
+    //     setTypingTimeout(timeout);
+
+    //     // Dọn dẹp timeout khi component unmount hoặc email thay đổi
+    //     return () => clearTimeout(timeout);
+    // }, [customer]);
+
+    // const checkEmailExists = async (email) => {
+    //     const emailExists = await existsEmail(email);
+    //     if (emailExists) {
+    //         setEmailError('Email đã tồn tại.');
+    //     }else {
+    //         setEmailError('');
+    //     } 
+    // }
+    // const checkPhoneExists = async (phone) => {
+    //     const phoneExists = await existsPhone(phone);
+    //     if (phoneExists) {
+    //         setPhoneError('Số điện thoại đã tồn tại.');
+    //     }else {
+    //         setPhoneError('');
+    //     } 
+    // }
 
     const handleProvinceChange = (index, selectedOption) => {
         setSelectedProvince(selectedOption);
@@ -212,6 +289,7 @@ const CreateCustomer = () => {
                                                 value={customer.fullName}
                                                 onChange={(e) => {
                                                     setCustomer({ ...customer, fullName: e.target.value });
+                                                    setFullNameError(''); // Reset lỗi khi người dùng nhập lại
                                                 }} />
                                             {fullNameError && <div style={{ color: "red" }}>{fullNameError}</div>}
 
@@ -256,10 +334,13 @@ const CreateCustomer = () => {
                                                 value={customer.birthDate}
                                                 onChange={(e) => {
                                                     setCustomer({ ...customer, birthDate: e.target.value });
+                                                    setBirthDateError(''); // Reset lỗi khi người dùng nhập lại
                                                 }} />
+                                                
                                             {birthDateError && (
                                                 <div style={{ color: "red" }}>{birthDateError}</div>
                                             )}
+
                                         </Form.Group>
                                     </div>
 
@@ -279,6 +360,7 @@ const CreateCustomer = () => {
                                                 value={customer.email}
                                                 onChange={(e) => {
                                                     setCustomer({ ...customer, email: e.target.value });
+                                                    setEmailError(''); // Reset lỗi khi người dùng nhập lại
                                                 }} />
                                             {emailError && <div style={{ color: "red" }}>{emailError}</div>}
 
@@ -290,6 +372,7 @@ const CreateCustomer = () => {
                                                 value={customer.phone}
                                                 onChange={(e) => {
                                                     setCustomer({ ...customer, phone: e.target.value });
+                                                    setPhoneError(''); // Reset lỗi khi người dùng nhập lại
                                                 }} />
                                             {phoneError && <div style={{ color: "red" }}>{phoneError}</div>}
 

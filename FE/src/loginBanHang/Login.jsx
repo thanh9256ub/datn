@@ -30,62 +30,79 @@ const Login = () => {
 
         try {
             // Thử đăng nhập với tư cách khách hàng trước
-            try {
-                const customerResponse = await getTokenCustomer(username, password);
-                if (customerResponse.message === "TAI_KHOAN_BI_KHOA") {
-                    setError('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với quản trị viên để biết thêm chi tiết.');
-                    return;
-                } else if (customerResponse.status === 200) {
-                    const { token, email, fullName, role, customerId,image } = customerResponse.data.data;
-                    console.log("Data customer: ", customerResponse.data.data)
+            if (username.includes('@')) {
+
+
+                try {
+                    const customerResponse = await getTokenCustomer(username, password);
+                    if (customerResponse.message === "TAI_KHOAN_BI_KHOA") {
+                        setError('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với quản trị viên để biết thêm chi tiết.');
+                        return;
+                    } else if (customerResponse.message === "NOT_CUSTOMER") {
+                        setError('Tài khoản không phải là khách hàng. Vui lòng thử lại với tài khoản khác.');
+                        return;
+                    }
+
+                    else if (customerResponse.status === 200) {
+                        const { token, email, fullName, role, customerId, image } = customerResponse.data.data;
+                        console.log("Data customer: ", customerResponse.data.data)
+
+                        authLogin(token, {
+                            email,
+                            fullName,
+                            role,
+                            customerId,
+                            image
+                            // id: customerId nếu có
+                        });
+
+                        notification.success({
+                            message: 'Đăng nhập thành công',
+                            description: 'Chào mừng bạn quay trở lại!',
+                            placement: 'topRight',
+                            duration: 2
+                        });
+                        history.push('/');
+                        return;
+                    }
+                } catch (customerError) {
+                    console.log('Không phải tài khoản khách hàng, thử đăng nhập nhân viên');
+                    if (customerError.status && customerError.status === 401) {
+                        setError(customerError.response.data.data || 'Email hoặc mật khẩu không đúng');
+                    }
+                    else {
+                        setError('Email hoặc mật khẩu không đúng');
+                    }
+                }
+            }
+            else {
+                const employeeResponse = await getToken(username, password);
+                
+                if (employeeResponse.status === 200) {
+                    const { token, idEmployee, fullName, role, image } = employeeResponse.data.data;
 
                     authLogin(token, {
-                        email,
+                        id: idEmployee,
                         fullName,
                         role,
-                        customerId,
                         image
-                        // id: customerId nếu có
                     });
 
                     notification.success({
                         message: 'Đăng nhập thành công',
-                        description: 'Chào mừng bạn quay trở lại!',
+                        description: 'Chào mừng bạn quay trở lại admin!',
                         placement: 'topRight',
                         duration: 2
                     });
-                    history.push('/');
-                    return;
-                }
-            } catch (customerError) {
-                console.log('Không phải tài khoản khách hàng, thử đăng nhập nhân viên');
-            }
 
-            const employeeResponse = await getToken(username, password);
-            if (employeeResponse.status === 200) {
-                const { token, idEmployee, fullName, role , image} = employeeResponse.data.data;
-
-                authLogin(token, {
-                    id: idEmployee,
-                    fullName,
-                    role,
-                    image
-                });
-
-                notification.success({
-                    message: 'Đăng nhập thành công',
-                    description: 'Chào mừng bạn quay trở lại admin!',
-                    placement: 'topRight',
-                    duration: 2
-                });
-
-                if (role === 'ADMIN' || role === 'EMPLOYEE') {
-                    history.push('/admin/dashboard');
+                    if (role === 'ADMIN' || role === 'EMPLOYEE') {
+                        history.push('/admin/dashboard');
+                    } else {
+                        history.push('/');
+                    }
                 } else {
-                    history.push('/');
+                    throw new Error('Đăng nhập thất bại');
                 }
-            } else {
-                throw new Error('Đăng nhập thất bại');
             }
         } catch (error) {
             if (error.status && error.status === 401) {
@@ -95,6 +112,7 @@ const Login = () => {
         } finally {
             setLoading(false);
         }
+
     };
 
     const handleGoBack = () => {
@@ -111,17 +129,55 @@ const Login = () => {
         let isValid = true;
         const newErrors = { ...errors };
 
+
+
         if (!username.trim()) {
-            newErrors.username = 'Tên đăng nhập không được để trống';
+            newErrors.username = 'Tên đăng nhập hoặc email không được để trống';
             isValid = false;
-        } else {
-            newErrors.username = '';
         }
+
+        else if (username.includes('@')) {
+            // Kiểm tra định dạng email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(username)) {
+                newErrors.username = 'Email không hợp lệ';
+                isValid = false;
+            }
+            // check email hop le
+
+            else {
+                newErrors.username = '';
+            }
+        }
+
+        else {
+            if (username.length < 3 || username.length > 11) {
+                newErrors.username = 'Tên đăng nhập phải chứa từ 3 đến 11 ký tự';
+                isValid = false;
+            }
+            // tên đăng nhập phải có chữ và số
+            else if (!/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{3,11}$/.test(username)) {
+                newErrors.username = 'Tên đăng nhập phải chứa chữ cái và số';
+                isValid = false;
+            }
+            else {
+                newErrors.username = '';
+            }
+        }
+        // Nếu là khách hàng thì kiểm tra điều kiện này
+
+
+
 
         if (!password.trim()) {
             newErrors.password = 'Mật khẩu không được để trống';
             isValid = false;
-        } else {
+        }
+        else if (password.length < 6 || password.length > 12) {
+            newErrors.password = 'Mật khẩu phải chứa từ 6 đến 12 ký tự';
+            isValid = false;
+        }
+        else {
             newErrors.password = '';
         }
 
