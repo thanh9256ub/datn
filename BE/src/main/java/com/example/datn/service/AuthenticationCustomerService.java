@@ -75,7 +75,7 @@ public class AuthenticationCustomerService {
 //                "$2a$10$m3Dp6sBrBrUr2ZfOcCFxBefZL0QA2C2h7Zm95DsnH3wkz81CulfjC");
 
         if (!authentiated) {
-            throw new AuthenticationException("Unauthenticated");
+            throw new AuthenticationException("Email hoặc mật khẩu không đúng");
         }
 
         String token = generateToken(authencaticationCustomerRequest.getEmail(), customer.getRole().getRoleName());
@@ -138,7 +138,7 @@ public class AuthenticationCustomerService {
         if (customerRepository.existsAllByEmailOrPhone(registerCustomerRequest.getEmail(), registerCustomerRequest.getPhone())) {
             return ApiResponse.builder()
                     .status(HttpStatus.BAD_REQUEST.value())
-                    .message("Customer is existed!")
+                    .message("Email hoặc số điện thoại đã được sử dụng!")
                     .build();
         }
 
@@ -252,7 +252,7 @@ public class AuthenticationCustomerService {
         }
         ApiResponse<?> apiResponse = new ApiResponse<>(
                 HttpStatus.BAD_REQUEST.value(),
-                "OldPassword is invalid"
+                "Mật khẩu cũ không đúng"
         );
         return ResponseEntity.badRequest().body(apiResponse);
     }

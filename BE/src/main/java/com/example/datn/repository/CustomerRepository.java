@@ -22,4 +22,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
                                   Pageable pageable);
 
     boolean existsAllByEmailOrPhone(String email, String phone);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByPhone(String phone);
 }

@@ -96,16 +96,15 @@ public class CustomerService {
         customer.setPassword(passwordEncoder.encode(password));
 
 
-
         Customer created = customerRepository.save(customer);
         created.setCustomerCode(generateCustomerCode(created.getId()));
         customerRepository.save(created);
-        emailService.sendSimpleMessage(customer.getEmail(),"Kính chào quý khách đến với H2TL - Mật khẩu đăng nhập của bạn" , "Chào, " + customer.getFullName() +
+        emailService.sendSimpleMessage(customer.getEmail(), "Kính chào quý khách đến với H2TL - Mật khẩu đăng nhập của bạn", "Chào, " + customer.getFullName() +
                 "\n" +
                 "Cảm ơn quý khách đã tin tưởng và lựa chọn sản phẩm của chúng tôi. Chúng tôi rất vui mừng khi biết rằng quý khách đã có trải nghiệm mua sắm tuyệt vời tại H2TL. Chúng tôi cam kết sẽ luôn cung cấp những sản phẩm chất lượng và dịch vụ tốt nhất đến quý khách.\n" +
                 "\n" +
                 "Để hoàn tất việc truy cập vào tài khoản của mình, xin vui lòng sử dụng mật khẩu sau để đăng nhập:\n" +
-                "Mật khẩu: " + password + "\n"+
+                "Mật khẩu: " + password + "\n" +
                 "\n" +
                 "Nếu có bất kỳ câu hỏi nào hoặc cần hỗ trợ thêm, đừng ngần ngại liên hệ với chúng tôi. Chúng tôi luôn sẵn sàng hỗ trợ quý khách.\n" +
                 "\n" +
@@ -221,4 +220,12 @@ public class CustomerService {
         return new CustomerResponse(customerRepository.save(customer));
 
     }
+    public Boolean existsEmail(String email) {
+        return customerRepository.existsByEmail(email);
+    }
+
+    public Boolean existsPhone(String phone) {
+        return customerRepository.existsByPhone(phone);
+    }
 }
+

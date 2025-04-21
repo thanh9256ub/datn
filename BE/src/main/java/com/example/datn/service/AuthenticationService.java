@@ -55,7 +55,7 @@ public class AuthenticationService {
             throws AuthenticationException {
 
         var employee = employeeRepository.findByUsername(authenticationRequest.getUsername()).orElseThrow(
-                () -> new AuthenticationException("Employee not existed."));
+                () -> new AuthenticationException("Không tìm thấy nhân viên."));
 
         if (employee.getStatus() == 0) {
             throw new AuthenticationException("Tài khoản của bạn đã bị khóa, bạn không có quyền đăng nhập");
@@ -68,7 +68,7 @@ public class AuthenticationService {
         // "$2a$10$m3Dp6sBrBrUr2ZfOcCFxBefZL0QA2C2h7Zm95DsnH3wkz81CulfjC");
 
         if (!authentiated) {
-            throw new AuthenticationException("Unauthenticated");
+            throw new AuthenticationException("Tên đăng nhập hoặc mật khẩu không đúng");
         }
 
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Modal, Col, InputGroup, Container, Form, Row } from "react-bootstrap";
-import { addEmployee, listEmployee, listRole, uploadImageToCloudinary } from '../service/EmployeeService';
+import { addEmployee, existsEmail, existsPhone, existsUsername, listEmployee, listRole, uploadImageToCloudinary } from '../service/EmployeeService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import Select from 'react-select';
 import { Spinner } from 'react-bootstrap';
@@ -83,13 +83,35 @@ const CreateEmployee = () => {
 
         let isValid = true;
 
+        const nameRegex = /^[a-zA-Z ]*$/;
+
         if (!newEmployee.fullName) {
             setFullNameError('Vui lòng nhập tên nhân viên.');
             isValid = false;
         }
+        else if (newEmployee.fullName && newEmployee.fullName.length < 2) {
+            setFullNameError('Tên nhân viên phải có ít nhất 2 ký tự.');
+            isValid = false;
+        }
+        else if (newEmployee.fullName && newEmployee.fullName.length > 100) {
+            setFullNameError('Tên nhân viên không được vượt quá 100 ký tự.');
+            isValid = false;
+        }
+        else if (!/^[\p{L} ]+$/u.test(newEmployee.fullName)) {
+            setFullNameError('Tên nhân viên không hợp lệ.');
+            isValid = false;
+        }
+
 
         if (!newEmployee.address) {
             setAddressError('Vui lòng nhập địa chỉ.');
+            isValid = false;
+        } else if (newEmployee.address && newEmployee.address.length > 250) {
+            setAddressError('Địa chỉ không được vượt quá 250 ký tự.');
+            isValid = false;
+        }
+        else if (newEmployee.address && newEmployee.address.length < 2) {
+            setAddressError('Địa chỉ phải có ít nhất 2 ký tự.');
             isValid = false;
         }
 
@@ -97,6 +119,31 @@ const CreateEmployee = () => {
             setUsernameError('Vui lòng nhập username.');
             isValid = false;
         }
+        else if (newEmployee.username && newEmployee.username.length < 3) {
+            setUsernameError('Username phải có ít nhất 3 ký tự.');
+            isValid = false;
+        }
+        else if (newEmployee.username && newEmployee.username.length > 50) {
+            setUsernameError('Username không được vượt quá 50 ký tự.');
+            isValid = false;
+        }
+        else if (newEmployee.username.includes(" ")) {
+            setUsernameError('Username không được chứa khoảng trắng.');
+            isValid = false;
+        }
+        else if (!/^[a-zA-Z0-9]+$/.test(newEmployee.username)) {
+            setUsernameError('Username không được chứa ký tự đặc biệt.');
+            isValid = false;
+        }
+        else {
+            // Gọi hàm existsUsername để kiểm tra username đã tồn tại
+            const usernameExists = await existsUsername(newEmployee.username);
+            if (usernameExists) {
+                setUsernameError('Username đã tồn tại.');
+                isValid = false;
+            }
+        }
+
 
         if (!newEmployee.email) {
             setEmailError('Vui lòng nhập email.');
@@ -104,7 +151,26 @@ const CreateEmployee = () => {
         } else if (!/\S+@\S+\.\S+/.test(newEmployee.email)) {
             setEmailError('Email không hợp lệ.');
             isValid = false;
+        } else if (newEmployee.email.length > 100) {
+            setEmailError('Email không được vượt quá 100 ký tự.');
+            isValid = false;
+        } else if (newEmployee.email.length < 5) {
+            setEmailError('Email phải có ít nhất 5 ký tự.');
+            isValid = false;
         }
+        else if (newEmployee.email && newEmployee.email.includes(" ")) {
+            setEmailError('Email không được chứa khoảng trắng.');
+            isValid = false;
+        } else {
+            // Gọi hàm existsEmail để kiểm tra email đã tồn tại
+            const emailExists = await existsEmail(newEmployee.email);
+            if (emailExists) {
+                setEmailError('Email đã tồn tại.');
+                isValid = false;
+            }
+        }
+
+
 
         if (!newEmployee.phone) {
             setPhoneError('Vui lòng nhập số điện thoại.');
@@ -112,6 +178,17 @@ const CreateEmployee = () => {
         } else if (!/^\d{10}$/.test(newEmployee.phone)) {
             setPhoneError('Số điện thoại không hợp lệ (10 chữ số).');
             isValid = false;
+        } else if (!/^0\d{9}$/.test(newEmployee.phone)) {
+            setPhoneError('Số điện thoại phải bắt đầu bằng số 0 và có tổng cộng 10 chữ số.');
+            isValid = false;
+        }
+        else {
+            // Gọi hàm existsPhone để kiểm tra số điện thoại đã tồn tại
+            const phoneExists = await existsPhone(newEmployee.phone);
+            if (phoneExists) {
+                setPhoneError('Số điện thoại đã tồn tại.');
+                isValid = false;
+            }
         }
 
         if (!newEmployee.roleId) {
@@ -176,7 +253,7 @@ const CreateEmployee = () => {
         } finally {
             setLoading(false);
         }
-        history.push('/admin/employees'); 
+        history.push('/admin/employees');
     };
 
     const toggleShowPassword = () => {
@@ -242,6 +319,7 @@ const CreateEmployee = () => {
                                                 value={newEmployee.fullName}
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, fullName: e.target.value });
+                                                    setFullNameError(""); // Xóa thông báo lỗi khi người dùng nhập
                                                 }} />
                                             {fullNameError && <div style={{ color: "red" }}>{fullNameError}</div>}
                                         </Form.Group>
@@ -253,6 +331,7 @@ const CreateEmployee = () => {
                                                 value={newEmployee.address}
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, address: e.target.value });
+                                                    setAddressError(""); // Xóa thông báo lỗi khi người dùng nhập
                                                 }} />
                                             {addressError && <div style={{ color: "red" }}>{addressError}</div>}
                                         </Form.Group>
@@ -268,6 +347,7 @@ const CreateEmployee = () => {
                                                 value={newEmployee.username} // Change value to detail.username
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, username: e.target.value }); // Change to update username
+                                                    setUsernameError(""); // Clear error message when user types
                                                 }} />
                                             {usernameError && <div style={{ color: "red" }}>{usernameError}</div>}
                                         </Form.Group>
@@ -312,6 +392,7 @@ const CreateEmployee = () => {
                                                 value={newEmployee.email}
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, email: e.target.value });
+                                                    setEmailError(""); // Xóa thông báo lỗi khi người dùng nhập
                                                 }} />
                                             {emailError && <div style={{ color: "red" }}>{emailError}</div>}
                                         </Form.Group>
@@ -339,6 +420,7 @@ const CreateEmployee = () => {
                                                     } else {
                                                         setBirthDateError("Tuổi phải từ 18 trở lên."); // Hiển thị thông báo lỗi
                                                         setNewEmployee({ ...newEmployee, birthDate: "" });
+                                                        
                                                     }
                                                 }} />
                                             {birthDateError && (
@@ -352,6 +434,7 @@ const CreateEmployee = () => {
                                                 value={newEmployee.phone}
                                                 onChange={(e) => {
                                                     setNewEmployee({ ...newEmployee, phone: e.target.value });
+                                                    setPhoneError(""); // Xóa thông báo lỗi khi người dùng nhập
                                                 }} />
                                             {phoneError && <div style={{ color: "red" }}>{phoneError}</div>}
                                         </Form.Group>

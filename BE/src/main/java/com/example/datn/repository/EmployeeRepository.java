@@ -17,6 +17,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
 
     Optional<Employee> findByEmail(String email);
 
+    boolean existsByEmail(String email);
+
+    boolean existsByUsername(String username);
+
+    boolean existsByPhone(String phone);
+
     @Query("SELECT e FROM Employee e" +
             " WHERE (LOWER(e.fullName) LIKE LOWER(concat('%', :search, '%'))" +
             " OR LOWER(e.employeeCode) LIKE LOWER(concat('%', :search, '%')))" +
