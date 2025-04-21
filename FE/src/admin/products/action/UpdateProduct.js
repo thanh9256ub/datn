@@ -432,7 +432,6 @@ const UpdateProduct = () => {
                                                         }}
                                                         placeholder='Nhập tên sản phẩm'
                                                         required
-                                                        disabled={id}
                                                         maxLength={255}
                                                         style={{
                                                             fontSize: '16px',
@@ -443,13 +442,13 @@ const UpdateProduct = () => {
                                             </Form.Group>
                                         </div>
                                         <div className="col-md-12">
-                                            <BrandContainer brandId={brandId} setBrandId={setBrandId} id={id} />
+                                            <BrandContainer brandId={brandId} setBrandId={setBrandId} />
                                         </div>
                                         <div className="col-md-12">
-                                            <CategoryContainer categoryId={categoryId} setCategoryId={setCategoryId} id={id} />
+                                            <CategoryContainer categoryId={categoryId} setCategoryId={setCategoryId} />
                                         </div>
                                         <div className="col-md-12">
-                                            <MaterialContainer materialId={materialId} setMaterialId={setMaterialId} id={id} />
+                                            <MaterialContainer materialId={materialId} setMaterialId={setMaterialId} />
                                         </div>
                                     </div>
                                     <div className="col-md-4" style={{ display: 'grid', placeItems: 'center' }}>
