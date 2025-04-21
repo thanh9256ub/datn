@@ -60,14 +60,14 @@ const CustomerInfo = ({ editing, setEditing, form, customer, loading, onFinish }
                             >
                                 Hủy
                             </Button>
-                            <Button
+                            {/* <Button
                                 type="primary"
                                 onClick={() => form.submit()}
                                 loading={loading}
                                 icon={<SaveOutlined />}
                             >
                                 Lưu thay đổi
-                            </Button>
+                            </Button> */}
                         </Space>
                     )}
                 </div>

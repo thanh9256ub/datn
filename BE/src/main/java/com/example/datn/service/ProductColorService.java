@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -129,5 +130,15 @@ public class ProductColorService {
         imageRepository.saveAll(newImages);
 
         return mapper.toListImageResponse(newImages);
+    }
+
+    public Map<Integer, List<ProductColorResponse>> getProductColorsByProductList(List<Integer> productIds) {
+        List<ProductColor> productColors = repository.findByProductIdIn(productIds);
+
+        return productColors.stream()
+                .collect(Collectors.groupingBy(
+                        pc -> pc.getProduct().getId(),
+                        Collectors.mapping(mapper::toResponse, Collectors.toList())
+                ));
     }
 }

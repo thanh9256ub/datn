@@ -2,13 +2,17 @@ package com.example.datn.controller;
 
 import com.example.datn.dto.request.ExportExcelRequest;
 import com.example.datn.dto.request.ProductRequest;
-import com.example.datn.dto.response.ApiResponse;
-import com.example.datn.dto.response.ProductResponse;
+import com.example.datn.dto.response.*;
 import com.example.datn.entity.Product;
+import com.example.datn.entity.ProductColor;
+import com.example.datn.entity.ProductDetail;
 import com.example.datn.excel.ExcelExporter;
 import com.example.datn.mapper.ProductMapper;
 import com.example.datn.repository.ProductDetailRepository;
+import com.example.datn.service.ProductColorService;
+import com.example.datn.service.ProductDetailService;
 import com.example.datn.service.ProductService;
+import com.example.datn.service.VoucherService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +48,15 @@ public class ProductController {
 
         @Autowired
         private ProductDetailRepository productDetailRepository;
+
+        @Autowired
+        ProductDetailService productDetailService;
+
+        @Autowired
+        ProductColorService productColorService;
+
+        @Autowired
+        VoucherService voucherService;
 
         @PostMapping("add")
         public ResponseEntity<ApiResponse<ProductResponse>> addProduct(
@@ -226,5 +240,29 @@ public class ProductController {
         public List<Object[]> getTop5ProductsWithLowestQuantity() {
                 return service.getTop5ProductsWithLowestQuantity();
                 //top5 sp sap het
+        }
+
+        @GetMapping("/shop-initial-data")
+        public ResponseEntity<?> getShopInitialData() {
+                try {
+                        List<ProductResponse> products = service.getList();
+
+                        List<ProductDetailResponse> productDetails = productDetailService.getAll();
+
+                        Map<Integer, List<ProductColorResponse>> productColors = new HashMap<>();
+                        for (ProductDetailResponse productDetailResponse : productDetails) {
+                                productColors.put(productDetailResponse.getProduct().getId(), productColorService.getProductColorsByProduct(productDetailResponse.getProduct().getId()));
+                        }
+
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("products", products);
+                        response.put("productDetails", productDetails);
+                        response.put("productColors", productColors);
+
+                        return ResponseEntity.ok(response);
+                } catch (Exception e) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body("An error occurred while fetching initial shop data");
+                }
         }
 }

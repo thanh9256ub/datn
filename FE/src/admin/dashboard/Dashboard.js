@@ -197,7 +197,7 @@ export class Dashboard extends Component {
         </div>
 
         <div className="greeting-container" style={{ textAlign: 'center', margin: '20px 0' }}>
-        <h1 style={{ color: '#00000 ', fontWeight: 'bold' }}>
+          <h1 style={{ color: '#00000 ', fontWeight: 'bold' }}>
 
             🌟 Chào mừng <span style={{ color: '#6C5CE7' }}>{localStorage.getItem("fullName")}</span> đã quay trở lại! 🌟
           </h1>
@@ -212,30 +212,30 @@ export class Dashboard extends Component {
           <hr style={{ width: '50%', margin: '10px auto', border: '#00000' }} />
         </div>
         <div className="row">
-          <div className="col-md-3 stretch-card grid-margin">
+          <div className="col-md-3 stretch-card grid-margin" style={{ paddingRight: "2px" }}>
             <div className="card bg-gradient-danger card-img-holder text-white">
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
-                <h4 className="font-weight-normal mb-3">Đơn hàng hoàn thành <i className="mdi mdi-chart-line mdi-24px float-right"></i></h4>
-                <h2 className="mb-5">{dashboardStatus5 || 'Loading...'}</h2>
+                <h4 className="font-weight-normal mb-3">Đơn hoàn thành <i className="mdi mdi-chart-line mdi-24px float-right"></i></h4>
+                <h2 className="mb-5">{dashboardStatus5 || '0'}</h2>
               </div>
             </div>
           </div>
-          <div className="col-md-3 stretch-card grid-margin">
+          <div className="col-md-3 stretch-card grid-margin" style={{ paddingRight: "2px" }}>
             <div className="card bg-gradient-info card-img-holder text-white">
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
-                <h4 className="font-weight-normal mb-3">Đơn hàng xác nhận <i className="mdi mdi-bookmark-outline mdi-24px float-right"></i></h4>
-                <h2 className="mb-5">{dashboardStatus2 || 'Loading...'}</h2>
+                <h4 className="font-weight-normal mb-3">Đơn xác nhận <i className="mdi mdi-bookmark-outline mdi-24px float-right"></i></h4>
+                <h2 className="mb-5">{dashboardStatus2 || '0'}</h2>
               </div>
             </div>
           </div>
-          <div className="col-md-3 stretch-card grid-margin">
+          <div className="col-md-3 stretch-card grid-margin" style={{ paddingRight: "2px" }}>
             <div className="card bg-gradient-success card-img-holder text-white">
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
                 <h4 className="font-weight-normal mb-3">Sản phẩm đã bán <i className="mdi mdi-diamond mdi-24px float-right"></i></h4>
-                <h2 className="mb-5">{dashboardProduct || 'Loading...'}</h2>
+                <h2 className="mb-5">{dashboardProduct || '0'}</h2>
               </div>
             </div>
           </div>
@@ -244,7 +244,7 @@ export class Dashboard extends Component {
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
                 <h4 className="font-weight-normal mb-3">Doanh thu <i className="mdi mdi-cash mdi-24px float-right"></i></h4>
-                <h2 className="mb-5">{dashboardRevenue || 'Loading...'}</h2>
+                <h2 className="mb-5">{dashboardRevenue || '0'}</h2>
               </div>
             </div>
           </div>
@@ -264,8 +264,8 @@ export class Dashboard extends Component {
               <div className="card-body">
                 <h4 className="card-title">Ghi chú </h4>
                 <p style={{ fontSize: '16px', color: '#555', marginBottom: '20px' }}>
-                  Xin chào {localStorage.getItem("fullName")}, hôm nay là một ngày tuyệt vời để đạt được những mục tiêu mới! 
-                  Hãy xem qua thống kê doanh số để nắm bắt tình hình. 
+                  Xin chào {localStorage.getItem("fullName")}, hôm nay là một ngày tuyệt vời để đạt được những mục tiêu mới!
+                  Hãy xem qua thống kê doanh số để nắm bắt tình hình.
                   Với sự nỗ lực và cống hiến của bạn, thành công sẽ luôn đồng hành!
                 </p>
                 <p style={{ fontSize: '14px', color: '#777', marginBottom: '20px' }}>
