@@ -85,15 +85,21 @@ const Orders = () => {
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
-        if (name === 'minPrice' || name === 'maxPrice') {
+        if (name === 'search') {
+            const sanitizedValue = value.replace(/[^a-zA-Z0-9]/g, '');
+            setFilters((prev) => ({
+                ...prev,
+                [name]: sanitizedValue,
+            }));
+        } else if (name === 'minPrice' || name === 'maxPrice') {
             if (value === '' || (Number(value) >= 0 && !/\s/.test(value))) {
-                setFilters(prev => ({
+                setFilters((prev) => ({
                     ...prev,
                     [name]: value,
                 }));
             }
         } else {
-            setFilters(prev => ({
+            setFilters((prev) => ({
                 ...prev,
                 [name]: value,
             }));

@@ -220,6 +220,25 @@ const OrderDetail = () => {
         setShowConfirmModal(true);
     };
 
+    const sanitizeNoteInput = (value) => {
+        const sanitizedValue = value
+            .replace(/[@#$]/g, '')
+            .trim();
+        return sanitizedValue;
+    };
+
+    const handleNoteChange = (e) => {
+        const inputValue = e.target.value;
+        const sanitizedValue = sanitizeNoteInput(inputValue);
+
+        // Show notification if special characters were removed
+        if (inputValue !== sanitizedValue && inputValue.replace(/\s/g, '') !== sanitizedValue.replace(/\s/g, '')) {
+            showNotification('Ghi chú không được chứa ký tự đặc biệt!');
+        }
+
+        setNote(sanitizedValue);
+    };
+
     const handleConfirmSubmit = async () => {
         const nextStatus = getNextStatus(order.status);
         if (nextStatus === order.status) {
@@ -237,8 +256,9 @@ const OrderDetail = () => {
             await updateOrderStatus(order.id, nextStatus);
 
             // Cập nhật note
+            const trimmedNote = note.trim();
             const noteData = {
-                note: note || "",
+                note: trimmedNote || "",
             };
             console.log('Note Data for updateOrderNote:', noteData);
             await updateOrderNote(order.id, noteData);
@@ -1069,8 +1089,8 @@ const OrderDetail = () => {
                                 as="textarea"
                                 rows={3}
                                 value={note}
-                                onChange={(e) => setNote(e.target.value)}
-                                placeholder="Nhập ghi chú (nếu có)"
+                                onChange={handleNoteChange}
+                                placeholder="Nhập ghi chú (không chứa ký tự đặc biệt)"
                             />
                         </Form.Group>
                     </Form>
