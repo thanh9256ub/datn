@@ -76,7 +76,7 @@ public class AddressService {
         address.setWard(addressRequest.getWard());
         address.setDistrict(addressRequest.getDistrict());
         address.setStatus(addressRequest.getStatus());
-        Address oldDefaultAddress = addressRepository.findAddressByCustomerIdAndStatus(address.getId(), 1);
+        Address oldDefaultAddress = addressRepository.findAddressByCustomerIdAndStatus(address.getCustomer().getId(), 1);
         if (Objects.isNull(oldDefaultAddress))
             address.setStatus(1);
         else if (address.getStatus() == 1) {
