@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     Row, Col, Typography, Button, Card, Space, Divider,
     Badge, Rate, Tag, Image, Select, Slider, InputNumber, Checkbox
@@ -6,6 +6,7 @@ import {
 import { FilterOutlined } from '@ant-design/icons';
 import { fetchProducts, fetchProductDetail, fetchProductColorsByProduct } from '../Service/productService';
 import { useHistory } from 'react-router-dom';
+import { fetchProductColorsByProductList } from '../../admin/products/service/ProductService';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -43,123 +44,7 @@ const ShopAllProduct = (props) => {
         }).format(value);
     };
 
-    useEffect(() => {
-        let isMounted = true;
-
-        const getProductsAndDetails = async () => {
-            try {
-                setLoading(true);
-                const [productsResponse, productDetailsResponse] = await Promise.all([
-                    fetchProducts(),
-                    fetchProductDetail()
-                ]);
-
-                if (isMounted) {
-                    const productsData = Array.isArray(productsResponse.data) ? productsResponse.data : [];
-                    const detailsData = Array.isArray(productDetailsResponse.data) ? productDetailsResponse.data : [];
-
-                    const mergedProducts = productsData.map((product) => {
-                        const detail = detailsData.find((d) => d.product.id === product.id);
-                        return {
-                            ...product,
-                            price: detail ? detail.price : 0,
-                            isBestSeller: Math.random() > 0.7,
-                            material: product.material?.materialName || product.material || 'Không xác định',
-                            color: detail?.color?.colorName || detail?.color || 'Không xác định',
-                            size: detail?.size?.sizeName || detail?.size || 'Không xác định'
-                        };
-                    });
-
-                    const colorPromises = detailsData.map(async (item) => {
-                        const colors = await fetchProductColorsByProduct(item.product.id);
-                        return { productId: item.product.id, colors };
-                    });
-
-                    const colorData = await Promise.all(colorPromises);
-                    const colorMap = colorData.reduce((acc, { productId, colors }) => {
-                        acc[productId] = colors;
-                        return acc;
-                    }, {});
-
-                    console.log('Product colors data:', colorMap);
-
-                    setProductColors(colorMap);
-
-                    const uniqueBrands = [...new Set(
-                        mergedProducts
-                            .map(item => item.brand?.brandName)
-                            .filter(brandName => brandName)
-                    )];
-
-                    setBrands(uniqueBrands);
-
-                    const uniqueMaterials = [...new Set(
-                        mergedProducts
-                            .map(item => item.material)
-                            .filter(material => material)
-                    )];
-                    setMaterials(uniqueMaterials);
-
-                    const uniqueColors = [...new Set(
-                        mergedProducts
-                            .map(item => item.color)
-                            .filter(color => color)
-                    )];
-                    setColors(uniqueColors);
-
-                    const uniqueSizes = [...new Set(
-                        mergedProducts
-                            .map(item => item.size)
-                            .filter(size => size)
-                    )];
-                    setSizes(uniqueSizes);
-
-                    const maxPrice = mergedProducts.reduce((max, item) => Math.max(max, item.price), 5000000);
-                    setPriceRange([0, Math.min(maxPrice, 5000000)]);
-                    setInputValues([0, Math.min(maxPrice, 5000000)]);
-
-                    setProducts(mergedProducts);
-                    setFilteredProducts(mergedProducts);
-                    setLoading(false);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                if (isMounted) {
-                    setLoading(false);
-                    setProducts([]);
-                    setFilteredProducts([]);
-                }
-            }
-        };
-
-        getProductsAndDetails();
-
-        return () => { isMounted = false; };
-    }, []);
-
-    useEffect(() => {
-        applyFilters();
-    }, [selectedBrand, priceRange, sortOption, products, selectedMaterials, selectedColors, selectedSizes]);
-
-    const getColorCode = (colorName) => {
-        const colorMap = {
-            'đỏ': 'red',
-            'xanh': 'blue',
-            'vàng': 'yellow',
-            'đen': 'black',
-            'trắng': 'white',
-            'hồng': 'pink',
-            'xám': 'gray',
-            'xanh lá': 'green',
-            'tím': 'purple',
-            'cam': 'orange',
-            'nâu': 'brown',
-            'be': 'beige'
-        };
-        return colorMap[colorName.toLowerCase()] || '#ccc';
-    };
-
-    const applyFilters = () => {
+    const applyFilters = useCallback(() => {
         let result = [...products];
 
         if (selectedBrand) {
@@ -212,7 +97,182 @@ const ShopAllProduct = (props) => {
         }
 
         setFilteredProducts(result);
+    }, [products, selectedBrand, selectedMaterials, selectedColors, selectedSizes, priceRange, sortOption]);
+
+    useEffect(() => {
+        let isMounted = true;
+        const abortController = new AbortController();
+
+        const getProductsAndDetails = async () => {
+            try {
+                setLoading(true);
+
+                // Gọi đồng thời các API cần thiết
+                const [productsResponse, productDetailsResponse] = await Promise.all([
+                    fetchProducts({ signal: abortController.signal }),
+                    fetchProductDetail({ signal: abortController.signal })
+                ]);
+
+                if (!isMounted) return;
+
+                const productsData = Array.isArray(productsResponse.data) ? productsResponse.data : [];
+                const detailsData = Array.isArray(productDetailsResponse.data) ? productDetailsResponse.data : [];
+
+                // Merge product data
+                const mergedProducts = productsData.map((product) => {
+                    const detail = detailsData.find((d) => d.product.id === product.id);
+                    return {
+                        ...product,
+                        price: detail ? detail.price : 0,
+                        isBestSeller: Math.random() > 0.7,
+                        material: product.material?.materialName || product.material || 'Không xác định',
+                        color: detail?.color?.colorName || detail?.color || 'Không xác định',
+                        size: detail?.size?.sizeName || detail?.size || 'Không xác định'
+                    };
+                });
+
+                // Lấy tất cả productIds để gọi API màu sắc 1 lần
+                const productIds = detailsData.map(item => item.product.id);
+
+                // Chỉ gọi API màu sắc nếu có sản phẩm
+                if (productIds.length > 0) {
+                    const colorsResponse = await fetchProductColorsByProductList(productIds, { signal: abortController.signal });
+                    setProductColors(colorsResponse.data || {});
+                }
+
+                // Xử lý dữ liệu brands, materials, colors, sizes
+                const uniqueBrands = [...new Set(
+                    mergedProducts
+                        .map(item => item.brand?.brandName)
+                        .filter(brandName => brandName)
+                )];
+
+                const uniqueMaterials = [...new Set(
+                    mergedProducts
+                        .map(item => item.material)
+                        .filter(material => material)
+                )];
+
+                const uniqueColors = [...new Set(
+                    mergedProducts
+                        .map(item => item.color)
+                        .filter(color => color)
+                )];
+
+                const uniqueSizes = [...new Set(
+                    mergedProducts
+                        .map(item => item.size)
+                        .filter(size => size)
+                )];
+
+                const maxPrice = mergedProducts.reduce((max, item) => Math.max(max, item.price), 5000000);
+                const maxPriceValue = Math.min(maxPrice, 5000000);
+
+                if (isMounted) {
+                    setBrands(uniqueBrands);
+                    setMaterials(uniqueMaterials);
+                    setColors(uniqueColors);
+                    setSizes(uniqueSizes);
+                    setPriceRange([0, maxPriceValue]);
+                    setInputValues([0, maxPriceValue]);
+                    setProducts(mergedProducts);
+                    setLoading(false);
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError' && isMounted) {
+                    console.error('Error:', error);
+                    setLoading(false);
+                    setProducts([]);
+                    setFilteredProducts([]);
+                }
+            }
+        };
+
+        getProductsAndDetails();
+
+        return () => {
+            isMounted = false;
+            abortController.abort();
+        };
+    }, []);
+
+    // Áp dụng filters khi các dependency thay đổi
+    useEffect(() => {
+        applyFilters();
+    }, [applyFilters]);
+
+    const getColorCode = (colorName) => {
+        const colorMap = {
+            'đỏ': 'red',
+            'xanh': 'blue',
+            'vàng': 'yellow',
+            'đen': 'black',
+            'trắng': 'white',
+            'hồng': 'pink',
+            'xám': 'gray',
+            'xanh lá': 'green',
+            'tím': 'purple',
+            'cam': 'orange',
+            'nâu': 'brown',
+            'be': 'beige'
+        };
+        return colorMap[colorName.toLowerCase()] || '#ccc';
     };
+
+    // const applyFilters = () => {
+    //     let result = [...products];
+
+    //     if (selectedBrand) {
+    //         result = result.filter(item => item.brand?.brandName === selectedBrand);
+    //     }
+
+    //     if (selectedMaterials.length > 0) {
+    //         result = result.filter(item =>
+    //             selectedMaterials.includes(item.material)
+    //         );
+    //     }
+
+    //     if (selectedColors.length > 0) {
+    //         result = result.filter(item =>
+    //             selectedColors.includes(item.color)
+    //         );
+    //     }
+
+    //     if (selectedSizes.length > 0) {
+    //         result = result.filter(item =>
+    //             selectedSizes.includes(item.size)
+    //         );
+    //     }
+
+    //     result = result.filter(item => item.price >= priceRange[0] && item.price <= priceRange[1]);
+
+    //     switch (sortOption) {
+    //         case 'price-asc':
+    //             result.sort((a, b) => a.price - b.price);
+    //             break;
+    //         case 'price-desc':
+    //             result.sort((a, b) => b.price - a.price);
+    //             break;
+    //         case 'name-asc':
+    //             result.sort((a, b) => {
+    //                 const nameA = a.productName?.toUpperCase() || '';
+    //                 const nameB = b.productName?.toUpperCase() || '';
+    //                 return nameA.localeCompare(nameB, 'vi');
+    //             });
+    //             break;
+    //         case 'name-desc':
+    //             result.sort((a, b) => {
+    //                 const nameA = a.productName?.toUpperCase() || '';
+    //                 const nameB = b.productName?.toUpperCase() || '';
+    //                 return nameB.localeCompare(nameA, 'vi');
+    //             });
+    //             break;
+    //         default:
+    //             break;
+    //     }
+
+    //     setFilteredProducts(result);
+    // };
 
     const handleMaterialChange = (checkedValues) => {
         setSelectedMaterials(checkedValues);

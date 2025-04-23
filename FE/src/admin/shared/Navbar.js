@@ -154,10 +154,12 @@ const Navbar = () => {
                     <i className="mdi mdi-account mr-2 text-success"></i>
                     <Trans>Thông tin</Trans>
                   </Dropdown.Item>
-                  <Dropdown.Item onClick={handleChangePassword}>
-                    <i className="mdi mdi-cached mr-2 text-success"></i>
-                    <Trans>Đổi mật khẩu</Trans>
-                  </Dropdown.Item>
+                  {!isCustomer && (
+                    <Dropdown.Item onClick={handleChangePassword}>
+                      <i className="mdi mdi-cached mr-2 text-success"></i>
+                      <Trans>Đổi mật khẩu</Trans>
+                    </Dropdown.Item>
+                  )}
                   <Dropdown.Item onClick={handleLogout}>
                     <i className="mdi mdi-logout mr-2 text-primary"></i>
                     <Trans>Đăng xuất</Trans>

@@ -97,24 +97,25 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng thêm sản phẩm trước khi chọn QR  ", toastOptions);
       return;
     }
-    if (finalAmount >1000000000 ) {
+    if (finalAmount > 1000000000) {
       toast.warn("Tổng thanh toán không được quá 1000000000", toastOptions);
       return;
     }
     if (promo.voucherCode) {
-    fetchPromoCodes().then(response => {
-      const promoCodes = response.data.data || [];
-      const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
-      if (matchingPromo.quantity <= 0) {
-        toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
-        return;
-      }
-      if (matchingPromo.status === 0) {
-        toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
-        return;
-      }
-    })
-      .catch(error => console.error('Error fetching promo codes:', error));}
+      fetchPromoCodes().then(response => {
+        const promoCodes = response.data.data || [];
+        const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
+        if (matchingPromo.quantity <= 0) {
+          toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
+          return;
+        }
+        if (matchingPromo.status === 0) {
+          toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
+          return;
+        }
+      })
+        .catch(error => console.error('Error fetching promo codes:', error));
+    }
     if (qrIntervalRef.current) {
       clearInterval(qrIntervalRef.current);
       qrIntervalRef.current = null;
@@ -128,28 +129,29 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     setPaymen(2);
     toast.info("Đã chọn phương thức thanh toán QR ", toastOptions);
     const checkVoucher = setInterval(() => {
-      if( promo.voucherCode) {
-      fetchPromoCodes().then(response => {
-        const promoCodes = response.data.data || [];
-        const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
-        if (matchingPromo.quantity <= 0) {
-          toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
-          clearInterval(qrIntervalRef.current);
-          qrIntervalRef.current = null;
-          setQrImageUrl("");
-          clearInterval(checkVoucher);
-          return;
-        }
-        if (matchingPromo.status === 0) {
-          toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
-          clearInterval(qrIntervalRef.current);
-          qrIntervalRef.current = null;
-          setQrImageUrl("");
-          clearInterval(checkVoucher);
-          return;
-        }
-      })
-        .catch(error => console.error('Error fetching promo codes:', error));}
+      if (promo.voucherCode) {
+        fetchPromoCodes().then(response => {
+          const promoCodes = response.data.data || [];
+          const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
+          if (matchingPromo.quantity <= 0) {
+            toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
+            clearInterval(qrIntervalRef.current);
+            qrIntervalRef.current = null;
+            setQrImageUrl("");
+            clearInterval(checkVoucher);
+            return;
+          }
+          if (matchingPromo.status === 0) {
+            toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
+            clearInterval(qrIntervalRef.current);
+            qrIntervalRef.current = null;
+            setQrImageUrl("");
+            clearInterval(checkVoucher);
+            return;
+          }
+        })
+          .catch(error => console.error('Error fetching promo codes:', error));
+      }
     }, 5000);
     qrIntervalRef.current = setInterval(async () => {
 
@@ -188,12 +190,12 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng chọn hóa đơn trước khi chọn tiền mặt", toastOptions);
       return;
     }
-   
+
     if (totalAmount === 0) {
       toast.warn("Vui lòng thêm sản phẩm trước khi chọn tiền mặt", toastOptions);
       return;
     }
-    if (finalAmount >1000000000  ) {
+    if (finalAmount > 1000000000) {
       toast.warn("Tổng thanh toán không được quá 1000000000", toastOptions);
       return;
     }
@@ -282,7 +284,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
             <th>Sản phẩm</th>
             <th>Số lượng</th>
             <th>Đơn giá</th>
-            <th>Thành tiền</th>
+            <th>Tổng tiền</th>
           </tr>
         </thead>
         <tbody>
@@ -321,20 +323,21 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   };
 
   const handlePaymentConfirmation = async (shouldPrint) => {
-    if( promo.voucherCode) {
-    fetchPromoCodes().then(response => {
-      const promoCodes = response.data.data || [];
-      const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
-      if (matchingPromo.quantity<=0 ) {
-        toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
-        return;
-      } 
-      if (matchingPromo.status===0 ) {
-        toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
-        return;
-      } 
-    })
-    .catch(error => console.error('Error fetching promo codes:', error));}
+    if (promo.voucherCode) {
+      fetchPromoCodes().then(response => {
+        const promoCodes = response.data.data || [];
+        const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
+        if (matchingPromo.quantity <= 0) {
+          toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
+          return;
+        }
+        if (matchingPromo.status === 0) {
+          toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
+          return;
+        }
+      })
+        .catch(error => console.error('Error fetching promo codes:', error));
+    }
     const requestBody = {
 
       customerId: customer?.id || null,
@@ -356,7 +359,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       if (response.status === 200) {
         toast.success("Thanh toán thành công ", toastOptions);
 
-        if (promo.voucherCode&&paymen === 1) {
+        if (promo.voucherCode && paymen === 1) {
           await updatePromoCode(promo.id, { ...promo, quantity: promo.quantity - 1 });
           await addOrderVoucher(idOrder, promo.id);
         }
@@ -378,7 +381,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   };
 
   const handleConfirmPayment = () => {
-   
+
     if (!idOrder) {
       toast.warn("Vui lòng chọn hóa đơn trước khi thanh toán ", toastOptions);
       return;
@@ -391,8 +394,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Hãy chọn phương thức thanh toán ", toastOptions);
       return;
     }
-   
-    if (paymen === 1 && (cashPaid===undefined|| cashPaid === "")) {
+
+    if (paymen === 1 && (cashPaid === undefined || cashPaid === "")) {
       toast.warn("Tiền khách đưa không được để trống ", toastOptions);
       return;
     }
@@ -404,20 +407,21 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng thực hiện đủ các bước ", toastOptions);
       return;
     }
-    if( promo.voucherCode) {
-    fetchPromoCodes().then(response => {
-      const promoCodes = response.data.data || [];
-      const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
-      if (matchingPromo.quantity<=0 ) {
-        toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
-        return;
-      } 
-      if (matchingPromo.status===0 ) {
-        toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
-        return;
-      } 
-    })
-    .catch(error => console.error('Error fetching promo codes:', error));}
+    if (promo.voucherCode) {
+      fetchPromoCodes().then(response => {
+        const promoCodes = response.data.data || [];
+        const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
+        if (matchingPromo.quantity <= 0) {
+          toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
+          return;
+        }
+        if (matchingPromo.status === 0) {
+          toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
+          return;
+        }
+      })
+        .catch(error => console.error('Error fetching promo codes:', error));
+    }
     if (paymen === 2 && !isPaymentSuccessful) {
       toast.warn("Khách hàng chưa chuyển khoản thành công. Vui lòng kiểm tra lại!", toastOptions);
       return;
@@ -529,7 +533,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
                 <Form.Label style={{ fontWeight: 'bold' }}>Tiền khách trả</Form.Label>
                 <Form.Control
                   type="tel"
-                  min="0" 
+                  min="0"
                   value={cashPaid}
                   style={{ fontWeight: 'bold' }}
                   onChange={(e) => {

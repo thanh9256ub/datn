@@ -18,6 +18,7 @@ import CustomerInfo from './component/CustomerInfo';
 import CustomerChangePassword from './component/CustomerChangePassword';
 import AddressBook from './component/AddressBook';
 import CustomerWall from './component/CustomerWall';
+import { updateCustomer } from '../../admin/customers/service/CustomersService';
 
 const { TabPane } = Tabs;
 const { Title, Text } = Typography;
@@ -56,22 +57,12 @@ const CustomerProfile = () => {
     const onFinish = async (values) => {
         try {
             setLoading(true);
-
-            const response = await fetch(`http://localhost:8080/customer/update/${customerId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(values),
-            });
-
-            if (!response.ok) {
-                throw new Error('Cập nhật thông tin không thành công');
+            if (values.birthDate) {
+                values.birthDate = values.birthDate.format('YYYY-MM-DD');
             }
-            
-            const updatedData = await response.json();
-            setCustomer(updatedData);
+            const response = await updateCustomer(customerId, values)
             message.success('Cập nhật thông tin thành công');
+            setCustomer(response.data)
             setEditing(false);
         } catch (error) {
             message.error(error.message);

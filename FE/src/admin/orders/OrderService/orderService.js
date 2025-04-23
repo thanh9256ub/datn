@@ -212,4 +212,18 @@ export const restoreProductQuantity = async (productDetailId, quantity) => {
         throw error;
     }
 };
+export const updateOrderTotalPrice = async (orderId, additionalPayment) => {
+    try {
+        const response = await api.put(`/order/${orderId}/update-total-price`, additionalPayment);
+        console.log('API res (update order total price):', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating order total price:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data,
+        });
+        throw new Error(error.response?.data?.message || 'Không thể cập nhật tổng tiền thanh toán');
+    }
+};
 export default api;
