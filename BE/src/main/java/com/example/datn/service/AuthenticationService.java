@@ -156,7 +156,7 @@ public class AuthenticationService {
         }
         ApiResponse<?> apiResponse = new ApiResponse<>(
                 HttpStatus.BAD_REQUEST.value(),
-                "OldPassword is invalid"
+                "Mật khẩu cũ không đúng !"
         );
         return ResponseEntity.badRequest().body(apiResponse);
     }

@@ -57,7 +57,17 @@ const CustomerChangePassword = ({ setLoading, customerId, form, loading }) => {
                         label="Mật khẩu mới"
                         rules={[
                             { required: true, message: 'Vui lòng nhập mật khẩu mới' },
-                            { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự' }
+                            { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự' },
+                            { max: 20, message: 'Mật khẩu không được quá 20 ký tự' },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (!value || getFieldValue('currentPassword') !== value) {
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.reject(new Error('Mật khẩu mới không được giống mật khẩu hiện tại'));
+                                },
+                            }),
+                            
                         ]}
                     >
                         <Input.Password

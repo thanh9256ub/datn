@@ -25,29 +25,42 @@ const ForgotPassword = () => {
                 setError('Email không hợp lệ');
                 return;
             }
+            if (email.length > 100) {
+                setError('Email không được quá 100 ký tự');
+                return;
+            }
+            if (email.length < 15) {
+                setError('Email không được ít hơn 15 ký tự');
+                return;
+            }
+
+
 
             setLoading(true);
             setError(null);
 
             // Gửi yêu cầu lấy lại mật khẩu cho khách hàng
-            try {
-                const responseCustomer = await ForgotPasswordCustomer(email);
-                if (responseCustomer.status === 200) {
-                    notification.success({
-                        message: 'Thành công',
-                        description: 'Yêu cầu lấy lại mật khẩu đã được gửi! Vui lòng kiểm tra email của bạn.',
-                        placement: 'topRight',
-                        duration: 4.5
-                    });
-                    history.push('/login');
-                    return;
-                }
-            } catch (error) {
-                setError('Đã xảy ra lỗi khi gửi yêu cầu');
-                console.error('Forgot password error:', error);
-            } finally {
-                setLoading(false);
-            }
+            // try {
+            //     const responseCustomer = await ForgotPasswordCustomer(email);
+            //     if (responseCustomer.status === 200) {
+            //         notification.success({
+            //             message: 'Thành công',
+            //             description: 'Yêu cầu lấy lại mật khẩu đã được gửi! Vui lòng kiểm tra email của bạn.',
+            //             placement: 'topRight',
+            //             duration: 4.5
+            //         });
+            //         history.push('/login');
+            //         return;
+            //     }
+            // } catch (error) {
+            //     if (error.response && error.response.status === 404) {
+            //         setError('Email không tồn tại trong hệ thống');
+            //     }
+            //     setError('Đã xảy ra lỗi khi gửi yêu cầu');
+            //     console.error('Forgot password error:', error);
+            // } finally {
+            //     setLoading(false);
+            // }
 
             // Nếu không phải tài khoản khách hàng, thử với tài khoản nhân viên
             const response = await ListForgotpassword(email);
@@ -63,6 +76,10 @@ const ForgotPassword = () => {
                 setError(response.message || 'Gửi yêu cầu thất bại');
             }
         } catch (error) {
+            if (error.response && error.response.status === 404) {
+                setError('Email không tồn tại trong hệ thống');
+                return;
+            }
             setError('Đã xảy ra lỗi khi gửi yêu cầu');
             console.error('Forgot password error:', error);
         } finally {

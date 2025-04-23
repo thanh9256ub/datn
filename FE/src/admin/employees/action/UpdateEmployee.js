@@ -428,6 +428,9 @@ const UpdateEmployee = () => {
                                                 options={roleOptions} // Lọc ra vai trò customer
                                                 value={roleOptions.find(option => option.value === detail.roleId) || null}
                                                 onChange={(selected) => setDetail({ ...detail, roleId: selected.value })}
+                                                // không cho sửa vai trò admin
+                                                isDisabled={detail.roleId === 3 || detail.roleId === 2} // Disable if roleId is 3 or 1
+                                                
                                             />
                                         </Form.Group>
                                     </div>
