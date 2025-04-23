@@ -44,11 +44,13 @@ public class OrderController {
                 HttpStatus.OK.value(), "PaymentMethod retrieved successfully",list);
         return ResponseEntity.ok(apiResponse);
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponse> getOne(@PathVariable("id") Integer id){
         OrderResponse orderResponse=service.getById(id);
         return ResponseEntity.ok(orderResponse);
     }
+
     @PutMapping("/edit/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> update(
             @PathVariable("id") Integer id,@RequestBody OrderRequest orderRequest){
@@ -58,6 +60,19 @@ public class OrderController {
         return  ResponseEntity.ok(apiResponse);
     }
 
+    @PutMapping("/{orderId}/update-total-price")
+    public ResponseEntity<ApiResponse<Order>> updateTotalPrice(
+            @PathVariable Integer orderId,
+            @RequestBody Double additionalPayment) {
+        Order updatedOrder = service.updateOrderTotalPrice(orderId, additionalPayment);
+        ApiResponse<Order> apiResponse = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Order total price updated successfully",
+                updatedOrder
+        );
+        return ResponseEntity.ok(apiResponse);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> delete(@PathVariable("id") Integer id){
         service.detele(id);
@@ -65,6 +80,7 @@ public class OrderController {
                 HttpStatus.OK.value(), "PaymentMethod deleted successfully",null);
         return ResponseEntity.ok(apiResponse);
     }
+
     @PutMapping("/{orderId}/customer-info")
     public ResponseEntity<ApiResponse<OrderResponse>> updateCustomerInfo(
             @PathVariable Integer orderId,
@@ -78,6 +94,7 @@ public class OrderController {
                 updatedOrder
         ));
     }
+
     @PutMapping("/{id}/status")
     public ResponseEntity<ApiResponse<OrderResponse>> updateStatus(
             @PathVariable("id") Integer id,
@@ -95,6 +112,7 @@ public class OrderController {
 
         return ResponseEntity.ok(apiResponse);
     }
+
     @GetMapping("/filter")
     public List<OrderResponse> filterOrders(
             @RequestParam(required = false) String search,
@@ -112,11 +130,13 @@ public class OrderController {
         return service.getOrderSellCounts();
         //ti le chon mua hang
     }
+
     @GetMapping("/order-counts")
     public Object[] getOrderCounts() {
         return service.getOrderCounts();
         //ti le thanh tong
     }
+
     @GetMapping("/orders-by-month/{year}")
     public List<Object[]> getOrdersByMonthIn(@PathVariable Integer year) {
         return service.getOrdersByMonthIn(year);
@@ -135,47 +155,57 @@ public class OrderController {
         return service.findRevenueByMonthIn2025(year);
         //dt  theo nam
     }
+
     @GetMapping("/orders-revenue-month")
     public List<Object[]> findRevenueByDayInMarch(@RequestParam Integer month,@RequestParam Integer year ) {
         return service.findRevenueByDayInMarch(month,year );
         //dt  theo thang
     }
+
     @GetMapping("/revenue-year")
     public Object[] getRevenueByYear(@RequestParam Integer year ) {
         return service.getRevenueByYear(year);
         //nam
     }
+
     @GetMapping("/revenue-month")
     public Object[] getRevenueByMonth(@RequestParam Integer year, @RequestParam Integer month ) {
         return service.getRevenueByMonth(year,month  );
         //thang
     }
+
     @GetMapping("/revenue-year-month")
     public Object[] getRevenueBetweenDates(@RequestParam String startDate,@RequestParam String endDate ) {
         return service.getRevenueBetweenDates(startDate, endDate  );
         //ngay
     }
+
     @GetMapping("/revenue-total")
     public Object[] getRevenueTotal() {
         return service.getRevenueTotal();
         //tong
     }
+
     @GetMapping("/dashboard-status5")
     public int countOrdersWithStatus5Today() {
         return service.countOrdersWithStatus5Today();
     }
+
     @GetMapping("/dashboard-status2")
     public int countOrdersWithStatus2Today() {
         return service.countOrdersWithStatus2Today();
     }
+
     @GetMapping("/dashboard-product")
     public Integer getTotalQuantityOfTodayOrdersWithStatus5() {
         return service.getTotalQuantityOfTodayOrdersWithStatus5();
     }
+
     @GetMapping("/dashboard-revenue")
     public BigDecimal getTotalNetPriceOfTodayOrdersWithStatus5() {
         return service.getTotalNetPriceOfTodayOrdersWithStatus5();
     }
+
     @PostMapping("/checkout/{cartId}")
     public ResponseEntity<ApiResponse<OrderResponse>> checkout(
             @PathVariable("cartId") Integer cartId,
@@ -198,6 +228,7 @@ public class OrderController {
                             "Error creating order: " + e.getMessage(), null));
         }
     }
+
     @PostMapping("/checkout/guest")
     public ResponseEntity<ApiResponse<OrderResponse>> checkoutGuest(
             @Valid @RequestBody GuestOrderRequest guestOrderRequest) {
@@ -229,6 +260,7 @@ public class OrderController {
                     .body(new ApiResponse<>(404, "Order not found", null));
         }
     }
+
     @PutMapping("/{id}/note")
     public ResponseEntity<ApiResponse<OrderResponse>> updateOrderNote(
             @PathVariable Integer id,

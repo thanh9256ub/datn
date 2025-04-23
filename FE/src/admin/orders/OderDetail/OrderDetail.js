@@ -3,7 +3,7 @@ import { useLocation, useParams, useHistory } from 'react-router-dom';
 import { Card, Table, Button, Row, Col, Toast, Modal, Form, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faClock, faBoxOpen, faTruck, faHome, faCheckCircle, faTimesCircle, faPrint, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { fetchOrderDetailsByOrderId, updateOrderStatus, updateCustomerInfo, updateOrderDetails, fetchOrderHistory, createOrderHistory, updateOrderNote, restoreProductQuantity } from '../OrderService/orderService';
+import { fetchOrderDetailsByOrderId, updateOrderStatus, updateCustomerInfo, updateOrderDetails, fetchOrderHistory, createOrderHistory, updateOrderNote, restoreProductQuantity, updateOrderTotalPrice } from '../OrderService/orderService';
 import { Image } from 'react-bootstrap';
 import CustomerInfo from './CustomerInfo';
 import axios from 'axios';
@@ -22,6 +22,8 @@ const OrderDetail = () => {
     const [availableProducts, setAvailableProducts] = useState([]);
     const [updatedCart, setUpdatedCart] = useState([]);
     const history = useHistory();
+    const [initialOrderDetailIds, setInitialOrderDetailIds] = useState([]);
+    const [originalProductDetailIds, setOriginalProductDetailIds] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedColor, setSelectedColor] = useState("");
     const [selectedSize, setSelectedSize] = useState("");
@@ -52,7 +54,9 @@ const OrderDetail = () => {
                         console.log('Order Status:', response[0].order.status);
                         setOrder(response[0].order);
                         setOrderDetails(validOrderDetails);
-                        setInitialOrderDetails(validOrderDetails); // Lưu danh sách ban đầu
+                        setInitialOrderDetails(validOrderDetails);
+                        setInitialOrderDetailIds(validOrderDetails.map(item => item.id));
+                        setOriginalProductDetailIds(validOrderDetails.map(item => item.productDetail.id)); // Lưu ID sản phẩm ban đầu
                         setUpdatedCart(validOrderDetails);
                     } else if (!Array.isArray(response) && response.order) {
                         const validOrderDetails = (response.orderDetails || []).filter(item => item && item.price != null && item.totalPrice != null);
@@ -60,21 +64,16 @@ const OrderDetail = () => {
                         setOrder(response.order);
                         setOrderDetails(validOrderDetails);
                         setInitialOrderDetails(validOrderDetails);
+                        setInitialOrderDetailIds(validOrderDetails.map(item => item.id));
+                        setOriginalProductDetailIds(validOrderDetails.map(item => item.productDetail.id));
                         setUpdatedCart(validOrderDetails);
-                    } else {
-                        setOrderDetails([]);
-                        setInitialOrderDetails([]);
-                        setUpdatedCart([]);
                     }
-                } else {
-                    setOrderDetails([]);
-                    setInitialOrderDetails([]);
-                    setUpdatedCart([]);
                 }
             } catch (error) {
                 if (!isMounted) return;
                 setOrderDetails([]);
                 setInitialOrderDetails([]);
+                setInitialOrderDetailIds([]);
                 setUpdatedCart([]);
             }
         };
@@ -257,16 +256,24 @@ const OrderDetail = () => {
                 throw new Error("Không tìm thấy thông tin đơn hàng hoặc orderId.");
             }
 
-            // Cập nhật trạng thái
             await updateOrderStatus(order.id, nextStatus);
 
-            // Cập nhật note
             const trimmedNote = note.trim();
             const noteData = {
                 note: trimmedNote || "",
             };
-            console.log('Note Data for updateOrderNote:', noteData);
             await updateOrderNote(order.id, noteData);
+
+            if (nextStatus === 5 && additionalPayment > 0) {
+                await updateOrderTotalPrice(order.id, additionalPayment);
+
+                // Cập nhật local state
+                setOrder(prev => ({
+                    ...prev,
+                    totalPrice: prev.totalPrice + additionalPayment,
+                }));
+                setAdditionalPayment(0);
+            }
 
             // Tạo lịch sử đơn hàng
             const historyData = {
@@ -275,7 +282,6 @@ const OrderDetail = () => {
                 description: note || "Cập nhật trạng thái",
                 change_time: new Date().toISOString(),
             };
-            console.log('History Data:', historyData);
             await createOrderHistory(historyData);
 
             // Cập nhật dữ liệu hiển thị
@@ -283,29 +289,12 @@ const OrderDetail = () => {
             setOrderDetails(updatedDetails);
             setOrder(updatedDetails[0]?.order);
 
-            // Tải lại lịch sử đơn hàng
-            const updatedHistory = await fetchOrderHistory(orderId);
-            console.log('Updated Order History:', updatedHistory);
-            setOrderHistory(updatedHistory || []);
-
             showNotification("Cập nhật trạng thái thành công!");
             setShowConfirmModal(false);
             setNote("");
         } catch (error) {
-            console.error('Error in handleConfirmSubmit:', error.response?.data || error.message);
-            let errorMessage = "Có lỗi xảy ra khi cập nhật trạng thái.";
-            if (error.response) {
-                if (error.response.status === 404) {
-                    errorMessage = "Không tìm thấy đơn hàng.";
-                } else if (error.response.status === 400) {
-                    errorMessage = error.response.data?.data || "Dữ liệu không hợp lệ.";
-                } else {
-                    errorMessage = error.response.data?.data || error.message;
-                }
-            } else {
-                errorMessage = error.message;
-            }
-            showNotification(errorMessage);
+            console.error('Error in handleConfirmSubmit:', error);
+            showNotification(`Có lỗi xảy ra: ${error.response?.data?.message || error.message}`);
             setShowConfirmModal(false);
         }
     };
@@ -373,9 +362,15 @@ const OrderDetail = () => {
     };
 
     const handleRemoveItem = (orderDetailId) => {
+        const itemToRemove = updatedCart.find(item => item.id === orderDetailId);
+
+        if (itemToRemove && originalProductDetailIds.includes(itemToRemove.productDetail.id)) {
+            showNotification("Không thể xóa sản phẩm ban đầu của đơn hàng!");
+            return;
+        }
+
         setUpdatedCart(prev => prev.filter(item => item.id !== orderDetailId));
     };
-
     const handleIncreaseQuantity = (itemId) => {
         setUpdatedCart(prev => prev.map(item => {
             if (item.id === itemId) {
@@ -477,16 +472,18 @@ const OrderDetail = () => {
             setOrderDetails(updatedDetails);
             setUpdatedCart(updatedDetails);
 
-            // Tính toán "Cần thanh toán thêm" cho đơn hàng thanh toán chuyển khoản
+            const newOriginalIds = updatedDetails
+                .filter(item => originalProductDetailIds.includes(item.productDetail.id))
+                .map(item => item.productDetail.id);
+            setOriginalProductDetailIds(newOriginalIds);
+
             let additionalPaymentValue = 0;
             if (order.paymentType.paymentTypeName !== "Trực tiếp") {
                 updatedCart.forEach(item => {
                     const initialItem = initialOrderDetails.find(initial => initial.productDetail.id === item.productDetail.id);
                     if (!initialItem) {
-                        // Sản phẩm mới, thêm toàn bộ totalPrice
                         additionalPaymentValue += item.totalPrice;
                     } else if (item.quantity > initialItem.quantity) {
-                        // Số lượng tăng, tính giá trị tăng thêm
                         const extraQuantity = item.quantity - initialItem.quantity;
                         additionalPaymentValue += extraQuantity * item.price;
                     }
@@ -500,14 +497,12 @@ const OrderDetail = () => {
                 description: `Cập nhật danh sách sản phẩm: ${updatedCart.length} sản phẩm`,
                 change_time: new Date().toISOString(),
             };
-            console.log('Product Update History Data:', historyData);
             await createOrderHistory(historyData);
 
             setShowUpdateModal(false);
             showNotification("Cập nhật danh sách sản phẩm thành công!");
-            history.replace(location.pathname, { ...location.state, shouldRefresh: true });
         } catch (error) {
-            console.error('Error updating order details:', error.response?.data || error.message);
+            console.error('Error updating order details:', error);
             showNotification(`Lỗi khi cập nhật danh sách sản phẩm: ${error.response?.data?.message || error.message}`);
         }
     };
@@ -780,7 +775,8 @@ const OrderDetail = () => {
 
     const calculateTotalPayment = () => {
         const productsTotal = calculateProductsTotal();
-        return productsTotal + order.shippingFee - order.discountValue;
+        const total = productsTotal + order.shippingFee - order.discountValue;
+        return total;
     };
 
     const statusInfo = getStatusName("status-update", order.orderType);
@@ -985,10 +981,16 @@ const OrderDetail = () => {
                             <p><strong>Tổng tiền hàng:</strong> {calculateProductsTotal().toLocaleString()} VNĐ</p>
                             <p><strong>Phí vận chuyển:</strong> {order.shippingFee.toLocaleString()} VNĐ</p>
                             <p><strong>Giảm giá:</strong> {order.discountValue.toLocaleString()} VNĐ</p>
-                            <h5 className="fw-bold text-danger"><strong>Tổng thanh toán:</strong> {calculateTotalPayment().toLocaleString()} VNĐ</h5>
-                            {order.paymentType.paymentTypeName !== "Trực tiếp" && additionalPayment > 0 && (
-                                <p className="mt-2"><strong>Cần thanh toán thêm:</strong> {additionalPayment.toLocaleString()} VNĐ</p>
+
+                            {additionalPayment > 0 && order.status !== 5 && (
+                                <p className="text-warning">
+                                    <strong>Cần thanh toán thêm:</strong> {additionalPayment.toLocaleString()} VNĐ
+                                </p>
                             )}
+
+                            <h5 className="fw-bold text-danger">
+                                <strong>Tổng thanh toán:</strong> {calculateTotalPayment().toLocaleString()} VNĐ
+                            </h5>
                         </Card.Body>
                     </Card>
                 </Col>
@@ -1014,7 +1016,7 @@ const OrderDetail = () => {
                                     </thead>
                                     <tbody>
                                         {updatedCart.map(item => {
-                                            const isInitialItem = initialOrderDetails.some(initial => initial.id === item.id); // Kiểm tra sản phẩm ban đầu
+                                            const isInitialItem = initialOrderDetailIds.includes(item.id); // Kiểm tra sản phẩm ban đầu
                                             return (
                                                 <tr key={item.id}>
                                                     <td>{item.productDetail?.product?.productName} - {item.productDetail?.color?.colorName} - {item.productDetail?.size?.sizeName}</td>
@@ -1047,7 +1049,9 @@ const OrderDetail = () => {
                                                     </td>
                                                     <td>{item.totalPrice.toLocaleString()} VNĐ</td>
                                                     <td>
-                                                        {!isInitialItem && ( // Chỉ hiển thị nút xóa nếu không phải sản phẩm ban đầu
+                                                        {originalProductDetailIds.includes(item.productDetail.id) ? (
+                                                            <span className="text-muted">Sản phẩm ban đầu</span>
+                                                        ) : (
                                                             <Button variant="danger" size="sm" onClick={() => handleRemoveItem(item.id)}>
                                                                 <FontAwesomeIcon icon={faTrash} />
                                                             </Button>
