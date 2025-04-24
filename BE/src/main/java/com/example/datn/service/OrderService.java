@@ -219,6 +219,22 @@ public class OrderService {
         }
     }
 
+    @Transactional
+    public Order updateOrderTotalPrice(Integer orderId, Double additionalPayment) {
+        Order order = repository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found with id: " + orderId));
+
+        if (order.getStatus() != 5) {
+            throw new IllegalStateException("Cannot update total price for order not in 'Hoàn tất' status");
+        }
+
+        if (additionalPayment != null && additionalPayment > 0) {
+            order.setTotalPrice(order.getTotalPrice() + additionalPayment);
+        }
+
+        return repository.save(order);
+    }
+
     public OrderResponse updateCustomerInfo(Integer orderId, CustomerInfoRequest request) {
         System.out.println("Updating customer info for order: " + orderId);
         System.out.println("New customer info: " + request.toString());

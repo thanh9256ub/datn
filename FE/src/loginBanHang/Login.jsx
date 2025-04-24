@@ -30,6 +30,7 @@ const Login = () => {
 
         try {
             // Thử đăng nhập với tư cách khách hàng trước
+
             if (username.includes('@')) {
 
 
@@ -105,8 +106,8 @@ const Login = () => {
                 }
             }
         } catch (error) {
-            if (error.status && error.status === 401) {
-                setError(error.response.data.data || 'Tên đăng nhập hoặc mật khẩu không đúng');
+            if (error.status && error.response.status === 401) {
+                setError('Tên đăng nhập hoặc mật khẩu không đúng');
             } else
                 setError('Tên đăng nhập hoặc mật khẩu không đúng');
         } finally {
@@ -156,6 +157,15 @@ const Login = () => {
                 isValid = false;
             }
 
+            // tên đăng nhập phải có chữ và số
+            // else if (!/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{3,11}$/.test(username)) {
+            //     newErrors.username = 'Tên đăng nhập phải chứa chữ cái và số';
+            //     isValid = false;
+            // }
+            else if (username.includes(' ')) {
+                newErrors.username = 'Tên đăng nhập không được chứa khoảng trắng';
+                isValid = false;
+            }
             else {
                 newErrors.username = '';
             }

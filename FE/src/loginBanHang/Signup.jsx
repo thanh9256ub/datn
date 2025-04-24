@@ -273,7 +273,6 @@ const Signup = () => {
                     />
                     {errors.fullName && <p style={{ color: 'red' }}>{errors.fullName}</p>}
 
-
                     <Input
                         type="email"
                         placeholder="Email"

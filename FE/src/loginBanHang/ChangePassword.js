@@ -33,6 +33,20 @@ const ChangePassword = () => {
                 setError('Mật khẩu phải có ít nhất 6 ký tự');
                 return;
             }
+            if (newPassword.length > 20) {
+                setError('Mật khẩu không được quá 20 ký tự');
+                return;
+            }
+
+            if (newPassword === oldPassword) {
+                setError('Mật khẩu mới không được giống mật khẩu cũ');
+                return;
+            }
+            if (newPassword === confirmPassword) {
+                setError('Mật khẩu mới không được giống mật khẩu cũ');
+                return;
+            }
+
 
             setLoading(true);
             setError(null);
@@ -56,7 +70,7 @@ const ChangePassword = () => {
             // }
 
             // Nếu không phải tài khoản khách hàng, thử với tài khoản nhân viên
-            
+
             const response = await ListChangePassword(oldPassword, newPassword);
             if (response.status === 200) {
                 notification.success({
@@ -66,9 +80,9 @@ const ChangePassword = () => {
                     duration: 2
                 });
                 history.push('/admin/dashboard');
-                
+
             }
-            
+
 
         } catch (error) {
             if (error.response && error.response.status === 400) {
