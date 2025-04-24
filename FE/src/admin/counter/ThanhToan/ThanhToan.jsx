@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { fetchShippingFee, confirmPayment, updatePromoCode, addOrderVoucher, checkVNPayPaymentStatus, generateZaloPayPayment, checkZaloPayPaymentStatus, handleCassoWebhook, fetchCassoTransactions, fetchPromoCodes } from '../api'; // Updated import
 import { toastOptions } from '../constants'; // Import constants from the new file
 import logo from '../../../assets/images/logo_h2tl.png';
-const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber, setPhoneNumber, setDelivery, promo, setPromo, customer, setCustomer, customerInfo, setCustomerInfo, qrImageUrl, setQrImageUrl, qrIntervalRef }) => {
+const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber, setPhoneNumber, setDelivery, promo, setPromo, customer, setCustomer, customerInfo, setCustomerInfo, qrImageUrl, setQrImageUrl, qrIntervalRef ,change , setChange}) => {
 
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
@@ -16,8 +16,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   const [paymen, setPaymen] = useState('');
   const [isCashPayment, setIsCashPayment] = useState(false);
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
-  const [cashPaid, setCashPaid] = useState('');
-  const [change, setChange] = useState();
+  const [cashPaid, setCashPaid] = useState();
+  
   let interval = null;
 
   const [finalAmount, setFinalAmount] = useState(totalAmount);
@@ -97,24 +97,25 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng thêm sản phẩm trước khi chọn QR  ", toastOptions);
       return;
     }
-    if (finalAmount >1000000000 ) {
+    if (finalAmount > 1000000000) {
       toast.warn("Tổng thanh toán không được quá 1000000000", toastOptions);
       return;
     }
     if (promo.voucherCode) {
-    fetchPromoCodes().then(response => {
-      const promoCodes = response.data.data || [];
-      const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
-      if (matchingPromo.quantity <= 0) {
-        toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
-        return;
-      }
-      if (matchingPromo.status === 0) {
-        toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
-        return;
-      }
-    })
-      .catch(error => console.error('Error fetching promo codes:', error));}
+      fetchPromoCodes().then(response => {
+        const promoCodes = response.data.data || [];
+        const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
+        if (matchingPromo.quantity <= 0) {
+          toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
+          return;
+        }
+        if (matchingPromo.status === 0) {
+          toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
+          return;
+        }
+      })
+        .catch(error => console.error('Error fetching promo codes:', error));
+    }
     if (qrIntervalRef.current) {
       clearInterval(qrIntervalRef.current);
       qrIntervalRef.current = null;
@@ -128,28 +129,29 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     setPaymen(2);
     toast.info("Đã chọn phương thức thanh toán QR ", toastOptions);
     const checkVoucher = setInterval(() => {
-      if( promo.voucherCode) {
-      fetchPromoCodes().then(response => {
-        const promoCodes = response.data.data || [];
-        const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
-        if (matchingPromo.quantity <= 0) {
-          toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
-          clearInterval(qrIntervalRef.current);
-          qrIntervalRef.current = null;
-          setQrImageUrl("");
-          clearInterval(checkVoucher);
-          return;
-        }
-        if (matchingPromo.status === 0) {
-          toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
-          clearInterval(qrIntervalRef.current);
-          qrIntervalRef.current = null;
-          setQrImageUrl("");
-          clearInterval(checkVoucher);
-          return;
-        }
-      })
-        .catch(error => console.error('Error fetching promo codes:', error));}
+      if (promo.voucherCode) {
+        fetchPromoCodes().then(response => {
+          const promoCodes = response.data.data || [];
+          const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
+          if (matchingPromo.quantity <= 0) {
+            toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
+            clearInterval(qrIntervalRef.current);
+            qrIntervalRef.current = null;
+            setQrImageUrl("");
+            clearInterval(checkVoucher);
+            return;
+          }
+          if (matchingPromo.status === 0) {
+            toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
+            clearInterval(qrIntervalRef.current);
+            qrIntervalRef.current = null;
+            setQrImageUrl("");
+            clearInterval(checkVoucher);
+            return;
+          }
+        })
+          .catch(error => console.error('Error fetching promo codes:', error));
+      }
     }, 5000);
     qrIntervalRef.current = setInterval(async () => {
 
@@ -188,12 +190,12 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Vui lòng chọn hóa đơn trước khi chọn tiền mặt", toastOptions);
       return;
     }
-   
+
     if (totalAmount === 0) {
       toast.warn("Vui lòng thêm sản phẩm trước khi chọn tiền mặt", toastOptions);
       return;
     }
-    if (finalAmount >1000000000  ) {
+    if (finalAmount > 1000000000) {
       toast.warn("Tổng thanh toán không được quá 1000000000", toastOptions);
       return;
     }
@@ -282,7 +284,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
             <th>Sản phẩm</th>
             <th>Số lượng</th>
             <th>Đơn giá</th>
-            <th>Thành tiền</th>
+            <th>Tổng tiền</th>
           </tr>
         </thead>
         <tbody>
@@ -310,6 +312,16 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       <div class="thank-you">
       Cảm ơn Quý Khách, hẹn gặp lại!
       </div>
+      <script>
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+            setTimeout(function() {
+              window.close();
+            }, 1000);
+          }, 500);
+        };
+      </script>
       </body>
       </html>
     `;
@@ -317,24 +329,24 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     const printWindow = window.open('', '_blank');
     printWindow.document.write(invoiceContent);
     printWindow.document.close();
-    printWindow.print();
   };
 
   const handlePaymentConfirmation = async (shouldPrint) => {
-    if( promo.voucherCode) {
-    fetchPromoCodes().then(response => {
-      const promoCodes = response.data.data || [];
-      const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
-      if (matchingPromo.quantity<=0 ) {
-        toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
-        return;
-      } 
-      if (matchingPromo.status===0 ) {
-        toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
-        return;
-      } 
-    })
-    .catch(error => console.error('Error fetching promo codes:', error));}
+    if (promo.voucherCode) {
+      fetchPromoCodes().then(response => {
+        const promoCodes = response.data.data || [];
+        const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
+        if (matchingPromo.quantity <= 0) {
+          toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
+          return;
+        }
+        if (matchingPromo.status === 0) {
+          toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
+          return;
+        }
+      })
+        .catch(error => console.error('Error fetching promo codes:', error));
+    }
     const requestBody = {
 
       customerId: customer?.id || null,
@@ -356,7 +368,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       if (response.status === 200) {
         toast.success("Thanh toán thành công ", toastOptions);
 
-        if (promo.voucherCode&&paymen === 1) {
+        if (promo.voucherCode && paymen === 1) {
           await updatePromoCode(promo.id, { ...promo, quantity: promo.quantity - 1 });
           await addOrderVoucher(idOrder, promo.id);
         }
@@ -378,7 +390,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   };
 
   const handleConfirmPayment = () => {
-   
+
     if (!idOrder) {
       toast.warn("Vui lòng chọn hóa đơn trước khi thanh toán ", toastOptions);
       return;
@@ -391,33 +403,34 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       toast.warn("Hãy chọn phương thức thanh toán ", toastOptions);
       return;
     }
-   
-    if (paymen === 1 && (cashPaid===undefined|| cashPaid === "")) {
+
+    if (paymen === 1 && (cashPaid === undefined || cashPaid === "")) {
       toast.warn("Tiền khách đưa không được để trống ", toastOptions);
       return;
     }
     if (paymen === 1 && (change < 0 || change === undefined)) {
-      toast.warn("Tiền thừa không được nhỏ hơn 0", toastOptions);
+      toast.warn("Vui lòng kiểm tra lại tiền khách đưa ", toastOptions);
       return;
     }
     if (!isPaymentEnabled) {
       toast.warn("Vui lòng thực hiện đủ các bước ", toastOptions);
       return;
     }
-    if( promo.voucherCode) {
-    fetchPromoCodes().then(response => {
-      const promoCodes = response.data.data || [];
-      const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
-      if (matchingPromo.quantity<=0 ) {
-        toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
-        return;
-      } 
-      if (matchingPromo.status===0 ) {
-        toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
-        return;
-      } 
-    })
-    .catch(error => console.error('Error fetching promo codes:', error));}
+    if (promo.voucherCode) {
+      fetchPromoCodes().then(response => {
+        const promoCodes = response.data.data || [];
+        const matchingPromo = promoCodes.find(p => p.voucherCode === promo.voucherCode);
+        if (matchingPromo.quantity <= 0) {
+          toast.warn("Mã giảm giá số lượng đã hết", toastOptions);
+          return;
+        }
+        if (matchingPromo.status === 0) {
+          toast.warn("Mã giảm giá đã hết hiệu lực", toastOptions);
+          return;
+        }
+      })
+        .catch(error => console.error('Error fetching promo codes:', error));
+    }
     if (paymen === 2 && !isPaymentSuccessful) {
       toast.warn("Khách hàng chưa chuyển khoản thành công. Vui lòng kiểm tra lại!", toastOptions);
       return;
@@ -485,7 +498,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         idOrder={idOrder}
         setQrImageUrl={setQrImageUrl}
         qrIntervalRef={qrIntervalRef}
-        customer={customer} />
+        customer={customer} setChange={setChange} />
 
       <h5 style={{ fontWeight: 'bold' }}>Tổng tiền hàng: {totalAmount.toLocaleString()} VND</h5>
       <h5 style={{ fontWeight: 'bold' }}>Giảm giá: {(totalAmount - finalAmount).toLocaleString()} VND</h5>
@@ -502,6 +515,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
           >
             Tiền mặt
           </Button>
+
         </Col>
         <Col sm={6}>
           <Button style={{ fontWeight: 'bold' }}
@@ -525,23 +539,41 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         <>
           <Row className="mb-3">
             <Col sm={12}>
-              <Form.Group controlId="formCashPaid">
-                <Form.Label style={{ fontWeight: 'bold' }}>Tiền khách trả</Form.Label>
+            <Form.Label style={{ fontWeight: 'bold', marginRight: '10px' }}>Tiền khách trả</Form.Label>
+            <Form.Group controlId="formCashPaid" style={{ display: 'flex', alignItems: 'center' }}>
                 <Form.Control
-                  type="tel"
-                  min="0" 
-                  value={cashPaid}
-                  style={{ fontWeight: 'bold' }}
+                  type="text"
+                  value={cashPaid.toLocaleString()}
+                  style={{ fontWeight: 'bold', flex: 1 }}
                   onChange={(e) => {
-                    const onlyNumbers = e.target.value.replace(/\D/g, '');
-                    setCashPaid(onlyNumbers);
-                    setChange(onlyNumbers - (finalAmount + shippingFee));
+                    const rawValue = e.target.value.replace(/[^\d]/g, '');
+                    const numericValue = rawValue === '' ? 0 : parseInt(rawValue, 10);
+                    setCashPaid(numericValue);
+                    setChange(numericValue - (finalAmount + shippingFee));
                   }}
                   placeholder="Nhập số tiền khách trả"
                 />
+                <i
+                  className="mdi mdi-clipboard-check"
+                  style={{
+                    fontSize: '1.5rem',
+                    color: '#28a745',
+                    cursor: 'pointer',
+                    marginLeft: '10px'
+                  }}
+                  onClick={() => {
+                    if (paymen !== 1) {
+                      toast.warn("Vui lòng chọn phương thức thanh toán Tiền mặt trước ", toastOptions);
+                      return;
+                    }
+                    setCashPaid(finalAmount);
+                    setChange(0);
+                  }}
+                ></i>
               </Form.Group>
             </Col>
           </Row>
+
           <Row className="mb-3">
             <Col sm={12}>
               <Form.Group controlId="formChange">

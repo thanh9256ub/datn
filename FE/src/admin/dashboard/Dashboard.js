@@ -217,7 +217,7 @@ export class Dashboard extends Component {
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
                 <h4 className="font-weight-normal mb-3">Đơn hàng hoàn thành <i className="mdi mdi-chart-line mdi-24px float-right"></i></h4>
-                <h2 className="mb-5">{dashboardStatus5 || 'Loading...'}</h2>
+                <h2 className="mb-5">{dashboardStatus5 || 0 }</h2>
               </div>
             </div>
           </div>
@@ -226,7 +226,7 @@ export class Dashboard extends Component {
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
                 <h4 className="font-weight-normal mb-3">Đơn hàng xác nhận <i className="mdi mdi-bookmark-outline mdi-24px float-right"></i></h4>
-                <h2 className="mb-5">{dashboardStatus2 || 'Loading...'}</h2>
+                <h2 className="mb-5">{dashboardStatus2 || 0 }</h2>
               </div>
             </div>
           </div>
@@ -235,7 +235,7 @@ export class Dashboard extends Component {
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
                 <h4 className="font-weight-normal mb-3">Sản phẩm đã bán <i className="mdi mdi-diamond mdi-24px float-right"></i></h4>
-                <h2 className="mb-5">{dashboardProduct || 'Loading...'}</h2>
+                <h2 className="mb-5">{dashboardProduct || 0 }</h2>
               </div>
             </div>
           </div>
@@ -244,7 +244,7 @@ export class Dashboard extends Component {
               <div className="card-body">
                 <img src={circle} className="card-img-absolute" alt="circle" />
                 <h4 className="font-weight-normal mb-3">Doanh thu <i className="mdi mdi-cash mdi-24px float-right"></i></h4>
-                <h2 className="mb-5">{dashboardRevenue || 'Loading...'}</h2>
+                <h2 className="mb-5">{dashboardRevenue?.toLocaleString() || 0 }</h2>
               </div>
             </div>
           </div>
