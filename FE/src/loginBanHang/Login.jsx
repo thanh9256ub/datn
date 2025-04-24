@@ -77,7 +77,7 @@ const Login = () => {
             }
             else {
                 const employeeResponse = await getToken(username, password);
-                
+
                 if (employeeResponse.status === 200) {
                     const { token, idEmployee, fullName, role, image } = employeeResponse.data.data;
 
@@ -155,11 +155,7 @@ const Login = () => {
                 newErrors.username = 'Tên đăng nhập phải chứa từ 3 đến 11 ký tự';
                 isValid = false;
             }
-            // tên đăng nhập phải có chữ và số
-            else if (!/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{3,11}$/.test(username)) {
-                newErrors.username = 'Tên đăng nhập phải chứa chữ cái và số';
-                isValid = false;
-            }
+
             else {
                 newErrors.username = '';
             }
