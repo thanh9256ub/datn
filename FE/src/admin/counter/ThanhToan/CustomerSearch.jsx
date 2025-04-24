@@ -318,7 +318,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
                       id="gender-male"
                       label="Nam"
                       name="gender"
-                      value="0"
+                      value="1"
                       checked={newCustomer.gender === "0"}
                       onChange={(e) => setNewCustomer({ ...newCustomer, gender: e.target.value })}
                       style={{ fontWeight: 'bold', display: 'inline-block' }}
@@ -328,7 +328,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
                       id="gender-female"
                       label="Nữ"
                       name="gender"
-                      value="1"
+                      value="0"
                       checked={newCustomer.gender === "1"}
                       onChange={(e) => setNewCustomer({ ...newCustomer, gender: e.target.value })}
                       style={{ fontWeight: 'bold', display: 'inline-block', marginLeft: '40px' }}

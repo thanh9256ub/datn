@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { fetchShippingFee, confirmPayment, updatePromoCode, addOrderVoucher, checkVNPayPaymentStatus, generateZaloPayPayment, checkZaloPayPaymentStatus, handleCassoWebhook, fetchCassoTransactions, fetchPromoCodes } from '../api'; // Updated import
 import { toastOptions } from '../constants'; // Import constants from the new file
 import logo from '../../../assets/images/logo_h2tl.png';
-const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber, setPhoneNumber, setDelivery, promo, setPromo, customer, setCustomer, customerInfo, setCustomerInfo, qrImageUrl, setQrImageUrl, qrIntervalRef }) => {
+const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber, setPhoneNumber, setDelivery, promo, setPromo, customer, setCustomer, customerInfo, setCustomerInfo, qrImageUrl, setQrImageUrl, qrIntervalRef ,change , setChange}) => {
 
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
@@ -16,8 +16,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   const [paymen, setPaymen] = useState('');
   const [isCashPayment, setIsCashPayment] = useState(false);
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
-  const [cashPaid, setCashPaid] = useState('');
-  const [change, setChange] = useState();
+  const [cashPaid, setCashPaid] = useState();
+  
   let interval = null;
 
   const [finalAmount, setFinalAmount] = useState(totalAmount);
@@ -312,6 +312,16 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       <div class="thank-you">
       Cảm ơn Quý Khách, hẹn gặp lại!
       </div>
+      <script>
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+            setTimeout(function() {
+              window.close();
+            }, 1000);
+          }, 500);
+        };
+      </script>
       </body>
       </html>
     `;
@@ -319,7 +329,6 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
     const printWindow = window.open('', '_blank');
     printWindow.document.write(invoiceContent);
     printWindow.document.close();
-    printWindow.print();
   };
 
   const handlePaymentConfirmation = async (shouldPrint) => {
@@ -400,7 +409,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       return;
     }
     if (paymen === 1 && (change < 0 || change === undefined)) {
-      toast.warn("Tiền thừa không được nhỏ hơn 0", toastOptions);
+      toast.warn("Vui lòng kiểm tra lại tiền khách đưa ", toastOptions);
       return;
     }
     if (!isPaymentEnabled) {
@@ -489,7 +498,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         idOrder={idOrder}
         setQrImageUrl={setQrImageUrl}
         qrIntervalRef={qrIntervalRef}
-        customer={customer} />
+        customer={customer} setChange={setChange} />
 
       <h5 style={{ fontWeight: 'bold' }}>Tổng tiền hàng: {totalAmount.toLocaleString()} VND</h5>
       <h5 style={{ fontWeight: 'bold' }}>Giảm giá: {(totalAmount - finalAmount).toLocaleString()} VND</h5>
@@ -506,6 +515,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
           >
             Tiền mặt
           </Button>
+
         </Col>
         <Col sm={6}>
           <Button style={{ fontWeight: 'bold' }}
@@ -529,23 +539,43 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         <>
           <Row className="mb-3">
             <Col sm={12}>
-              <Form.Group controlId="formCashPaid">
-                <Form.Label style={{ fontWeight: 'bold' }}>Tiền khách trả</Form.Label>
+            <Form.Label style={{ fontWeight: 'bold', marginRight: '10px' }}>Tiền khách trả</Form.Label>
+            <Form.Group controlId="formCashPaid" style={{ display: 'flex', alignItems: 'center' }}>
                 <Form.Control
+
                   type="tel"
-                  min="0"
-                  value={cashPaid}
-                  style={{ fontWeight: 'bold' }}
+                  value={cashPaid.toLocaleString()}
+                  style={{ fontWeight: 'bold', flex: 1 }}
+
                   onChange={(e) => {
-                    const onlyNumbers = e.target.value.replace(/\D/g, '');
-                    setCashPaid(onlyNumbers);
-                    setChange(onlyNumbers - (finalAmount + shippingFee));
+                    const rawValue = e.target.value.replace(/[^\d]/g, '');
+                    const numericValue = rawValue === '' ? 0 : parseInt(rawValue, 10);
+                    setCashPaid(numericValue);
+                    setChange(numericValue - (finalAmount + shippingFee));
                   }}
                   placeholder="Nhập số tiền khách trả"
                 />
+                <i
+                  className="mdi mdi-clipboard-check"
+                  style={{
+                    fontSize: '1.5rem',
+                    color: '#28a745',
+                    cursor: 'pointer',
+                    marginLeft: '10px'
+                  }}
+                  onClick={() => {
+                    if (paymen !== 1) {
+                      toast.warn("Vui lòng chọn phương thức thanh toán Tiền mặt trước ", toastOptions);
+                      return;
+                    }
+                    setCashPaid(finalAmount);
+                    setChange(0);
+                  }}
+                ></i>
               </Form.Group>
             </Col>
           </Row>
+
           <Row className="mb-3">
             <Col sm={12}>
               <Form.Group controlId="formChange">
