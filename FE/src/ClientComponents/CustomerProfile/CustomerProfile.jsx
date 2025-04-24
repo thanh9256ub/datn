@@ -18,6 +18,7 @@ import CustomerInfo from './component/CustomerInfo';
 import CustomerChangePassword from './component/CustomerChangePassword';
 import AddressBook from './component/AddressBook';
 import CustomerWall from './component/CustomerWall';
+import { updateCustomer } from '../../admin/customers/service/CustomersService';
 
 const { TabPane } = Tabs;
 const { Title, Text } = Typography;
@@ -30,6 +31,7 @@ const CustomerProfile = () => {
     const [editing, setEditing] = useState(false);
     const [form] = Form.useForm();
     const [activeTab, setActiveTab] = useState('1');
+    const [update, setUpdate] = useState({});
 
     useEffect(() => {
         const fetchCustomer = async () => {
@@ -55,19 +57,12 @@ const CustomerProfile = () => {
     const onFinish = async (values) => {
         try {
             setLoading(true);
-            const response = await fetch(`/api/customers/${customerId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(values),
-            });
-
-            if (!response.ok) throw new Error('Update failed');
-
-            const updatedData = await response.json();
-            setCustomer(updatedData);
+            if (values.birthDate) {
+                values.birthDate = values.birthDate.format('YYYY-MM-DD');
+            }
+            const response = await updateCustomer(customerId, values)
             message.success('Cập nhật thông tin thành công');
+            setCustomer(response.data)
             setEditing(false);
         } catch (error) {
             message.error(error.message);

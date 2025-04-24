@@ -83,3 +83,35 @@ export const updateCustomerStatus = async (id) => {
     const response = await axios.put("http://localhost:8080/customer/updateCustomerStatus" + '/' + id)
     return response.data
 }
+
+export const existsEmail = async (email) => {
+    let token = localStorage.getItem('token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    try {
+        // Gửi yêu cầu POST để kiểm tra sự tồn tại của email
+        const response = await axios.post("http://localhost:8080/customer/exists-email", {email});
+
+        // Trả về dữ liệu từ phản hồi
+        return response.data.data;
+    } catch (error) {
+        // Xử lý lỗi nếu có
+        console.error("Đã xảy ra lỗi khi kiểm tra email:", error);
+        return false; // Hoặc trả về một giá trị khác để đại diện cho trường hợp email không tồn tại
+    }
+}
+
+export const existsPhone = async (phone) => {
+    let token = localStorage.getItem('token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    try {
+        // Gửi yêu cầu POST để kiểm tra sự tồn tại của email
+        const response = await axios.post("http://localhost:8080/customer/exists-phone", { phone });
+
+        // Trả về dữ liệu từ phản hồi
+        return response.data.data;
+    } catch (error) {
+        // Xử lý lỗi nếu có
+        console.error("Đã xảy ra lỗi khi kiểm tra email:", error);
+        return false; // Hoặc trả về một giá trị khác để đại diện cho trường hợp email không tồn tại
+    }
+}

@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -119,4 +120,17 @@ public class ProductColorController {
                 return ResponseEntity.ok(response);
         }
 
+        @GetMapping("/by-products")
+        public ResponseEntity<ApiResponse<Map<Integer, List<ProductColorResponse>>>> getProductColorsByProductList(
+                @RequestParam("productIds") List<Integer> productIds) {
+
+                Map<Integer, List<ProductColorResponse>> responseMap = service.getProductColorsByProductList(productIds);
+
+                ApiResponse<Map<Integer, List<ProductColorResponse>>> response = new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Successfully",
+                        responseMap);
+
+                return ResponseEntity.ok(response);
+        }
 }

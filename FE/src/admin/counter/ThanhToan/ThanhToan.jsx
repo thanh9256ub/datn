@@ -542,9 +542,11 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
             <Form.Label style={{ fontWeight: 'bold', marginRight: '10px' }}>Tiền khách trả</Form.Label>
             <Form.Group controlId="formCashPaid" style={{ display: 'flex', alignItems: 'center' }}>
                 <Form.Control
-                  type="text"
+
+                  type="tel"
                   value={cashPaid.toLocaleString()}
                   style={{ fontWeight: 'bold', flex: 1 }}
+
                   onChange={(e) => {
                     const rawValue = e.target.value.replace(/[^\d]/g, '');
                     const numericValue = rawValue === '' ? 0 : parseInt(rawValue, 10);

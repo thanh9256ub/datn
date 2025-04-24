@@ -15,6 +15,7 @@ import com.example.datn.repository.ColorRepository;
 import com.example.datn.repository.ProductDetailRepository;
 import com.example.datn.repository.SizeRepository;
 import com.example.datn.specification.ProductSpecification;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -112,6 +113,33 @@ public class ProductDetailService {
                         ProductDetail::getQuantity,
                         (existing, replacement) -> existing
                 ));
+    }
+
+    @Transactional
+    public ProductDetailResponse restoreProductQuantity(Integer productDetailId, Integer quantity) {
+        ProductDetail productDetail = repository.findById(productDetailId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + productDetailId));
+
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("Số lượng khôi phục phải lớn hơn 0");
+        }
+
+        if (productDetail.getStatus() == 2) {
+            throw new IllegalArgumentException("Không thể khôi phục số lượng cho ProductDetail đã bị xóa");
+        }
+
+        Integer currentQuantity = productDetail.getQuantity();
+        productDetail.setQuantity(currentQuantity + quantity);
+        productDetail.setStatus(productDetail.getQuantity() > 0 ? 1 : 0);
+
+        ProductDetail savedProductDetail = repository.save(productDetail);
+
+        updateTotalQuantity(productDetail.getProduct().getId());
+
+        log.info("✅ Đã khôi phục số lượng cho ProductDetail {}: {} -> {}",
+                productDetailId, currentQuantity, productDetail.getQuantity());
+
+        return mapper.toProductDetailResponse(savedProductDetail);
     }
 
     public ProductDetailResponse updateQR(Integer pdId) {

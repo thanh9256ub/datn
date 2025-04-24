@@ -95,7 +95,6 @@ public class EmployeeService {
     }
 
 
-
     public EmployeeResponse getEmployeeById(Integer id) {
 
         Employee employee = employeeRepository.findById(id).orElseThrow(
@@ -157,4 +156,15 @@ public class EmployeeService {
         return String.format("%06d", new Random().nextInt(1000000));
     }
 
+    public Boolean existsEmail(String email) {
+        return employeeRepository.existsByEmail(email);
+    }
+
+    public Boolean exitstsUsername(String username) {
+        return employeeRepository.existsByUsername(username);
+    }
+
+    public Boolean existsPhone(String phone) {
+        return employeeRepository.existsByPhone(phone);
+    }
 }

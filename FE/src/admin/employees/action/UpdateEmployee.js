@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Form } from "react-bootstrap";
-import { getEmployee, listEmployee, listRole, updateEmployee, uploadImageToCloudinary } from '../service/EmployeeService';
+import { existsEmail, getEmployee, listEmployee, listRole, updateEmployee, uploadImageToCloudinary } from '../service/EmployeeService';
 import { useParams, useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import Select from 'react-select';
 import { Spinner } from 'react-bootstrap';
@@ -82,18 +82,54 @@ const UpdateEmployee = () => {
 
             let isValid = true;
 
+            const nameRegex = /^[a-zA-Z ]*$/;
+
+
             if (!detail.fullName) {
                 setFullNameError('Vui lòng nhập tên nhân viên.');
                 isValid = false;
+            } else if (detail.fullName.length < 2) {
+                setFullNameError('Tên nhân viên phải có ít nhất 2 ký tự.');
+                isValid = false;
+            } else if (detail.fullName.length > 100) {
+                setFullNameError('Tên nhân viên không được vượt quá 100 ký tự.');
+                isValid = false;
             }
+            else if (!/^[\p{L} ]+$/u.test(detail.fullName)) {
+                setFullNameError('Tên nhân viên không hợp lệ.');
+                isValid = false;
+            }
+
 
             if (!detail.address) {
                 setAddressError('Vui lòng nhập địa chỉ.');
                 isValid = false;
             }
+            else if (detail.address.length < 2) {
+                setAddressError('Địa chỉ phải có ít nhất 2 ký tự.');
+                isValid = false;
+            }
+            else if (detail.address.length > 250) {
+                setAddressError('Địa chỉ không được vượt quá 250 ký tự.');
+                isValid = false;
+            }
 
             if (!detail.username) {
                 setUsernameError('Vui lòng nhập username.');
+                isValid = false;
+            }
+
+            else if (detail.username.length < 3) {
+                setUsernameError('Username phải có ít nhất 3 ký tự.');
+                isValid = false;
+            }
+            else if (detail.username.length > 50) {
+                setUsernameError('Username không được vượt quá 50 ký tự.');
+                isValid = false;
+            }
+
+            else if (detail.username.includes(" ")) {
+                setUsernameError('Username không được chứa khoảng trắng.');
                 isValid = false;
             }
 
@@ -104,6 +140,19 @@ const UpdateEmployee = () => {
                 setEmailError('Email không hợp lệ.');
                 isValid = false;
             }
+            else if (detail.email.length > 100) {
+                setEmailError('Email không được vượt quá 100 ký tự.');
+                isValid = false;
+            }
+            else if (detail.email.length < 5) {
+                setEmailError('Email phải có ít nhất 5 ký tự.');
+                isValid = false;
+            }
+            else if (detail.email.includes(" ")) {
+                setEmailError('Email không được chứa khoảng trắng.');
+                isValid = false;
+            }
+
 
             if (!detail.phone) {
                 setPhoneError('Vui lòng nhập số điện thoại.');
@@ -111,7 +160,11 @@ const UpdateEmployee = () => {
             } else if (!/^\d{10}$/.test(detail.phone)) {
                 setPhoneError('Số điện thoại không hợp lệ (10 chữ số).');
                 isValid = false;
+            } else if (!/^0\d{9}$/.test(detail.phone)) {
+                setPhoneError('Số điện thoại phải bắt đầu bằng số 0 và có tổng cộng 10 chữ số.');
+                isValid = false;
             }
+
 
             if (!detail.roleId) {
                 setRoleIdError('Vui lòng chọn vai trò.');
@@ -375,6 +428,9 @@ const UpdateEmployee = () => {
                                                 options={roleOptions} // Lọc ra vai trò customer
                                                 value={roleOptions.find(option => option.value === detail.roleId) || null}
                                                 onChange={(selected) => setDetail({ ...detail, roleId: selected.value })}
+                                                // không cho sửa vai trò admin
+                                                isDisabled={detail.roleId === 3 || detail.roleId === 2} // Disable if roleId is 3 or 1
+                                                
                                             />
                                         </Form.Group>
                                     </div>

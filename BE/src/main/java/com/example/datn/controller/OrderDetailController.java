@@ -62,6 +62,7 @@ public class OrderDetailController {
                 HttpStatus.OK.value(), "PaymentMethod deleted successfully",null);
         return ResponseEntity.ok(apiResponse);
     }
+
     @GetMapping("/order/{orderId}")
     public ResponseEntity<List<OrderDetailResponse>> getOrderDetailsByOrderId(@PathVariable Integer orderId) {
         if (orderId == null) {

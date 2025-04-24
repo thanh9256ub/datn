@@ -60,14 +60,14 @@ const CustomerInfo = ({ editing, setEditing, form, customer, loading, onFinish }
                             >
                                 Hủy
                             </Button>
-                            <Button
+                            {/* <Button
                                 type="primary"
                                 onClick={() => form.submit()}
                                 loading={loading}
                                 icon={<SaveOutlined />}
                             >
                                 Lưu thay đổi
-                            </Button>
+                            </Button> */}
                         </Space>
                     )}
                 </div>
@@ -97,6 +97,7 @@ const CustomerInfo = ({ editing, setEditing, form, customer, loading, onFinish }
                                     prefix={<UserOutlined />}
                                     disabled={!editing}
                                     size="large"
+                                    
                                 />
                             </Form.Item>
                         </Col>
@@ -162,18 +163,6 @@ const CustomerInfo = ({ editing, setEditing, form, customer, loading, onFinish }
                             </Form.Item>
                         </Col>
                     </Row>
-
-                    <Form.Item
-                        name="address"
-                        label="Địa chỉ"
-                    >
-                        <Input.TextArea
-                            rows={3}
-                            disabled={!editing}
-                            size="large"
-                            prefix={<HomeOutlined />}
-                        />
-                    </Form.Item>
 
                     {editing && (
                         <Form.Item>

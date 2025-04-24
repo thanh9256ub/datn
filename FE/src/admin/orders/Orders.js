@@ -85,15 +85,21 @@ const Orders = () => {
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
-        if (name === 'minPrice' || name === 'maxPrice') {
+        if (name === 'search') {
+            const sanitizedValue = value.replace(/[^a-zA-Z0-9]/g, '');
+            setFilters((prev) => ({
+                ...prev,
+                [name]: sanitizedValue,
+            }));
+        } else if (name === 'minPrice' || name === 'maxPrice') {
             if (value === '' || (Number(value) >= 0 && !/\s/.test(value))) {
-                setFilters(prev => ({
+                setFilters((prev) => ({
                     ...prev,
                     [name]: value,
                 }));
             }
         } else {
-            setFilters(prev => ({
+            setFilters((prev) => ({
                 ...prev,
                 [name]: value,
             }));
@@ -167,10 +173,9 @@ const Orders = () => {
 
         if (orderType === 0 && paymentType?.paymentTypeName === "Trực tiếp") {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
-                { id: 2, name: "Đã tiếp nhận", color: "#118ab2" },
+
                 { id: 5, name: "Hoàn tất", color: "#4caf50" },
-                { id: 6, name: "Đã hủy", color: "#ef476f" },
+
             ];
         } else if (orderType === 0) {
             statusFlow = [
@@ -201,10 +206,9 @@ const Orders = () => {
 
         if (orderType === 0 && paymentType?.paymentTypeName === "Trực tiếp") {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
-                { id: 2, name: "Đã tiếp nhận", icon: faCheckCircle, color: "#118ab2" },
-                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
-                { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
+
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" }
+
             ];
         } else if (orderType === 0) {
             statusFlow = [
@@ -226,21 +230,20 @@ const Orders = () => {
             ];
         }
 
-        let visibleStatuses = [];
         if (status === 6) {
-            let previousStatusId = statusFlow[0].id;
-            if (order?.statusHistory?.length > 1) {
-                previousStatusId = order.statusHistory[order.statusHistory.length - 2]?.id || statusFlow[0].id;
-            }
-            const previousStatus = statusFlow.find(s => s.id === previousStatusId) || statusFlow[0];
-            if (previousStatus.id !== 6) {
-                visibleStatuses.push(previousStatus);
-            }
-            visibleStatuses.push(statusFlow.find(s => s.id === 6));
-        } else {
-            const currentIndex = statusFlow.findIndex(s => s.id === status);
-            visibleStatuses = statusFlow.slice(0, currentIndex + 1);
+            const canceledStatus = statusFlow.find(s => s.id === 6);
+            return (
+                <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
+                    <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
+                        <FontAwesomeIcon icon={canceledStatus.icon} style={{ color: canceledStatus.color, fontSize: "36px" }} />
+                        <span style={{ fontSize: "16px", color: canceledStatus.color, textAlign: "center" }}>{canceledStatus.name}</span>
+                    </div>
+                </div>
+            );
         }
+
+        const currentIndex = statusFlow.findIndex(s => s.id === status);
+        const visibleStatuses = statusFlow.slice(0, currentIndex + 1);
 
         return (
             <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
@@ -248,9 +251,7 @@ const Orders = () => {
                     <React.Fragment key={s.id}>
                         <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
                             <FontAwesomeIcon icon={s.icon} style={{ color: s.color, fontSize: "36px" }} />
-                            <span style={{ fontSize: "16px", color: s.color, textAlign: "center", fontWeight: "500" }}>
-                                {s.name}
-                            </span>
+                            <span style={{ fontSize: "16px", color: s.color, textAlign: "center" }}>{s.name}</span>
                         </div>
                         {index < visibleStatuses.length - 1 && (
                             <div style={{ width: "200px", height: "4px", backgroundColor: s.color, borderRadius: "2px" }} />

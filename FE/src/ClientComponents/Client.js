@@ -13,6 +13,7 @@ import { SearchOrder } from './Pages/SearchOrder.jsx';
 import ChatBot from './chatbot/ChatBot.jsx';
 import CustomerProfile from './CustomerProfile/CustomerProfile.jsx';
 import Policy from './Pages/Policy.jsx';
+import Description from './Pages/Description.jsx';
 
 const Client = () => {
 
@@ -27,6 +28,7 @@ const Client = () => {
                 <Route path="/cart" component={Cart} />
                 <Route path="/lookup" component={SearchOrder} />
                 <Route path="/policy" component={Policy} />
+                <Route path="/description" component={Description} />
                 <Route path="/profile" component={CustomerProfile} />
             </Switch>
             <ChatBot />

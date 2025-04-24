@@ -53,7 +53,7 @@ public class SecurityConfig {
                                     "color/**",
                                     "size/**",
                                     "product-color/**",
-                                    "employee/forgot-password",
+                                    "employee/**",
                                     "vouchers/**",
                                     "/counter/**",
                                     "/cart-details/**",

@@ -136,7 +136,7 @@ const UpdateCustomer = () => {
                     ...newAddresses[index],
                     id: response.data.id
                 }
-                if(!!response.data.defaultAddress) setDefaultAddressIndex(index);
+                if (!!response.data.defaultAddress) setDefaultAddressIndex(index);
                 setAddresses(newAddresses);
             })
         }
@@ -160,8 +160,86 @@ const UpdateCustomer = () => {
         fetchCustomer();
     }, [id]);
 
+
+    const [fullNameError, setFullNameError] = useState('');
+
+    const [emailError, setEmailError] = useState('');
+
+    const [phoneError, setPhoneError] = useState('');
+
+    const [birthDateError, setBirthDateError] = useState('');
+
+
+
     const handleUpdateCustomer = () => {
         if (window.confirm('Bạn có chắc chắn muốn cập nhật thông tin?')) {
+
+            setFullNameError('');
+
+            setEmailError('');
+
+            setPhoneError('');
+
+            setBirthDateError('');
+
+
+            let isValid = true;
+
+            const nameRegex = /^[a-zA-Z ]*$/;
+
+            if (!update.fullName) {
+                setFullNameError('Vui lòng nhập tên khách hàng.');
+                isValid = false;
+            }
+            else if (update.fullName.length < 2) {
+                setFullNameError('Tên khách hàng phải có ít nhất 2 ký tự.');
+                isValid = false;
+            } else if (update.fullName.length > 100) {
+                setFullNameError('Tên khách hàng không được vượt quá 100 ký tự.');
+                isValid = false;
+            } else if (!/^[\p{L} ]+$/u.test(update.fullName)) {
+                setFullNameError('Tên khách hàng không hợp lệ.');
+                isValid = false;
+            }
+
+            if (!update.email) {
+                setEmailError('Vui lòng nhập email.');
+                isValid = false;
+            } else if (!/\S+@\S+\.\S+/.test(update.email)) {
+                setEmailError('Email không hợp lệ.');
+                isValid = false;
+            } else if (update.email.length > 100) {
+                setEmailError('Email không được vượt quá 100 ký tự.');
+                isValid = false;
+            } else if (update.email.length < 15) {
+                setEmailError('Email phải có ít nhất 15 ký tự.');
+                isValid = false;
+            } else if (update.email.includes(" ")) {
+                setEmailError('Email không được chứa khoảng trắng.');
+                isValid = false;
+            }
+
+
+            if (!update.phone) {
+                setPhoneError('Vui lòng nhập số điện thoại.');
+                isValid = false;
+            } else if (!/^\d{10}$/.test(update.phone)) {
+                setPhoneError('Số điện thoại không hợp lệ (10 chữ số).');
+                isValid = false;
+            } else if (!/^0\d{9}$/.test(update.phone)) {
+                setPhoneError('Số điện thoại phải bắt đầu bằng số 0 và có tổng cộng 10 chữ số.');
+                isValid = false;
+            }
+
+            if (!update.birthDate) {
+                setBirthDateError('Vui lòng chọn ngày sinh.');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                return;
+            }
+
             const updateCustomerInfo = {
                 fullName: update.fullName,
                 birthDate: update.birthDate,
@@ -210,7 +288,10 @@ const UpdateCustomer = () => {
                                                 value={update.fullName}
                                                 onChange={(e) => {
                                                     setUpdate({ ...update, fullName: e.target.value });
+                                                    setFullNameError(''); // Reset error message when user types
                                                 }} />
+                                            {fullNameError && <div style={{ color: "red" }}>{fullNameError}</div>}
+
                                         </Form.Group>
 
                                         <Form.Group className="mb-3">
@@ -279,7 +360,10 @@ const UpdateCustomer = () => {
                                                 value={update.email}
                                                 onChange={(e) => {
                                                     setUpdate({ ...update, email: e.target.value });
+                                                    setEmailError(''); // Reset error message when user types
                                                 }} />
+                                            {emailError && <div style={{ color: "red" }}>{emailError}</div>}
+
                                         </Form.Group>
 
                                         <Form.Group className="mb-3">
@@ -288,10 +372,13 @@ const UpdateCustomer = () => {
                                                 value={update.phone}
                                                 onChange={(e) => {
                                                     setUpdate({ ...update, phone: e.target.value });
+                                                    setPhoneError(''); // Reset error message when user types
                                                 }} />
+                                            {phoneError && <div style={{ color: "red" }}>{phoneError}</div>}
+
                                         </Form.Group>
 
-                             
+
                                     </div>
 
                                 </div>

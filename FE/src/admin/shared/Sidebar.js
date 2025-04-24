@@ -94,7 +94,7 @@ class Sidebar extends Component {
           </li>
           <li className={this.isPathActive('/admin/products') ? 'nav-item active' : 'nav-item'}>
             <div className={this.state.productsPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('productsPagesMenuOpen')} data-toggle="collapse">
-              <span className="menu-title"><Trans>Sản phẩm</Trans></span>
+              <span className="menu-title"><Trans>Quản lý sản phẩm</Trans></span>
               <i className="menu-arrow"></i>
               <i className="mdi mdi-archive menu-icon"></i>
             </div>
@@ -190,6 +190,8 @@ class Sidebar extends Component {
               </ul>
             </Collapse>
           </li>
+          
+          */}
           <li className={this.isPathActive('/admin/icons') ? 'nav-item active' : 'nav-item'}>
             <div className={this.state.iconsMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('iconsMenuOpen')} data-toggle="collapse">
               <span className="menu-title"><Trans>Icons</Trans></span>
@@ -201,7 +203,7 @@ class Sidebar extends Component {
                 <li className="nav-item"> <Link className={this.isPathActive('/admin/icons/mdi') ? 'nav-link active' : 'nav-link'} to="/admin/icons/mdi"><Trans>Material</Trans></Link></li>
               </ul>
             </Collapse>
-          </li> */}
+          </li>
         </ul>
       </nav>
     );

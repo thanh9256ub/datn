@@ -13,6 +13,7 @@ import { fetchProductColorsByProduct, fetchProductDetail } from '../Service/prod
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import { getActive } from '../../admin/vouchers/service/VoucherService';
 import { CopyOutlined, GiftOutlined } from '@ant-design/icons';
+import { fetchShopInitialData } from '../../admin/products/service/ProductService';
 
 const { Title, Text } = Typography;
 
@@ -34,11 +35,19 @@ const Shop = () => {
     const heroImages = [slide1, slide2, slide3];
 
     useEffect(() => {
-        const loadProducts = async () => {
+        const loadInitialData = async () => {
             try {
                 setLoading(true);
-                const response = await fetchProductDetail();
-                const products = response.data || [];
+
+                // Gọi API song song cho shop data và vouchers
+                const [shopDataResponse, vouchersResponse] = await Promise.all([
+                    fetchShopInitialData(), // API mới chỉ lấy products và colors
+                    getActive() // API riêng cho vouchers
+                ]);
+
+                // Xử lý dữ liệu sản phẩm
+                const products = shopDataResponse.data.productDetails || [];
+                const productColors = shopDataResponse.data.productColors || {};
 
                 const uniqueProductsMap = new Map();
                 products.forEach(item => {
@@ -48,37 +57,28 @@ const Shop = () => {
                 });
 
                 const uniqueProducts = Array.from(uniqueProductsMap.values());
-
                 const newProds = [...uniqueProducts].sort((a, b) =>
                     new Date(b.product.createdAt) - new Date(a.product.createdAt)
                 ).slice(0, 8);
 
-                const colorPromises = products.map(async (item) => {
-                    const colors = await fetchProductColorsByProduct(item.product.id);
-                    return { productId: item.product.id, colors };
-                });
-
-                const colorData = await Promise.all(colorPromises);
-                const colorMap = colorData.reduce((acc, { productId, colors }) => {
-                    acc[productId] = colors;
-                    return acc;
-                }, {});
-
                 setProducts(uniqueProducts);
-                setProductColors(colorMap);
-                setNewProducts(newProds)
+                setProductColors(productColors);
+                setNewProducts(newProds);
+                setVouchers(vouchersResponse.data.data || []);
 
-                const voucherResponse = await getActive();
-                setVouchers(voucherResponse.data.data || []);
             } catch (error) {
-                console.error("Error fetching products:", error);
-                setProducts([]);
+                console.error("Error fetching initial data:", error);
+                notification.error({
+                    message: 'Lỗi tải dữ liệu',
+                    description: 'Không thể tải dữ liệu cửa hàng, vui lòng thử lại sau',
+                    placement: 'topRight',
+                });
             } finally {
                 setLoading(false);
             }
         };
 
-        loadProducts();
+        loadInitialData();
     }, []);
 
     const copyVoucherCode = (code) => {
