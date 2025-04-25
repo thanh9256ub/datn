@@ -28,7 +28,7 @@ const BanHang = () => {
   const [canAdd, setCanAdd] = useState(true);
   const [invoiceCount, setInvoiceCount] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
-
+  const [change, setChange] = useState();
   const [availableProducts, setAvailableProducts] = useState([]);
   const [items, setItems] = useState([]);
   const newQuantitya = 0;
@@ -114,12 +114,12 @@ const BanHang = () => {
 
   useEffect(() => {
     if (messages.length > 0) {
-      
+
       const lastMessage = messages[messages.length - 1];
       toast.info(lastMessage);
       setTimeout(() => {
-      window.location.reload();
-      }, 1500); 
+        window.location.reload();
+      }, 1500);
     }
   }, [messages]);
 
@@ -199,6 +199,7 @@ const BanHang = () => {
             clearInterval(qrIntervalRef.current);
             qrIntervalRef.current = null;
             setQrImageUrl(null);
+            setChange(-1);
           })
           .catch(error => {
             console.error('Error removing item:', error);
@@ -228,7 +229,7 @@ const BanHang = () => {
     axios.get('http://localhost:8080/product-detail')
       .then(response => {
         const productDetails = response.data.data;
-        const selectedProductDetail = productDetails.find(product => product.id === selectedProduct.id&& product.status  ===  1);
+        const selectedProductDetail = productDetails.find(product => product.id === selectedProduct.id && product.status === 1);
 
         if (!selectedProduct || quantity <= 0) {
           toast.error("Vui lòng nhập lại số lượng", toastOptions);
@@ -251,6 +252,7 @@ const BanHang = () => {
             clearInterval(qrIntervalRef.current);
             qrIntervalRef.current = null;
             setQrImageUrl(null);
+            setChange(-1);
           })
           .catch(error => {
             console.error('Error adding to cart:', error);
@@ -289,6 +291,7 @@ const BanHang = () => {
             clearInterval(qrIntervalRef.current);
             qrIntervalRef.current = null;
             setQrImageUrl(null);
+            setChange(-1);
           })
           .catch(error => console.error('Error updating quantity:', error));
       })
@@ -315,11 +318,13 @@ const BanHang = () => {
 
         if (newQuantity < 0 || item.productDetail.quantity + item.quantity < newQuantity) {
           toast.warn("Quá số lượng trong kho  ", toastOptions);
-          return;}
+          return;
+        }
         axios.get(`http://localhost:8080/counter/update-quantity?orderDetailID=${item.id}&productDetailID=${item.productDetail.id}&quantity=${newQuantity}`)
           .then(response => {
             fetchProducts();
             fetchOrderItems();
+            setChange(-1);
           })
           .catch(error => console.error('Error updating quantity:', error));
       })
@@ -338,7 +343,7 @@ const BanHang = () => {
     }
 
     if (data && selectedInvoiceId) {
-     
+
       setIsQrReaderVisible(false);
       setTimeout(() => {
         setIsQrReaderVisible(true);
@@ -347,36 +352,36 @@ const BanHang = () => {
       fetchProducts();
       axios.get('http://localhost:8080/product-detail')
         .then(response => {
-          
+
           const productDetails = response.data.data;
           const selectedProductDetail = productDetails.find(product => product.id === Number(data.text) && product.status === 1);
           console.log("Đã quét mã QR:", productDetails);
-         
+
 
           if (!selectedProductDetail || selectedProductDetail.quantity < 1 || selectedProductDetail.quantity === 0) {
             toast.error("Không tìm thấy sản phẩm ", toastOptions);
-            
+
             return;
           }
           axios.get(`http://localhost:8080/counter/add-to-cart?orderID=${selectedInvoiceId}&productID=${data.text}&purchaseQuantity=1`)
-          .then(response => {
-            // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
-            fetchProducts();
-            fetchOrderItems();
-            toast.success("Thêm sản phẩm thành công ", toastOptions);
-            clearInterval(qrIntervalRef.current);
-            qrIntervalRef.current = null;
-            setQrImageUrl(null);
-          })
-          .catch(error => {
-          });
-         
+            .then(response => {
+              // Load lại bảng sản phẩm và giỏ hàng sau khi thêm thành công
+              fetchProducts();
+              fetchOrderItems();
+              toast.success("Thêm sản phẩm thành công ", toastOptions);
+              clearInterval(qrIntervalRef.current);
+              qrIntervalRef.current = null;
+              setQrImageUrl(null);
+            })
+            .catch(error => {
+            });
+
         })
         .catch(error => {
           console.error('Error fetching products:', error);
           toast.error("Đã xảy ra lỗi khi kiểm tra sản phẩm", toastOptions);
         });
-     
+
     }
   };
 
@@ -491,44 +496,122 @@ const BanHang = () => {
       <Row className="align-items">
         <Col md={8}>
           <div className="p-3 border">
-            <div className="d-flex align-items-center rounded p-2 w-100 overflow-hidden" style={{ marginBottom: "10px" }}>
-              <div style={{ flexShrink: 0 }}>
-                <Button variant="primary" className=" px-4 py-2" onClick={addInvoice} disabled={!canAdd}>
-                  Tạo hóa đơn
-                </Button>
-              </div>
-              <div className="mx-2 border-start border-dark" style={{ height: "24px" }}></div>
-              <div className="d-flex flex-nowrap overflow-auto" style={{ maxWidth: "950px", whiteSpace: "nowrap" }}>
-                {invoices.map((invoice, index) => (
-                  <div key={index} className="d-flex align-items-center mx-1">
-                    <Button
-                      variant={selectedInvoiceId === invoice.id ? "primary" : "light"}
-                      className="border px-3 py-2"
-                      onClick={() => handleSelectInvoice(index)}
-                    >
-                      {invoice.orderCode}
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      className="ms-2"
-                      onClick={() => removeSelectedInvoice(invoice.id)}
-                    >
-                      X
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div 
+  className="d-flex align-items-center rounded p-3 w-100 overflow-hidden"
+  style={{ 
+    marginBottom: "16px",
+    backgroundColor: "#f8f9fa",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+  }}
+>
+  {/* Nút Tạo hóa đơn */}
+  <div style={{ flexShrink: 0 }}>
+    <Button 
+      variant="primary" 
+      className="px-4 py-2 fw-bold"
+      onClick={addInvoice} 
+      disabled={!canAdd}
+      style={{
+        
+        transition: "all 0.2s",
+        boxShadow: !canAdd ? "none" : "0 2px 4px rgba(0,0,0,0.15)"
+      }}
+    >
+      <i className="mdi mdi-plus-circle-outline me-2"></i>
+      
+    </Button>
+  </div>
+
+  
+  <div 
+    className="mx-3 border-start border-secondary" 
+    style={{ 
+      height: "32px",
+      opacity: 0.3
+    }}
+  ></div>
+
+ 
+  <div 
+    className="d-flex flex-nowrap align-items-center overflow-auto py-1" 
+    style={{ 
+      maxWidth: "100%",
+      flexGrow: 1,
+      scrollbarWidth: "thin"
+    }}
+  >
+    {invoices.length === 0 ? (
+      <div className="text-muted px-2">
+        Chưa có hóa đơn nào được tạo
+      </div>
+    ) : (
+      invoices.map((invoice, index) => (
+        <div 
+          key={invoice.id} 
+          className="d-flex align-items-center mx-2 position-relative"
+          style={{
+            transition: "transform 0.2s"
+          }}
+        >
+          <Button
+            variant={selectedInvoiceId === invoice.id ? "primary" : "outline-primary"}
+            className={`px-3 py-2 rounded-3 d-flex align-items-center ${selectedInvoiceId === invoice.id ? "shadow-sm" : ""}`}
+            onClick={() => handleSelectInvoice(index)}
+            style={{
+              minWidth: "100px",
+              borderWidth: selectedInvoiceId === invoice.id ? "0" : "1px",
+              backgroundColor: selectedInvoiceId === invoice.id ? "" : "rgba(13,110,253,0.05)",
+              transition: "all 0.2s"
+            }}
+          >
+            <i className="mdi mdi-receipt me-2"></i>
+            <span className="text-truncate" style={{ maxWidth: "60px" }}>
+              {invoice.orderCode}
+            </span>
+          </Button>
+          
+          <Button
+            variant="outline-danger"
+            size="sm"
+            className="ms-2 rounded-circle p-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              removeSelectedInvoice(invoice.id);
+            }}
+            style={{
+              width: "28px",
+              height: "28px",
+              borderWidth: "1px",
+              transition: "all 0.2s"
+            }}
+          >
+            <i className="mdi mdi-close"></i>
+          </Button>
+          
+         
+          <span 
+            className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary"
+            style={{
+              fontSize: "0.6rem",
+              padding: "2px 4px"
+            }}
+          >
+            {index + 1}
+          </span>
+        </div>
+      ))
+    )}
+  </div>
+</div>
             <div className="cart-container">
               <h3 style={{ fontWeight: 'bold' }}>Giỏ hàng</h3>
-              {/* Bảng giỏ hàng */}
+              
               <div className="table-responsive" >
                 <div style={{ height: '300px', overflowY: 'auto' }}>
                   <Table hover >
                     <thead>
                       <tr>
-                      <th style={{ fontWeight: 'bold' }}>STT</th> 
+                        <th style={{ fontWeight: 'bold' }}>STT</th>
                         <th style={{ fontWeight: 'bold' }}>Sản phẩm </th>
 
 
@@ -539,9 +622,9 @@ const BanHang = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {currentCartItems.map((item,index) => (
+                      {currentCartItems.map((item, index) => (
                         <tr key={index}>
-                          <td style={{ fontWeight: 'bold' }}>{index + 1}</td> 
+                          <td style={{ fontWeight: 'bold' }}>{index + 1}</td>
                           <td style={{ fontWeight: 'bold' }}>{item.productDetail.product.productName} - {item.productDetail.color.colorName} - {item.productDetail.size.sizeName}</td>
 
 
@@ -767,7 +850,7 @@ const BanHang = () => {
                   <Table hover>
                     <thead>
                       <tr>
-                      <th style={{ fontWeight: 'bold' }}>STT</th> 
+                        <th style={{ fontWeight: 'bold' }}>STT</th>
                         <th style={{ fontWeight: 'bold' }}>Hình ảnh  </th>
                         <th style={{ fontWeight: 'bold' }}>Sản phẩm </th>
                         <th style={{ fontWeight: 'bold' }}>Giá (VND)</th>
@@ -775,15 +858,15 @@ const BanHang = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {currentProducts.map((product,index) => (
-                        
+                      {currentProducts.map((product, index) => (
+
                         <tr key={index} onClick={(() => handleSelectProduct(product))}>
-                          <td style={{ fontWeight: 'bold' }}>{index + 1}</td> 
+                          <td style={{ fontWeight: 'bold' }}>{index + 1}</td>
                           <td style={{ fontWeight: 'bold' }} >{product.product.mainImage != "image.png" ? (
                             <img
                               src={product.product.mainImage}
                               alt="Product"
-                              style={{ width: '50px', height: 'auto', cursor: 'pointer', borderRadius: '5%', objectFit: 'contain' }}
+                              style={{ width: 'auto', height: '55px', cursor: 'pointer', borderRadius: '5%', objectFit: 'contain' }}
 
                             />
                           ) : (
@@ -850,6 +933,7 @@ const BanHang = () => {
               customer={customer} setCustomer={setCustomer}
               customerInfo={customerInfo} setCustomerInfo={setCustomerInfo}
               qrImageUrl={qrImageUrl} setQrImageUrl={setQrImageUrl} qrIntervalRef={qrIntervalRef}
+change={change} setChange={setChange}
             />
             <ToastContainer />
           </div>

@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { fetchPromoCodes } from '../api'; // Ensure fetchPromoCodes is a named export
 import { toastOptions } from '../constants'; // Ensure toastOptions is a named export
 
-const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrIntervalRef, customer }) => {
+const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrIntervalRef, customer,setChange }) => {
   const [isPromoModalVisible, setIsPromoModalVisible] = useState(false);
   const [promoCodes, setPromoCodes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1); // Current page state
@@ -53,7 +53,7 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrInt
   const handleSelectPromoCode = (promo) => {
     
     if (totalAmount < promo.minOrderValue) {
-      toast.warn("Đơn hàng chưa đủ điều kiệnkiện", toastOptions);
+      toast.warn("Đơn hàng chưa đủ điều kiện", toastOptions);
       return;
     }
     setPromo(promo);
@@ -63,6 +63,7 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrInt
     clearInterval(qrIntervalRef.current);
         qrIntervalRef.current = null;
         setQrImageUrl(null);
+        setChange(-1);
   };
 
   const handlePageChange = (pageNumber) => {
@@ -157,12 +158,12 @@ const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrInt
                   <td style={{ fontWeight: 'bold' }}>{(currentPage - 1) * itemsPerPage + index + 1}</td> 
                   <td style={{ fontWeight: 'bold' }}>{promo.voucherCode}</td>
                   <td style={{ fontWeight: 'bold' }}>{promo.voucherName}</td>
-                  <td style={{ fontWeight: 'bold' }}>{promo.minOrderValue}</td>
+                  <td style={{ fontWeight: 'bold' }}>{promo.minOrderValue.toLocaleString()}</td>
                   <td style={{ fontWeight: 'bold' }}>
-                    {promo.discountValue} {promo.discountType===1?"%":"VNĐ"}
+                    {promo.discountValue.toLocaleString()} {promo.discountType===1?"%":"VNĐ"}
                   </td>
                   <td style={{ fontWeight: 'bold' }}>{promo.quantity}</td>
-                  <td style={{ fontWeight: 'bold' }}>{promo.maxDiscountValue}</td>
+                  <td style={{ fontWeight: 'bold' }}>{promo.maxDiscountValue.toLocaleString()}</td>
                  
                 </tr>
               ))}
