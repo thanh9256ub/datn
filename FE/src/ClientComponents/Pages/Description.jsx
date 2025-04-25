@@ -101,7 +101,7 @@ const Description = () => {
                                 type="primary"
                                 size="large"
                                 icon={<ShopOutlined />}
-                                href="/all"
+                                href="/all-product"
                                 style={{ borderRadius: 8 }}
                             >
                                 Khám Phá Sản Phẩm
