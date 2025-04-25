@@ -265,4 +265,8 @@ public class ProductController {
                                 .body("An error occurred while fetching initial shop data");
                 }
         }
+        @GetMapping("/product-sell")
+        public List<Product> findDistinctProductsFromCompletedOrders() {
+                return service.findDistinctProductsFromCompletedOrders();
+        }
 }

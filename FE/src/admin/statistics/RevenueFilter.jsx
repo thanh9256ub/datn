@@ -92,21 +92,13 @@ const RevenueFilter = () => {
   const years = Array.from({ length: 21 }, (_, i) => currentYear - i);
 
   return (
-    <div style={{ 
-      background: 'white', 
-      padding: '24px', 
-      borderRadius: '8px',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-      marginBottom: '24px'
-    }}>
-      {/* Phần filter */}
-      <Row gutter={16} style={{ marginBottom: '24px' }}>
+    <>
+      {/* Phần 1, 2, 3: Cùng trên một hàng */}
+      <Row gutter={16} style={{ marginBottom: '20px' }}>
         <Col span={8}>
           <RangePicker 
-            value={dateRange}
-            onChange={handleDateChange} 
-            style={{ width: '100%' }}
-          />
+          value={dateRange}
+          onChange={handleDateChange} style={{ width: '100%' }} />
         </Col>
         <Col span={8}>
           <Select
@@ -123,7 +115,7 @@ const RevenueFilter = () => {
           </Select>
           <Select
             placeholder="Chọn tháng"
-            style={{ width: '100%', marginTop: '12px' }}
+            style={{ width: '100%', marginTop: '10px' }}
             onChange={handleMonthChange}
             value={month}
             disabled={!selectedYearForMonth}
@@ -152,69 +144,33 @@ const RevenueFilter = () => {
       </Row>
 
       {/* Hiển thị kết quả */}
-      <Row gutter={16}>
+      <Row gutter={16} style={{ marginBottom: '20px' }}>
         <Col span={8}>
-          <Card 
-            style={{ 
-              background: 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)',
-              color: 'white',
-              borderRadius: '8px',
-              height: '100%'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontSize: '16px', marginBottom: '8px' }}>Doanh thu tổng</div>
-                <div style={{ fontSize: '24px', fontWeight: '600' }}>
-                  {totalRevenue.toLocaleString() || 0}đ
-                </div>
-              </div>
-              <div style={{ fontSize: '24px' }}>💰</div>
+          <div className="card bg-gradient-success card-img-holder text-white">
+            <div className="card-body">
+              <h4 className="font-weight-normal mb-3">Doanh thu tổng <i className="mdi mdi-cash-multiple mdi-24px float-right"></i></h4>
+              <h2 className="mb-5">{totalRevenue || 0 }</h2>
             </div>
-          </Card>
+          </div>
         </Col>
         <Col span={8}>
-          <Card 
-            style={{ 
-              background: 'linear-gradient(135deg, #2196F3 0%, #0D47A1 100%)',
-              color: 'white',
-              borderRadius: '8px',
-              height: '100%'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontSize: '16px', marginBottom: '8px' }}>Doanh thu tại quầy</div>
-                <div style={{ fontSize: '24px', fontWeight: '600' }}>
-                  {counterRevenue.toLocaleString() || 0}đ
-                </div>
-              </div>
-              <div style={{ fontSize: '24px' }}>🏪</div>
+          <div className="card bg-gradient-info card-img-holder text-white">
+            <div className="card-body">
+              <h4 className="font-weight-normal mb-3">Doanh thu tại quầy <i className="mdi mdi-store mdi-24px float-right"></i></h4>
+              <h2 className="mb-5">{counterRevenue || 0 }</h2>
             </div>
-          </Card>
+          </div>
         </Col>
         <Col span={8}>
-          <Card 
-            style={{ 
-              background: 'linear-gradient(135deg, #FF9800 0%, #E65100 100%)',
-              color: 'white',
-              borderRadius: '8px',
-              height: '100%'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontSize: '16px', marginBottom: '8px' }}>Doanh thu trực tuyến</div>
-                <div style={{ fontSize: '24px', fontWeight: '600' }}>
-                  {onlineRevenue.toLocaleString() || 0}đ
-                </div>
-              </div>
-              <div style={{ fontSize: '24px' }}>🌐</div>
+          <div className="card bg-gradient-warning card-img-holder text-white">
+            <div className="card-body">
+              <h4 className="font-weight-normal mb-3">Doanh thu trực tuyến <i className="mdi mdi-web mdi-24px float-right"></i></h4>
+              <h2 className="mb-5">{onlineRevenue || 0 }</h2>
             </div>
-          </Card>
+          </div>
         </Col>
       </Row>
-    </div>
+    </>
   );
 };
 
