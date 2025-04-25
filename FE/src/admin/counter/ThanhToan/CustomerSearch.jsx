@@ -16,7 +16,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedWard, setSelectedWard] = useState('');
-
+  const [checkAdd, setCheckAdd] = useState(true);
   useEffect(() => {
     fetchProvinces()
       .then(response => setProvinces(response.data.data))
@@ -89,7 +89,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
   };
 
   const handleAddCustomer = async () => {
-    // Validation
+    
     if (!newCustomer.fullName.trim()) {
       toast.error("Họ tên không được để trống ", toastOptions);
       return;
@@ -153,6 +153,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
       toast.error("Email đã tồn tại ", toastOptions);
       return;
     }
+    setCheckAdd(false);
     try {
         const responseCustomer = await addCustomer({
         fullName: newCustomer.fullName,
@@ -183,6 +184,8 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
       };
       await addCustomerAddress(addressPayload);
       toast.success("Thêm khách hàng thành công", toastOptions);
+      setNewCustomer({ fullName: '', phone: '', email: '', gender: '', dateOfBirth: '', address: '' });
+   setCheckAdd(true);
     } catch (error) {
       console.error('Lỗi thêm khách hàng:', error);
       toast.error("Thêm khách hàng thất bại", toastOptions);
@@ -316,9 +319,9 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
                     <Form.Check
                       type="radio"
                       id="gender-male"
-                      label="Nam"
+                      label="Nữ"
                       name="gender"
-                      value="1"
+                      value="0"
                       checked={newCustomer.gender === "0"}
                       onChange={(e) => setNewCustomer({ ...newCustomer, gender: e.target.value })}
                       style={{ fontWeight: 'bold', display: 'inline-block' }}
@@ -326,9 +329,9 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
                     <Form.Check
                       type="radio"
                       id="gender-female"
-                      label="Nữ"
+                      label="Nam"
                       name="gender"
-                      value="0"
+                      value="1"
                       checked={newCustomer.gender === "1"}
                       onChange={(e) => setNewCustomer({ ...newCustomer, gender: e.target.value })}
                       style={{ fontWeight: 'bold', display: 'inline-block', marginLeft: '40px' }}
@@ -407,7 +410,7 @@ const CustomerSearch = ({ customer, setCustomer, setDelivery,
           <Button variant="dark" onClick={() => setShowAddCustomerModal(false)}>
             Đóng
           </Button>
-          <Button variant="primary" onClick={handleAddCustomer}>
+          <Button variant="primary" onClick={handleAddCustomer} disabled={!checkAdd}>
             Thêm
           </Button>
         </Modal.Footer>
