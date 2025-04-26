@@ -68,6 +68,12 @@ const Sizes = () => {
                 return;
             }
 
+            const sizeNumber = parseInt(sizeName);
+            if (sizeNumber < 31 || sizeNumber > 49) {
+                toast.error("Kích cỡ phải từ 30 đến 49!");
+                return;
+            }
+
             if (sizeId) {
                 const confirmResult = await Swal.fire({
                     title: "Xác nhận",

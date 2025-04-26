@@ -42,6 +42,13 @@ const SizeContainer = ({ sizeIds, setSizeIds }) => {
                 toast.error("Kích cỡ đã tồn tại!");
                 return;
             }
+
+            const sizeNumber = parseInt(newSizeName);
+            if (sizeNumber < 31 || sizeNumber > 49) {
+                toast.error("Kích cỡ phải từ 30 đến 49!");
+                return;
+            }
+
             const response = await createSize({ sizeName: newSizeName });
             toast.success("Thêm kích cỡ thành công!");
             setShowModal(false);
