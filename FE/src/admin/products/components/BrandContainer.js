@@ -10,15 +10,18 @@ const BrandContainer = ({ brandId, setBrandId, id }) => {
     const [refresh, setRefresh] = useState(false);
 
     const handleAddBrand = async () => {
-        if (!newBrandName.trim()) {
-            alert("Vui lòng nhập tên thương hiệu!");
+        const normalizedName = newBrandName.trim().replace(/\s+/g, ' ');
+        if (!normalizedName) {
+            toast.error("Vui lòng nhập tên thương hiệu!");
             return;
         }
 
         try {
             const brandResp = await getBrands();
             const brands = brandResp.data.data;
-            const brandExists = brands.some(brand => brand.brandName.toLowerCase() === newBrandName.toLowerCase());
+            const brandExists = brands.some(brand =>
+                brand.brandName.trim().replace(/\s+/g, ' ').toLowerCase() === normalizedName.toLowerCase()
+            );
 
             if (brandExists) {
                 toast.error("Thương hiệu đã tồn tại!");

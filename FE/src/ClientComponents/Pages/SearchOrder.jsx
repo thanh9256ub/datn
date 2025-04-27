@@ -5,6 +5,8 @@ import {
 } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { fetchOrderByCode, fetchOrderDetailsByOrderId } from '../Service/productService';
+import useWebSocket from '../../hook/useWebSocket';
+import { toast } from 'react-toastify';
 
 const { Title, Text } = Typography;
 
@@ -14,6 +16,25 @@ export const SearchOrder = () => {
   const [order, setOrder] = useState(null);
   const [orderDetails, setOrderDetails] = useState([]);
   const [error, setError] = useState(null);
+  const [currentOrderCode, setCurrentOrderCode] = useState(null);
+
+  const { messages, isConnected } = useWebSocket("/topic/order-update-status");
+
+  useEffect(() => {
+    if (messages.length > 0 && currentOrderCode) {
+      const lastMessage = messages[messages.length - 1];
+
+      const message = typeof lastMessage === 'string' ? JSON.parse(lastMessage) : lastMessage;
+      if (message && message.orderCode === currentOrderCode) {
+        // Tự động tìm kiếm lại đơn hàng để cập nhật toàn bộ thông tin
+        form.setFieldsValue({ orderCode: currentOrderCode });
+        onSearch({ orderCode: currentOrderCode });
+
+        // Hiển thị thông báo cho người dùng
+        toast.info(`Đơn hàng ${currentOrderCode} đã được cập nhật trạng thái: ${lastMessage.status}`);
+      }
+    }
+  }, [messages, currentOrderCode]);
 
   const onSearch = async (values) => {
     try {
@@ -31,6 +52,8 @@ export const SearchOrder = () => {
 
       const orderData = await fetchOrderByCode(orderCode);
       setOrder(orderData);
+      setCurrentOrderCode(orderData.orderCode);
+
 
       if (orderData && orderData.id) {
         const details = await fetchOrderDetailsByOrderId(orderData.id);

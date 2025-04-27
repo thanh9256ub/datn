@@ -10,7 +10,8 @@ const CategoryContainer = ({ categoryId, setCategoryId, id }) => {
     const [refresh, setRefresh] = useState(false);
 
     const handleAddCategory = async () => {
-        if (!newCategoryName.trim()) {
+        const normalizedName = newCategoryName.trim().replace(/\s+/g, ' ');
+        if (!normalizedName) {
             alert("Vui lòng nhập tên danh mục!");
             return;
         }
@@ -18,7 +19,8 @@ const CategoryContainer = ({ categoryId, setCategoryId, id }) => {
         try {
             const categoryResp = await getCategories();
             const categorys = categoryResp.data.data;
-            const categoryExists = categorys.some(category => category.categoryName.toLowerCase() === newCategoryName.toLowerCase());
+            const categoryExists = categorys.some(category =>
+                category.categoryName.trim().replace(/\s+/g, ' ').toLowerCase() === normalizedName.toLowerCase());
 
             if (categoryExists) {
                 toast.error("Danh mục đã tồn tại!");
