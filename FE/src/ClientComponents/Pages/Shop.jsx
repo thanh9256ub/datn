@@ -9,7 +9,6 @@ import 'swiper/swiper-bundle.min.css';
 import slide1 from '../../assets/images/slide-show/slide1.jpg';
 import slide2 from '../../assets/images/slide-show/slide2.jpg';
 import slide3 from '../../assets/images/slide-show/slide3.jpg';
-import { fetchProductColorsByProduct, fetchProductDetail } from '../Service/productService';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import { getActive } from '../../admin/vouchers/service/VoucherService';
 import { CopyOutlined, GiftOutlined } from '@ant-design/icons';
@@ -25,6 +24,7 @@ const Shop = () => {
     const [featuredProducts, setFeaturedProducts] = useState([]); // Sản phẩm bán chạy/nổi bật
     const [newProducts, setNewProducts] = useState([]); // Sản phẩm mới
     const [vouchers, setVouchers] = useState([]);
+    const [bestSellingProducts, setBestSellingProducts] = useState([]);
 
     // Modern color palette
     const primaryColor = '#6C5CE7';
@@ -42,12 +42,13 @@ const Shop = () => {
                 // Gọi API song song cho shop data và vouchers
                 const [shopDataResponse, vouchersResponse] = await Promise.all([
                     fetchShopInitialData(), // API mới chỉ lấy products và colors
-                    getActive() // API riêng cho vouchers
+                    getActive()
                 ]);
 
                 // Xử lý dữ liệu sản phẩm
                 const products = shopDataResponse.data.productDetails || [];
                 const productColors = shopDataResponse.data.productColors || {};
+                const bestSellingResponse = shopDataResponse.data.productBestSellers || {};
 
                 const uniqueProductsMap = new Map();
                 products.forEach(item => {
@@ -61,9 +62,34 @@ const Shop = () => {
                     new Date(b.product.createdAt) - new Date(a.product.createdAt)
                 ).slice(0, 8);
 
+                let bestSelling = [];
+                if (bestSellingResponse && bestSellingResponse.length > 0) {
+                    // Lấy thông tin đầy đủ của sản phẩm bán chạy từ danh sách products
+                    bestSelling = bestSellingResponse.map(product => {
+                        return uniqueProducts.find(p => p.product.id === product.id) || product;
+                    }).filter(Boolean);
+                }
+
+                // Nếu số lượng sản phẩm bán chạy ít hơn 8, bổ sung bằng sản phẩm ngẫu nhiên
+                if (bestSelling.length < 12) {
+                    const remaining = 12 - bestSelling.length;
+                    // Lọc ra các sản phẩm không phải là sản phẩm bán chạy
+                    const nonBestSelling = uniqueProducts.filter(p =>
+                        !bestSelling.some(bs => bs.product.id === p.product.id)
+                    );
+                    // Lấy ngẫu nhiên các sản phẩm khác
+                    const randomProducts = [...nonBestSelling]
+                        .sort(() => 0.5 - Math.random())
+                        .slice(0, remaining);
+
+                    bestSelling = [...bestSelling, ...randomProducts];
+                }
+
                 setProducts(uniqueProducts);
                 setProductColors(productColors);
                 setNewProducts(newProds);
+                setBestSellingProducts(bestSelling.slice(0, 12)); // Đảm bảo chỉ lấy tối đa 8 sản phẩm
+
                 setVouchers(vouchersResponse.data.data || []);
 
             } catch (error) {
@@ -595,7 +621,7 @@ const Shop = () => {
                         position: 'relative',
                         display: 'inline-block'
                     }}>
-                        SẢN PHẨM NỔI BẬT
+                        SẢN PHẨM BÁN CHẠY
                         <div style={{
                             position: 'absolute',
                             bottom: -8,
@@ -613,7 +639,7 @@ const Shop = () => {
                         margin: '16px auto 0',
                         color: '#666'
                     }}>
-                        Các sản phẩm được ưa chuộng nhất hiện nay
+                        Các sản phẩm được mua nhiều nhất
                     </Text>
                 </div>
 
@@ -624,15 +650,15 @@ const Shop = () => {
                                 <Card loading style={{ borderRadius: 12 }} />
                             </Col>
                         ))
-                    ) : products.length > 0 ? (
-                        products.map((product) => (
+                    ) : bestSellingProducts.length > 0 ? (
+                        bestSellingProducts.map((product) => (
                             <Col xs={24} sm={12} md={8} lg={6} key={product.id}>
                                 {renderProductCard(product)}
                             </Col>
                         ))
                     ) : (
                         <Col span={24} style={{ textAlign: 'center' }}>
-                            <Text type="secondary">Hiện không có sản phẩm nổi bật</Text>
+                            <Text type="secondary">Hiện không có sản phẩm bán chạy</Text>
                         </Col>
                     )}
                 </Row>

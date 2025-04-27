@@ -254,10 +254,13 @@ public class ProductController {
                                 productColors.put(productDetailResponse.getProduct().getId(), productColorService.getProductColorsByProduct(productDetailResponse.getProduct().getId()));
                         }
 
+                        List<Product> productBestSellers = service.findDistinctProductsFromCompletedOrders();
+
                         Map<String, Object> response = new HashMap<>();
                         response.put("products", products);
                         response.put("productDetails", productDetails);
                         response.put("productColors", productColors);
+                        response.put("productBestSellers", productBestSellers);
 
                         return ResponseEntity.ok(response);
                 } catch (Exception e) {
@@ -265,8 +268,5 @@ public class ProductController {
                                 .body("An error occurred while fetching initial shop data");
                 }
         }
-        @GetMapping("/product-sell")
-        public List<Product> findDistinctProductsFromCompletedOrders() {
-                return service.findDistinctProductsFromCompletedOrders();
-        }
+
 }

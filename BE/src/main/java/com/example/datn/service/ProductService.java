@@ -591,6 +591,7 @@ public class ProductService {
     public List<Object[]> getTop5ProductsWithLowestQuantity() {
         return repository.findTop5ProductsWithLowestQuantity();
     }
+
     public List<Product>findDistinctProductsFromCompletedOrders(){
         return repository.findDistinctProductsFromCompletedOrders();
     }
