@@ -7,16 +7,16 @@ import { toastOptions } from '../constants'; // Ensure toastOptions is a named e
 const PromoCode = ({ promo, setPromo, totalAmount, idOrder, setQrImageUrl, qrIntervalRef, customer,setChange }) => {
   const [isPromoModalVisible, setIsPromoModalVisible] = useState(false);
   const [promoCodes, setPromoCodes] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1); // Current page state
-  const [searchName, setSearchName] = useState(""); // Search by name
-  const [searchCode, setSearchCode] = useState(""); // Search by code
-  const [filterDiscountType, setFilterDiscountType] = useState(""); // Filter by discount type
-  const itemsPerPage = 5; // Number of items per page
+  const [currentPage, setCurrentPage] = useState(1); 
+  const [searchName, setSearchName] = useState(""); 
+  const [searchCode, setSearchCode] = useState(""); 
+  const [filterDiscountType, setFilterDiscountType] = useState(""); 
+  const itemsPerPage = 5; 
 
   useEffect(() => {
     fetchPromoCodes()
       .then(response => {
-        const activePromoCodes = response.data.data.filter(promo => promo.status === 1); // Filter by status=1
+        const activePromoCodes = response.data.data.filter(promo => promo.status === 1&& totalAmount >= promo.minOrderValue); // Filter by status=1
         const sortedPromoCodes = activePromoCodes.sort((a, b) => {
           const discountA = a.discountType === 1 
             ? Math.min((totalAmount * a.discountValue) / 100, a.maxDiscountValue) 
