@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const listEmployee = async (searchInput, pageInput, statusInput) => {
+const listEmployee = async (searchInput, pageInput, statusInput,imageInput) => {
     let token = localStorage.getItem('token');
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     return await axios.get("http://localhost:8080/employee", {
