@@ -22,7 +22,7 @@ const Client = () => {
             <Navbar />
             <Switch>
                 <Route exact path="/" component={Shop} />
-                <Route path="/all" component={() => <ShopAllProduct banner={all_banner} />} />
+                <Route path="/all-product" component={() => <ShopAllProduct banner={all_banner} />} />
                 <Route path="/cart" component={Cart} />
                 <Route exact path="/product/:productID" component={Product} />
                 <Route path="/cart" component={Cart} />

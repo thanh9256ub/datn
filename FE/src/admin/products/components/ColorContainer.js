@@ -31,7 +31,8 @@ const ColorContainer = ({ colorIds, setColorIds }) => {
     }
 
     const handleAddColor = async () => {
-        if (!newColorName.trim()) {
+        const normalizedName = newColorName.trim().replace(/\s+/g, ' ');
+        if (!normalizedName) {
             alert("Vui lòng nhập tên màu sắc!");
             return;
         }
@@ -43,7 +44,7 @@ const ColorContainer = ({ colorIds, setColorIds }) => {
             const codeExists = colors.some(
                 color => color.colorCode.toLowerCase() === newColorCode.toLowerCase()
             );
-            const colorExists = colors.some(color => color.colorName.toLowerCase() === newColorName.toLowerCase());
+            const colorExists = colors.some(color => color.colorName.trim().replace(/\s+/g, ' ').toLowerCase() === normalizedName.toLowerCase());
 
             if (codeExists) {
                 toast.error("Mã màu đã tồn tại!");

@@ -11,6 +11,7 @@ const ChatBot = () => {
     const [chatMessage, setChatMessage] = useState('');
     const [chatHistory, setChatHistory] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [currentSearchConditions, setCurrentSearchConditions] = useState(null);
 
     const [shoeKeywords, setShoeKeywords] = useState([]);
     const [brandKeywords, setBrandKeywords] = useState([]);
@@ -95,12 +96,14 @@ const ChatBot = () => {
                     sender: 'ai',
                     message: (
                         <div>
-                            <p>Xin chào! Tôi là trợ lý ảo của shop giày <strong>{storeInfo.name}</strong>. Tôi có thể giúp gì cho bạn?</p>
+                            <p>👋 Xin chào bạn! Mình là <strong>H2Bot</strong>, trợ lý ảo của cửa hàng giày <strong>{storeInfo.name}</strong>.</p>
+                            <p>Mình có thể giúp gì cho bạn hôm nay ạ? 💖</p>
                             <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                                <li>Tìm sản phẩm giày</li>
-                                <li>Thông tin cửa hàng</li>
-                                <li>Hỗ trợ khác</li>
+                                <li>🔍 Tìm sản phẩm giày theo tên, thương hiệu, màu sắc...</li>
+                                <li>🏬 Thông tin cửa hàng, giờ mở cửa, địa chỉ</li>
+                                <li>💁 Hỗ trợ tư vấn các vấn đề khác</li>
                             </ul>
+                            <p style={{ marginTop: '10px', fontStyle: 'italic' }}>Bạn cần tìm gì ạ? Mình sẵn sàng giúp đỡ!</p>
                         </div>
                     )
                 }]);
@@ -110,9 +113,50 @@ const ChatBot = () => {
         initializeChatHistory();
     }, [isChatOpen, chatHistory.length]);
 
+    const getStoreInfoResponse = (question) => {
+        const lowerQuestion = question.toLowerCase();
+
+        if (lowerQuestion.includes('địa chỉ') || lowerQuestion.includes('ở đâu')) {
+            return `🏠 Cửa hàng ${storeInfo.name} của chúng mình nằm tại: ${storeInfo.address}. Bạn có thể ghé qua bất cứ lúc nào nhé! ❤️`;
+        }
+        else if (lowerQuestion.includes('giờ') || lowerQuestion.includes('mở cửa')) {
+            return `⏰ Hiện tại cửa hàng mình mở cửa từ ${storeInfo.hours}. Bạn có thể đến vào khung giờ này để được phục vụ tốt nhất ạ! 😊`;
+        }
+        else if (lowerQuestion.includes('điện thoại') || lowerQuestion.includes('liên hệ')) {
+            return `📞 Bạn có thể liên hệ với cửa hàng qua số: ${storeInfo.phone}. Mình luôn sẵn sàng hỗ trợ bạn! 💕`;
+        }
+        else if (lowerQuestion.includes('email')) {
+            return `📧 Email của cửa hàng là: ${storeInfo.email}. Bạn có thể gửi thắc mắc qua đây nếu cần nhé! ✨`;
+        }
+        else {
+            return (
+                <div>
+                    <p>💖 <strong>Thông tin cửa hàng {storeInfo.name}:</strong></p>
+                    <p>🏠 <strong>Địa chỉ:</strong> {storeInfo.address}</p>
+                    <p>⏰ <strong>Giờ mở cửa:</strong> {storeInfo.hours}</p>
+                    <p>📞 <strong>Điện thoại:</strong> {storeInfo.phone}</p>
+                    <p>📧 <strong>Email:</strong> {storeInfo.email}</p>
+                    <p style={{ marginTop: '5px' }}>Mong sớm được đón tiếp bạn tại cửa hàng! ❤️</p>
+                </div>
+            );
+        }
+    };
+
     const normalizeText = (text) => {
         if (!text) return '';
         return text.toLowerCase();
+    };
+
+    // Hàm kiểm tra xem câu hỏi có bắt đầu bằng cụm từ chỉ định tìm kiếm mới không
+    const isNewSearchQuery = (message) => {
+        const lowerMessage = normalizeText(message);
+        return lowerMessage.startsWith('tôi muốn') ||
+            lowerMessage.startsWith('cho tôi') ||
+            lowerMessage.startsWith('tìm kiếm') ||
+            lowerMessage.startsWith('cần tìm') ||
+            lowerMessage.startsWith('muốn tìm') ||
+            lowerMessage.startsWith('tìm giúp') ||
+            lowerMessage.startsWith('gợi ý');
     };
 
     // Hàm trích xuất từ khóa tìm kiếm từ câu hỏi
@@ -124,11 +168,26 @@ const ChatBot = () => {
             return 'store_info';
         }
 
+        if (isNewSearchQuery(message)) {
+            setCurrentSearchConditions({
+                type: 'combined',
+                shoe: null,
+                brand: null,
+                material: null,
+                category: null,
+                color: null,
+                size: null,
+                price: null
+            });
+        }
+
         // Object chứa tất cả thông tin trích xuất
-        const searchConditions = {
+        let searchConditions = currentSearchConditions ? { ...currentSearchConditions } : {
             type: 'combined',
             shoe: null,
             brand: null,
+            material: null,
+            category: null,
             color: null,
             size: null,
             price: null
@@ -267,7 +326,20 @@ const ChatBot = () => {
             searchConditions.brand = foundBrand;
         }
 
-        // 3. Trích xuất tên giày
+        const foundCategory = categoryKeywords.find(category =>
+            lowerMessage.includes(normalizeText(category))
+        );
+        if (foundCategory) {
+            searchConditions.category = foundCategory;
+        }
+
+        const foundMaterial = materialKeywords.find(material =>
+            lowerMessage.includes(normalizeText(material))
+        );
+        if (foundMaterial) {
+            searchConditions.material = foundMaterial;
+        }
+
         const foundShoe = shoeKeywords.find(shoe =>
             lowerMessage.includes(normalizeText(shoe))
         );
@@ -293,41 +365,15 @@ const ChatBot = () => {
             }
         }
 
+        setCurrentSearchConditions(searchConditions);
+
         // Kiểm tra nếu có ít nhất một điều kiện thì trả về
-        if (searchConditions.brand || searchConditions.shoe || searchConditions.color || searchConditions.size || searchConditions.price) {
+        if (searchConditions.brand || searchConditions.shoe || searchConditions.category || searchConditions.material || searchConditions.color ||
+            searchConditions.size || searchConditions.price) {
             return searchConditions;
         }
 
         return null;
-    };
-
-    // Hàm trả lời thông tin cửa hàng
-    const getStoreInfoResponse = (question) => {
-        const lowerQuestion = question.toLowerCase();
-
-        if (lowerQuestion.includes('địa chỉ') || lowerQuestion.includes('ở đâu')) {
-            return `🏠 ${storeInfo.name} nằm tại: ${storeInfo.address}`;
-        }
-        else if (lowerQuestion.includes('giờ') || lowerQuestion.includes('mở cửa')) {
-            return `⏰ Cửa hàng mở cửa: ${storeInfo.hours}`;
-        }
-        else if (lowerQuestion.includes('điện thoại') || lowerQuestion.includes('liên hệ')) {
-            return `📞 Số điện thoại: ${storeInfo.phone}`;
-        }
-        else if (lowerQuestion.includes('email')) {
-            return `📧 Email: ${storeInfo.email}`;
-        }
-        else {
-            return (
-                <div>
-                    <strong>Thông tin cửa hàng:</strong><br />
-                    🏠 <strong>Địa chỉ:</strong> {storeInfo.address}<br />
-                    ⏰ <strong>Giờ mở cửa:</strong> {storeInfo.hours}<br />
-                    📞 <strong>Điện thoại:</strong> {storeInfo.phone}<br />
-                    📧 <strong>Email:</strong> {storeInfo.email}
-                </div>
-            );
-        }
     };
 
     const searchShoes = async (query) => {
@@ -340,6 +386,12 @@ const ChatBot = () => {
                 }
                 if (query.brand) {
                     params.brandName = query.brand;
+                }
+                if (query.category) {
+                    params.categoryName = query.category;
+                }
+                if (query.material) {
+                    params.materialName = query.material;
                 }
                 if (query.color) {
                     params.colorName = query.color;
@@ -436,9 +488,11 @@ const ChatBot = () => {
 
             if (searchQuery.type === 'combined') {
                 // Tạo thông báo phản hồi chi tiết
-                responseMessage = 'Tìm thấy sản phẩm phù hợp với:';
+                responseMessage = 'Đây là các sản phẩm mà bạn cần:';
                 if (searchQuery.shoe) responseMessage += ` sản phẩm "${searchQuery.shoe}"`;
-                if (searchQuery.brand) responseMessage += ` hãng ${searchQuery.brand}`;
+                if (searchQuery.brand) responseMessage += ` thương hiệu ${searchQuery.brand}`;
+                if (searchQuery.category) responseMessage += ` danh mục ${searchQuery.category}`;
+                if (searchQuery.material) responseMessage += ` chất liệu ${searchQuery.material}`;
                 if (searchQuery.color) responseMessage += ` màu ${searchQuery.color}`;
                 if (searchQuery.size) responseMessage += ` size ${searchQuery.size}`;
                 if (searchQuery.price) {
@@ -581,8 +635,10 @@ const ChatBot = () => {
             } else {
                 setChatHistory(prev => [...prev, {
                     sender: 'ai',
-                    message: `Không tìm thấy sản phẩm phù hợp. Bạn muốn tìm sản phẩm khác không?`
+                    message: `Hiện tại cửa hàng chưa có sản phẩm như "${chatMessage}" 😅. Nhưng đừng lo, bạn có muốn mình gợi ý một số mẫu giày nam khác siêu đẹp không? 👟😊`
                 }]);
+                setLoading(false);
+                return;
             }
             setLoading(false);
             return;
@@ -592,7 +648,21 @@ const ChatBot = () => {
         try {
             const response = await ai.models.generateContent({
                 model: "gemini-2.0-flash",
-                contents: `Bạn là trợ lý cửa hàng giày tên H2TL. Hãy trả lời ngắn gọn: ${chatMessage}`,
+                contents: `Bạn là H2Bot - trợ lý ảo thân thiện, nhiệt tình của cửa hàng giày H2TL. 
+
+                Thông tin cửa hàng:
+                - H2TL là cửa hàng chuyên bán **giày nam** với nhiều mẫu mã, kiểu dáng từ năng động đến lịch lãm.
+                - Ưu tiên tư vấn và giới thiệu các sản phẩm dành cho **nam giới**.
+                - Nếu gặp câu hỏi không liên quan đến giày nam (ví dụ giày nữ, đồ khác...), hãy trả lời một cách **khôn khéo, tinh tế** để hướng người dùng quay lại với sản phẩm giày nam.
+
+                Tính cách:
+                - Vui vẻ, hay dùng biểu tượng cảm xúc phù hợp
+                - Luôn lịch sự, gọi khách hàng là "bạn"
+                - Hay hỏi han, quan tâm khách hàng
+                - Đôi khi hài hước nhẹ nhàng
+                - Luôn sẵn sàng giúp đỡ
+                
+                Hãy trả lời câu hỏi sau theo tính cách trên không quá dài dòng: ${chatMessage}`,
             });
             setChatHistory(prev => [...prev, { sender: 'ai', message: response.text }]);
         } catch (error) {

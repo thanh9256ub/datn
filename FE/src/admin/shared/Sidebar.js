@@ -34,20 +34,23 @@ class Sidebar extends Component {
 
     const dropdownPaths = [
       { path: '/admin/apps', state: 'appsMenuOpen' },
-      { path: '/admin/basic-ui', state: 'basicUiMenuOpen' },
-      { path: '/admin/advanced-ui', state: 'advancedUiMenuOpen' },
-      { path: '/admin/form-elements', state: 'formElementsMenuOpen' },
-      { path: '/admin/tables', state: 'tablesMenuOpen' },
-      { path: '/admin/maps', state: 'mapsMenuOpen' },
-      { path: '/admin/icons', state: 'iconsMenuOpen' },
-      { path: '/admin/charts', state: 'chartsMenuOpen' },
-      { path: '/admin/user-pages', state: 'userPagesMenuOpen' },
-      { path: '/admin/error-pages', state: 'errorPagesMenuOpen' },
-      { path: '/admin/ecommerce', state: 'ecommercePagesMenuOpen' },
+      // { path: '/admin/basic-ui', state: 'basicUiMenuOpen' },
+      // { path: '/admin/advanced-ui', state: 'advancedUiMenuOpen' },
+      // { path: '/admin/form-elements', state: 'formElementsMenuOpen' },
+      // { path: '/admin/tables', state: 'tablesMenuOpen' },
+      // { path: '/admin/maps', state: 'mapsMenuOpen' },
+      // { path: '/admin/icons', state: 'iconsMenuOpen' },
+      // { path: '/admin/charts', state: 'chartsMenuOpen' },
+      // { path: '/admin/user-pages', state: 'userPagesMenuOpen' },
+      // { path: '/admin/error-pages', state: 'errorPagesMenuOpen' },
+      // { path: '/admin/ecommerce', state: 'ecommercePagesMenuOpen' },
       { path: '/admin/counter', state: 'counterPagesMenuOpen' },
       { path: '/admin/products', state: 'productsPagesMenuOpen' },
-      { path: '/admin/brands', state: 'brandsPagesMenuOpen' },
-      { path: '/admin/materials', state: 'materialsPagesMenuOpen' },
+      { path: '/admin/brands', state: 'productsPagesMenuOpen' },
+      { path: '/admin/categories', state: 'productsPagesMenuOpen' },
+      { path: '/admin/materials', state: 'productsPagesMenuOpen' },
+      { path: '/admin/colors', state: 'productsPagesMenuOpen' },
+      { path: '/admin/sizes', state: 'productsPagesMenuOpen' },
       { path: '/admin/employees', state: 'employeesPagesMenuOpen' },
       { path: '/admin/customers', state: 'customersPagesMenuOpen' },
       { path: '/admin/orders', state: 'ordersPagesMenuOpen' },
@@ -92,7 +95,7 @@ class Sidebar extends Component {
               <i className="mdi mdi-cart menu-icon"></i>
             </Link>
           </li>
-          <li className={this.isPathActive('/admin/products') ? 'nav-item active' : 'nav-item'}>
+          <li className={this.state.productsPagesMenuOpen ? 'nav-item active' : 'nav-item'}>
             <div className={this.state.productsPagesMenuOpen ? 'nav-link menu-expanded' : 'nav-link'} onClick={() => this.toggleMenuState('productsPagesMenuOpen')} data-toggle="collapse">
               <span className="menu-title"><Trans>Quản lý sản phẩm</Trans></span>
               <i className="menu-arrow"></i>

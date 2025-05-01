@@ -41,7 +41,7 @@ const Breadcrum = ({ product }) => {
                 </Breadcrumb.Item>
 
                 <Breadcrumb.Item key="all">
-                    <Link to="/all" style={{ color: primaryColor }}>
+                    <Link to="/all-product" style={{ color: primaryColor }}>
                         Sản phẩm
                     </Link>
                 </Breadcrumb.Item>

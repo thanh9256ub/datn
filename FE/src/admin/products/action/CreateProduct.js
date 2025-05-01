@@ -72,7 +72,10 @@ const CreateProduct = () => {
             return;
         }
 
-        const exists = products.some(product => product.productName.toLowerCase() === productName.toLowerCase());
+        const normalizedProductName = productName.trim().replace(/\s+/g, ' ');
+        const exists = products.some(product =>
+            product.productName.trim().replace(/\s+/g, ' ').toLowerCase() === normalizedProductName.toLowerCase()
+        );
 
         if (exists) {
             setErrorMessage("Tên sản phẩm đã tồn tại!");
@@ -284,6 +287,23 @@ const CreateProduct = () => {
             alert("Lỗi khi tạo biến thể, kiểm tra console log!");
         }
     };
+
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (isSaving) {
+                toast.error('Vui lòng đợi quá trình lưu hoàn tất trước khi rời khỏi trang');
+                e.preventDefault();
+                e.returnValue = 'Bạn đang trong quá trình lưu sản phẩm. Bạn có chắc chắn muốn rời khỏi trang?';
+                return e.returnValue;
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [isSaving]);
 
     const saveProduct = async () => {
 
@@ -556,6 +576,11 @@ const CreateProduct = () => {
                                                             } else {
                                                                 setErrorMessage("Tên sản phẩm không được vượt quá 255 ký tự.");
                                                             }
+                                                        }}
+                                                        onBlur={(e) => {
+                                                            // Tự động chuẩn hóa khi rời khỏi trường nhập
+                                                            const normalizedValue = e.target.value.trim().replace(/\s+/g, ' ');
+                                                            setProductName(normalizedValue);
                                                         }}
                                                         placeholder='Nhập tên sản phẩm'
                                                         required
