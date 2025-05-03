@@ -333,16 +333,30 @@ const ChatBot = () => {
             searchConditions.category = foundCategory;
         }
 
-        const foundMaterial = materialKeywords.find(material =>
-            lowerMessage.includes(normalizeText(material))
-        );
+        // const foundMaterial = materialKeywords.find(material =>
+        //     lowerMessage.includes(normalizeText(material))
+        // );
+        const foundMaterial = materialKeywords.find(material => {
+            const normalizedMaterial = normalizeText(material);
+            return (
+                lowerMessage.includes(normalizedMaterial) &&
+                normalizedMaterial.length <= lowerMessage.length
+            );
+        });
         if (foundMaterial) {
             searchConditions.material = foundMaterial;
         }
 
-        const foundShoe = shoeKeywords.find(shoe =>
-            lowerMessage.includes(normalizeText(shoe))
-        );
+        // const foundShoe = shoeKeywords.find(shoe =>
+        //     lowerMessage.includes(normalizeText(shoe))
+        // );
+        const foundShoe = shoeKeywords
+            .filter(shoe => shoe.length > 2)
+            .find(shoe => {
+                const normalizedShoe = normalizeText(shoe);
+                return lowerMessage.includes(normalizedShoe) &&
+                    !categoryKeywords.some(cat => lowerMessage.includes(normalizeText(cat)));
+            });
         if (foundShoe) {
             searchConditions.shoe = foundShoe;
         }
