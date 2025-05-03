@@ -1,5 +1,6 @@
 package com.example.datn.service;
 
+import com.example.datn.controller.WebSocketController;
 import com.example.datn.dto.request.AddressRequest;
 import com.example.datn.dto.request.CustomerRequest;
 import com.example.datn.dto.response.ApiPagingResponse;
@@ -50,6 +51,9 @@ public class CustomerService {
 
     @Autowired
     EmailService emailService;
+
+    @Autowired
+    WebSocketController webSocketController;
 
     public ApiPagingResponse<List<CustomerResponse>> getAll(String search, int page, int pageSize) {
 
@@ -186,6 +190,9 @@ public class CustomerService {
         customer.setUpdatedAt(LocalDateTime.now());
         customer.setStatus(customerRequest.getStatus());
 
+        if(customer.getStatus() == 0){
+            webSocketController.sendUpdateStatusCustomer(customer.getCustomerCode());
+        }
 
 //        return customerMapper.toCustomerResponse(customerRepository.save(customer));
         return new CustomerResponse(customerRepository.save(customer));

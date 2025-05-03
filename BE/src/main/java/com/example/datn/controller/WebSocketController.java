@@ -57,4 +57,9 @@ public class WebSocketController {
         message.put("message", "Đã cập nhật trạng thái đơn hàng: " + orderCode);
         messagingTemplate.convertAndSend("/topic/order-update-status", message);
     }
+
+    public void sendUpdateStatusCustomer(String code){
+        String massage = "Khách hàng đã bị khoá tài khoản: " + code;
+        messagingTemplate.convertAndSend("/topic/customer-status", massage);
+    }
 }
