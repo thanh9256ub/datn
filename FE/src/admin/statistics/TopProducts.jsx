@@ -126,7 +126,7 @@ const TopProducts = () => {
             fontWeight: '600',
             color: '#111827'
           }}>
-            Top 5 sản phẩm bán nhiều
+            Top 5 sản phẩm bán nhiều nhất
           </h3>
           <ResponsiveContainer width="100%" height={400}>
             <BarChart

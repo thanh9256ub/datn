@@ -10,17 +10,17 @@ const { Option } = Select;
 
 const Statistics = () => {
     const [monthlyData1, setMonthlyData1] = useState([]);
-const [monthlyData2, setMonthlyData2] = useState([]);
-const [selectedMonth1, setSelectedMonth1] = useState(1);
-const [selectedMonth2, setSelectedMonth2] = useState(2);
-const [yearlyData1, setYearlyData1] = useState([]);
-const [yearlyData2, setYearlyData2] = useState([]);
-const [selectedYear1, setSelectedYear1] = useState(new Date().getFullYear());
-const [selectedYear2, setSelectedYear2] = useState(new Date().getFullYear() - 1);
-const [monthlyRevenue1, setMonthlyRevenue1] = useState([]);
-const [monthlyRevenue2, setMonthlyRevenue2] = useState([]);
-const [yearlyRevenue1, setYearlyRevenue1] = useState([]);
-const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
+    const [monthlyData2, setMonthlyData2] = useState([]);
+    const [selectedMonth1, setSelectedMonth1] = useState(1);
+    const [selectedMonth2, setSelectedMonth2] = useState(2);
+    const [yearlyData1, setYearlyData1] = useState([]);
+    const [yearlyData2, setYearlyData2] = useState([]);
+    const [selectedYear1, setSelectedYear1] = useState(new Date().getFullYear());
+    const [selectedYear2, setSelectedYear2] = useState(new Date().getFullYear() - 1);
+    const [monthlyRevenue1, setMonthlyRevenue1] = useState([]);
+    const [monthlyRevenue2, setMonthlyRevenue2] = useState([]);
+    const [yearlyRevenue1, setYearlyRevenue1] = useState([]);
+    const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
     // ... (giữ nguyên các state và useEffect hooks như trước)
     useEffect(() => {
         // Fetch data for the first selected month
@@ -236,7 +236,7 @@ const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
             },
             tooltip: {
                 callbacks: {
-                    label: function(context) {
+                    label: function (context) {
                         let label = context.dataset.label || '';
                         if (label) {
                             label += ': ';
@@ -251,7 +251,7 @@ const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
             y: {
                 beginAtZero: true,
                 ticks: {
-                    callback: function(value) {
+                    callback: function (value) {
                         return value.toLocaleString();
                     }
                 }
@@ -263,26 +263,45 @@ const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
         <div >
             <RevenueFilter />
             <TopProducts />
+            <h2 style={{
+                textAlign: 'center',
+                margin: '30px 30px',
+                fontSize: '24px',
+                fontWeight: '700',
+                color: '#111827',
+                letterSpacing: '0.5px'
+            }}>
+                Thống kê đơn hàng
+            </h2>
             <PieChart />
-
+            <h2 style={{
+                textAlign: 'center',
+                margin: '30px 30px',
+                fontSize: '24px',
+                fontWeight: '700',
+                color: '#111827',
+                letterSpacing: '0.5px'
+            }}>
+                So sánh đơn hàng và doanh thu
+            </h2>
             {/* Grid layout cho các biểu đồ */}
-            <div style={{ 
+            <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(2, 1fr)',
                 gap: '24px',
                 marginTop: '24px'
-              }}>
+            }}>
                 {/* Biểu đồ cột theo tháng */}
-                <div style={{ 
-                    background: 'white', 
-                    padding: '20px', 
+                <div style={{
+                    background: 'white',
+                    padding: '20px',
                     borderRadius: '8px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                 }}>
                     <h3 style={{ marginBottom: '16px' }}>So sánh đơn hàng hoàn thành theo tháng</h3>
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
                         <div>
-                            <label>Tháng 1: </label>
+                            <label>Tháng: </label>
                             <Select
                                 value={selectedMonth1}
                                 onChange={setSelectedMonth1}
@@ -296,7 +315,7 @@ const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
                             </Select>
                         </div>
                         <div>
-                            <label>Tháng 2: </label>
+                            <label>Tháng: </label>
                             <Select
                                 value={selectedMonth2}
                                 onChange={setSelectedMonth2}
@@ -333,16 +352,16 @@ const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
                 </div>
 
                 {/* Biểu đồ cột theo năm */}
-                <div style={{ 
-                    background: 'white', 
-                    padding: '20px', 
+                <div style={{
+                    background: 'white',
+                    padding: '20px',
                     borderRadius: '8px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                 }}>
-                    <h3 style={{ marginBottom: '16px' }}>Thống kê đơn hàng hoàn thành theo năm</h3>
+                    <h3 style={{ marginBottom: '16px' }}>So sánh đơn hàng hoàn thành theo năm</h3>
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
                         <div>
-                            <label>Năm 1: </label>
+                            <label>Năm: </label>
                             <Select
                                 value={selectedYear1}
                                 onChange={setSelectedYear1}
@@ -359,7 +378,7 @@ const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
                             </Select>
                         </div>
                         <div>
-                            <label>Năm 2: </label>
+                            <label>Năm: </label>
                             <Select
                                 value={selectedYear2}
                                 onChange={setSelectedYear2}
@@ -382,16 +401,16 @@ const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
                 </div>
 
                 {/* Biểu đồ doanh thu theo tháng */}
-                <div style={{ 
-                    background: 'white', 
-                    padding: '20px', 
+                <div style={{
+                    background: 'white',
+                    padding: '20px',
                     borderRadius: '8px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                 }}>
                     <h3 style={{ marginBottom: '16px' }}>So sánh doanh thu theo tháng</h3>
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
                         <div>
-                            <label>Tháng 1: </label>
+                            <label>Tháng: </label>
                             <Select
                                 value={selectedMonth1}
                                 onChange={setSelectedMonth1}
@@ -405,7 +424,7 @@ const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
                             </Select>
                         </div>
                         <div>
-                            <label>Tháng 2: </label>
+                            <label>Tháng: </label>
                             <Select
                                 value={selectedMonth2}
                                 onChange={setSelectedMonth2}
@@ -444,7 +463,7 @@ const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
                                 y: {
                                     ...chartOptions.scales.y,
                                     ticks: {
-                                        callback: function(value) {
+                                        callback: function (value) {
                                             return value.toLocaleString() + 'đ';
                                         }
                                     }
@@ -455,16 +474,16 @@ const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
                 </div>
 
                 {/* Biểu đồ doanh thu theo năm */}
-                <div style={{ 
-                    background: 'white', 
-                    padding: '20px', 
+                <div style={{
+                    background: 'white',
+                    padding: '20px',
                     borderRadius: '8px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                 }}>
                     <h3 style={{ marginBottom: '16px' }}>So sánh doanh thu theo năm</h3>
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
                         <div>
-                            <label>Năm 1: </label>
+                            <label>Năm: </label>
                             <Select
                                 value={selectedYear1}
                                 onChange={setSelectedYear1}
@@ -481,7 +500,7 @@ const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
                             </Select>
                         </div>
                         <div>
-                            <label>Năm 2: </label>
+                            <label>Năm: </label>
                             <Select
                                 value={selectedYear2}
                                 onChange={setSelectedYear2}
@@ -506,7 +525,7 @@ const [yearlyRevenue2, setYearlyRevenue2] = useState([]);
                                 y: {
                                     ...chartOptions.scales.y,
                                     ticks: {
-                                        callback: function(value) {
+                                        callback: function (value) {
                                             return value.toLocaleString() + 'đ';
                                         }
                                     }

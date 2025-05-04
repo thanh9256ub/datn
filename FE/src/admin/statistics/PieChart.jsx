@@ -143,7 +143,7 @@ const PieChartComponent = () => {
     <div style={{
       display: 'flex',
       justifyContent: 'center',
-      
+
     }}>
       <PieChartChild
         title="Thống kê loại đơn hàng"
@@ -152,7 +152,7 @@ const PieChartComponent = () => {
         colors={COLORS}
       />
       <PieChartChild
-        title="Thống kê trạng thái hóa đơn"
+        title="Thống kê trạng thái đơn hàng"
         apiUrl="http://localhost:8080/order/order-counts"
         categoryNames={["Hoàn thành", "Hủy"]}
         colors={COLORS}
