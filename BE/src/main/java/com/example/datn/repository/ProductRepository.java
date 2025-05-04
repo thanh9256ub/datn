@@ -30,6 +30,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer>, JpaS
             "WHERE [status] != 2 " +
             "ORDER BY total_quantity ASC", nativeQuery = true)
     List<Object[]> findTop5ProductsWithLowestQuantity();
+
     @Query("SELECT DISTINCT p FROM OrderDetail od " +
             "JOIN od.productDetail pd " +
             "JOIN pd.product p " +

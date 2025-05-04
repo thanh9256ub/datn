@@ -151,7 +151,7 @@ const CartItems = () => {
         }
     };
 
-    const pollPaymentStatus = async (transactionId, orderCode) => { // Thêm tham số orderCode
+    const pollPaymentStatus = async (transactionId, orderCode) => {
         setCheckingPayment(true);
         const maxAttempts = 450;
         let attempts = 0;
@@ -170,7 +170,7 @@ const CartItems = () => {
                     const formValues = form.getFieldsValue();
                     await sendOrderConfirmationEmail(
                         formValues.email,
-                        orderCode, // Sử dụng orderCode được truyền vào
+                        orderCode,
                         formValues.name,
                         getTotalCartAmount() + shippingFee,
                         'VNPAY'
@@ -189,15 +189,27 @@ const CartItems = () => {
                     setVoucherCode('');
                     setVoucherDiscount(0);
                     setVoucherError('');
-                    // Xóa thông tin thanh toán
+
+                    // Đóng cửa sổ VNPay nếu vẫn mở
+                    if (vnpayWindowRef.current && !vnpayWindowRef.current.closed) {
+                        vnpayWindowRef.current.close();
+                        // Nếu window.close() bị chặn, thử chuyển hướng đến trang trống
+                        if (!vnpayWindowRef.current.closed) {
+                            vnpayWindowRef.current.location.href = 'about:blank';
+                            setTimeout(() => {
+                                if (vnpayWindowRef.current && !vnpayWindowRef.current.closed) {
+                                    vnpayWindowRef.current.close();
+                                }
+                            }, 100);
+                        }
+                    }
+
+                    // Reset thông tin thanh toán
                     form.resetFields();
                     setSelectedProvince('');
                     setSelectedDistrict('');
                     setSelectedWard('');
                     setShippingFee(0);
-                    if (vnpayWindowRef.current && !vnpayWindowRef.current.closed) {
-                        vnpayWindowRef.current.close();
-                    }
                     setCheckingPayment(false);
                 } else if (statusResponse.status === 'FAILED') {
                     clearInterval(interval);
@@ -223,7 +235,7 @@ const CartItems = () => {
                 }
                 setCheckingPayment(false);
             }
-        }, 2000); // Kiểm tra mỗi 2 giây
+        }, 2000);
     };
 
     const handleCheckoutConfirm = () => {

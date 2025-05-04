@@ -28,7 +28,9 @@ const SizeContainer = ({ sizeIds, setSizeIds }) => {
     }
 
     const handleAddSize = async () => {
-        if (!newSizeName.trim()) {
+        const normalizedName = newSizeName.trim().replace(/\s+/g, ' ');
+
+        if (!normalizedName) {
             alert("Vui lòng nhập tên kích cỡ!");
             return;
         }
@@ -36,12 +38,19 @@ const SizeContainer = ({ sizeIds, setSizeIds }) => {
         try {
             const sizeResp = await getSizes();
             const sizes = sizeResp.data.data;
-            const sizeExists = sizes.some(size => size.sizeName.toLowerCase() === newSizeName.toLowerCase());
+            const sizeExists = sizes.some(size => size.sizeName.trim().replace(/\s+/g, ' ').toLowerCase() === normalizedName.toLowerCase());
 
             if (sizeExists) {
                 toast.error("Kích cỡ đã tồn tại!");
                 return;
             }
+
+            const sizeNumber = parseInt(newSizeName);
+            if (sizeNumber < 31 || sizeNumber > 49) {
+                toast.error("Kích cỡ phải từ 30 đến 49!");
+                return;
+            }
+
             const response = await createSize({ sizeName: newSizeName });
             toast.success("Thêm kích cỡ thành công!");
             setShowModal(false);

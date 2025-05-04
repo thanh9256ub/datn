@@ -40,6 +40,13 @@ const Employees = () => {
 
     const [loading, setLoading] = useState(true);
 
+
+    const [showImageModal, setShowImageModal] = useState(false);
+
+    const [imageUrl, setImageUrl] = useState("");
+
+
+
     // Hàm mở Modal
     const handleShow = (employee) => {
         setShowModal(true);
@@ -220,6 +227,10 @@ const Employees = () => {
         localStorage.removeItem("successMessage");
     }
 
+    const handleShowImageModal = (image) => {
+        setImageUrl(image);
+        setShowImageModal(true);
+    };
 
     return (
         <div>
@@ -233,7 +244,7 @@ const Employees = () => {
                 </div> */}
                 <div style={{ marginLeft: 'auto', marginRight: '20px' }}>
                     <Button size='sm' variant="primary" className="btn btn-gradient-primary btn-sm float-right"
-                       onClick={handleAdd}
+                        onClick={handleAdd}
                     // onClick={() => setShowModalAdd(true)} 
                     ><i className='mdi mdi-plus'></i>Thêm nhân viên</Button >
                 </div>
@@ -259,8 +270,8 @@ const Employees = () => {
                             <div className="text-danger">{error}</div>
                         ) : (
                             <div>
-                                <div style={{ height: "350px" }}>
-                                    <div style={{display:"flex"}}>
+                                <div style={{ height: "330px" }}>
+                                    <div style={{ display: "flex" }}>
                                         <div style={{ width: "300px", overflow: "hidden", border: "1px solid #dcdcdc", borderRadius: "10px" }}>
                                             <InputGroup>
                                                 <Form.Control
@@ -285,7 +296,7 @@ const Employees = () => {
                                                     width: "200px"
                                                 }}
 
-                                               
+
 
                                                 className="form-select"
                                                 onChange={handleChangeStatus}
@@ -300,6 +311,7 @@ const Employees = () => {
                                         <thead>
                                             <tr>
                                                 <th>STT</th>
+                                                <th>anh</th>
                                                 <th>Mã</th>
                                                 <th>Họ tên</th>
                                                 <th>Giới tính</th>
@@ -313,6 +325,21 @@ const Employees = () => {
                                                 employees.map((employee, index) => (
                                                     <tr key={employee.id}>
                                                         <td>{index + 1}</td>
+                                                        <td>
+                                                            {employee.image != "image.png" ? (
+                                                                <img
+                                                                    src={employee.image}
+                                                                    alt="Employee"
+                                                                    style={{ width: '30px', height: 'auto', cursor: 'pointer', borderRadius: '1%', objectFit: 'contain' }}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation(); // Ngăn sự kiện click lan lên trên
+                                                                        handleShowImageModal(employee.image);
+                                                                    }} // Mở modal khi click vào ảnh
+                                                                />
+                                                            ) : (
+                                                                <span>No Image</span>
+                                                            )}
+                                                        </td>
                                                         <td>{employee.employeeCode}</td>
                                                         <td>{employee.fullName}</td>
                                                         <td>{employee.gender ? "Nam" : "Nữ"}</td>
@@ -353,7 +380,7 @@ const Employees = () => {
                                     </Button>
                                 </div> */}
 
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: "10px" }}>
                                     <button className="pagination-button" onClick={() => handleTruoc()}>
                                         <i className='mdi mdi-arrow-left-bold'></i>
                                     </button>
@@ -1036,6 +1063,16 @@ const Employees = () => {
                                             </div>
                                         </div>
                                     </Modal.Footer>
+                                </Modal>
+
+                                <Modal show={showImageModal} onHide={() => setShowImageModal(false)} centered>
+                                    <Modal.Body>
+                                        <img
+                                            src={imageUrl}
+                                            alt="Large Product"
+                                            style={{ width: '100%', height: 'auto' }}
+                                        />
+                                    </Modal.Body>
                                 </Modal>
                             </div>
                         )}

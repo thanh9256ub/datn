@@ -49,4 +49,17 @@ public class WebSocketController {
         String message = "Khách hàng vãng lai vừa mua hàng với đơn hàng là: " + orderCode;
         messagingTemplate.convertAndSend("/topic/order-customer", message);
     }
+
+    public void sendUpdateStatusOrder(String orderCode, Integer newStatus) {
+        Map<String, Object> message = new HashMap<>();
+        message.put("orderCode", orderCode);
+        message.put("status", newStatus);
+        message.put("message", "Đã cập nhật trạng thái đơn hàng: " + orderCode);
+        messagingTemplate.convertAndSend("/topic/order-update-status", message);
+    }
+
+    public void sendUpdateStatusCustomer(String code){
+        String massage = "Khách hàng đã bị khoá tài khoản: " + code;
+        messagingTemplate.convertAndSend("/topic/customer-status", massage);
+    }
 }

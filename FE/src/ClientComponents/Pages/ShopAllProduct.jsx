@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     Row, Col, Typography, Button, Card, Space, Divider,
-    Badge, Rate, Tag, Image, Select, Slider, InputNumber, Checkbox
+    Badge, Rate, Tag, Image, Select, Slider, InputNumber, Checkbox,
+    Pagination
 } from 'antd';
 import { FilterOutlined } from '@ant-design/icons';
 import { fetchProducts, fetchProductDetail, fetchProductColorsByProduct } from '../Service/productService';
@@ -27,11 +28,11 @@ const ShopAllProduct = (props) => {
     const [sortOption, setSortOption] = useState('default');
     const [inputValues, setInputValues] = useState([0, 5000000]);
     const [loading, setLoading] = useState(true);
-    const [visibleProducts, setVisibleProducts] = useState(8);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(12);
 
     const [productColors, setProductColors] = useState({});
 
-    // Color palette
     const primaryColor = '#6C5CE7';
     const lightBg = '#F8F9FA';
     const darkText = '#2D3436';
@@ -97,6 +98,7 @@ const ShopAllProduct = (props) => {
         }
 
         setFilteredProducts(result);
+        setCurrentPage(1);
     }, [products, selectedBrand, selectedMaterials, selectedColors, selectedSizes, priceRange, sortOption]);
 
     useEffect(() => {
@@ -107,7 +109,6 @@ const ShopAllProduct = (props) => {
             try {
                 setLoading(true);
 
-                // Gọi đồng thời các API cần thiết
                 const [productsResponse, productDetailsResponse] = await Promise.all([
                     fetchProducts({ signal: abortController.signal }),
                     fetchProductDetail({ signal: abortController.signal })
@@ -118,7 +119,6 @@ const ShopAllProduct = (props) => {
                 const productsData = Array.isArray(productsResponse.data) ? productsResponse.data : [];
                 const detailsData = Array.isArray(productDetailsResponse.data) ? productDetailsResponse.data : [];
 
-                // Merge product data
                 const mergedProducts = productsData.map((product) => {
                     const detail = detailsData.find((d) => d.product.id === product.id);
                     return {
@@ -131,16 +131,13 @@ const ShopAllProduct = (props) => {
                     };
                 });
 
-                // Lấy tất cả productIds để gọi API màu sắc 1 lần
                 const productIds = detailsData.map(item => item.product.id);
 
-                // Chỉ gọi API màu sắc nếu có sản phẩm
                 if (productIds.length > 0) {
                     const colorsResponse = await fetchProductColorsByProductList(productIds, { signal: abortController.signal });
                     setProductColors(colorsResponse.data || {});
                 }
 
-                // Xử lý dữ liệu brands, materials, colors, sizes
                 const uniqueBrands = [...new Set(
                     mergedProducts
                         .map(item => item.brand?.brandName)
@@ -196,7 +193,6 @@ const ShopAllProduct = (props) => {
         };
     }, []);
 
-    // Áp dụng filters khi các dependency thay đổi
     useEffect(() => {
         applyFilters();
     }, [applyFilters]);
@@ -218,61 +214,6 @@ const ShopAllProduct = (props) => {
         };
         return colorMap[colorName.toLowerCase()] || '#ccc';
     };
-
-    // const applyFilters = () => {
-    //     let result = [...products];
-
-    //     if (selectedBrand) {
-    //         result = result.filter(item => item.brand?.brandName === selectedBrand);
-    //     }
-
-    //     if (selectedMaterials.length > 0) {
-    //         result = result.filter(item =>
-    //             selectedMaterials.includes(item.material)
-    //         );
-    //     }
-
-    //     if (selectedColors.length > 0) {
-    //         result = result.filter(item =>
-    //             selectedColors.includes(item.color)
-    //         );
-    //     }
-
-    //     if (selectedSizes.length > 0) {
-    //         result = result.filter(item =>
-    //             selectedSizes.includes(item.size)
-    //         );
-    //     }
-
-    //     result = result.filter(item => item.price >= priceRange[0] && item.price <= priceRange[1]);
-
-    //     switch (sortOption) {
-    //         case 'price-asc':
-    //             result.sort((a, b) => a.price - b.price);
-    //             break;
-    //         case 'price-desc':
-    //             result.sort((a, b) => b.price - a.price);
-    //             break;
-    //         case 'name-asc':
-    //             result.sort((a, b) => {
-    //                 const nameA = a.productName?.toUpperCase() || '';
-    //                 const nameB = b.productName?.toUpperCase() || '';
-    //                 return nameA.localeCompare(nameB, 'vi');
-    //             });
-    //             break;
-    //         case 'name-desc':
-    //             result.sort((a, b) => {
-    //                 const nameA = a.productName?.toUpperCase() || '';
-    //                 const nameB = b.productName?.toUpperCase() || '';
-    //                 return nameB.localeCompare(nameA, 'vi');
-    //             });
-    //             break;
-    //         default:
-    //             break;
-    //     }
-
-    //     setFilteredProducts(result);
-    // };
 
     const handleMaterialChange = (checkedValues) => {
         setSelectedMaterials(checkedValues);
@@ -311,9 +252,16 @@ const ShopAllProduct = (props) => {
         setSortOption('default');
     };
 
-    const loadMoreProducts = () => {
-        setVisibleProducts(prev => prev + 8);
+    const handlePageChange = (page, pageSize) => {
+        setCurrentPage(page);
+        setPageSize(pageSize);
     };
+
+    // Tính toán sản phẩm hiển thị trên trang hiện tại
+    const paginatedProducts = filteredProducts.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
+    );
 
     return (
         <div style={{ backgroundColor: '#fff', minHeight: '100vh', paddingBottom: 30 }}>
@@ -556,7 +504,10 @@ const ShopAllProduct = (props) => {
                             alignItems: 'center',
                             marginBottom: 24
                         }}>
-                            <span style={{ fontWeight: '600' }}>Hiển thị 1-{visibleProducts}</span> trong tổng số {filteredProducts.length} sản phẩm
+                            <span style={{ fontWeight: '600' }}>
+                                Hiển thị {(currentPage - 1) * pageSize + 1}-{Math.min(currentPage * pageSize, filteredProducts.length)}
+                                trong tổng số {filteredProducts.length} sản phẩm
+                            </span>
 
                             <Select
                                 style={{ width: '200px' }}
@@ -578,8 +529,8 @@ const ShopAllProduct = (props) => {
                                         <Card loading style={{ borderRadius: 12 }} />
                                     </Col>
                                 ))
-                            ) : filteredProducts.length > 0 ? (
-                                filteredProducts.slice(0, visibleProducts).map((product, index) => (
+                            ) : paginatedProducts.length > 0 ? (
+                                paginatedProducts.map((product, index) => (
                                     <Col xs={12} sm={12} md={8} lg={6} key={index}>
                                         <Card
                                             hoverable
@@ -694,24 +645,16 @@ const ShopAllProduct = (props) => {
                             )}
                         </Row>
 
-                        {filteredProducts.length > visibleProducts && (
-                            <div style={{ textAlign: 'center', margin: '48px 0 0 0' }}>
-                                <Button
-                                    type="primary"
-                                    size="large"
-                                    style={{
-                                        width: '200px',
-                                        height: '50px',
-                                        borderRadius: '40px',
-                                        backgroundColor: '#f0f0f0',
-                                        color: '#787878',
-                                        border: 'none',
-                                        fontWeight: '500'
-                                    }}
-                                    onClick={loadMoreProducts}
-                                >
-                                    Xem thêm
-                                </Button>
+                        {filteredProducts.length > pageSize && (
+                            <div style={{ textAlign: 'center', marginTop: 24 }}>
+                                <Pagination
+                                    current={currentPage}
+                                    pageSize={pageSize}
+                                    total={filteredProducts.length}
+                                    onChange={handlePageChange}
+                                    showSizeChanger={false}
+                                    style={{ marginTop: 24 }}
+                                />
                             </div>
                         )}
                     </Col>

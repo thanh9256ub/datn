@@ -28,7 +28,7 @@ const Navbar = () => {
   useEffect(() => {
     const path = location.pathname;
     if (path === '/') setActiveMenu('shop');
-    else if (path === '/all') setActiveMenu('all');
+    else if (path === '/all-product') setActiveMenu('all');
     else if (path === '/policy') setActiveMenu('policy');
     else if (path === '/description') setActiveMenu('description');
     else if (path === '/lookup') setActiveMenu('lookup');
@@ -57,7 +57,7 @@ const Navbar = () => {
 
   const menuItems = [
     { key: 'shop', label: <Trans>Trang chủ</Trans>, path: '/' },
-    { key: 'all', label: <Trans>Sản phẩm</Trans>, path: '/all' },
+    { key: 'all', label: <Trans>Sản phẩm</Trans>, path: '/all-product' },
     { key: 'policy', label: <Trans>Chính sách</Trans>, path: '/policy' },
     { key: 'description', label: <Trans>Về chúng tôi</Trans>, path: '/description' },
     { key: 'lookup', label: <Trans>Tra cứu</Trans>, path: '/lookup' },

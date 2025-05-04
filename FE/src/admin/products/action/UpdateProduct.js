@@ -121,7 +121,11 @@ const UpdateProduct = () => {
             return;
         }
 
-        const exists = products.some(product => product.productName.toLowerCase() === productName.toLowerCase() && product.id != id);
+        const normalizedProductName = productName.trim().replace(/\s+/g, ' ');
+        const exists = products.some(product =>
+            product.productName.trim().replace(/\s+/g, ' ').toLowerCase() === normalizedProductName.toLowerCase()
+            && product.id != id
+        );
 
         if (exists) {
             setErrorMessage("Tên sản phẩm đã tồn tại!");
@@ -429,6 +433,10 @@ const UpdateProduct = () => {
                                                             } else {
                                                                 setErrorMessage("Tên sản phẩm không được vượt quá 255 ký tự.");
                                                             }
+                                                        }}
+                                                        onBlur={(e) => {
+                                                            const normalizedValue = e.target.value.trim().replace(/\s+/g, ' ');
+                                                            setProductName(normalizedValue);
                                                         }}
                                                         placeholder='Nhập tên sản phẩm'
                                                         required

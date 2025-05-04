@@ -227,7 +227,7 @@ const OrderDetail = () => {
     const sanitizeNoteInput = (value) => {
         const sanitizedValue = value
             .replace(/[@#$]/g, '')
-            .trim();
+            .trimStart();
         return sanitizedValue;
     };
 
@@ -580,7 +580,7 @@ const OrderDetail = () => {
                     <p>Ngày tạo: ${order.createdAt
                 ? new Date(order.createdAt).toLocaleString('vi-VN')
                 : 'N/A'}</p>
-                    <p>Địa chỉ: Nam Từ Liêm, Hà Nội | Điện thoại: 0123456789</p>
+                    <p>Địa chỉ: 13 P. Trịnh Văn Bô, Xuân Phương, Nam Từ Liêm, Hà Nội | Điện thoại: 0917294134</p>
                 </div>
                 <div class="invoice-details">
                     <p><strong>Tên khách hàng:</strong> ${order.customerName || 'Khách lẻ'}</p>
@@ -1376,14 +1376,58 @@ const OrderDetail = () => {
 };
 
 const Pagination = ({ itemsPerPage, totalItems, paginate, currentPage }) => {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const maxVisiblePages = 5; // Số trang tối đa hiển thị
+    let startPage, endPage;
+
+    if (totalPages <= maxVisiblePages) {
+        // Hiển thị tất cả các trang nếu tổng số trang ít hơn hoặc bằng maxVisiblePages
+        startPage = 1;
+        endPage = totalPages;
+    } else {
+        // Tính toán trang bắt đầu và kết thúc để hiển thị
+        const half = Math.floor(maxVisiblePages / 2);
+        if (currentPage <= half + 1) {
+            startPage = 1;
+            endPage = maxVisiblePages;
+        } else if (currentPage >= totalPages - half) {
+            startPage = totalPages - maxVisiblePages + 1;
+            endPage = totalPages;
+        } else {
+            startPage = currentPage - half;
+            endPage = currentPage + half;
+        }
+    }
+
     const pageNumbers = [];
-    for (let i = 1; i <= Math.ceil(totalItems / itemsPerPage); i++) {
+    for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
     }
 
     return (
         <nav>
             <ul className="pagination">
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                    <button
+                        onClick={() => paginate(currentPage - 1)}
+                        className="page-link"
+                        disabled={currentPage === 1}
+                    >
+                        &laquo;
+                    </button>
+                </li>
+
+                {startPage > 1 && (
+                    <>
+                        <li className="page-item">
+                            <button onClick={() => paginate(1)} className="page-link">
+                                1
+                            </button>
+                        </li>
+                        {startPage > 2 && <li className="page-item disabled"><span className="page-link">...</span></li>}
+                    </>
+                )}
+
                 {pageNumbers.map(number => (
                     <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
                         <button onClick={() => paginate(number)} className="page-link">
@@ -1391,9 +1435,31 @@ const Pagination = ({ itemsPerPage, totalItems, paginate, currentPage }) => {
                         </button>
                     </li>
                 ))}
+
+                {endPage < totalPages && (
+                    <>
+                        {endPage < totalPages - 1 && <li className="page-item disabled"><span className="page-link">...</span></li>}
+                        <li className="page-item">
+                            <button onClick={() => paginate(totalPages)} className="page-link">
+                                {totalPages}
+                            </button>
+                        </li>
+                    </>
+                )}
+
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                    <button
+                        onClick={() => paginate(currentPage + 1)}
+                        className="page-link"
+                        disabled={currentPage === totalPages}
+                    >
+                        &raquo;
+                    </button>
+                </li>
             </ul>
         </nav>
     );
 };
+
 
 export default OrderDetail;

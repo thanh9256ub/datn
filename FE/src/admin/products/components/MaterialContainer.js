@@ -10,7 +10,8 @@ const MaterialContainer = ({ materialId, setMaterialId, id }) => {
     const [refresh, setRefresh] = useState(false);
 
     const handleAddMaterial = async () => {
-        if (!newMaterialName.trim()) {
+        const normalizedName = newMaterialName.trim().replace(/\s+/g, ' ');
+        if (!normalizedName) {
             alert("Vui lòng nhập tên chất liệu!");
             return;
         }
@@ -18,7 +19,7 @@ const MaterialContainer = ({ materialId, setMaterialId, id }) => {
         try {
             const materialResp = await getMaterials();
             const materials = materialResp.data.data;
-            const materialExists = materials.some(material => material.materialName.toLowerCase() === newMaterialName.toLowerCase());
+            const materialExists = materials.some(material => material.materialName.trim().replace(/\s+/g, ' ').toLowerCase() === normalizedName.toLowerCase());
 
             if (materialExists) {
                 toast.error("Chất liệu đã tồn tại!");

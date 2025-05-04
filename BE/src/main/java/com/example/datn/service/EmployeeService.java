@@ -113,12 +113,34 @@ public class EmployeeService {
         if (Objects.nonNull(role))
             employee.setRole(role);
 
+        if(!employee.getEmail().equals(employeeRequest.getEmail())) {
+            employee.setEmail(employeeRequest.getEmail());
+
+            String password = generatePassword();
+            PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+            employee.setPassword(passwordEncoder.encode(password));
+
+            Employee created = employeeRepository.save(employee);
+            created.setEmployeeCode(generateEmployeeCode(created.getId()));
+            employeeRepository.save(created);
+            emailService.sendSimpleMessage(employeeRequest.getEmail(), "Chào mừng bạn đến với H2TL - Thông tin đăng nhập của bạn", "Chào, " + employee.getFullName() + "\n" +
+                    "Chúc mừng bạn đã gia nhập đội ngũ tại H2TL! Chúng tôi rất vui khi bạn trở thành một phần của gia đình chúng tôi và hy vọng bạn sẽ có một hành trình làm việc đầy thú vị và thành công tại đây.\n" +
+                    "\n" +
+                    "Để bạn có thể bắt đầu công việc, dưới đây là thông tin tài khoản đăng nhập hệ thống của bạn:\n" +
+                    "Tên đăng nhập: " + employee.getUsername() + "\n" +
+                    "Mật khẩu: " + password + "\n" +
+                    "\n" +
+                    "Hãy sử dụng thông tin này để đăng nhập vào hệ thống. Nếu có bất kỳ vấn đề nào trong quá trình đăng nhập hoặc bạn cần sự trợ giúp, đừng ngần ngại liên hệ với bộ phận quản lý của cửa hàng.\n" +
+                    "\n" +
+                    "Chúc bạn một ngày làm việc hiệu quả và hy vọng bạn sẽ nhanh chóng làm quen với công việc!");
+        }
+
         employee.setFullName(employeeRequest.getFullName());
         employee.setGender(employeeRequest.getGender());
         employee.setBirthDate(employeeRequest.getBirthDate());
         employee.setPhone(employeeRequest.getPhone());
         employee.setAddress(employeeRequest.getAddress());
-        employee.setEmail(employeeRequest.getEmail());
+//        employee.setEmail(employeeRequest.getEmail());
         employee.setUsername(employeeRequest.getUsername());
         employee.setImage(employeeRequest.getImage());
         employee.setStatus(employeeRequest.getStatus());

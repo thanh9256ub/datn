@@ -88,10 +88,19 @@ const CreateVoucher = () => {
     }));
   };
 
+  const isDateBeforeToday = (date) => {
+    const today = dayjs().startOf('day'); // Lấy ngày hiện tại (bỏ qua giờ phút giây)
+    return date.isBefore(today, 'day');
+  };
+
   const handleDateChange = (name, date) => {
     if (!date) {
       setFormData(prev => ({ ...prev, [name]: null }));
       setErrors(prev => ({ ...prev, [name]: "Vui lòng chọn ngày" }));
+      return;
+    }
+    if (name === 'startDate' && isDateBeforeToday(date)) {
+      setErrors(prev => ({ ...prev, [name]: "Ngày bắt đầu không được nhỏ hơn ngày hiện tại" }));
       return;
     }
     setFormData(prev => ({ ...prev, [name]: date }));
@@ -142,6 +151,10 @@ const CreateVoucher = () => {
 
     if (!formData.endDate) {
       newErrors.endDate = "Vui lòng chọn ngày kết thúc";
+    }
+
+    if (formData.startDate && isDateBeforeToday(formData.startDate)) {
+      newErrors.startDate = "Ngày bắt đầu không được nhỏ hơn ngày hiện tại";
     }
 
     // Chỉ kiểm tra isAfter nếu cả 2 ngày đều có giá trị

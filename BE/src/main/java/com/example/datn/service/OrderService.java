@@ -138,6 +138,8 @@ public class OrderService {
         order.setStatus(newStatus);
         order.setUpdatedAt(LocalDateTime.now().withNano(0));
         Order updatedOrder = repository.save(order);
+
+        webSocketController.sendUpdateStatusOrder(order.getOrderCode(), newStatus);
         return mapper.toOrderResponse(updatedOrder);
     }
 
