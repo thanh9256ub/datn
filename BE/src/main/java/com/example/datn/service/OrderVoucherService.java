@@ -35,9 +35,7 @@ public class OrderVoucherService {
         Voucher voucher = voucherRepository.findById(request.getVoucherId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy voucher với ID: " + request.getVoucherId()));
 
-        if (voucher.getQuantity() <= 0) {
-            throw new RuntimeException("Mã khuyến mãi đã hết số lượng");
-        }
+
 
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với ID: " + request.getOrderId()));
