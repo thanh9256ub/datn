@@ -96,9 +96,9 @@ const RevenueFilter = () => {
       {/* Phần 1, 2, 3: Cùng trên một hàng */}
       <Row gutter={16} style={{ marginBottom: '20px' }}>
         <Col span={8}>
-          <RangePicker 
-          value={dateRange}
-          onChange={handleDateChange} style={{ width: '100%' }} />
+          <RangePicker
+            value={dateRange}
+            onChange={handleDateChange} style={{ width: '100%' }} />
         </Col>
         <Col span={8}>
           <Select
@@ -149,7 +149,7 @@ const RevenueFilter = () => {
           <div className="card bg-gradient-success card-img-holder text-white">
             <div className="card-body">
               <h4 className="font-weight-normal mb-3">Doanh thu tổng <i className="mdi mdi-cash-multiple mdi-24px float-right"></i></h4>
-              <h2 className="mb-5">{totalRevenue || 0 }</h2>
+              <h2 className="mb-5">{totalRevenue?.toLocaleString() || 0} VND</h2>
             </div>
           </div>
         </Col>
@@ -157,7 +157,7 @@ const RevenueFilter = () => {
           <div className="card bg-gradient-info card-img-holder text-white">
             <div className="card-body">
               <h4 className="font-weight-normal mb-3">Doanh thu tại quầy <i className="mdi mdi-store mdi-24px float-right"></i></h4>
-              <h2 className="mb-5">{counterRevenue || 0 }</h2>
+              <h2 className="mb-5">{counterRevenue?.toLocaleString() || 0} VND</h2>
             </div>
           </div>
         </Col>
@@ -165,7 +165,7 @@ const RevenueFilter = () => {
           <div className="card bg-gradient-warning card-img-holder text-white">
             <div className="card-body">
               <h4 className="font-weight-normal mb-3">Doanh thu trực tuyến <i className="mdi mdi-web mdi-24px float-right"></i></h4>
-              <h2 className="mb-5">{onlineRevenue || 0 }</h2>
+              <h2 className="mb-5">{onlineRevenue?.toLocaleString() || 0} VND</h2>
             </div>
           </div>
         </Col>

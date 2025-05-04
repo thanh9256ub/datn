@@ -142,18 +142,22 @@ class Sidebar extends Component {
               <i className="mdi mdi-clipboard menu-icon"></i>
             </Link>
           </li>
-          <li className={this.isPathActive('/admin/vouchers') ? 'nav-item active' : 'nav-item'}>
-            <Link className="nav-link" to="/admin/vouchers">
-              <span className="menu-title"><Trans>Khuyến mại</Trans></span>
-              <i className="mdi mdi-sale menu-icon"></i>
-            </Link>
-          </li>
-          <li className={this.isPathActive('/admin/statistics') ? 'nav-item active' : 'nav-item'}>
-            <Link className="nav-link" to="/admin/statistics">
-              <span className="menu-title"><Trans>Thống kê</Trans></span>
-              <i className="mdi mdi-chart-line menu-icon"></i>
-            </Link>
-          </li>
+          {localStorage.getItem("role") === "ADMIN" && (
+            <>
+              <li className={this.isPathActive('/admin/vouchers') ? 'nav-item active' : 'nav-item'}>
+                <Link className="nav-link" to="/admin/vouchers">
+                  <span className="menu-title"><Trans>Khuyến mại</Trans></span>
+                  <i className="mdi mdi-sale menu-icon"></i>
+                </Link>
+              </li>
+              <li className={this.isPathActive('/admin/statistics') ? 'nav-item active' : 'nav-item'}>
+                <Link className="nav-link" to="/admin/statistics">
+                  <span className="menu-title"><Trans>Thống kê</Trans></span>
+                  <i className="mdi mdi-chart-line menu-icon"></i>
+                </Link>
+              </li>
+            </>
+          )}
         </ul>
       </nav>
     );

@@ -210,7 +210,7 @@ const Products = () => {
         }
     };
 
-    const MAX_ROWS = 200;
+    const MAX_ROWS = 500;
     const handleFileSelect = (event) => {
         const files = Array.from(event.target.files);
         if (files.length === 0) {
@@ -596,6 +596,7 @@ const Products = () => {
                                                             checked={selectedProducts.length === products.length && products.length > 0}
                                                         />
                                                     </th>
+                                                    <th>STT</th>
                                                     <th>Ảnh chính</th>
                                                     <th>Mã sản phẩm</th>
                                                     <th>Tên sản phẩm</th>
@@ -632,6 +633,7 @@ const Products = () => {
                                                                         checked={selectedProducts.includes(product.id)}
                                                                     />
                                                                 </td>
+                                                                <td>{index + 1}</td>
                                                                 <td onClick={(event) => event.stopPropagation()}>
                                                                     {product.mainImage != "image.png" ? (
                                                                         <img
