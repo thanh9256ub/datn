@@ -147,4 +147,6 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             "AND CONVERT(DATE, updated_at) = CONVERT(DATE, GETDATE())",
             nativeQuery = true)
     BigDecimal getTotalNetPriceOfTodayOrdersWithStatus5();
+
+    List<Order> findByCustomerId(Integer customerId);
 }

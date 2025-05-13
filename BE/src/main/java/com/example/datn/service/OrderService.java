@@ -483,4 +483,8 @@ public class OrderService {
 
         return repository.getTotalNetPriceOfTodayOrdersWithStatus5();
     }
+
+    public List<OrderResponse> getOrderByCustomerId(Integer customerId){
+        return mapper.toListOrders(repository.findByCustomerId(customerId));
+    }
 }
