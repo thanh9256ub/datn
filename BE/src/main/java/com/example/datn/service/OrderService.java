@@ -509,5 +509,7 @@ public class OrderService {
 
         // Chuyển đổi sang OrderResponse
         return mapper.toOrderResponse(updatedOrder);
+    public List<OrderResponse> getOrderByCustomerId(Integer customerId){
+        return mapper.toListOrders(repository.findByCustomerId(customerId));
     }
 }

@@ -179,7 +179,7 @@ const Orders = () => {
             ];
         } else if (orderType === 0) {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 1, name: "Chờ xác nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
@@ -189,7 +189,7 @@ const Orders = () => {
             ];
         } else {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 1, name: "Chờ xác nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
@@ -214,7 +214,7 @@ const Orders = () => {
             ];
         } else if (orderType === 0) {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
+                { id: 1, name: "Chờ xác nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
@@ -224,7 +224,7 @@ const Orders = () => {
             ];
         } else {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", icon: faClock, color: "#ff6b6b" },
+                { id: 1, name: "Chờ xác nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
@@ -385,7 +385,7 @@ const Orders = () => {
                                     style={{ boxShadow: "none", backgroundColor: "#f8f9fa" }}
                                 >
                                     <option value="">Tất cả</option>
-                                    <option value="1">Chờ tiếp nhận</option>
+                                    <option value="1">Chờ xác nhận</option>
                                     <option value="2">Đã tiếp nhận</option>
                                     <option value="3">Chờ vận chuyển</option>
                                     <option value="4">Đang vận chuyển</option>

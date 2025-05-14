@@ -140,7 +140,7 @@ const CreateCustomer = () => {
             } else if (address.detail.length > 255) {
                 newDetailedAddressErrors[index] = 'Địa chỉ chi tiết không được vượt quá 255 ký tự.';
                 isValid = false;
-            } else if (!/^[\p{L}\d\s,/-]+$/.test(address.detail)) {
+            } else if (/^[\p{L}\d\s,/-]+$/.test(address.detail)) {
                 newDetailedAddressErrors[index] = 'Địa chỉ chi tiết chứa ký tự không hợp lệ.';
                 isValid = false;
             } else if (address.detail.trim() !== address.detail) {

@@ -594,3 +594,16 @@ export const checkPriceDiscrepancies = async (items) => {
         );
     }
 };
+
+// Thêm các hàm sau vào file orderService.js
+
+export const fetchCustomerOrders = async (customerId) => {
+    try {
+        const response = await api.get(`/order/customer/${customerId}`);
+        return response.data.data;
+    } catch (error) {
+        console.error('Error fetching customer orders:', error);
+        throw error;
+    }
+};
+

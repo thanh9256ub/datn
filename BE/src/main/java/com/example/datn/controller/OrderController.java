@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("order")
@@ -38,26 +39,26 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getAll(){
-        List<OrderResponse>list=service.getAll();
-        ApiResponse<List<OrderResponse>> apiResponse=new ApiResponse<>(
-                HttpStatus.OK.value(), "PaymentMethod retrieved successfully",list);
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getAll() {
+        List<OrderResponse> list = service.getAll();
+        ApiResponse<List<OrderResponse>> apiResponse = new ApiResponse<>(
+                HttpStatus.OK.value(), "PaymentMethod retrieved successfully", list);
         return ResponseEntity.ok(apiResponse);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderResponse> getOne(@PathVariable("id") Integer id){
-        OrderResponse orderResponse=service.getById(id);
+    public ResponseEntity<OrderResponse> getOne(@PathVariable("id") Integer id) {
+        OrderResponse orderResponse = service.getById(id);
         return ResponseEntity.ok(orderResponse);
     }
 
     @PutMapping("/edit/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> update(
-            @PathVariable("id") Integer id,@RequestBody OrderRequest orderRequest){
-        OrderResponse orderResponse=service.update(id,orderRequest);
-        ApiResponse<OrderResponse>apiResponse=new ApiResponse<>(
-                HttpStatus.OK.value(), "PaymentMethod updated successfully",orderResponse);
-        return  ResponseEntity.ok(apiResponse);
+            @PathVariable("id") Integer id, @RequestBody OrderRequest orderRequest) {
+        OrderResponse orderResponse = service.update(id, orderRequest);
+        ApiResponse<OrderResponse> apiResponse = new ApiResponse<>(
+                HttpStatus.OK.value(), "PaymentMethod updated successfully", orderResponse);
+        return ResponseEntity.ok(apiResponse);
     }
 
     @PutMapping("/{orderId}/update-total-price")
@@ -74,10 +75,10 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<OrderResponse>> delete(@PathVariable("id") Integer id){
+    public ResponseEntity<ApiResponse<OrderResponse>> delete(@PathVariable("id") Integer id) {
         service.detele(id);
-        ApiResponse<OrderResponse> apiResponse=new ApiResponse<>(
-                HttpStatus.OK.value(), "PaymentMethod deleted successfully",null);
+        ApiResponse<OrderResponse> apiResponse = new ApiResponse<>(
+                HttpStatus.OK.value(), "PaymentMethod deleted successfully", null);
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -144,8 +145,8 @@ public class OrderController {
     }
 
     @GetMapping("/orders-by-day-january")
-    public List<Object[]> getOrdersByDayInJanuary(@RequestParam Integer month,@RequestParam Integer year) {
-        return service.getOrdersByDayInJanuary(month,year);
+    public List<Object[]> getOrdersByDayInJanuary(@RequestParam Integer month, @RequestParam Integer year) {
+        return service.getOrdersByDayInJanuary(month, year);
         //hd theo thang
     }
 
@@ -157,26 +158,26 @@ public class OrderController {
     }
 
     @GetMapping("/orders-revenue-month")
-    public List<Object[]> findRevenueByDayInMarch(@RequestParam Integer month,@RequestParam Integer year ) {
-        return service.findRevenueByDayInMarch(month,year );
+    public List<Object[]> findRevenueByDayInMarch(@RequestParam Integer month, @RequestParam Integer year) {
+        return service.findRevenueByDayInMarch(month, year);
         //dt  theo thang
     }
 
     @GetMapping("/revenue-year")
-    public Object[] getRevenueByYear(@RequestParam Integer year ) {
+    public Object[] getRevenueByYear(@RequestParam Integer year) {
         return service.getRevenueByYear(year);
         //nam
     }
 
     @GetMapping("/revenue-month")
-    public Object[] getRevenueByMonth(@RequestParam Integer year, @RequestParam Integer month ) {
-        return service.getRevenueByMonth(year,month  );
+    public Object[] getRevenueByMonth(@RequestParam Integer year, @RequestParam Integer month) {
+        return service.getRevenueByMonth(year, month);
         //thang
     }
 
     @GetMapping("/revenue-year-month")
-    public Object[] getRevenueBetweenDates(@RequestParam String startDate,@RequestParam String endDate ) {
-        return service.getRevenueBetweenDates(startDate, endDate  );
+    public Object[] getRevenueBetweenDates(@RequestParam String startDate, @RequestParam String endDate) {
+        return service.getRevenueBetweenDates(startDate, endDate);
         //ngay
     }
 
@@ -302,5 +303,14 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error updating order: " + e.getMessage(), null));
         }
+
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getOrdersByCustomerid(
+            @PathVariable("customerId") Integer customerId) {
+
+        List<OrderResponse> list = service.getOrderByCustomerId(customerId);
+        ApiResponse<List<OrderResponse>> apiResponse = new ApiResponse<>(
+                HttpStatus.OK.value(), "PaymentMethod retrieved successfully", list);
+        return ResponseEntity.ok(apiResponse);
     }
 }

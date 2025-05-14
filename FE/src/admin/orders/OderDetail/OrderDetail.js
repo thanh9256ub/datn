@@ -914,7 +914,7 @@ const OrderDetail = ({ customer, onUpdate }) => {
             ];
         } else if (orderType === 0) {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 1, name: "Chờ xác nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
@@ -924,7 +924,7 @@ const OrderDetail = ({ customer, onUpdate }) => {
             ];
         } else {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 1, name: "Chờ xác nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
