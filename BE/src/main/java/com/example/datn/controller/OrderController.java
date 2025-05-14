@@ -280,4 +280,27 @@ public class OrderController {
                     .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Có lỗi xảy ra khi cập nhật ghi chú: " + e.getMessage(), null));
         }
     }
+    @PutMapping("/{orderId}/update-shipping-and-total")
+    public ResponseEntity<ApiResponse<OrderResponse>> updateShippingAndTotal(
+            @PathVariable Integer orderId,
+            @RequestBody @Valid UpdateShippingAndTotalRequest request) {
+        try {
+            OrderResponse updatedOrder = service.updateShippingAndTotal(orderId, request);
+            ApiResponse<OrderResponse> apiResponse = new ApiResponse<>(
+                    HttpStatus.OK.value(),
+                    "Order shipping fee and total price updated successfully",
+                    updatedOrder
+            );
+            return ResponseEntity.ok(apiResponse);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>(HttpStatus.NOT_FOUND.value(), e.getMessage(), null));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error updating order: " + e.getMessage(), null));
+        }
+    }
 }

@@ -410,7 +410,7 @@ export const clearCartOnServer = async (cartId) => {
 export const fetchOrderByCode = async (orderCode) => {
     try {
         const response = await axios.get(`/order/code/${orderCode}`);
-        return response.data.data; // Giả sử API trả về data trong property data
+        return response.data.data;
     } catch (error) {
         throw new Error(error.response?.data?.message || 'Không tìm thấy đơn hàng');
     }
@@ -501,5 +501,96 @@ export const getVoucherByCode = async (voucherCode) => {
             throw new Error('Mã khuyến mãi không tồn tại');
         }
         throw new Error('Có lỗi khi kiểm tra mã khuyến mãi');
+    }
+};
+export const fetchProductDetailsByIds = async (productDetailIds) => {
+    try {
+        if (!productDetailIds || !Array.isArray(productDetailIds) || productDetailIds.length === 0) {
+            throw new Error('Danh sách ID chi tiết sản phẩm không hợp lệ');
+        }
+
+        const response = await api.post('/product-detail/by-ids', { productDetailIds });
+
+        console.log('Product details by IDs response:', response.data);
+
+        return response.data.data || [];
+    } catch (error) {
+        console.error('Error fetching product details by IDs:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data,
+            requestData: error.config?.data
+        });
+
+        throw new Error(
+            error.response?.data?.message ||
+            'Không thể lấy thông tin chi tiết sản phẩm'
+        );
+    }
+};
+export const updateCartOnServer = async (cartId, cartItems) => {
+    try {
+        // Validate cartId and cartItems
+        if (!cartId) {
+            throw new Error('cartId is required');
+        }
+        if (!Array.isArray(cartItems) || cartItems.length === 0) {
+            throw new Error('cartItems must be a non-empty array');
+        }
+
+        const requestData = cartItems.map(item => ({
+            productDetailId: item.productDetailId || item.productDetail?.id,
+            quantity: item.quantity,
+            price: item.price,
+        }));
+
+        const response = await api.put(
+            `/cart-details/${cartId}`,
+            requestData
+        );
+
+        console.log('API res (update cart on server):', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating cart on server:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data,
+            requestData: error.config?.data
+        });
+        throw new Error(error.response?.data?.message || 'Không thể cập nhật giỏ hàng trên server');
+    }
+};
+export const checkPriceDiscrepancies = async (items) => {
+    try {
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            throw new Error('Danh sách sản phẩm kiểm tra không hợp lệ');
+        }
+
+        // Chuẩn bị dữ liệu gửi lên server
+        const requestData = items.map(item => ({
+            productDetailId: item.productDetailId || item.productDetail?.id,
+            currentPrice: item.price
+        }));
+
+        console.log('Sending price check request:', requestData);
+
+        const response = await api.post('/product-detail/check-prices', requestData);
+
+        console.log('Price check response:', response.data);
+
+        return response.data.data || [];
+    } catch (error) {
+        console.error('Error checking price discrepancies:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data,
+            requestData: error.config?.data
+        });
+
+        throw new Error(
+            error.response?.data?.message ||
+            'Không thể kiểm tra giá sản phẩm. Vui lòng thử lại sau.'
+        );
     }
 };

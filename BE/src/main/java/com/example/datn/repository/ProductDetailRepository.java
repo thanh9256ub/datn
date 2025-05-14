@@ -21,6 +21,7 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail,Int
 
     List<ProductDetail> findByProductIdAndStatus(Integer productId, Integer status);
 
+    List<ProductDetail> findByIdIn(List<Integer> productDetailIds);
 
     List<ProductDetail> findByProductIdAndColorIdAndStatusNot(Integer productId, Integer colorId, Integer status);
 

@@ -184,6 +184,7 @@ const Orders = () => {
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
                 { id: 5, name: "Hoàn tất", color: "#4caf50" },
+                { id: 7, name: "Giao hàng không thành công", color: "#ef476f" },
                 { id: 6, name: "Đã hủy", color: "#ef476f" },
             ];
         } else {
@@ -193,6 +194,7 @@ const Orders = () => {
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
                 { id: 5, name: "Hoàn tất", color: "#4caf50" },
+                { id: 7, name: "Giao hàng không thành công", color: "#ef476f" },
                 { id: 6, name: "Đã hủy", color: "#ef476f" },
             ];
         }
@@ -217,6 +219,7 @@ const Orders = () => {
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 7, name: "Giao hàng không thành công", icon: faTimesCircle, color: "#ef476f" },
                 { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         } else {
@@ -226,12 +229,13 @@ const Orders = () => {
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
+                { id: 7, name: "Giao hàng không thành công", icon: faTimesCircle, color: "#ef476f" },
                 { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         }
 
-        if (status === 6) {
-            const canceledStatus = statusFlow.find(s => s.id === 6);
+        if (status === 6 || status === 7) {
+            const canceledStatus = statusFlow.find(s => s.id === 6 || s.id === 7);
             return (
                 <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
                     <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
@@ -386,6 +390,7 @@ const Orders = () => {
                                     <option value="3">Chờ vận chuyển</option>
                                     <option value="4">Đang vận chuyển</option>
                                     <option value="5">Hoàn tất</option>
+                                    <option value="7">Giao không thành công</option>
                                     <option value="6">Đã hủy</option>
                                 </Form.Control>
                             </div>
