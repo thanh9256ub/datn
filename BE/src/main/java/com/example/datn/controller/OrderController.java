@@ -303,7 +303,7 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error updating order: " + e.getMessage(), null));
         }
-
+    }
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getOrdersByCustomerid(
             @PathVariable("customerId") Integer customerId) {

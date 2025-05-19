@@ -13,7 +13,8 @@ import {
     fetchProvinces, fetchDistricts, fetchWards, fetchShippingFee, createOrder,
     createGuestOrder, fetchCustomerProfile, clearCartOnServer, getCartDetails,
     checkStockAvailability, sendOrderConfirmationEmail, generateVNPayPayment,
-    checkVNPayPaymentStatus, getVoucherByCode, createOrderVoucher, fetchProductDetailsByIds, checkPriceDiscrepancies, updateCartOnServer
+    checkVNPayPaymentStatus, getVoucherByCode, createOrderVoucher, fetchProductDetailsByIds,
+    checkPriceDiscrepancies, updateCartOnServer, fetchDefaultAddress
 } from '../Service/productService';
 
 const { Title, Text } = Typography;
@@ -54,6 +55,9 @@ const CartItems = () => {
     const [voucherDiscount, setVoucherDiscount] = useState(0);
     const [voucherError, setVoucherError] = useState('');
     const [voucherLoading, setVoucherLoading] = useState(false);
+    const [isLoadingDefaultAddress, setIsLoadingDefaultAddress] = useState(false);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
+
 
     // Initialize cart
     useEffect(() => {
@@ -91,11 +95,13 @@ const CartItems = () => {
         }
     }, [isGuest, cartId, token, customerId, loadCartItems, getOrCreateCart, setCartId, setCartItems, setSelectedItems]);
 
-    // Lấy thông tin khách hàng
+    // Lấy thông tin khách hàng và địa chỉ mặc định
     useEffect(() => {
-        const loadCustomerProfile = async () => {
+        const loadCustomerData = async () => {
             if (!isGuest && token) {
+                setIsLoadingDefaultAddress(true);
                 try {
+                    // Load customer profile
                     const profile = await fetchCustomerProfile(token);
                     console.log('Customer profile:', profile);
                     setCustomerProfile(profile);
@@ -106,17 +112,110 @@ const CartItems = () => {
                             email: profile.email || '',
                         });
                     }
+
+                    // Load default address
+                    const defaultAddress = await fetchDefaultAddress(customerId);
+                    console.log('Default address:', defaultAddress);
+                    if (!defaultAddress) {
+                        console.warn('No default address found for customer:', customerId);
+                        message.warning('Không tìm thấy địa chỉ mặc định.');
+                        return;
+                    }
+                    if (!defaultAddress.city || !defaultAddress.district || !defaultAddress.ward) {
+                        console.warn('Invalid default address data:', defaultAddress);
+                        message.warning('Địa chỉ mặc định thiếu thông tin tỉnh, quận hoặc phường.');
+                        return;
+                    }
+
+                    // Find province
+                    const province = provinces.find(p =>
+                        p.PROVINCE_NAME.trim().toLowerCase() === defaultAddress.city.trim().toLowerCase()
+                    );
+                    if (!province) {
+                        console.warn('Province not found:', {
+                            provinceName: defaultAddress.city,
+                            availableProvinces: provinces.map(p => p.PROVINCE_NAME)
+                        });
+                        message.warning('Không tìm thấy tỉnh/thành phố trong địa chỉ mặc định.');
+                        return;
+                    }
+                    console.log('Found province:', province);
+                    setSelectedProvince(province.PROVINCE_ID);
+                    form.setFieldsValue({ province: province.PROVINCE_ID });
+
+                    // Load and find district
+                    const districtData = await fetchDistricts(province.PROVINCE_ID);
+                    console.log('District data:', districtData);
+                    setDistricts(districtData);
+                    const district = districtData.find(d =>
+                        d.DISTRICT_NAME.trim().toLowerCase() === defaultAddress.district.trim().toLowerCase()
+                    );
+                    if (!district) {
+                        console.warn('District not found:', {
+                            districtName: defaultAddress.district,
+                            availableDistricts: districtData.map(d => d.DISTRICT_NAME)
+                        });
+                        message.warning('Không tìm thấy quận/huyện trong địa chỉ mặc định.');
+                        return;
+                    }
+                    console.log('Found district:', district);
+                    setSelectedDistrict(district.DISTRICT_ID);
+                    form.setFieldsValue({ district: district.DISTRICT_ID });
+
+                    // Load and find ward
+                    console.log('Fetching wards for district ID:', district.DISTRICT_ID);
+                    const wardData = await fetchWards(district.DISTRICT_ID);
+                    console.log('Ward data:', wardData);
+                    setWards(wardData);
+                    const ward = wardData.find(w =>
+                        w.WARDS_NAME.trim().toLowerCase() === defaultAddress.ward.trim().toLowerCase()
+                    );
+                    if (!ward) {
+                        console.warn('Ward not found:', {
+                            wardName: defaultAddress.ward,
+                            availableWards: wardData.map(w => w.WARDS_NAME)
+                        });
+                        message.warning('Không tìm thấy phường/xã trong địa chỉ mặc định.');
+                        return;
+                    }
+                    console.log('Found ward:', ward);
+                    setSelectedWard(ward.WARDS_ID);
+                    form.setFieldsValue({
+                        ward: ward.WARDS_ID,
+                        address: defaultAddress.detailedAddress
+                    });
+
+                    console.log('Form updated with default address:', {
+                        province: province.PROVINCE_ID,
+                        district: district.DISTRICT_ID,
+                        ward: ward.WARDS_ID,
+                        address: defaultAddress.detailedAddress
+                    });
                 } catch (error) {
-                    console.error('Failed to load customer profile:', error);
-                    message.error('Không thể tải thông tin khách hàng.');
+                    console.error('Failed to load customer data:', {
+                        message: error.message,
+                        response: error.response?.data,
+                        status: error.response?.status
+                    });
+                    message.error('Không thể tải thông tin khách hàng hoặc địa chỉ mặc định.');
+                } finally {
+                    setIsLoadingDefaultAddress(false);
+                    setIsInitialLoad(false);
                 }
             } else {
                 setCustomerProfile(null);
-                form.resetFields(['name', 'phone']);
+                form.resetFields(['name', 'phone', 'email', 'province', 'district', 'ward', 'address']);
+                console.log('Guest mode or no token, form reset.');
+                setIsInitialLoad(false);
             }
         };
-        loadCustomerProfile();
-    }, [isGuest, token, form]);
+
+        if (provinces.length > 0) {
+            loadCustomerData();
+        } else {
+            console.log('Waiting for provinces to load...');
+        }
+    }, [isGuest, token, customerId, form, provinces]);
 
     useEffect(() => {
         if (cartId && !isGuest) {
@@ -141,7 +240,6 @@ const CartItems = () => {
             message.info('Mã giảm giá đã bị xóa vì không có sản phẩm nào được chọn.');
         }
     }, [selectedItems, voucherCode, voucherDiscount]);
-
 
     // Generate VNPay payment URL and open new window
     const generateVNPayPaymentHandler = async (orderId, totalAmount) => {
@@ -185,7 +283,7 @@ const CartItems = () => {
                         formValues.email,
                         orderCode,
                         formValues.name,
-                        getTotalCartAmount() + shippingFee,
+                        getTotalCartAmount() + shippingFee - voucherDiscount,
                         'VNPAY'
                     );
 
@@ -274,14 +372,30 @@ const CartItems = () => {
                 try {
                     const data = await fetchDistricts(selectedProvince);
                     setDistricts(data);
+                    // Only reset district if the current selectedDistrict is not in the new districts list
+                    if (selectedDistrict && !data.some(d => d.DISTRICT_ID === selectedDistrict)) {
+                        setSelectedDistrict('');
+                        setWards([]);
+                        setSelectedWard('');
+                        form.setFieldsValue({ district: undefined, ward: undefined });
+                    }
+                } catch (error) {
+                    console.error('Error loading districts:', error);
+                    message.error('Không thể tải danh sách quận/huyện.');
+                    setDistricts([]);
                     setSelectedDistrict('');
                     setWards([]);
+                    setSelectedWard('');
                     form.setFieldsValue({ district: undefined, ward: undefined });
-                } catch (error) {
-                    message.error('Không thể tải danh sách quận/huyện.');
                 }
             };
             loadDistricts();
+        } else {
+            setDistricts([]);
+            setSelectedDistrict('');
+            setWards([]);
+            setSelectedWard('');
+            form.setFieldsValue({ district: undefined, ward: undefined });
         }
     }, [selectedProvince, form]);
 
@@ -291,15 +405,27 @@ const CartItems = () => {
                 try {
                     const data = await fetchWards(selectedDistrict);
                     setWards(data);
+                    // Only reset ward if the current selectedWard is not in the new wards list
+                    if (selectedWard && !data.some(w => w.WARDS_ID === selectedWard)) {
+                        setSelectedWard('');
+                        form.setFieldsValue({ ward: undefined });
+                    }
+                } catch (error) {
+                    console.error('Error loading wards:', error);
+                    message.error('Không thể tải danh sách phường/xã.');
+                    setWards([]);
                     setSelectedWard('');
                     form.setFieldsValue({ ward: undefined });
-                } catch (error) {
-                    message.error('Không thể tải danh sách phường/xã.');
                 }
             };
             loadWards();
+        } else {
+            setWards([]);
+            setSelectedWard('');
+            form.setFieldsValue({ ward: undefined });
         }
     }, [selectedDistrict, form]);
+
 
     const calculateTotalWeight = () => {
         return cartItems.reduce((total, item) => total + (item.weight || 600) * item.quantity, 0) || 1000;
@@ -371,7 +497,6 @@ const CartItems = () => {
                 selectedItems.includes(item.id || item.productDetailId || item.productDetail?.id)
             );
 
-            // Kiểm tra dữ liệu đầu vào
             console.log('Selected products for price verification:', selectedProducts);
 
             const discrepancies = await checkPriceDiscrepancies(selectedProducts);
@@ -385,7 +510,6 @@ const CartItems = () => {
             const productDetails = await fetchProductDetailsByIds(productDetailIds);
             console.log('Product details received:', productDetails);
 
-            // Đảm bảo currentPrice được lấy từ cartItems
             const messageContent = (
                 <div>
                     <p>Giá của {discrepancies.length} sản phẩm đã thay đổi:</p>
@@ -393,7 +517,6 @@ const CartItems = () => {
                         {discrepancies.map((item, index) => {
                             const detail = productDetails.find(pd => pd.id === item.productDetailId) || {};
                             const cartItem = selectedProducts.find(ci => ci.productDetailId === item.productDetailId || ci.productDetail?.id === item.productDetailId);
-                            // Lấy giá hiện tại từ cartItem, đảm bảo không bị undefined
                             const currentPrice = cartItem?.price || item.currentPrice || 0;
                             const newPrice = typeof item.newPrice === 'number' ? item.newPrice : 0;
 
@@ -995,13 +1118,19 @@ const CartItems = () => {
                                     >
                                         <Select
                                             placeholder="Chọn quận/huyện"
-                                            onChange={value => setSelectedDistrict(value)}
+                                            onChange={(value) => {
+                                                setSelectedDistrict(value);
+                                                form.setFieldsValue({ district: value });
+                                            }}
                                             disabled={!selectedProvince}
                                             loading={!districts.length && !!selectedProvince}
                                             suffixIcon={<EnvironmentOutlined />}
+                                            value={selectedDistrict || undefined}
                                         >
                                             {districts.map(district => (
-                                                <Option key={district.DISTRICT_ID} value={district.DISTRICT_ID}>{district.DISTRICT_NAME}</Option>
+                                                <Option key={district.DISTRICT_ID} value={district.DISTRICT_ID}>
+                                                    {district.DISTRICT_NAME}
+                                                </Option>
                                             ))}
                                         </Select>
                                     </Form.Item>
@@ -1014,13 +1143,23 @@ const CartItems = () => {
                                     >
                                         <Select
                                             placeholder="Chọn phường/xã"
-                                            onChange={value => setSelectedWard(value)}
-                                            disabled={!selectedDistrict}
-                                            loading={!wards.length && !!selectedDistrict}
-                                            suffixIcon={<EnvironmentOutlined />}
+                                            onChange={(value) => {
+                                                setSelectedWard(value);
+                                                form.setFieldsValue({ ward: value });
+                                            }}
+                                            disabled={!selectedDistrict || !wards.length}
+                                            loading={isLoadingDefaultAddress && selectedDistrict && !wards.length}
+                                            showSearch
+                                            optionFilterProp="children"
+                                            filterOption={(input, option) =>
+                                                option.children.toLowerCase().includes(input.toLowerCase())
+                                            }
+                                            value={selectedWard || undefined}
                                         >
                                             {wards.map(ward => (
-                                                <Option key={ward.WARDS_ID} value={ward.WARDS_ID}>{ward.WARDS_NAME}</Option>
+                                                <Option key={ward.WARDS_ID} value={ward.WARDS_ID}>
+                                                    {ward.WARDS_NAME}
+                                                </Option>
                                             ))}
                                         </Select>
                                     </Form.Item>

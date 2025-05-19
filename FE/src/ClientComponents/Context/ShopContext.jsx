@@ -300,20 +300,11 @@ const ShopContextProvider = (props) => {
         throw new Error('Không tìm thấy sản phẩm trong giỏ hàng');
       }
 
-      let productDetail = itemToUpdate.productDetail;
-      if (!productDetail) {
-        productDetail = await fetchProductDetailByAttributes(
-          itemToUpdate.productDetail?.product?.id,
-          itemToUpdate.productDetail?.color?.id,
-          itemToUpdate.productDetail?.size?.id
-        );
-      }
-
+      // Kiểm tra tồn kho
       const stockResponse = await checkStockAvailability([{
-        productDetailId: itemToUpdate.productDetailId
+        productDetailId: itemToUpdate.productDetailId || itemToUpdate.productDetail?.id
       }]);
       const availableStock = stockResponse[itemToUpdate.productDetailId] || 10;
-
       const finalQuantity = Math.min(newQuantity, 10, availableStock);
 
       if (finalQuantity !== newQuantity) {
@@ -321,21 +312,28 @@ const ShopContextProvider = (props) => {
       }
 
       if (isGuest) {
-        setCartItems((prev) =>
-          prev.map((item) =>
+        setCartItems(prev => {
+          const updatedCart = prev.map(item =>
             (item.id || item.productDetailId) === cartDetailId
               ? {
                 ...item,
                 quantity: finalQuantity,
-                price: productDetail.price,
-                total_price: productDetail.price * finalQuantity
+                total_price: item.price * finalQuantity
               }
               : item
-          )
-        );
-        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+          );
+          localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+          return updatedCart;
+        });
       } else {
-        await updateCartQuantity(cartDetailId, finalQuantity);
+        await updateCartQuantity(itemToUpdate.id, finalQuantity);
+
+        setCartItems(prev => prev.map(item =>
+          item.id === itemToUpdate.id
+            ? { ...item, quantity: finalQuantity, total_price: item.price * finalQuantity }
+            : item
+        ));
+
         await loadCartItems(cartId);
       }
     } catch (error) {

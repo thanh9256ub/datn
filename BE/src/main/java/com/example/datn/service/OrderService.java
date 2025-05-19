@@ -486,12 +486,12 @@ public class OrderService {
 
     @Transactional
     public OrderResponse updateShippingAndTotal(Integer orderId, UpdateShippingAndTotalRequest request) {
-        // Tìm đơn hàng theo ID
+
         Order order = repository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
-        // Kiểm tra trạng thái đơn hàng
-        if (order.getStatus() >= 3) { // Giả sử trạng thái >= 3 là "Đang giao" hoặc "Hoàn tất"
+
+        if (order.getStatus() > 3) {
             throw new IllegalStateException("Cannot update shipping fee or total price for order in status: " + order.getStatus());
         }
 
@@ -509,7 +509,8 @@ public class OrderService {
 
         // Chuyển đổi sang OrderResponse
         return mapper.toOrderResponse(updatedOrder);
+    }
     public List<OrderResponse> getOrderByCustomerId(Integer customerId){
-        return mapper.toListOrders(repository.findByCustomerId(customerId));
+        return mapper.toListOrders(repository.findByCustomerIdOrderByCreatedAtDesc(customerId));
     }
 }

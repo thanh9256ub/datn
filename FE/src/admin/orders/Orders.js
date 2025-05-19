@@ -208,18 +208,16 @@ const Orders = () => {
 
         if (orderType === 0 && paymentType?.paymentTypeName === "Trực tiếp") {
             statusFlow = [
-
                 { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" }
-
             ];
-        } else if (orderType === 0) {
+        } else if (order.orderType === 0) {
             statusFlow = [
                 { id: 1, name: "Chờ xác nhận", icon: faClock, color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
-                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
                 { id: 7, name: "Giao hàng không thành công", icon: faTimesCircle, color: "#ef476f" },
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
                 { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         } else {
@@ -228,37 +226,55 @@ const Orders = () => {
                 { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
-                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
                 { id: 7, name: "Giao hàng không thành công", icon: faTimesCircle, color: "#ef476f" },
+                { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
                 { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         }
 
-        if (status === 6 || status === 7) {
-            const canceledStatus = statusFlow.find(s => s.id === 6 || s.id === 7);
-            return (
-                <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
-                    <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
-                        <FontAwesomeIcon icon={canceledStatus.icon} style={{ color: canceledStatus.color, fontSize: "36px" }} />
-                        <span style={{ fontSize: "16px", color: canceledStatus.color, textAlign: "center" }}>{canceledStatus.name}</span>
-                    </div>
-                </div>
-            );
-        }
+        let visibleStatuses = [];
 
-        const currentIndex = statusFlow.findIndex(s => s.id === status);
-        const visibleStatuses = statusFlow.slice(0, currentIndex + 1);
+        if (status === 6) { // Trạng thái đã hủy
+            // Chỉ hiển thị trạng thái hủy
+            const cancelStatus = statusFlow.find(s => s.id === 6);
+            visibleStatuses = [cancelStatus];
+        } else if (status === 7) { // Trạng thái giao không thành công
+            const currentStatus = statusFlow.find(s => s.id === 7);
+            const previousStatuses = statusFlow.filter(s =>
+                s.id < currentStatus.id &&
+                s.id !== 5 &&
+                s.id !== 6
+            );
+            visibleStatuses = [...previousStatuses, currentStatus];
+        } else {
+            const currentIndex = statusFlow.findIndex(s => s.id === status);
+            visibleStatuses = statusFlow.slice(0, currentIndex + 1).filter(s => s.id !== 6 && s.id !== 7);
+        }
 
         return (
             <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
                 {visibleStatuses.map((s, index) => (
                     <React.Fragment key={s.id}>
                         <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
-                            <FontAwesomeIcon icon={s.icon} style={{ color: s.color, fontSize: "36px" }} />
-                            <span style={{ fontSize: "16px", color: s.color, textAlign: "center" }}>{s.name}</span>
+                            <FontAwesomeIcon icon={s.icon} style={{
+                                color: s.color,
+                                fontSize: "36px",
+                            }} />
+                            <span style={{
+                                fontSize: "16px",
+                                color: s.color,
+                                textAlign: "center",
+                                fontWeight: index === visibleStatuses.length - 1 ? "bold" : "normal"
+                            }}>{s.name}</span>
                         </div>
                         {index < visibleStatuses.length - 1 && (
-                            <div style={{ width: "200px", height: "4px", backgroundColor: s.color, borderRadius: "2px" }} />
+                            <div style={{
+                                width: "200px",
+                                height: "4px",
+                                backgroundColor: s.color,
+                                borderRadius: "2px",
+                                opacity: 0.7
+                            }} />
                         )}
                     </React.Fragment>
                 ))}
@@ -439,7 +455,7 @@ const Orders = () => {
                                     >
                                         <td className="py-3 px-4">{indexOfFirstItem + index + 1}</td>
                                         <td className="py-3 px-4">{order.customerName || 'N/A'}</td>
-                                        <td className="py-3 px-4">{order.phone || 'N/A'}</td>
+                                        <td className="py-3 px-4">{order.phone || 'Không có'}</td>
                                         <td className="py-3 px-4">{order.orderCode}</td>
                                         <td className="py-3 px-4">
                                             {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}

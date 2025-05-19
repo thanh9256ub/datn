@@ -123,7 +123,7 @@ const ProductDisplay = ({ product, productColors }) => {
             productImage: mainImage,
             color: selectedColor.color,
             size: selectedSizeObj,
-            price: product.price,
+            price: currentDetail.price,
             productColorId: selectedProductColorId,
             sizeId: selectedSize
         });
@@ -177,6 +177,12 @@ const ProductDisplay = ({ product, productColors }) => {
 
     const handleConfirmAddToCart = async () => {
         try {
+            if (getTotalCartItems() >= 10) {
+                message.error('Giỏ hàng đã đạt tối đa 10 sản phẩm.');
+                setConfirmModalVisible(false);
+                return;
+            }
+
             if (!selectedColorId || !selectedSize || !product?.id) {
                 message.warning('Vui lòng chọn đầy đủ thông tin sản phẩm');
                 return;

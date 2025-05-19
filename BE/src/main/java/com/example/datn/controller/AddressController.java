@@ -83,4 +83,26 @@ public class AddressController {
 
         return ResponseEntity.ok(apiResponse);
     }
+
+    @GetMapping("/list/{customerId}")
+    public ResponseEntity<ApiResponse<List<AddressResponse>>> getAddressesByCustomerId(@PathVariable("customerId") Integer customerId) {
+        List<AddressResponse> list = addressService.getAddressesByCustomerId(customerId);
+        ApiResponse<List<AddressResponse>> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Addresses retrieved successfully",
+                list
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/set-default/{id}")
+    public ResponseEntity<ApiResponse<AddressResponse>> setDefaultAddress(@PathVariable("id") Integer id) {
+        AddressResponse addressResponse = addressService.setDefaultAddress(id);
+        ApiResponse<AddressResponse> response = new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Default address updated successfully",
+                addressResponse
+        );
+        return ResponseEntity.ok(response);
+    }
 }

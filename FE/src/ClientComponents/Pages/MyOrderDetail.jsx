@@ -96,6 +96,55 @@ const MyOrderDetail = () => {
             ];
         }
 
+        // Xử lý trường hợp đơn hàng đã hủy
+        if (status === 6) {
+            return [
+                <Step
+                    key="6"
+                    title="Đã hủy"
+                    icon={<CloseCircleOutlined />}
+                    status="error"
+                />
+            ];
+        }
+
+        // Xử lý trường hợp giao hàng không thành công
+        if (status === 7) {
+            return [
+                <Step
+                    key="1"
+                    title="Chờ xác nhận"
+                    icon={<ClockCircleOutlined />}
+                    status="finish"
+                />,
+                <Step
+                    key="2"
+                    title="Đã xác nhận"
+                    icon={<DropboxOutlined />}
+                    status="finish"
+                />,
+                <Step
+                    key="3"
+                    title="Chờ vận chuyển"
+                    icon={<TruckOutlined />}
+                    status="finish"
+                />,
+                <Step
+                    key="4"
+                    title="Đang vận chuyển"
+                    icon={<TruckOutlined />}
+                    status="finish"
+                />,
+                <Step
+                    key="7"
+                    title="Giao không thành công"
+                    icon={<CloseCircleOutlined />}
+                    status="error"
+                />
+            ];
+        }
+
+        // Xử lý các trạng thái bình thường
         const steps = [
             {
                 key: '1',
@@ -126,19 +175,8 @@ const MyOrderDetail = () => {
                 title: 'Hoàn tất',
                 icon: <CheckCircleOutlined />,
                 status: status >= 5 ? 'finish' : 'wait',
-            },
+            }
         ];
-
-        if (status === 6) {
-            return [
-                <Step
-                    key="6"
-                    title="Đã hủy"
-                    icon={<CloseCircleOutlined />}
-                    status="error"
-                />
-            ];
-        }
 
         return steps.map((step) => (
             <Step

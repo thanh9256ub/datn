@@ -148,5 +148,6 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             nativeQuery = true)
     BigDecimal getTotalNetPriceOfTodayOrdersWithStatus5();
 
-    List<Order> findByCustomerId(Integer customerId);
+
+    List<Order> findByCustomerIdOrderByCreatedAtDesc(Integer customerId);
 }

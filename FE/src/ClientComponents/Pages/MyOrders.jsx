@@ -81,6 +81,7 @@ const MyOrders = () => {
             4: { text: 'Đang vận chuyển', color: 'geekblue', icon: <TruckOutlined /> },
             5: { text: 'Hoàn tất', color: 'green', icon: <CheckCircleOutlined /> },
             6: { text: 'Đã hủy', color: 'red', icon: <CloseCircleOutlined /> },
+            7: { text: 'Giao hàng không thành công', color: 'red', icon: <CloseCircleOutlined /> },
         };
 
         const info = statusMap[status];

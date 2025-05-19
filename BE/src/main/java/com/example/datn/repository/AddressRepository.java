@@ -10,6 +10,6 @@ import java.util.List;
 public interface AddressRepository extends JpaRepository<Address, Integer> {
 
     Address findAddressByCustomerIdAndStatus(Integer customerId, Integer status);
-
+    List<Address> findByCustomerId(Integer customerId);
     List<Address> findAddressByCustomerIdInAndStatus(List<Integer> customerIds, Integer status);
 }
