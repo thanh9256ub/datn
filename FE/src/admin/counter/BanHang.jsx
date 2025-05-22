@@ -87,7 +87,7 @@ const BanHang = () => {
 
   const calculateTotalAmount = (items) => {
     items = items.filter(item => item.order.id === selectedInvoiceId);
-    const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const total = items.reduce((sum, item) => sum + item.productDetail.price*item.quantity, 0);
     setTotalAmount(total);
   };
 
@@ -628,7 +628,7 @@ const BanHang = () => {
                           <td style={{ fontWeight: 'bold' }}>{item.productDetail.product.productName} - {item.productDetail.color.colorName} - {item.productDetail.size.sizeName}</td>
 
 
-                          <td style={{ whiteSpace: 'nowrap', width: '1%', fontWeight: 'bold' }}>{item.price.toLocaleString()} </td>
+                          <td style={{ whiteSpace: 'nowrap', width: '1%', fontWeight: 'bold' }}>{item.productDetail.price.toLocaleString()} </td>
                           <td style={{ whiteSpace: 'nowrap', width: '1%' }}>
                             <div style={{ display: 'flex', alignItems: 'center' }}>
                               <button type="button" className="btn btn-dark btn-sm btn-rounded btn-icon"
@@ -657,7 +657,7 @@ const BanHang = () => {
                               </button>
                             </div>
                           </td>
-                          <td style={{ whiteSpace: 'nowrap', width: '1%', fontWeight: 'bold' }}>{item.totalPrice.toLocaleString()} </td>
+                          <td style={{ whiteSpace: 'nowrap', width: '1%', fontWeight: 'bold' }}>{(item.productDetail.price*item.quantity).toLocaleString()} </td>
                           <td style={{ whiteSpace: 'nowrap', width: '1%' }}>
                             <i
                               className="mdi mdi-cart-off"

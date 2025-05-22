@@ -231,5 +231,12 @@ public class OrderDetailService {
 
         return mapper.toListResponses(savedDetails);
     }
-
+public  void  updatePrice(Integer id){
+    for (OrderDetail orderDetail : repository.findByOrderId(id)) {
+        if (orderDetail.getPrice()!=orderDetail.getProductDetail().getPrice()){
+            orderDetail.setPrice(orderDetail.getProductDetail().getPrice());
+               orderDetail.setTotalPrice(orderDetail.getProductDetail().getPrice()*orderDetail.getQuantity());
+        }
+    }
+}
 }
