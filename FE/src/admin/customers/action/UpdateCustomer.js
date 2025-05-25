@@ -5,6 +5,7 @@ import Select from 'react-select'; // Import react-select
 import { addAddressCustomer, addCustomer, deleteAddressCustomer, getCusomer, listCustomer, updateAddressCustomer, updateCustomer } from '../service/CustomersService';
 import { useHistory, useParams } from 'react-router-dom/cjs/react-router-dom.min';
 import { Spinner } from 'react-bootstrap';
+import Swal from 'sweetalert2';
 
 const UpdateCustomer = () => {
 
@@ -171,8 +172,20 @@ const UpdateCustomer = () => {
 
 
 
-    const handleUpdateCustomer = () => {
-        if (window.confirm('Bạn có chắc chắn muốn cập nhật thông tin?')) {
+    const handleUpdateCustomer = async () => {
+
+        const result = await Swal.fire({
+            title: "Xác nhận",
+            text: "Bạn có chắc chắn muốn cập nhật thông tin?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Đồng ý",
+            cancelButtonText: "Hủy",
+        });
+
+        if (result.isConfirmed) {
 
             setFullNameError('');
 
