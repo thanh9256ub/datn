@@ -218,79 +218,79 @@ const UpdateCustomer = () => {
 
         if (result.isConfirmed) {
 
-        setFullNameError('');
-        setEmailError('');
-        setPhoneError('');
-        setBirthDateError('');
+            setFullNameError('');
+            setEmailError('');
+            setPhoneError('');
+            setBirthDateError('');
 
-        let isValid = true;
+            let isValid = true;
 
-        const nameRegex = /^[a-zA-Z ]*$/;
-        if (!update.fullName) {
-            setFullNameError('Vui lòng nhập tên khách hàng.');
-            isValid = false;
-        } else if (update.fullName.length < 2) {
-            setFullNameError('Tên khách hàng phải có ít nhất 2 ký tự.');
-            isValid = false;
-        } else if (update.fullName.length > 100) {
-            setFullNameError('Tên khách hàng không được vượt quá 100 ký tự.');
-            isValid = false;
-        } else if (!/^[\p{L} ]+$/u.test(update.fullName)) {
-            setFullNameError('Tên khách hàng không hợp lệ.');
-            isValid = false;
-        }
+            const nameRegex = /^[a-zA-Z ]*$/;
+            if (!update.fullName) {
+                setFullNameError('Vui lòng nhập tên khách hàng.');
+                isValid = false;
+            } else if (update.fullName.length < 2) {
+                setFullNameError('Tên khách hàng phải có ít nhất 2 ký tự.');
+                isValid = false;
+            } else if (update.fullName.length > 100) {
+                setFullNameError('Tên khách hàng không được vượt quá 100 ký tự.');
+                isValid = false;
+            } else if (!/^[\p{L} ]+$/u.test(update.fullName)) {
+                setFullNameError('Tên khách hàng không hợp lệ.');
+                isValid = false;
+            }
 
-        if (!update.email) {
-            setEmailError('Vui lòng nhập email.');
-            isValid = false;
-        } else if (!/\S+@\S+\.\S+/.test(update.email)) {
-            setEmailError('Email không hợp lệ.');
-            isValid = false;
-        } else if (update.email.length > 100) {
-            setEmailError('Email không được vượt quá 100 ký tự.');
-            isValid = false;
-        } else if (update.email.length < 15) {
-            setEmailError('Email phải có ít nhất 15 ký tự.');
-            isValid = false;
-        } else if (update.email.includes(" ")) {
-            setEmailError('Email không được chứa khoảng trắng.');
-            isValid = false;
-        }
+            if (!update.email) {
+                setEmailError('Vui lòng nhập email.');
+                isValid = false;
+            } else if (!/\S+@\S+\.\S+/.test(update.email)) {
+                setEmailError('Email không hợp lệ.');
+                isValid = false;
+            } else if (update.email.length > 100) {
+                setEmailError('Email không được vượt quá 100 ký tự.');
+                isValid = false;
+            } else if (update.email.length < 15) {
+                setEmailError('Email phải có ít nhất 15 ký tự.');
+                isValid = false;
+            } else if (update.email.includes(" ")) {
+                setEmailError('Email không được chứa khoảng trắng.');
+                isValid = false;
+            }
 
-        if (!update.phone) {
-            setPhoneError('Vui lòng nhập số điện thoại.');
-            isValid = false;
-        } else if (!/^\d{10}$/.test(update.phone)) {
-            setPhoneError('Số điện thoại không hợp lệ (10 chữ số).');
-            isValid = false;
-        } else if (!/^0\d{9}$/.test(update.phone)) {
-            setPhoneError('Số điện thoại phải bắt đầu bằng số 0 và có tổng cộng 10 chữ số.');
-            isValid = false;
-        }
+            if (!update.phone) {
+                setPhoneError('Vui lòng nhập số điện thoại.');
+                isValid = false;
+            } else if (!/^\d{10}$/.test(update.phone)) {
+                setPhoneError('Số điện thoại không hợp lệ (10 chữ số).');
+                isValid = false;
+            } else if (!/^0\d{9}$/.test(update.phone)) {
+                setPhoneError('Số điện thoại phải bắt đầu bằng số 0 và có tổng cộng 10 chữ số.');
+                isValid = false;
+            }
 
-        if (!update.birthDate) {
-            setBirthDateError('Vui lòng chọn ngày sinh.');
-            isValid = false;
-        }
+            if (!update.birthDate) {
+                setBirthDateError('Vui lòng chọn ngày sinh.');
+                isValid = false;
+            }
 
-        if (!isValid) {
-            return;
-        }
+            if (!isValid) {
+                return;
+            }
 
-        const updateCustomerInfo = {
-            fullName: update.fullName,
-            birthDate: update.birthDate,
-            gender: update.gender,
-            phone: update.phone,
-            email: update.email,
-            status: update.status,
+            const updateCustomerInfo = {
+                fullName: update.fullName,
+                birthDate: update.birthDate,
+                gender: update.gender,
+                phone: update.phone,
+                email: update.email,
+                status: update.status,
+            };
+            updateCustomer(id, updateCustomerInfo).then(data => {
+                localStorage.setItem("successMessage", "Cập nhật khách hàng thành công!");
+                history.push('/admin/customers');
+            });
         };
-        updateCustomer(id, updateCustomerInfo).then(data => {
-            localStorage.setItem("successMessage", "Cập nhật khách hàng thành công!");
-            history.push('/admin/customers');
-        });
-    };
-
+    }
     return (
         <div>
             {loading && (
