@@ -10,7 +10,6 @@ import {
     Select,
     Skeleton,
 } from 'antd';
-
 import dayjs from 'dayjs';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
@@ -19,6 +18,7 @@ import CustomerChangePassword from './component/CustomerChangePassword';
 import AddressBook from './component/AddressBook';
 import CustomerWall from './component/CustomerWall';
 import { updateCustomer } from '../../admin/customers/service/CustomersService';
+import { fetchAddresses } from './AddressService';
 
 const { TabPane } = Tabs;
 const { Title, Text } = Typography;
@@ -27,31 +27,39 @@ const { Option } = Select;
 const CustomerProfile = () => {
     const { customerId } = useAuth();
     const [customer, setCustomer] = useState(null);
+    const [addresses, setAddresses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
     const [form] = Form.useForm();
     const [activeTab, setActiveTab] = useState('1');
-    const [update, setUpdate] = useState({});
 
     useEffect(() => {
-        const fetchCustomer = async () => {
+        const fetchCustomerAndAddresses = async () => {
             try {
-                const response = await axios.get(`http://localhost:8080/customer/${customerId}`);
-                const data = response.data;
+                // Fetch customer data
+                const customerResponse = await axios.get(`http://localhost:8080/customer/${customerId}`);
+                const customerData = customerResponse.data;
 
-                if (data.birthDate) {
-                    data.birthDate = dayjs(data.birthDate);
+                if (customerData.birthDate) {
+                    customerData.birthDate = dayjs(customerData.birthDate);
                 }
 
-                setCustomer(data);
+                setCustomer(customerData);
+
+                // Fetch addresses
+                const addressData = await fetchAddresses(customerId);
+                console.log('Fetched addresses:', addressData);
+                setAddresses(addressData || []);
             } catch (error) {
-                message.error(error.message);
+                message.error(error.message || 'Không thể tải dữ liệu');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchCustomer();
+        if (customerId) {
+            fetchCustomerAndAddresses();
+        }
     }, [customerId]);
 
     const onFinish = async (values) => {
@@ -60,18 +68,31 @@ const CustomerProfile = () => {
             if (values.birthDate) {
                 values.birthDate = values.birthDate.format('YYYY-MM-DD');
             }
-            const response = await updateCustomer(customerId, values)
+            const response = await updateCustomer(customerId, values);
             message.success('Cập nhật thông tin thành công');
-            setCustomer(response.data)
+            setCustomer(response.data);
             setEditing(false);
         } catch (error) {
-            message.error(error.message);
+            message.error(error.message || 'Không thể cập nhật thông tin');
         } finally {
             setLoading(false);
         }
     };
 
-    const addressData = customer?.addressList || [];
+    // Handle address updates
+    const handleAddressUpdate = async (newAddresses) => {
+        try {
+            console.log('Updating addresses:', newAddresses);
+            setAddresses(newAddresses);
+            // Refetch addresses to sync with backend
+            const updatedAddresses = await fetchAddresses(customerId);
+            console.log('Synced addresses:', updatedAddresses);
+            setAddresses(updatedAddresses || []);
+        } catch (error) {
+            console.error('Failed to sync addresses:', error);
+            message.error('Không thể đồng bộ danh sách địa chỉ');
+        }
+    };
 
     if (loading && !customer) {
         return (
@@ -134,8 +155,8 @@ const CustomerProfile = () => {
 
                         {activeTab === '3' && (
                             <AddressBook
-                                customer={customer}
-                                addressData={addressData}
+                                addressData={addresses}
+                                onAddressUpdate={handleAddressUpdate}
                             />
                         )}
                     </Col>

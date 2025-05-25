@@ -44,6 +44,10 @@ const CreateCustomer = () => {
 
     const [typingTimeout, setTypingTimeout] = useState(null);
 
+    const [detailedAddressErrors, setDetailedAddressErrors] = useState([]);
+
+    const [provinceErrors, setProvinceErrors] = useState([]);
+
     const handleSaveCustomer = async () => {
 
         const result = await Swal.fire({
@@ -60,31 +64,26 @@ const CreateCustomer = () => {
         if (!result.isConfirmed) return;
 
         setFullNameError('');
-
         setEmailError('');
-
         setPhoneError('');
-
         setBirthDateError('');
-
+        setDetailedAddressErrors(new Array(addresses.length).fill('')); // Reset detailed address errors
+        setProvinceErrors(new Array(addresses.length).fill('')); // Reset province errors
 
         let isValid = true;
 
+        // Existing validations for fullName, email, phone, and birthDate
         const nameRegex = /^[a-zA-Z ]*$/;
-
         if (!customer.fullName) {
             setFullNameError('Vui lòng nhập tên khách hàng.');
             isValid = false;
-        }
-        else if (customer.fullName.length < 2) {
+        } else if (customer.fullName.length < 2) {
             setFullNameError('Tên khách hàng phải có ít nhất 2 ký tự.');
             isValid = false;
         } else if (customer.fullName.length > 100) {
             setFullNameError('Tên khách hàng không được vượt quá 100 ký tự.');
             isValid = false;
-        } 
-        // tên khách hàng phải có dấu
-        else if (!/^[\p{L} ]+$/u.test(customer.fullName)) {
+        } else if (!/^[\p{L} ]+$/u.test(customer.fullName)) {
             setFullNameError('Tên khách hàng không hợp lệ.');
             isValid = false;
         }
@@ -104,15 +103,13 @@ const CreateCustomer = () => {
         } else if (customer.email.includes(" ")) {
             setEmailError('Email không được chứa khoảng trắng.');
             isValid = false;
-        }
-        else {
+        } else {
             const emailExists = await existsEmail(customer.email);
             if (emailExists) {
                 setEmailError('Email đã tồn tại.');
                 isValid = false;
             }
         }
-
 
         if (!customer.phone) {
             setPhoneError('Vui lòng nhập số điện thoại.');
@@ -123,21 +120,49 @@ const CreateCustomer = () => {
         } else if (!/^0\d{9}$/.test(customer.phone)) {
             setPhoneError('Số điện thoại phải bắt đầu bằng số 0 và có tổng cộng 10 chữ số.');
             isValid = false;
-        }
-        else{
+        } else {
             const phoneExists = await existsPhone(customer.phone);
             if (phoneExists) {
                 setPhoneError('Số điện thoại đã tồn tại.');
                 isValid = false;
             }
         }
- 
-
 
         if (!customer.birthDate) {
             setBirthDateError('Vui lòng chọn ngày sinh.');
             isValid = false;
         }
+
+        // Validate province and detailed address for each address
+        const newDetailedAddressErrors = [...detailedAddressErrors];
+        const newProvinceErrors = [...provinceErrors];
+        addresses.forEach((address, index) => {
+            // Validate province
+            if (!address.province) {
+                newProvinceErrors[index] = 'Vui lòng chọn tỉnh/thành phố.';
+                isValid = false;
+            }
+
+            // Validate detailed address
+            if (!address.detail) {
+                newDetailedAddressErrors[index] = 'Vui lòng nhập địa chỉ chi tiết.';
+                isValid = false;
+            } else if (address.detail.trim().length < 5) {
+                newDetailedAddressErrors[index] = 'Địa chỉ chi tiết phải có ít nhất 5 ký tự.';
+                isValid = false;
+            } else if (address.detail.length > 255) {
+                newDetailedAddressErrors[index] = 'Địa chỉ chi tiết không được vượt quá 255 ký tự.';
+                isValid = false;
+            } else if (/^[\p{L}\d\s,/-]+$/.test(address.detail)) {
+                newDetailedAddressErrors[index] = 'Địa chỉ chi tiết chứa ký tự không hợp lệ.';
+                isValid = false;
+            } else if (address.detail.trim() !== address.detail) {
+                newDetailedAddressErrors[index] = 'Địa chỉ chi tiết không được chứa khoảng trắng ở đầu hoặc cuối.';
+                isValid = false;
+            }
+        });
+        setDetailedAddressErrors(newDetailedAddressErrors);
+        setProvinceErrors(newProvinceErrors);
 
         if (!isValid) {
             return;
@@ -145,7 +170,7 @@ const CreateCustomer = () => {
 
         setLoading(true);
 
-        // Cập nhật các địa chỉ với thuộc tính defaultAddress
+        // Update addresses with defaultAddress property
         const updatedAddresses = addresses.map((address, index) => ({
             ...address,
             city: address.province?.label,
@@ -154,10 +179,10 @@ const CreateCustomer = () => {
             detailedAddress: address.detail,
             province: null,
             detail: null,
-            defaultAddress: index === defaultAddressIndex,  // Gán defaultAddress là true cho địa chỉ mặc định
+            defaultAddress: index === defaultAddressIndex,
         }));
 
-        // Gửi dữ liệu lên API
+        // Submit data to API
         console.log("Địa chỉ sau khi cập nhật:", updatedAddresses);
         const updatedCustomer = { ...customer, address: updatedAddresses };
         addCustomer(updatedCustomer)
@@ -169,14 +194,16 @@ const CreateCustomer = () => {
             .catch(error => {
                 console.error("Lỗi thêm khách hàng:", error);
                 alert("Lỗi thêm khách hàng");
-            }).finally(() => {
+            })
+            .finally(() => {
                 setLoading(false);
-            })// Gọi hàm addCustomer từ CustomersService          
-
+            });
     };
 
     const handleAddAddress = () => {
-        setAddresses([...addresses, {}]); // Thêm địa chỉ mới vào danh sách
+        setAddresses([...addresses, {}]);
+        setDetailedAddressErrors([...detailedAddressErrors, '']); // Initialize error for detailed address
+        setProvinceErrors([...provinceErrors, '']); // Initialize error for province
     };
 
     const handleInputChange = (index, field, value) => {
@@ -269,15 +296,19 @@ const CreateCustomer = () => {
         // Cập nhật địa chỉ mặc định
         setDefaultAddressIndex(index);
     };
-    const handleRemoveAddress = (index) => {
-        // Nếu địa chỉ đang xóa là địa chỉ mặc định, cần cập nhật lại
-        if (defaultAddressIndex === index) {
-            setDefaultAddressIndex(0); // Xóa địa chỉ mặc định
-        }
 
-        const newAddresses = addresses.filter((_, i) => i !== index); // Loại bỏ địa chỉ tại index
+    const handleRemoveAddress = (index) => {
+        if (defaultAddressIndex === index) {
+            setDefaultAddressIndex(0);
+        }
+        const newAddresses = addresses.filter((_, i) => i !== index);
+        const newDetailedErrors = detailedAddressErrors.filter((_, i) => i !== index);
+        const newProvinceErrors = provinceErrors.filter((_, i) => i !== index); // Remove corresponding province error
         setAddresses(newAddresses);
+        setDetailedAddressErrors(newDetailedErrors);
+        setProvinceErrors(newProvinceErrors);
     };
+
     return (
         <div>
             {loading && (
@@ -349,7 +380,7 @@ const CreateCustomer = () => {
                                                     setCustomer({ ...customer, birthDate: e.target.value });
                                                     setBirthDateError(''); // Reset lỗi khi người dùng nhập lại
                                                 }} />
-                                                
+
                                             {birthDateError && (
                                                 <div style={{ color: "red" }}>{birthDateError}</div>
                                             )}
@@ -414,9 +445,17 @@ const CreateCustomer = () => {
                                                                 label: province.PROVINCE_NAME,
                                                             }))}
                                                             value={address.province}
-                                                            onChange={(selectedOption) => handleProvinceChange(index, selectedOption)}
+                                                            onChange={(selectedOption) => {
+                                                                handleProvinceChange(index, selectedOption);
+                                                                const newErrors = [...provinceErrors];
+                                                                newErrors[index] = ''; // Clear error when province is selected
+                                                                setProvinceErrors(newErrors);
+                                                            }}
                                                             placeholder="Chọn tỉnh/thành phố"
                                                         />
+                                                        {provinceErrors[index] && (
+                                                            <div style={{ color: 'red' }}>{provinceErrors[index]}</div>
+                                                        )}
                                                     </Form.Group>
                                                 </div>
 
@@ -460,9 +499,17 @@ const CreateCustomer = () => {
                                                         <label className="form-label">Địa chỉ chi tiết</label>
                                                         <Form.Control
                                                             type="text"
-                                                            value={address.detail}
-                                                            onChange={(e) => handleInputChange(index, 'detail', e.target.value)}
+                                                            value={address.detail || ''} // Ensure controlled input
+                                                            onChange={(e) => {
+                                                                handleInputChange(index, 'detail', e.target.value);
+                                                                const newErrors = [...detailedAddressErrors];
+                                                                newErrors[index] = ''; // Clear error when typing
+                                                                setDetailedAddressErrors(newErrors);
+                                                            }}
                                                         />
+                                                        {detailedAddressErrors[index] && (
+                                                            <div style={{ color: 'red' }}>{detailedAddressErrors[index]}</div>
+                                                        )}
                                                     </Form.Group>
                                                 </div>
                                             </div>

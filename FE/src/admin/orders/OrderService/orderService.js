@@ -98,7 +98,7 @@ export const updateOrderDetails = async (orderId, items) => {
 };
 export const updateOrder = async (id, orderData) => {
     try {
-        const response = await api.put(`/order/edit/${id}`, orderData);
+        const response = await api.put(`/order/${id}/update-shipping-and-total`, orderData);
         console.log('Update Order Response:', response.data);
         return response.data;
     } catch (error) {
@@ -226,4 +226,35 @@ export const updateOrderTotalPrice = async (orderId, additionalPayment) => {
         throw new Error(error.response?.data?.message || 'Không thể cập nhật tổng tiền thanh toán');
     }
 };
+export const fetchShippingFee = async (shippingData) => {
+    try {
+        const response = await api.post('/counter/get-price', shippingData);
+
+        // Đảm bảo response có cấu trúc hợp lệ
+        if (!response) {
+            throw new Error('Không có response từ API');
+        }
+
+        console.log('API Response:', {
+            status: response.status,
+            data: response.data,
+            config: response.config
+        });
+
+        return {
+            status: response.status,
+            data: response.data || {}, // Luôn trả về object
+            headers: response.headers
+        };
+    } catch (error) {
+        console.error('API Error Details:', {
+            url: error.config?.url,
+            method: error.config?.method,
+            status: error.response?.status,
+            errorData: error.response?.data
+        });
+        throw new Error(`Lỗi API: ${error.message}`);
+    }
+};
+
 export default api;

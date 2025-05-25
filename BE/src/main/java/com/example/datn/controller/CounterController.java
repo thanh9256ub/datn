@@ -122,6 +122,7 @@ public class CounterController {
 
     @PostMapping("/comfirm/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> confirm(@PathVariable Integer id, @RequestBody OrderRequest orderRequest) {
+        orderDetailService.updatePrice(id);
         OrderResponse orderResponse = orderService.update(id, orderRequest);
         productDetailService.updateProductDetaiStatus0();
         ApiResponse<OrderResponse> apiResponse = new ApiResponse<>(
@@ -528,22 +529,22 @@ public class CounterController {
     }
 
     @CrossOrigin(origins = "*")
-    @GetMapping("/vnpay-return")
-    public ResponseEntity<Map<String, String>> vnpayReturnHandler(
+    @GetMapping(value = "/vnpay-return", produces = MediaType.TEXT_HTML_VALUE)
+    public ResponseEntity<String> vnpayReturnHandler(
             @RequestParam Map<String, String> allParams,
             HttpServletRequest request) {
-        Map<String, String> response = new HashMap<>();
         try {
             logger.info("VNPay Callback Params: {}", allParams);
 
+            // Kiểm tra chữ ký
             Map<String, String> vnpParams = new TreeMap<>(allParams);
             vnpParams.remove("vnp_SecureHashType");
             vnpParams.remove("vnp_SecureHash");
 
             String vnp_SecureHash = allParams.get("vnp_SecureHash");
             if (vnp_SecureHash == null) {
-                response.put("message", "Missing vnp_SecureHash");
-                return ResponseEntity.badRequest().body(response);
+                logger.error("Missing vnp_SecureHash");
+                return ResponseEntity.ok(createCloseWindowHtml("Missing vnp_SecureHash"));
             }
 
             String signValue = buildHashData(vnpParams);
@@ -554,14 +555,15 @@ public class CounterController {
 
             if (!computedHash.equalsIgnoreCase(vnp_SecureHash)) {
                 logger.error("Invalid signature. Expected: {} - Actual: {}", computedHash, vnp_SecureHash);
-                response.put("message", "Invalid signature");
-                return ResponseEntity.badRequest().body(response);
+                return ResponseEntity.ok(createCloseWindowHtml("Invalid signature"));
             }
 
+            // Xử lý trạng thái thanh toán
             String responseCode = allParams.get("vnp_ResponseCode");
             String orderId = allParams.get("vnp_TxnRef");
 
             if ("00".equals(responseCode)) {
+                // Thanh toán thành công
                 OrderResponse updatedOrder = orderService.updateStatus(
                         orderRepository.findByOrderCode(orderId)
                                 .orElseThrow(() -> new RuntimeException("Order not found with code: " + orderId))
@@ -569,9 +571,9 @@ public class CounterController {
                         2
                 );
                 logger.info("Payment success for order: {}", orderId);
-                response.put("message", "Payment success");
-                response.put("status", "SUCCESS");
+                return ResponseEntity.ok(createCloseWindowHtml("Payment success"));
             } else {
+                // Thanh toán thất bại
                 logger.warn("Payment failed. Code: {}", responseCode);
                 orderService.updateStatus(
                         orderRepository.findByOrderCode(orderId)
@@ -579,17 +581,30 @@ public class CounterController {
                                 .getId(),
                         5
                 );
-                response.put("message", "Payment failed. Code: " + responseCode);
-                response.put("status", "FAILED");
+                return ResponseEntity.ok(createCloseWindowHtml("Payment failed. Code: " + responseCode));
             }
-
-            return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("VNPay callback processing error", e);
-            response.put("message", "Server error");
-            response.put("status", "ERROR");
-            return ResponseEntity.internalServerError().body(response);
+            return ResponseEntity.ok(createCloseWindowHtml("Server error"));
         }
+    }
+
+    // Hàm tạo HTML để đóng cửa sổ
+    private String createCloseWindowHtml(String message) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>VNPay Payment</title>
+            </head>
+            <body>
+                <script>
+                    console.log('%s');
+                    window.close();
+                </script>
+            </body>
+            </html>
+            """.formatted(message);
     }
 
     private String buildHashData(Map<String, String> params) {

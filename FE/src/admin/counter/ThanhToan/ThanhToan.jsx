@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { fetchShippingFee, confirmPayment, updatePromoCode, addOrderVoucher, checkVNPayPaymentStatus, generateZaloPayPayment, checkZaloPayPaymentStatus, handleCassoWebhook, fetchCassoTransactions, fetchPromoCodes } from '../api'; // Updated import
 import { toastOptions } from '../constants'; // Import constants from the new file
 import logo from '../../../assets/images/logo_h2tl.png';
-const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber, setPhoneNumber, setDelivery, promo, setPromo, customer, setCustomer, customerInfo, setCustomerInfo, qrImageUrl, setQrImageUrl, qrIntervalRef ,change , setChange}) => {
+const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber, setPhoneNumber, setDelivery, promo, setPromo, customer, setCustomer, customerInfo, setCustomerInfo, qrImageUrl, setQrImageUrl, qrIntervalRef, change, setChange }) => {
 
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
@@ -17,7 +17,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
   const [isCashPayment, setIsCashPayment] = useState(false);
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
   const [cashPaid, setCashPaid] = useState();
-  
+
   let interval = null;
 
   const [finalAmount, setFinalAmount] = useState(totalAmount);
@@ -267,8 +267,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
       <div class="invoice-header">
       <image src="${logo}" alt="Logo" style="width: 200px; height: auto;" />
       <h2>H2TL</h2>
-      <p>Địa chỉ: Nam Từ Liêm, Hà Nội</p>
-      <p>Điện thoại: 0123456789</p>
+      <p>Địa chỉ: 13 P. Trịnh Văn Bô, Xuân Phương, Nam Từ Liêm, Hà Nội</p>
+      <p>Điện thoại: 0917294134</p>
       <h3>HÓA ĐƠN BÁN HÀNG</h2>
       </div>
       <div class="invoice-info">
@@ -539,8 +539,8 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
         <>
           <Row className="mb-3">
             <Col sm={12}>
-            <Form.Label style={{ fontWeight: 'bold', marginRight: '10px' }}>Tiền khách trả</Form.Label>
-            <Form.Group controlId="formCashPaid" style={{ display: 'flex', alignItems: 'center' }}>
+              <Form.Label style={{ fontWeight: 'bold', marginRight: '10px' }}>Tiền khách trả</Form.Label>
+              <Form.Group controlId="formCashPaid" style={{ display: 'flex', alignItems: 'center' }}>
                 <Form.Control
 
                   type="tel"

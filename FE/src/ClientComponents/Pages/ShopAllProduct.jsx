@@ -8,7 +8,7 @@ import { FilterOutlined } from '@ant-design/icons';
 import { fetchProducts, fetchProductDetail, fetchProductColorsByProduct } from '../Service/productService';
 import { useHistory } from 'react-router-dom';
 import { fetchProductColorsByProductList } from '../../admin/products/service/ProductService';
-
+import useWebSocket from '../../hook/useWebSocket';
 const { Title, Text } = Typography;
 const { Option } = Select;
 
@@ -32,7 +32,7 @@ const ShopAllProduct = (props) => {
     const [pageSize, setPageSize] = useState(12);
 
     const [productColors, setProductColors] = useState({});
-
+    const { messages, isConnected } = useWebSocket("/topic/product-updates");
     const primaryColor = '#6C5CE7';
     const lightBg = '#F8F9FA';
     const darkText = '#2D3436';

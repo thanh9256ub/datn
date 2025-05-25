@@ -66,6 +66,17 @@ public class AddressService {
         return addressMapper.toAddressResponse(address);
     }
 
+    public List<AddressResponse> getAddressesByCustomerId(Integer customerId) {
+        Optional<Customer> customer = customerRepository.findById(customerId);
+        if (customer.isEmpty()) {
+            throw new ResourceNotFoundException("Customer not found with id: " + customerId);
+        }
+        List<Address> addresses = addressRepository.findByCustomerId(customerId);
+        List<AddressResponse> responseList = new ArrayList<>();
+        addresses.forEach(address -> responseList.add(new AddressResponse(address)));
+        return responseList;
+    }
+
     public AddressResponse updateAddress(Integer id, AddressRequest addressRequest) {
 
         Address address = addressRepository.findById(id).orElseThrow(
@@ -94,5 +105,31 @@ public class AddressService {
                 () -> new ResourceNotFoundException("Address id is not exists with given id: " + id));
 
         addressRepository.deleteById(id);
+    }
+
+    public AddressResponse setDefaultAddress(Integer id) {
+        // Tìm địa chỉ theo id
+        Address address = addressRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Address not found with id: " + id));
+
+        // Lấy customerId từ địa chỉ
+        Integer customerId = address.getCustomer().getId();
+
+        // Tìm tất cả địa chỉ của khách hàng và đặt status = 0
+        List<Address> customerAddresses = addressRepository.findByCustomerId(customerId);
+        for (Address addr : customerAddresses) {
+            if (!addr.getId().equals(id)) {
+                addr.setStatus(0);
+                addr.setUpdatedAt(LocalDateTime.now());
+                addressRepository.save(addr);
+            }
+        }
+
+        // Đặt địa chỉ được chọn làm mặc định
+        address.setStatus(1);
+        address.setUpdatedAt(LocalDateTime.now());
+        Address updatedAddress = addressRepository.save(address);
+
+        return new AddressResponse(updatedAddress);
     }
 }

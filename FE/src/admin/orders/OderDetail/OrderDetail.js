@@ -3,13 +3,25 @@ import { useLocation, useParams, useHistory } from 'react-router-dom';
 import { Card, Table, Button, Row, Col, Toast, Modal, Form, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faClock, faBoxOpen, faTruck, faHome, faCheckCircle, faTimesCircle, faPrint, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { fetchOrderDetailsByOrderId, updateOrderStatus, updateCustomerInfo, updateOrderDetails, fetchOrderHistory, createOrderHistory, updateOrderNote, restoreProductQuantity, updateOrderTotalPrice } from '../OrderService/orderService';
+import {
+    fetchOrderDetailsByOrderId,
+    updateOrderStatus,
+    updateCustomerInfo,
+    updateOrderDetails,
+    fetchOrderHistory,
+    createOrderHistory,
+    updateOrderNote,
+    restoreProductQuantity,
+    updateOrderTotalPrice, fetchShippingFee,
+    updateOrder
+} from '../OrderService/orderService';
+import { message } from 'antd';
 import { Image } from 'react-bootstrap';
 import CustomerInfo from './CustomerInfo';
 import axios from 'axios';
 import { useAuth } from '../../../context/AuthContext';
-
-const OrderDetail = () => {
+import vietnamAddress from '../vietnamAddress.json';
+const OrderDetail = ({ customer, onUpdate }) => {
     const location = useLocation();
     const { orderId } = useParams();
     const [orderDetails, setOrderDetails] = useState([]);
@@ -29,6 +41,8 @@ const OrderDetail = () => {
     const [selectedSize, setSelectedSize] = useState("");
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
+    const [showDeliveryResultModal, setShowDeliveryResultModal] = useState(false);
+    const [deliverySuccess, setDeliverySuccess] = useState(true);
     const [currentProductPage, setCurrentProductPage] = useState(1);
     const [productsPerPage] = useState(5);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -37,6 +51,11 @@ const OrderDetail = () => {
     const [additionalPayment, setAdditionalPayment] = useState(0);
     const [note, setNote] = useState("");
     const { fullName } = useAuth();
+    const [products, setProducts] = useState(order.products || []);
+    const [totalWeight, setTotalWeight] = useState(0);
+    const [shippingFee, setShippingFee] = useState(order.shippingFee || 0);
+    const [originalOrderDetails, setOriginalOrderDetails] = useState([]);
+
 
     useEffect(() => {
         let isMounted = true;
@@ -49,48 +68,81 @@ const OrderDetail = () => {
                 if (!isMounted) return;
 
                 if (response) {
+                    let validOrderDetails = [];
+                    let originalDetails = []; // Lưu dữ liệu ban đầu từ API
                     if (Array.isArray(response) && response.length > 0) {
-                        const validOrderDetails = response.filter(item => item && item.price != null && item.totalPrice != null);
+                        originalDetails = response
+                            .filter(item => item && item.price != null && item.totalPrice != null)
+                            .map(item => ({ ...item, isOriginal: true }));
                         console.log('Order Status:', response[0].order.status);
                         setOrder(response[0].order);
-                        setOrderDetails(validOrderDetails);
-                        setInitialOrderDetails(validOrderDetails);
-                        setInitialOrderDetailIds(validOrderDetails.map(item => item.id));
-                        setOriginalProductDetailIds(validOrderDetails.map(item => item.productDetail.id)); // Lưu ID sản phẩm ban đầu
-                        setUpdatedCart(validOrderDetails);
                     } else if (!Array.isArray(response) && response.order) {
-                        const validOrderDetails = (response.orderDetails || []).filter(item => item && item.price != null && item.totalPrice != null);
+                        originalDetails = (response.orderDetails || [])
+                            .filter(item => item && item.price != null && item.totalPrice != null)
+                            .map(item => ({ ...item, isOriginal: true }));
                         console.log('Order Status:', response.order.status);
                         setOrder(response.order);
-                        setOrderDetails(validOrderDetails);
-                        setInitialOrderDetails(validOrderDetails);
-                        setInitialOrderDetailIds(validOrderDetails.map(item => item.id));
-                        setOriginalProductDetailIds(validOrderDetails.map(item => item.productDetail.id));
-                        setUpdatedCart(validOrderDetails);
                     }
+
+                    // Lưu originalOrderDetails từ API
+                    setOriginalOrderDetails(originalDetails);
+                    setOriginalProductDetailIds(originalDetails.map(item => item.productDetail.id));
+
+                    // Khôi phục giỏ hàng từ localStorage (nếu có)
+                    const savedCart = localStorage.getItem(`orderCart_${orderId}`);
+                    if (savedCart) {
+                        const parsedCart = JSON.parse(savedCart);
+                        validOrderDetails = parsedCart.map(item => ({
+                            ...item,
+                            isOriginal: originalDetails.some(original => original.productDetail.id === item.productDetail.id)
+                        }));
+                    } else {
+                        validOrderDetails = originalDetails;
+                    }
+
+                    if (validOrderDetails.length === 0) {
+                        console.warn('No valid order details found');
+                        showNotification('Không tìm thấy chi tiết đơn hàng hợp lệ!');
+                    }
+
+                    setOrderDetails(validOrderDetails);
+                    setInitialOrderDetails(validOrderDetails);
+                    setInitialOrderDetailIds(validOrderDetails.map(item => item.id));
+                    setUpdatedCart(validOrderDetails);
+                } else {
+                    throw new Error('No response from API');
                 }
             } catch (error) {
                 if (!isMounted) return;
+                console.error('Error fetching order details:', error);
                 setOrderDetails([]);
                 setInitialOrderDetails([]);
+                setOriginalOrderDetails([]);
                 setInitialOrderDetailIds([]);
+                setOriginalProductDetailIds([]);
                 setUpdatedCart([]);
+                showNotification('Lỗi khi tải chi tiết đơn hàng!');
             }
         };
 
         const fetchProducts = async () => {
             try {
                 const response = await axios.get('http://localhost:8080/product-detail');
-                const products = response.data.data.filter(product => product.quantity > 0 && product.status === 1);
+                const products = response.data.data.filter(
+                    product => product.quantity > 0 && product.status === 1
+                );
                 setAvailableProducts(products);
             } catch (error) {
                 console.error('Error fetching products:', error);
+                showNotification('Lỗi khi tải danh sách sản phẩm!');
             }
         };
 
         getOrderDetails();
         fetchProducts();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, [orderId]);
 
     if (!order) {
@@ -196,7 +248,9 @@ const OrderDetail = () => {
                 { id: 2, name: "Đã xác nhận" },
                 { id: 3, name: "Chờ vận chuyển" },
                 { id: 4, name: "Đang vận chuyển" },
+                { id: 7, name: "Giao hàng không thành công" },
                 { id: 5, name: "Hoàn tất" },
+                { id: 6, name: "Đã hủy" },
             ];
             const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
             return currentIndex < statusFlow.length - 1 ? statusFlow[currentIndex + 1].id : currentStatus;
@@ -207,9 +261,16 @@ const OrderDetail = () => {
                 { id: 2, name: "Đã xác nhận" },
                 { id: 3, name: "Chờ vận chuyển" },
                 { id: 4, name: "Đang vận chuyển" },
+                { id: 7, name: "Giao hàng không thành công" },
                 { id: 5, name: "Hoàn tất" },
+                { id: 6, name: "Đã hủy" },
             ];
             const currentIndex = statusFlow.findIndex(s => s.id === currentStatus);
+
+            if (currentStatus === 4) {
+                return deliverySuccess ? 5 : 7;
+            }
+
             return currentIndex < statusFlow.length - 1 ? statusFlow[currentIndex + 1].id : currentStatus;
         }
     };
@@ -221,13 +282,23 @@ const OrderDetail = () => {
     };
 
     const handleConfirm = async () => {
+        if (order.status === 4) {
+            setShowDeliveryResultModal(true);
+        } else {
+            setShowConfirmModal(true);
+        }
+    };
+
+    const handleDeliveryResult = (isSuccess) => {
+        setDeliverySuccess(isSuccess);
+        setShowDeliveryResultModal(false);
         setShowConfirmModal(true);
     };
 
     const sanitizeNoteInput = (value) => {
         const sanitizedValue = value
             .replace(/[@#$]/g, '')
-            .trim();
+            .trimStart();
         return sanitizedValue;
     };
 
@@ -244,9 +315,18 @@ const OrderDetail = () => {
     };
 
     const handleConfirmSubmit = async () => {
-        const nextStatus = getNextStatus(order.status);
-        if (nextStatus === order.status) {
-            showNotification("Đơn hàng đã ở trạng thái cuối cùng.");
+        let nextStatus;
+
+        if (order.status === 4) {
+            nextStatus = deliverySuccess ? 5 : 7;
+        } else {
+            nextStatus = getNextStatus(order.status);
+        }
+
+        if (nextStatus === order.status ||
+            (order.status === 7 && nextStatus === 5) ||
+            (order.status === 6)) {
+            showNotification("Đơn hàng đã ở trạng thái cuối cùng không thể thay đổi");
             setShowConfirmModal(false);
             return;
         }
@@ -260,36 +340,35 @@ const OrderDetail = () => {
 
             const trimmedNote = note.trim();
             const noteData = {
-                note: trimmedNote || "",
+                note: trimmedNote || (nextStatus === 7 ? "Giao hàng không thành công" : ""),
             };
             await updateOrderNote(order.id, noteData);
 
             if (nextStatus === 5 && additionalPayment > 0) {
                 await updateOrderTotalPrice(order.id, additionalPayment);
 
-                // Cập nhật local state
                 setOrder(prev => ({
                     ...prev,
                     totalPrice: prev.totalPrice + additionalPayment,
                 }));
                 setAdditionalPayment(0);
+            } if (nextStatus === 5 || nextStatus === 6) {
+                localStorage.removeItem(`orderCart_${orderId}`);
             }
 
-            // Tạo lịch sử đơn hàng
             const historyData = {
                 orderId: order.id,
                 icon: "status-update",
-                description: note || "Cập nhật trạng thái",
+                description: note || (nextStatus === 5 ? "Giao hàng thành công" : nextStatus === 7 ? "Giao hàng không thành công" : "Cập nhật trạng thái"),
                 change_time: new Date().toISOString(),
             };
             await createOrderHistory(historyData);
 
-            // Cập nhật dữ liệu hiển thị
             const updatedDetails = await fetchOrderDetailsByOrderId(orderId);
             setOrderDetails(updatedDetails);
             setOrder(updatedDetails[0]?.order);
 
-            showNotification("Cập nhật trạng thái thành công!");
+            showNotification(nextStatus === 5 ? "Đơn hàng đã hoàn tất!" : nextStatus === 7 ? "Đã ghi nhận giao hàng không thành công!" : "Cập nhật trạng thái thành công!");
             setShowConfirmModal(false);
             setNote("");
         } catch (error) {
@@ -343,7 +422,7 @@ const OrderDetail = () => {
             const updatedDetails = await fetchOrderDetailsByOrderId(orderId);
             setOrderDetails(updatedDetails);
             setOrder(updatedDetails[0]?.order);
-
+            localStorage.removeItem(`orderCart_${orderId}`);
             showNotification("Đơn hàng đã được hủy thành công và số lượng sản phẩm đã được khôi phục!");
             setShowCancelModal(false);
             setNote("");
@@ -371,6 +450,7 @@ const OrderDetail = () => {
 
         setUpdatedCart(prev => prev.filter(item => item.id !== orderDetailId));
     };
+
     const handleIncreaseQuantity = (itemId) => {
         setUpdatedCart(prev => prev.map(item => {
             if (item.id === itemId) {
@@ -391,11 +471,64 @@ const OrderDetail = () => {
 
     const handleDecreaseQuantity = (itemId) => {
         setUpdatedCart(prev => prev.map(item => {
-            if (item.id === itemId && item.quantity > 1) {
+            if (item.id === itemId) {
+                const isOriginal = originalProductDetailIds.includes(item.productDetail.id);
+                const initialItem = originalOrderDetails.find( // Sử dụng originalOrderDetails
+                    initial => initial.productDetail.id === item.productDetail.id
+                );
+                const minQuantity = isOriginal ? (initialItem?.quantity || 1) : 1;
+
+                if (item.quantity <= minQuantity) {
+                    if (isOriginal) {
+                        showNotification("Không thể giảm số lượng sản phẩm ban đầu!");
+                    } else {
+                        showNotification("Số lượng không thể nhỏ hơn 1!");
+                    }
+                    return item;
+                }
+
                 return {
                     ...item,
                     quantity: item.quantity - 1,
                     totalPrice: item.price * (item.quantity - 1)
+                };
+            }
+            return item;
+        }));
+    };
+
+    const handleChangeQuantity = (itemId, newQuantity) => {
+        setUpdatedCart(prev => prev.map(item => {
+            if (item.id === itemId) {
+                const product = availableProducts.find(p => p.id === item.productDetail.id);
+                const isOriginal = originalProductDetailIds.includes(item.productDetail.id);
+                const initialItem = originalOrderDetails.find( // Sử dụng originalOrderDetails
+                    initial => initial.productDetail.id === item.productDetail.id
+                );
+                const minQuantity = isOriginal ? (initialItem?.quantity || 1) : 1;
+
+                const quantity = parseInt(newQuantity) || minQuantity;
+
+                if (quantity < minQuantity) {
+                    showNotification(
+                        isOriginal
+                            ? `Số lượng sản phẩm ban đầu không thể nhỏ hơn ${minQuantity}!`
+                            : "Số lượng không thể nhỏ hơn 1!"
+                    );
+                    return item;
+                }
+
+                if (!product || quantity > product.quantity) {
+                    showNotification(
+                        `Số lượng tồn kho của ${item.productDetail.product.productName} không đủ! Còn lại: ${product.quantity}`
+                    );
+                    return item;
+                }
+
+                return {
+                    ...item,
+                    quantity: quantity,
+                    totalPrice: item.price * quantity
                 };
             }
             return item;
@@ -426,10 +559,42 @@ const OrderDetail = () => {
                 price: product.price,
                 totalPrice: product.price,
                 status: 0,
-                productStatus: 1
+                productStatus: 1,
+                isOriginal: false // Đánh dấu sản phẩm mới
             };
             setUpdatedCart(prev => [...prev, newItem]);
         }
+    };
+
+    const calculateTotalWeight = (products) => {
+        return products.reduce((total, product) => total + (product.quantity * 600), 0); // 600g mỗi sản phẩm
+    };
+
+    const getAddressIds = (address) => {
+        if (!address) return { provinceId: null, districtId: null };
+
+        // Giả sử address có dạng: "Số nhà, Phường/Xã, Quận/Huyện, Tỉnh/Thành phố"
+        const addressParts = address.split(', ').map(part => part.trim());
+        if (addressParts.length < 3) return { provinceId: null, districtId: null };
+
+        const provinceName = addressParts[addressParts.length - 1]; // Tỉnh/Thành phố
+        const districtName = addressParts[addressParts.length - 2]; // Quận/Huyện
+
+        // Tìm PROVINCE_ID
+        const province = vietnamAddress.provinces.find(
+            p => p.PROVINCE_NAME.toLowerCase() === provinceName.toLowerCase()
+        );
+        if (!province) return { provinceId: null, districtId: null };
+
+        // Tìm DISTRICT_ID
+        const district = vietnamAddress.districts.find(
+            d => d.DISTRICT_NAME.toLowerCase() === districtName.toLowerCase() && d.PROVINCE_ID === province.PROVINCE_ID
+        );
+
+        return {
+            provinceId: province ? province.PROVINCE_ID : null,
+            districtId: district ? district.DISTRICT_ID : null
+        };
     };
 
     const handleSaveUpdate = async () => {
@@ -446,63 +611,144 @@ const OrderDetail = () => {
         }
 
         try {
+            // Kiểm tra tồn kho
             for (const item of updatedCart) {
-                const product = availableProducts.find(p => p.id === item.productDetail.id);
+                const product = availableProducts.find((p) => p.id === item.productDetail.id);
                 if (!product) {
                     showNotification(`Sản phẩm ${item.productDetail.product.productName} không tồn tại trong danh sách sản phẩm!`);
                     return;
                 }
                 if (product.quantity < item.quantity) {
-                    showNotification(`Số lượng tồn kho của ${item.productDetail.product.productName} không đủ! Còn lại: ${product.quantity}`);
+                    showNotification(
+                        `Số lượng tồn kho của ${item.productDetail.product.productName} không đủ! Còn lại: ${product.quantity}`
+                    );
                     return;
                 }
             }
 
-            const itemsToUpdate = updatedCart.map(item => ({
+            // Tính tổng khối lượng
+            const totalWeight = calculateTotalWeight(updatedCart);
+
+            // Lấy địa chỉ từ order hoặc customer
+            const address = order.address || order.customer?.address || '';
+            const { provinceId, districtId } = getAddressIds(address);
+
+            if (!provinceId || !districtId) {
+                showNotification('Thông tin địa chỉ không đầy đủ, sử dụng địa chỉ mặc định để tính phí vận chuyển.');
+            }
+
+            // Chuẩn bị dữ liệu tính phí vận chuyển
+            const shippingData = {
+                PRODUCT_WEIGHT: totalWeight,
+                ORDER_SERVICE: (provinceId || 1) === 1 ? "PHS" : "LCOD",
+                SENDER_PROVINCE: 1, // Mặc định Hà Nội
+                SENDER_DISTRICT: 28, // Mặc định quận Nam Từ Liêm
+                RECEIVER_PROVINCE: provinceId || 1,
+                RECEIVER_DISTRICT: districtId || 1,
+                PRODUCT_PRICE: updatedCart.reduce((total, item) => total + item.totalPrice, 0), // Giá trị đơn hàng
+            };
+
+            // Gọi API tính phí vận chuyển
+            let newShippingFee = order.shippingFee || 0;
+            try {
+                const shippingResponse = await fetchShippingFee(shippingData);
+                console.log("Shipping Fee Response:", shippingResponse);
+                const fee = shippingResponse.data?.data?.MONEY_TOTAL;
+                if (fee !== undefined) {
+                    newShippingFee = fee;
+                    if (newShippingFee > (order.shippingFee || 0)) {
+                        message.info(`Phí vận chuyển tăng ${(newShippingFee - (order.shippingFee || 0)).toLocaleString()} VNĐ do thay đổi giỏ hàng.`);
+                    }
+                } else {
+                    message.warning('Không thể tính phí vận chuyển, giữ nguyên phí cũ.');
+                }
+            } catch (error) {
+                console.error('Lỗi khi tính phí vận chuyển:', error);
+                message.error('Lỗi khi tính phí vận chuyển, giữ nguyên phí cũ.');
+            }
+
+            // Chuẩn bị dữ liệu cập nhật OrderDetail
+            const itemsToUpdate = updatedCart.map((item) => ({
                 orderId: parseInt(orderId),
                 productDetailId: item.productDetail.id,
                 quantity: item.quantity,
                 price: item.price,
                 totalPrice: item.totalPrice,
                 status: item.status || 0,
-                productStatus: item.productStatus || 1
+                productStatus: item.productStatus || 1,
             }));
 
+            // Cập nhật OrderDetail
             const updatedDetails = await updateOrderDetails(orderId, itemsToUpdate);
-            setOrderDetails(updatedDetails);
-            setUpdatedCart(updatedDetails);
 
-            const newOriginalIds = updatedDetails
-                .filter(item => originalProductDetailIds.includes(item.productDetail.id))
-                .map(item => item.productDetail.id);
-            setOriginalProductDetailIds(newOriginalIds);
+            // Gắn lại thuộc tính isOriginal
+            const updatedDetailsWithOriginalFlag = updatedDetails.map(detail => ({
+                ...detail,
+                isOriginal: originalOrderDetails.some(original => original.productDetail.id === detail.productDetail.id)
+            }));
+            localStorage.setItem(`orderCart_${orderId}`, JSON.stringify(updatedDetailsWithOriginalFlag));
+            setOrderDetails(updatedDetailsWithOriginalFlag);
+            setUpdatedCart(updatedDetailsWithOriginalFlag);
+            setInitialOrderDetails(updatedDetailsWithOriginalFlag);
+            setInitialOrderDetailIds(updatedDetailsWithOriginalFlag.map(item => item.id));
 
+            // Tính toán số tiền tăng thêm
             let additionalPaymentValue = 0;
-            if (order.paymentType.paymentTypeName !== "Trực tiếp") {
-                updatedCart.forEach(item => {
-                    const initialItem = initialOrderDetails.find(initial => initial.productDetail.id === item.productDetail.id);
+            if (order.paymentType?.paymentTypeName !== "Trực tiếp") {
+                updatedCart.forEach((item) => {
+                    const initialItem = originalOrderDetails.find(
+                        (initial) => initial.productDetail.id === item.productDetail.id
+                    );
                     if (!initialItem) {
-                        additionalPaymentValue += item.totalPrice;
+                        additionalPaymentValue += item.totalPrice; // Sản phẩm mới
                     } else if (item.quantity > initialItem.quantity) {
                         const extraQuantity = item.quantity - initialItem.quantity;
-                        additionalPaymentValue += extraQuantity * item.price;
+                        additionalPaymentValue += extraQuantity * item.price; // Số lượng tăng thêm
                     }
                 });
             }
-            setAdditionalPayment(additionalPaymentValue);
 
+            // Thêm chênh lệch phí vận chuyển
+            const oldShippingFee = order.shippingFee || 0;
+            if (newShippingFee !== oldShippingFee) {
+                const shippingFeeDifference = newShippingFee - oldShippingFee;
+                additionalPaymentValue += shippingFeeDifference;
+            }
+
+            // Tính toán totalPrice và totalPayment
+            const totalPrice = updatedCart.reduce((total, item) => total + item.totalPrice, 0);
+            const discountValue = order.discountValue || 0;
+            const totalPayment = totalPrice + newShippingFee - discountValue;
+
+            // Chuẩn bị dữ liệu cập nhật Order
+            const updatedOrderData = {
+                shippingFee: newShippingFee,
+                totalPrice: totalPrice,
+                totalPayment: totalPayment,
+            };
+
+            // Cập nhật order
+            await updateOrder(orderId, updatedOrderData);
+
+            // Cập nhật state
+            setOrder({ ...order, ...updatedOrderData });
+            setAdditionalPayment(additionalPaymentValue);
+            setShippingFee(newShippingFee);
+            setTotalWeight(totalWeight);
+
+            // Lưu lịch sử đơn hàng
             const historyData = {
                 orderId: orderId,
                 icon: "product-update",
-                description: `Cập nhật danh sách sản phẩm: ${updatedCart.length} sản phẩm`,
+                description: `Cập nhật danh sách sản phẩm: ${updatedCart.length} sản phẩm, tổng khối lượng: ${totalWeight}g, phí vận chuyển mới: ${newShippingFee.toLocaleString()} VNĐ`,
                 change_time: new Date().toISOString(),
             };
             await createOrderHistory(historyData);
 
             setShowUpdateModal(false);
-            showNotification("Cập nhật danh sách sản phẩm thành công!");
+            showNotification("Cập nhật danh sách sản phẩm và phí vận chuyển thành công!");
         } catch (error) {
-            console.error('Error updating order details:', error);
+            console.error("Error updating order details:", error);
             showNotification(`Lỗi khi cập nhật danh sách sản phẩm: ${error.response?.data?.message || error.message}`);
         }
     };
@@ -580,7 +826,7 @@ const OrderDetail = () => {
                     <p>Ngày tạo: ${order.createdAt
                 ? new Date(order.createdAt).toLocaleString('vi-VN')
                 : 'N/A'}</p>
-                    <p>Địa chỉ: Nam Từ Liêm, Hà Nội | Điện thoại: 0123456789</p>
+                    <p>Địa chỉ: 13 P. Trịnh Văn Bô, Xuân Phương, Nam Từ Liêm, Hà Nội | Điện thoại: 0917294134</p>
                 </div>
                 <div class="invoice-details">
                     <p><strong>Tên khách hàng:</strong> ${order.customerName || 'Khách lẻ'}</p>
@@ -638,9 +884,7 @@ const OrderDetail = () => {
 
         if (order.orderType === 0 && order.paymentType.paymentTypeName === "Trực tiếp") {
             statusFlow = [
-
                 { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
-
             ];
         } else if (order.orderType === 0) {
             statusFlow = [
@@ -648,6 +892,7 @@ const OrderDetail = () => {
                 { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
+                { id: 7, name: "Giao hàng không thành công", icon: faTimesCircle, color: "#ef476f" },
                 { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
                 { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
@@ -657,36 +902,56 @@ const OrderDetail = () => {
                 { id: 2, name: "Đã xác nhận", icon: faBoxOpen, color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", icon: faTruck, color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", icon: faTruck, color: "#118ab2" },
+                { id: 7, name: "Giao hàng không thành công", icon: faTimesCircle, color: "#ef476f" },
                 { id: 5, name: "Hoàn tất", icon: faCheckCircle, color: "#4caf50" },
                 { id: 6, name: "Đã hủy", icon: faTimesCircle, color: "#ef476f" },
             ];
         }
 
-        if (status === 6) {
-            const canceledStatus = statusFlow.find(s => s.id === 6);
-            return (
-                <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
-                    <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
-                        <FontAwesomeIcon icon={canceledStatus.icon} style={{ color: canceledStatus.color, fontSize: "36px" }} />
-                        <span style={{ fontSize: "16px", color: canceledStatus.color, textAlign: "center" }}>{canceledStatus.name}</span>
-                    </div>
-                </div>
-            );
-        }
+        let visibleStatuses = [];
 
-        const currentIndex = statusFlow.findIndex(s => s.id === status);
-        const visibleStatuses = statusFlow.slice(0, currentIndex + 1);
+        if (status === 6) { // Trạng thái đã hủy
+            // Chỉ hiển thị trạng thái hủy
+            const cancelStatus = statusFlow.find(s => s.id === 6);
+            visibleStatuses = [cancelStatus];
+        } else if (status === 7) { // Trạng thái giao không thành công
+            const currentStatus = statusFlow.find(s => s.id === 7);
+            const previousStatuses = statusFlow.filter(s =>
+                s.id < currentStatus.id &&
+                s.id !== 5 &&
+                s.id !== 6 &&
+                s.id <= status
+            );
+            visibleStatuses = [...previousStatuses, currentStatus];
+        } else {
+            const currentIndex = statusFlow.findIndex(s => s.id === status);
+            visibleStatuses = statusFlow.slice(0, currentIndex + 1).filter(s => s.id !== 6 && s.id !== 7);
+        }
 
         return (
             <div className="d-flex align-items-center" style={{ gap: "20px", padding: "10px 0" }}>
                 {visibleStatuses.map((s, index) => (
                     <React.Fragment key={s.id}>
                         <div className="d-flex flex-column align-items-center" style={{ gap: "8px", minWidth: "120px" }}>
-                            <FontAwesomeIcon icon={s.icon} style={{ color: s.color, fontSize: "36px" }} />
-                            <span style={{ fontSize: "16px", color: s.color, textAlign: "center" }}>{s.name}</span>
+                            <FontAwesomeIcon icon={s.icon} style={{
+                                color: s.color,
+                                fontSize: "36px",
+                            }} />
+                            <span style={{
+                                fontSize: "16px",
+                                color: s.color,
+                                textAlign: "center",
+                                fontWeight: index === visibleStatuses.length - 1 ? "bold" : "normal"
+                            }}>{s.name}</span>
                         </div>
                         {index < visibleStatuses.length - 1 && (
-                            <div style={{ width: "200px", height: "4px", backgroundColor: s.color, borderRadius: "2px" }} />
+                            <div style={{
+                                width: "200px",
+                                height: "4px",
+                                backgroundColor: s.color,
+                                borderRadius: "2px",
+                                opacity: 0.7
+                            }} />
                         )}
                     </React.Fragment>
                 ))}
@@ -707,26 +972,26 @@ const OrderDetail = () => {
 
         if (orderType === 0 && paymentTypeName === "Trực tiếp") {
             statusFlow = [
-
                 { id: 5, name: "Hoàn tất", color: "#4caf50" },
-
             ];
         } else if (orderType === 0) {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 1, name: "Chờ xác nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
                 { id: 5, name: "Hoàn tất", color: "#4caf50" },
+                { id: 7, name: "Giao hàng không thành công", color: "#ef476f" },
                 { id: 6, name: "Đã hủy", color: "#ef476f" },
             ];
         } else {
             statusFlow = [
-                { id: 1, name: "Chờ tiếp nhận", color: "#ff6b6b" },
+                { id: 1, name: "Chờ xác nhận", color: "#ff6b6b" },
                 { id: 2, name: "Đã xác nhận", color: "#ffd700" },
                 { id: 3, name: "Chờ vận chuyển", color: "#118ab2" },
                 { id: 4, name: "Đang vận chuyển", color: "#118ab2" },
                 { id: 5, name: "Hoàn tất", color: "#4caf50" },
+                { id: 7, name: "Giao hàng không thành công", color: "#ef476f" },
                 { id: 6, name: "Đã hủy", color: "#ef476f" },
             ];
         }
@@ -812,7 +1077,7 @@ const OrderDetail = () => {
                             <StatusTimeline status={order.status} />
                             <div className="d-flex justify-content-between mt-3">
                                 <div className="d-flex gap-2">
-                                    {order.status !== 5 && order.status !== 6 && (
+                                    {order.status !== 5 && order.status !== 6 && order.status !== 7 && (
                                         <Button variant="primary" onClick={handleConfirm}>
                                             Xác nhận
                                         </Button>
@@ -862,6 +1127,9 @@ const OrderDetail = () => {
                         </Card.Header>
                         <Card.Body>
                             <p><strong>Mã đơn:</strong> {order.orderCode}</p>
+                            {order.orderType === 0 && (
+                                <p><strong>Nhân viên nhận đơn:</strong> {order.employee.fullName}</p>
+                            )}
                             <p><strong>Ngày đặt:</strong> {new Date(order.createdAt).toLocaleString()}</p>
                             <p>
                                 <strong>Loại đơn hàng:</strong>{" "}
@@ -979,15 +1247,13 @@ const OrderDetail = () => {
                         </Card.Header>
                         <Card.Body>
                             <p><strong>Tổng tiền hàng:</strong> {calculateProductsTotal().toLocaleString()} VNĐ</p>
-                            <p><strong>Phí vận chuyển:</strong> {order.shippingFee.toLocaleString()} VNĐ</p>
-                            <p><strong>Giảm giá:</strong> {order.discountValue.toLocaleString()} VNĐ</p>
-
+                            <p><strong>Phí vận chuyển:</strong> {shippingFee.toLocaleString()} VNĐ</p>
+                            <p><strong>Giảm giá:</strong> {(order.discountValue || 0).toLocaleString()} VNĐ</p>
                             {additionalPayment > 0 && order.status !== 5 && (
                                 <p className="text-warning">
                                     <strong>Cần thanh toán thêm:</strong> {additionalPayment.toLocaleString()} VNĐ
                                 </p>
                             )}
-
                             <h5 className="fw-bold text-danger">
                                 <strong>Tổng thanh toán:</strong> {calculateTotalPayment().toLocaleString()} VNĐ
                             </h5>
@@ -1026,16 +1292,17 @@ const OrderDetail = () => {
                                                                 variant="outline-secondary"
                                                                 size="sm"
                                                                 onClick={() => handleDecreaseQuantity(item.id)}
-                                                                disabled={item.quantity <= 1}
+                                                                disabled={item.quantity <= (originalProductDetailIds.includes(item.productDetail.id) ? originalOrderDetails.find(i => i.productDetail.id === item.productDetail.id)?.quantity || 1 : 1)} // Sử dụng originalOrderDetails
                                                             >
                                                                 -
                                                             </Button>
                                                             <Form.Control
                                                                 type="number"
                                                                 value={item.quantity}
-                                                                readOnly
+                                                                onChange={(e) => handleChangeQuantity(item.id, e.target.value)}
                                                                 className="mx-2 text-center"
                                                                 style={{ width: '60px' }}
+                                                                min={originalProductDetailIds.includes(item.productDetail.id) ? originalOrderDetails.find(i => i.productDetail.id === item.productDetail.id)?.quantity || 1 : 1} // Sử dụng originalOrderDetails
                                                             />
                                                             <Button
                                                                 variant="outline-secondary"
@@ -1219,10 +1486,27 @@ const OrderDetail = () => {
 
             <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
                 <Modal.Header closeButton>
-                    <Modal.Title>Xác nhận cập nhật trạng thái</Modal.Title>
+                    <Modal.Title>
+                        {order.status === 4 ?
+                            (deliverySuccess ? "Xác nhận giao hàng thành công" : "Xác nhận giao hàng không thành công")
+                            : "Xác nhận cập nhật trạng thái"}
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>Bạn có chắc chắn muốn chuyển trạng thái đơn hàng #{order.orderCode}?</p>
+                    <p>
+                        {order.status === 4 ?
+                            (deliverySuccess ?
+                                `Bạn có chắc chắn xác nhận đơn hàng ${order.orderCode} đã được giao thành công?`
+                                : `Bạn có chắc chắn xác nhận đơn hàng ${order.orderCode} giao không thành công?`)
+                            : `Bạn có chắc chắn muốn chuyển trạng thái đơn hàng #${order.orderCode}?`}
+                    </p>
+
+                    {order.status === 4 && !deliverySuccess && (
+                        <Alert variant="warning" className="mt-3">
+                            <strong>Lưu ý:</strong> Khi xác nhận giao hàng không thành công, đơn hàng sẽ chuyển sang trạng thái "Giao hàng không thành công".
+                        </Alert>
+                    )}
+
                     <Form>
                         <Form.Group controlId="employeeName">
                             <Form.Label>Nhân viên thực hiện</Form.Label>
@@ -1233,14 +1517,27 @@ const OrderDetail = () => {
                             />
                         </Form.Group>
                         <Form.Group controlId="note" className="mt-3">
-                            <Form.Label>Ghi chú</Form.Label>
+                            <Form.Label>
+                                {order.status === 4 && !deliverySuccess ? "Lý do không giao được" : "Ghi chú"}
+                                {order.status === 4 && !deliverySuccess && <span className="text-danger">*</span>}
+                            </Form.Label>
                             <Form.Control
                                 as="textarea"
                                 rows={3}
                                 value={note}
                                 onChange={handleNoteChange}
-                                placeholder="Nhập ghi chú (không chứa ký tự đặc biệt)"
+                                placeholder={
+                                    order.status === 4 && !deliverySuccess ?
+                                        "Nhập lý do không giao được hàng (bắt buộc)" :
+                                        "Nhập ghi chú (không chứa ký tự đặc biệt)"
+                                }
+                                required={order.status === 4 && !deliverySuccess}
                             />
+                            {order.status === 4 && !deliverySuccess && (
+                                <Form.Text className="text-muted">
+                                    Vui lòng nhập lý do chi tiết tại sao không giao được hàng. Trường này là bắt buộc.
+                                </Form.Text>
+                            )}
                         </Form.Group>
                     </Form>
                 </Modal.Body>
@@ -1248,8 +1545,12 @@ const OrderDetail = () => {
                     <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
                         Hủy
                     </Button>
-                    <Button variant="primary" onClick={handleConfirmSubmit}>
-                        Đồng ý
+                    <Button
+                        variant="primary"
+                        onClick={handleConfirmSubmit}
+                        disabled={order.status === 4 && !deliverySuccess && !note.trim()}
+                    >
+                        Xác nhận
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -1301,7 +1602,39 @@ const OrderDetail = () => {
                     </Button>
                 </Modal.Footer>
             </Modal>
-
+            <Modal show={showDeliveryResultModal} onHide={() => setShowDeliveryResultModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Kết quả giao hàng</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>Vui lòng chọn kết quả giao hàng cho đơn hàng #{order.orderCode}</p>
+                    <div className="d-flex justify-content-center gap-3 mt-4">
+                        <Button
+                            variant="success"
+                            size="lg"
+                            onClick={() => handleDeliveryResult(true)}
+                            className="d-flex flex-column align-items-center py-3 px-4"
+                        >
+                            <FontAwesomeIcon icon={faCheckCircle} size="2x" className="mb-2" />
+                            <span>Giao hàng thành công</span>
+                        </Button>
+                        <Button
+                            variant="danger"
+                            size="lg"
+                            onClick={() => handleDeliveryResult(false)}
+                            className="d-flex flex-column align-items-center py-3 px-4"
+                        >
+                            <FontAwesomeIcon icon={faTimesCircle} size="2x" className="mb-2" />
+                            <span>Giao hàng không thành công</span>
+                        </Button>
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowDeliveryResultModal(false)}>
+                        Hủy
+                    </Button>
+                </Modal.Footer>
+            </Modal>
             <Toast
                 onClose={() => setShowToast(false)}
                 show={showToast}
@@ -1376,14 +1709,58 @@ const OrderDetail = () => {
 };
 
 const Pagination = ({ itemsPerPage, totalItems, paginate, currentPage }) => {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const maxVisiblePages = 5; // Số trang tối đa hiển thị
+    let startPage, endPage;
+
+    if (totalPages <= maxVisiblePages) {
+        // Hiển thị tất cả các trang nếu tổng số trang ít hơn hoặc bằng maxVisiblePages
+        startPage = 1;
+        endPage = totalPages;
+    } else {
+        // Tính toán trang bắt đầu và kết thúc để hiển thị
+        const half = Math.floor(maxVisiblePages / 2);
+        if (currentPage <= half + 1) {
+            startPage = 1;
+            endPage = maxVisiblePages;
+        } else if (currentPage >= totalPages - half) {
+            startPage = totalPages - maxVisiblePages + 1;
+            endPage = totalPages;
+        } else {
+            startPage = currentPage - half;
+            endPage = currentPage + half;
+        }
+    }
+
     const pageNumbers = [];
-    for (let i = 1; i <= Math.ceil(totalItems / itemsPerPage); i++) {
+    for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
     }
 
     return (
         <nav>
             <ul className="pagination">
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                    <button
+                        onClick={() => paginate(currentPage - 1)}
+                        className="page-link"
+                        disabled={currentPage === 1}
+                    >
+                        &laquo;
+                    </button>
+                </li>
+
+                {startPage > 1 && (
+                    <>
+                        <li className="page-item">
+                            <button onClick={() => paginate(1)} className="page-link">
+                                1
+                            </button>
+                        </li>
+                        {startPage > 2 && <li className="page-item disabled"><span className="page-link">...</span></li>}
+                    </>
+                )}
+
                 {pageNumbers.map(number => (
                     <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
                         <button onClick={() => paginate(number)} className="page-link">
@@ -1391,9 +1768,31 @@ const Pagination = ({ itemsPerPage, totalItems, paginate, currentPage }) => {
                         </button>
                     </li>
                 ))}
+
+                {endPage < totalPages && (
+                    <>
+                        {endPage < totalPages - 1 && <li className="page-item disabled"><span className="page-link">...</span></li>}
+                        <li className="page-item">
+                            <button onClick={() => paginate(totalPages)} className="page-link">
+                                {totalPages}
+                            </button>
+                        </li>
+                    </>
+                )}
+
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                    <button
+                        onClick={() => paginate(currentPage + 1)}
+                        className="page-link"
+                        disabled={currentPage === totalPages}
+                    >
+                        &raquo;
+                    </button>
+                </li>
             </ul>
         </nav>
     );
 };
+
 
 export default OrderDetail;

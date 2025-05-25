@@ -1,9 +1,6 @@
 package com.example.datn.controller;
 
-import com.example.datn.dto.request.AddToCartRequest;
-import com.example.datn.dto.request.CartDetailsRequest;
-import com.example.datn.dto.request.CartRequest;
-import com.example.datn.dto.request.UpdateCartQuantityRequest;
+import com.example.datn.dto.request.*;
 import com.example.datn.dto.response.ApiResponse;
 import com.example.datn.dto.response.CartDetailsResponse;
 import com.example.datn.dto.response.CartResponse;
@@ -104,6 +101,14 @@ public class CartDetailsController {
                 cartDetailsResponse
         );
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{cartId}")
+    public ResponseEntity<List<CartDetailsResponse>> updateCartDetails(
+            @PathVariable Integer cartId,
+            @RequestBody List<UpdateCartDetailsRequest> requests) {
+        List<CartDetailsResponse> response = service.updateCartDetails(cartId, requests);
         return ResponseEntity.ok(response);
     }
 

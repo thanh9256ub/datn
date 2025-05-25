@@ -19,9 +19,9 @@ const CustomTooltip = ({ active, payload, label, unit }) => {
         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.12)',
         fontSize: '14px'
       }}>
-        <p style={{ 
-          margin: 0, 
-          fontWeight: 600, 
+        <p style={{
+          margin: 0,
+          fontWeight: 600,
           color: '#111827',
           borderBottom: '1px solid #F3F4F6',
           paddingBottom: '6px',
@@ -29,7 +29,7 @@ const CustomTooltip = ({ active, payload, label, unit }) => {
         }}>
           {label}
         </p>
-        <p style={{ 
+        <p style={{
           margin: '4px 0',
           display: 'flex',
           alignItems: 'center'
@@ -43,8 +43,8 @@ const CustomTooltip = ({ active, payload, label, unit }) => {
             borderRadius: '4px'
           }}></span>
           <span style={{ color: '#6B7280' }}>{payload[0].name}: </span>
-          <span style={{ 
-            fontWeight: 600, 
+          <span style={{
+            fontWeight: 600,
             color: '#111827',
             marginLeft: '4px'
           }}>
@@ -94,8 +94,8 @@ const TopProducts = () => {
 
   return (
     <div >
-      <h2 style={{ 
-        textAlign: 'center', 
+      <h2 style={{
+        textAlign: 'center',
         marginBottom: '32px',
         fontSize: '24px',
         fontWeight: '700',
@@ -104,66 +104,66 @@ const TopProducts = () => {
       }}>
         Thống kê sản phẩm
       </h2>
-      
-      <div style={{ 
-        display: 'flex', 
+
+      <div style={{
+        display: 'flex',
         flexWrap: 'wrap',
         justifyContent: 'center',
         gap: '32px'
       }}>
         {/* Top Selling Products */}
-        <div style={{ 
+        <div style={{
           flex: '1 1 500px',
           background: 'white',
           borderRadius: '16px',
           padding: '24px',
           boxShadow: '0 4px 24px rgba(0, 0, 0, 0.06)'
         }}>
-          <h3 style={{ 
-            textAlign: 'center', 
+          <h3 style={{
+            textAlign: 'center',
             marginBottom: '24px',
             fontSize: '18px',
             fontWeight: '600',
             color: '#111827'
           }}>
-            Top 5 sản phẩm bán chạy
+            Top 5 sản phẩm bán nhiều nhất
           </h3>
           <ResponsiveContainer width="100%" height={400}>
             <BarChart
               data={data}
               margin={{ top: 40, right: 20, left: 20, bottom: 20 }}
             >
-              <CartesianGrid 
-                stroke="#F3F4F6" 
-                strokeDasharray="3 3" 
+              <CartesianGrid
+                stroke="#F3F4F6"
+                strokeDasharray="3 3"
                 vertical={false}
               />
-              <XAxis 
+              <XAxis
                 dataKey="name"
                 tick={{ fill: '#6B7280', fontSize: 12 }}
                 axisLine={{ stroke: '#E5E7EB' }}
                 tickLine={{ stroke: '#E5E7EB' }}
               />
-              <YAxis 
+              <YAxis
                 tick={{ fill: '#6B7280', fontSize: 12 }}
                 axisLine={{ stroke: '#E5E7EB' }}
                 tickLine={{ stroke: '#E5E7EB' }}
               />
-              <Tooltip 
-                content={<CustomTooltip unit="sản phẩm" />} 
+              <Tooltip
+                content={<CustomTooltip unit="sản phẩm" />}
                 cursor={{ fill: 'rgba(138, 43, 226, 0.1)' }} // Màu tím nhạt
               />
-              <Bar 
-                dataKey="sales" 
-                name="Số lượng bán" 
-                fill={PURPLE_COLORS.gradient[0]} // Màu tím đồng nhất
+              <Bar
+                dataKey="sales"
+                name="Số lượng bán"
+                fill={PURPLE_COLORS.gradient[0]}
                 radius={[6, 6, 0, 0]}
               >
-                <LabelList 
-                  dataKey="sales" 
+                <LabelList
+                  dataKey="sales"
                   position="top"
                   formatter={(value) => `${value} sp`}
-                  style={{ 
+                  style={{
                     fill: PURPLE_COLORS.text,
                     fontSize: 12,
                     fontWeight: 600
@@ -175,15 +175,15 @@ const TopProducts = () => {
         </div>
 
         {/* Low Stock Products */}
-        <div style={{ 
+        <div style={{
           flex: '1 1 500px',
           background: 'white',
           borderRadius: '16px',
           padding: '24px',
           boxShadow: '0 4px 24px rgba(0, 0, 0, 0.06)'
         }}>
-          <h3 style={{ 
-            textAlign: 'center', 
+          <h3 style={{
+            textAlign: 'center',
             marginBottom: '24px',
             fontSize: '18px',
             fontWeight: '600',
@@ -196,37 +196,37 @@ const TopProducts = () => {
               data={lowStockData}
               margin={{ top: 40, right: 20, left: 20, bottom: 20 }}
             >
-              <CartesianGrid 
-                stroke="#F3F4F6" 
-                strokeDasharray="3 3" 
+              <CartesianGrid
+                stroke="#F3F4F6"
+                strokeDasharray="3 3"
                 vertical={false}
               />
-              <XAxis 
+              <XAxis
                 dataKey="name"
                 tick={{ fill: '#6B7280', fontSize: 12 }}
                 axisLine={{ stroke: '#E5E7EB' }}
                 tickLine={{ stroke: '#E5E7EB' }}
               />
-              <YAxis 
+              <YAxis
                 tick={{ fill: '#6B7280', fontSize: 12 }}
                 axisLine={{ stroke: '#E5E7EB' }}
                 tickLine={{ stroke: '#E5E7EB' }}
               />
-              <Tooltip 
-                content={<CustomTooltip unit="sản phẩm" />} 
+              <Tooltip
+                content={<CustomTooltip unit="sản phẩm" />}
                 cursor={{ fill: 'rgba(138, 43, 226, 0.1)' }} // Màu tím nhạt
               />
-              <Bar 
-                dataKey="stock" 
-                name="Số lượng tồn kho" 
+              <Bar
+                dataKey="stock"
+                name="Số lượng tồn kho"
                 fill={PURPLE_COLORS.gradient[0]} // Màu tím đồng nhất
                 radius={[6, 6, 0, 0]}
               >
-                <LabelList 
-                  dataKey="stock" 
+                <LabelList
+                  dataKey="stock"
                   position="top"
                   formatter={(value) => `${value} sp`}
-                  style={{ 
+                  style={{
                     fill: PURPLE_COLORS.text,
                     fontSize: 12,
                     fontWeight: 600

@@ -13,7 +13,8 @@ import {
     fetchProvinces, fetchDistricts, fetchWards, fetchShippingFee, createOrder,
     createGuestOrder, fetchCustomerProfile, clearCartOnServer, getCartDetails,
     checkStockAvailability, sendOrderConfirmationEmail, generateVNPayPayment,
-    checkVNPayPaymentStatus, getVoucherByCode, createOrderVoucher
+    checkVNPayPaymentStatus, getVoucherByCode, createOrderVoucher, fetchProductDetailsByIds,
+    checkPriceDiscrepancies, updateCartOnServer, fetchDefaultAddress
 } from '../Service/productService';
 
 const { Title, Text } = Typography;
@@ -54,6 +55,9 @@ const CartItems = () => {
     const [voucherDiscount, setVoucherDiscount] = useState(0);
     const [voucherError, setVoucherError] = useState('');
     const [voucherLoading, setVoucherLoading] = useState(false);
+    const [isLoadingDefaultAddress, setIsLoadingDefaultAddress] = useState(false);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
+
 
     // Initialize cart
     useEffect(() => {
@@ -70,12 +74,12 @@ const CartItems = () => {
                     }
                     console.log('Loading cart from server with cartId:', currentCartId);
                     await loadCartItems(currentCartId);
-                } else if (isGuest) {
+                } else if (isGuest && cartItems.length === 0) {
                     const savedCart = localStorage.getItem('cartItems');
-                    if (savedCart && cartItems.length === 0) {
+                    if (savedCart) {
                         const parsedCart = JSON.parse(savedCart);
                         setCartItems(parsedCart);
-                        setSelectedItems(parsedCart.map(item => item.productDetailId || item.productDetail?.id));
+                        setSelectedItems(parsedCart.map((item) => item.productDetailId || item.productDetail?.id));
                     }
                 }
                 hasLoadedCart.current = true;
@@ -89,13 +93,15 @@ const CartItems = () => {
         if (!hasLoadedCart.current) {
             initializeCart();
         }
-    }, [isGuest, cartId, token, customerId, loadCartItems, cartItems, getOrCreateCart, setCartId, setCartItems, setSelectedItems]);
+    }, [isGuest, cartId, token, customerId, loadCartItems, getOrCreateCart, setCartId, setCartItems, setSelectedItems]);
 
-    // Lấy thông tin khách hàng
+    // Lấy thông tin khách hàng và địa chỉ mặc định
     useEffect(() => {
-        const loadCustomerProfile = async () => {
+        const loadCustomerData = async () => {
             if (!isGuest && token) {
+                setIsLoadingDefaultAddress(true);
                 try {
+                    // Load customer profile
                     const profile = await fetchCustomerProfile(token);
                     console.log('Customer profile:', profile);
                     setCustomerProfile(profile);
@@ -106,19 +112,126 @@ const CartItems = () => {
                             email: profile.email || '',
                         });
                     }
+
+                    // Load default address
+                    const defaultAddress = await fetchDefaultAddress(customerId);
+                    console.log('Default address:', defaultAddress);
+                    if (!defaultAddress) {
+                        console.warn('No default address found for customer:', customerId);
+                        message.warning('Không tìm thấy địa chỉ mặc định.');
+                        return;
+                    }
+                    if (!defaultAddress.city || !defaultAddress.district || !defaultAddress.ward) {
+                        console.warn('Invalid default address data:', defaultAddress);
+                        message.warning('Địa chỉ mặc định thiếu thông tin tỉnh, quận hoặc phường.');
+                        return;
+                    }
+
+                    // Find province
+                    const province = provinces.find(p =>
+                        p.PROVINCE_NAME.trim().toLowerCase() === defaultAddress.city.trim().toLowerCase()
+                    );
+                    if (!province) {
+                        console.warn('Province not found:', {
+                            provinceName: defaultAddress.city,
+                            availableProvinces: provinces.map(p => p.PROVINCE_NAME)
+                        });
+                        message.warning('Không tìm thấy tỉnh/thành phố trong địa chỉ mặc định.');
+                        return;
+                    }
+                    console.log('Found province:', province);
+                    setSelectedProvince(province.PROVINCE_ID);
+                    form.setFieldsValue({ province: province.PROVINCE_ID });
+
+                    // Load and find district
+                    const districtData = await fetchDistricts(province.PROVINCE_ID);
+                    console.log('District data:', districtData);
+                    setDistricts(districtData);
+                    const district = districtData.find(d =>
+                        d.DISTRICT_NAME.trim().toLowerCase() === defaultAddress.district.trim().toLowerCase()
+                    );
+                    if (!district) {
+                        console.warn('District not found:', {
+                            districtName: defaultAddress.district,
+                            availableDistricts: districtData.map(d => d.DISTRICT_NAME)
+                        });
+                        message.warning('Không tìm thấy quận/huyện trong địa chỉ mặc định.');
+                        return;
+                    }
+                    console.log('Found district:', district);
+                    setSelectedDistrict(district.DISTRICT_ID);
+                    form.setFieldsValue({ district: district.DISTRICT_ID });
+
+                    // Load and find ward
+                    console.log('Fetching wards for district ID:', district.DISTRICT_ID);
+                    const wardData = await fetchWards(district.DISTRICT_ID);
+                    console.log('Ward data:', wardData);
+                    setWards(wardData);
+                    const ward = wardData.find(w =>
+                        w.WARDS_NAME.trim().toLowerCase() === defaultAddress.ward.trim().toLowerCase()
+                    );
+                    if (!ward) {
+                        console.warn('Ward not found:', {
+                            wardName: defaultAddress.ward,
+                            availableWards: wardData.map(w => w.WARDS_NAME)
+                        });
+                        message.warning('Không tìm thấy phường/xã trong địa chỉ mặc định.');
+                        return;
+                    }
+                    console.log('Found ward:', ward);
+                    setSelectedWard(ward.WARDS_ID);
+                    form.setFieldsValue({
+                        ward: ward.WARDS_ID,
+                        address: defaultAddress.detailedAddress
+                    });
+
+                    console.log('Form updated with default address:', {
+                        province: province.PROVINCE_ID,
+                        district: district.DISTRICT_ID,
+                        ward: ward.WARDS_ID,
+                        address: defaultAddress.detailedAddress
+                    });
                 } catch (error) {
-                    console.error('Failed to load customer profile:', error);
-                    message.error('Không thể tải thông tin khách hàng.');
+                    console.error('Failed to load customer data:', {
+                        message: error.message,
+                        response: error.response?.data,
+                        status: error.response?.status
+                    });
+                    message.error('Không thể tải thông tin khách hàng hoặc địa chỉ mặc định.');
+                } finally {
+                    setIsLoadingDefaultAddress(false);
+                    setIsInitialLoad(false);
                 }
             } else {
                 setCustomerProfile(null);
-                form.resetFields(['name', 'phone']);
+                form.resetFields(['name', 'phone', 'email', 'province', 'district', 'ward', 'address']);
+                console.log('Guest mode or no token, form reset.');
+                setIsInitialLoad(false);
             }
         };
-        loadCustomerProfile();
-    }, [isGuest, token, form]);
 
-    // Reset voucher when no items are selected
+        if (provinces.length > 0) {
+            loadCustomerData();
+        } else {
+            console.log('Waiting for provinces to load...');
+        }
+    }, [isGuest, token, customerId, form, provinces]);
+
+    useEffect(() => {
+        if (cartId && !isGuest) {
+            const intervalId = setInterval(async () => {
+                try {
+                    await loadCartItems(cartId);
+                } catch (error) {
+                    console.error('Lỗi khi làm mới giỏ hàng:', error);
+                    message.error('Không thể làm mới giỏ hàng. Vui lòng thử lại.');
+                }
+            }, 3000);
+
+            return () => clearInterval(intervalId);
+        }
+    }, [isGuest, cartId, loadCartItems]);
+
     useEffect(() => {
         if (selectedItems.length === 0 && (voucherCode || voucherDiscount > 0)) {
             setVoucherCode('');
@@ -136,22 +249,20 @@ const CartItems = () => {
             console.log("Generated payment URL:", response.paymentUrl);
             setVnpayTransactionId(response.transactionId);
 
-            // Mở cửa sổ mới cho VNPay
             vnpayWindowRef.current = window.open(response.paymentUrl, '_blank', 'width=600,height=800');
             if (!vnpayWindowRef.current) {
                 message.error('Vui lòng cho phép popup để thanh toán qua VNPay!');
                 return;
             }
 
-            // Bắt đầu kiểm tra trạng thái thanh toán, truyền orderCode
-            pollPaymentStatus(response.transactionId, orderId); // Truyền orderId (orderCode) vào đây
+            pollPaymentStatus(response.transactionId, orderId);
         } catch (error) {
             console.error('Lỗi khi tạo URL VNPAY:', error);
             message.error('Không thể tạo mã thanh toán VNPAY.');
         }
     };
 
-    const pollPaymentStatus = async (transactionId, orderCode) => { // Thêm tham số orderCode
+    const pollPaymentStatus = async (transactionId, orderCode) => {
         setCheckingPayment(true);
         const maxAttempts = 450;
         let attempts = 0;
@@ -170,9 +281,9 @@ const CartItems = () => {
                     const formValues = form.getFieldsValue();
                     await sendOrderConfirmationEmail(
                         formValues.email,
-                        orderCode, // Sử dụng orderCode được truyền vào
+                        orderCode,
                         formValues.name,
-                        getTotalCartAmount() + shippingFee,
+                        getTotalCartAmount() + shippingFee - voucherDiscount,
                         'VNPAY'
                     );
 
@@ -189,15 +300,24 @@ const CartItems = () => {
                     setVoucherCode('');
                     setVoucherDiscount(0);
                     setVoucherError('');
-                    // Xóa thông tin thanh toán
+
+                    if (vnpayWindowRef.current && !vnpayWindowRef.current.closed) {
+                        vnpayWindowRef.current.close();
+                        if (!vnpayWindowRef.current.closed) {
+                            vnpayWindowRef.current.location.href = 'about:blank';
+                            setTimeout(() => {
+                                if (vnpayWindowRef.current && !vnpayWindowRef.current.closed) {
+                                    vnpayWindowRef.current.close();
+                                }
+                            }, 100);
+                        }
+                    }
+
                     form.resetFields();
                     setSelectedProvince('');
                     setSelectedDistrict('');
                     setSelectedWard('');
                     setShippingFee(0);
-                    if (vnpayWindowRef.current && !vnpayWindowRef.current.closed) {
-                        vnpayWindowRef.current.close();
-                    }
                     setCheckingPayment(false);
                 } else if (statusResponse.status === 'FAILED') {
                     clearInterval(interval);
@@ -223,7 +343,7 @@ const CartItems = () => {
                 }
                 setCheckingPayment(false);
             }
-        }, 2000); // Kiểm tra mỗi 2 giây
+        }, 2000);
     };
 
     const handleCheckoutConfirm = () => {
@@ -252,14 +372,30 @@ const CartItems = () => {
                 try {
                     const data = await fetchDistricts(selectedProvince);
                     setDistricts(data);
+                    // Only reset district if the current selectedDistrict is not in the new districts list
+                    if (selectedDistrict && !data.some(d => d.DISTRICT_ID === selectedDistrict)) {
+                        setSelectedDistrict('');
+                        setWards([]);
+                        setSelectedWard('');
+                        form.setFieldsValue({ district: undefined, ward: undefined });
+                    }
+                } catch (error) {
+                    console.error('Error loading districts:', error);
+                    message.error('Không thể tải danh sách quận/huyện.');
+                    setDistricts([]);
                     setSelectedDistrict('');
                     setWards([]);
+                    setSelectedWard('');
                     form.setFieldsValue({ district: undefined, ward: undefined });
-                } catch (error) {
-                    message.error('Không thể tải danh sách quận/huyện.');
                 }
             };
             loadDistricts();
+        } else {
+            setDistricts([]);
+            setSelectedDistrict('');
+            setWards([]);
+            setSelectedWard('');
+            form.setFieldsValue({ district: undefined, ward: undefined });
         }
     }, [selectedProvince, form]);
 
@@ -269,15 +405,27 @@ const CartItems = () => {
                 try {
                     const data = await fetchWards(selectedDistrict);
                     setWards(data);
+                    // Only reset ward if the current selectedWard is not in the new wards list
+                    if (selectedWard && !data.some(w => w.WARDS_ID === selectedWard)) {
+                        setSelectedWard('');
+                        form.setFieldsValue({ ward: undefined });
+                    }
+                } catch (error) {
+                    console.error('Error loading wards:', error);
+                    message.error('Không thể tải danh sách phường/xã.');
+                    setWards([]);
                     setSelectedWard('');
                     form.setFieldsValue({ ward: undefined });
-                } catch (error) {
-                    message.error('Không thể tải danh sách phường/xã.');
                 }
             };
             loadWards();
+        } else {
+            setWards([]);
+            setSelectedWard('');
+            form.setFieldsValue({ ward: undefined });
         }
     }, [selectedDistrict, form]);
+
 
     const calculateTotalWeight = () => {
         return cartItems.reduce((total, item) => total + (item.weight || 600) * item.quantity, 0) || 1000;
@@ -343,6 +491,64 @@ const CartItems = () => {
         }
     };
 
+    const verifyPricesBeforeCheckout = async () => {
+        try {
+            const selectedProducts = cartItems.filter(item =>
+                selectedItems.includes(item.id || item.productDetailId || item.productDetail?.id)
+            );
+
+            console.log('Selected products for price verification:', selectedProducts);
+
+            const discrepancies = await checkPriceDiscrepancies(selectedProducts);
+            console.log('Discrepancies received:', discrepancies);
+
+            if (discrepancies.length === 0) {
+                return true; // Không có sự khác biệt giá
+            }
+
+            const productDetailIds = discrepancies.map(d => d.productDetailId);
+            const productDetails = await fetchProductDetailsByIds(productDetailIds);
+            console.log('Product details received:', productDetails);
+
+            const messageContent = (
+                <div>
+                    <p>Giá của {discrepancies.length} sản phẩm đã thay đổi:</p>
+                    <ul>
+                        {discrepancies.map((item, index) => {
+                            const detail = productDetails.find(pd => pd.id === item.productDetailId) || {};
+                            const cartItem = selectedProducts.find(ci => ci.productDetailId === item.productDetailId || ci.productDetail?.id === item.productDetailId);
+                            const currentPrice = cartItem?.price || item.currentPrice || 0;
+                            const newPrice = typeof item.newPrice === 'number' ? item.newPrice : 0;
+
+                            return (
+                                <li key={index}>
+                                    {detail?.product?.productName || item.productName || 'Sản phẩm không xác định'} -
+                                    Màu: {detail?.color?.colorName || item.color || 'Không rõ'},
+                                    Size: {detail?.size?.sizeName || item.size || 'Không rõ'}<br />
+                                    Giá cũ: {currentPrice.toLocaleString('vi-VN')}₫ →
+                                    Giá mới: {newPrice.toLocaleString('vi-VN')}₫
+                                </li>
+                            );
+                        })}
+                    </ul>
+                    <p>Vui lòng xóa và cập nhật lại sản phẩm trước khi đặt hàng.</p>
+                </div>
+            );
+
+            Modal.error({
+                title: 'Giá sản phẩm đã thay đổi',
+                content: messageContent,
+                okText: 'Đã hiểu',
+            });
+
+            return false;
+        } catch (error) {
+            console.error('Error in verifyPricesBeforeCheckout:', error);
+            message.error(error.message || 'Lỗi khi kiểm tra giá sản phẩm.');
+            return false;
+        }
+    };
+
     const handleCheckout = async () => {
         console.log('Các mục trong giỏ hàng hiện tại:', JSON.stringify(cartItems, null, 2));
         console.log('Các mục đã chọn:', selectedItems);
@@ -353,7 +559,8 @@ const CartItems = () => {
                 message.warning('Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
                 return;
             }
-
+            const pricesValid = await verifyPricesBeforeCheckout();
+            if (!pricesValid) return;
             setLoading(true);
 
             const formValues = form.getFieldsValue();
@@ -418,10 +625,10 @@ const CartItems = () => {
                 discountValue: voucherDiscount,
                 totalPrice: getTotalCartAmount(),
                 totalPayment: totalAmount,
-                paymentMethodId: paymentMethod === 1 ? 3 : 2, // 3: COD, 2: VNPAY
+                paymentMethodId: paymentMethod === 1 ? 3 : 2,
                 paymentTypeId: 2,
                 orderType: 1,
-                status: paymentMethod === 1 ? 1 : 1, // Initial status is 1
+                status: paymentMethod === 1 ? 1 : 1,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 cartItems: selectedCartItems,
@@ -433,7 +640,6 @@ const CartItems = () => {
             let voucherData = null;
             if (!isGuest && voucherCode && voucherDiscount > 0) {
                 voucherData = await getVoucherByCode(voucherCode);
-                // Validate voucher again for consistency
                 if (!voucherData || voucherData.quantity <= 0) {
                     message.error('Mã giảm giá đã hết lượt sử dụng hoặc không hợp lệ.');
                     setLoading(false);
@@ -451,7 +657,6 @@ const CartItems = () => {
                     setLoading(false);
                     return;
                 }
-                // Recalculate discount
                 let calculatedDiscount = voucherData.discountValue;
                 if (voucherData.discountType === 1) {
                     calculatedDiscount = (voucherData.discountValue / 100) * getTotalCartAmount();
@@ -489,7 +694,6 @@ const CartItems = () => {
                 console.log("===Order Code===" + orderCode);
                 setOrderCode(orderCode);
 
-                // Create OrderVoucher if voucher is applied
                 if (voucherData) {
                     const orderVoucherData = {
                         orderId: response.data?.id || response.data?.data?.id,
@@ -505,9 +709,9 @@ const CartItems = () => {
                     }
                 }
 
-                if (paymentMethod === 2) { // VNPAY
+                if (paymentMethod === 2) {
                     await generateVNPayPaymentHandler(orderCode, totalAmount);
-                } else { // COD
+                } else {
                     setThankYouModalVisible(true);
                     message.success('Đặt hàng thành công!');
                     await sendOrderConfirmationEmail(
@@ -524,11 +728,9 @@ const CartItems = () => {
                     else localStorage.setItem('cartItems', JSON.stringify(
                         cartItems.filter(item => !validSelectedItems.includes(item.productDetailId || item.productDetail?.id))
                     ));
-                    // Reset voucher state
                     setVoucherCode('');
                     setVoucherDiscount(0);
                     setVoucherError('');
-                    // Clear payment information
                     form.resetFields();
                     setSelectedProvince('');
                     setSelectedDistrict('');
@@ -661,7 +863,7 @@ const CartItems = () => {
                                             />
                                             <Space size="middle" style={{ marginRight: 16 }}>
                                                 <Text strong style={{ minWidth: 100, textAlign: 'right' }}>
-                                                    {(item.total_price || item.price * item.quantity).toLocaleString('vi-VN')}₫
+                                                    {(item.price * item.quantity).toLocaleString('vi-VN')}₫
                                                 </Text>
                                             </Space>
                                         </List.Item>
@@ -916,13 +1118,19 @@ const CartItems = () => {
                                     >
                                         <Select
                                             placeholder="Chọn quận/huyện"
-                                            onChange={value => setSelectedDistrict(value)}
+                                            onChange={(value) => {
+                                                setSelectedDistrict(value);
+                                                form.setFieldsValue({ district: value });
+                                            }}
                                             disabled={!selectedProvince}
                                             loading={!districts.length && !!selectedProvince}
                                             suffixIcon={<EnvironmentOutlined />}
+                                            value={selectedDistrict || undefined}
                                         >
                                             {districts.map(district => (
-                                                <Option key={district.DISTRICT_ID} value={district.DISTRICT_ID}>{district.DISTRICT_NAME}</Option>
+                                                <Option key={district.DISTRICT_ID} value={district.DISTRICT_ID}>
+                                                    {district.DISTRICT_NAME}
+                                                </Option>
                                             ))}
                                         </Select>
                                     </Form.Item>
@@ -935,13 +1143,23 @@ const CartItems = () => {
                                     >
                                         <Select
                                             placeholder="Chọn phường/xã"
-                                            onChange={value => setSelectedWard(value)}
-                                            disabled={!selectedDistrict}
-                                            loading={!wards.length && !!selectedDistrict}
-                                            suffixIcon={<EnvironmentOutlined />}
+                                            onChange={(value) => {
+                                                setSelectedWard(value);
+                                                form.setFieldsValue({ ward: value });
+                                            }}
+                                            disabled={!selectedDistrict || !wards.length}
+                                            loading={isLoadingDefaultAddress && selectedDistrict && !wards.length}
+                                            showSearch
+                                            optionFilterProp="children"
+                                            filterOption={(input, option) =>
+                                                option.children.toLowerCase().includes(input.toLowerCase())
+                                            }
+                                            value={selectedWard || undefined}
                                         >
                                             {wards.map(ward => (
-                                                <Option key={ward.WARDS_ID} value={ward.WARDS_ID}>{ward.WARDS_NAME}</Option>
+                                                <Option key={ward.WARDS_ID} value={ward.WARDS_ID}>
+                                                    {ward.WARDS_NAME}
+                                                </Option>
                                             ))}
                                         </Select>
                                     </Form.Item>

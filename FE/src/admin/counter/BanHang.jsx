@@ -87,7 +87,7 @@ const BanHang = () => {
 
   const calculateTotalAmount = (items) => {
     items = items.filter(item => item.order.id === selectedInvoiceId);
-    const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const total = items.reduce((sum, item) => sum + item.productDetail.price*item.quantity, 0);
     setTotalAmount(total);
   };
 
@@ -496,116 +496,116 @@ const BanHang = () => {
       <Row className="align-items">
         <Col md={8}>
           <div className="p-3 border">
-          <div 
-  className="d-flex align-items-center rounded p-3 w-100 overflow-hidden"
-  style={{ 
-    marginBottom: "16px",
-    backgroundColor: "#f8f9fa",
-    boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-  }}
->
-  {/* Nút Tạo hóa đơn */}
-  <div style={{ flexShrink: 0 }}>
-    <Button 
-      variant="primary" 
-      className="px-4 py-2 fw-bold"
-      onClick={addInvoice} 
-      disabled={!canAdd}
-      style={{
-        
-        transition: "all 0.2s",
-        boxShadow: !canAdd ? "none" : "0 2px 4px rgba(0,0,0,0.15)"
-      }}
-    >
-      <i className="mdi mdi-plus-circle-outline me-2"></i>
-      
-    </Button>
-  </div>
+            <div
+              className="d-flex align-items-center rounded p-3 w-100 overflow-hidden"
+              style={{
+                marginBottom: "16px",
+                backgroundColor: "#f8f9fa",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+              }}
+            >
+              {/* Nút Tạo hóa đơn */}
+              <div style={{ flexShrink: 0 }}>
+                <Button
+                  variant="primary"
+                  className="px-4 py-2 fw-bold"
+                  onClick={addInvoice}
+                  disabled={!canAdd}
+                  style={{
 
-  
-  <div 
-    className="mx-3 border-start border-secondary" 
-    style={{ 
-      height: "32px",
-      opacity: 0.3
-    }}
-  ></div>
+                    transition: "all 0.2s",
+                    boxShadow: !canAdd ? "none" : "0 2px 4px rgba(0,0,0,0.15)"
+                  }}
+                >
+                  <i className="mdi mdi-plus-circle-outline me-2"></i>
 
- 
-  <div 
-    className="d-flex flex-nowrap align-items-center overflow-auto py-1" 
-    style={{ 
-      maxWidth: "100%",
-      flexGrow: 1,
-      scrollbarWidth: "thin"
-    }}
-  >
-    {invoices.length === 0 ? (
-      <div className="text-muted px-2">
-        Chưa có hóa đơn nào được tạo
-      </div>
-    ) : (
-      invoices.map((invoice, index) => (
-        <div 
-          key={invoice.id} 
-          className="d-flex align-items-center mx-2 position-relative"
-          style={{
-            transition: "transform 0.2s"
-          }}
-        >
-          <Button
-            variant={selectedInvoiceId === invoice.id ? "primary" : "outline-primary"}
-            className={`px-3 py-2 rounded-3 d-flex align-items-center ${selectedInvoiceId === invoice.id ? "shadow-sm" : ""}`}
-            onClick={() => handleSelectInvoice(index)}
-            style={{
-              minWidth: "100px",
-              borderWidth: selectedInvoiceId === invoice.id ? "0" : "1px",
-              backgroundColor: selectedInvoiceId === invoice.id ? "" : "rgba(13,110,253,0.05)",
-              transition: "all 0.2s"
-            }}
-          >
-            <i className="mdi mdi-receipt me-2"></i>
-            <span className="text-truncate" style={{ maxWidth: "60px" }}>
-              {invoice.orderCode}
-            </span>
-          </Button>
-          
-          <Button
-            variant="outline-danger"
-            size="sm"
-            className="ms-2 rounded-circle p-1"
-            onClick={(e) => {
-              e.stopPropagation();
-              removeSelectedInvoice(invoice.id);
-            }}
-            style={{
-              width: "28px",
-              height: "28px",
-              borderWidth: "1px",
-              transition: "all 0.2s"
-            }}
-          >
-            <i className="mdi mdi-close"></i>
-          </Button>
-          
-         
-          <span 
-            className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary"
-            style={{
-              fontSize: "0.6rem",
-              padding: "2px 4px"
-            }}
-          >
-            {index + 1}
-          </span>
-        </div>
-      ))
-    )}
-  </div>
-</div>
+                </Button>
+              </div>
+
+
+              <div
+                className="mx-3 border-start border-secondary"
+                style={{
+                  height: "32px",
+                  opacity: 0.3
+                }}
+              ></div>
+
+
+              <div
+                className="d-flex flex-nowrap align-items-center overflow-auto py-1"
+                style={{
+                  maxWidth: "100%",
+                  flexGrow: 1,
+                  scrollbarWidth: "thin"
+                }}
+              >
+                {invoices.length === 0 ? (
+                  <div className="text-muted px-2">
+                    Chưa có hóa đơn nào được tạo
+                  </div>
+                ) : (
+                  invoices.map((invoice, index) => (
+                    <div
+                      key={invoice.id}
+                      className="d-flex align-items-center mx-2 position-relative"
+                      style={{
+                        transition: "transform 0.2s"
+                      }}
+                    >
+                      <Button
+                        variant={selectedInvoiceId === invoice.id ? "primary" : "outline-primary"}
+                        className={`px-3 py-2 rounded-3 d-flex align-items-center ${selectedInvoiceId === invoice.id ? "shadow-sm" : ""}`}
+                        onClick={() => handleSelectInvoice(index)}
+                        style={{
+                          minWidth: "100px",
+                          borderWidth: selectedInvoiceId === invoice.id ? "0" : "1px",
+                          backgroundColor: selectedInvoiceId === invoice.id ? "" : "rgba(13,110,253,0.05)",
+                          transition: "all 0.2s"
+                        }}
+                      >
+                        <i className="mdi mdi-receipt me-2"></i>
+                        <span className="text-truncate" style={{ maxWidth: "60px" }}>
+                          {invoice.orderCode}
+                        </span>
+                      </Button>
+
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        className="ms-2 rounded-circle p-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeSelectedInvoice(invoice.id);
+                        }}
+                        style={{
+                          width: "28px",
+                          height: "28px",
+                          borderWidth: "1px",
+                          transition: "all 0.2s"
+                        }}
+                      >
+                        <i className="mdi mdi-close"></i>
+                      </Button>
+
+
+                      <span
+                        className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary"
+                        style={{
+                          fontSize: "0.6rem",
+                          padding: "2px 4px"
+                        }}
+                      >
+                        {index + 1}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
             <div className="cart-container">
               <h3 style={{ fontWeight: 'bold' }}>Giỏ hàng</h3>
-              
+
               <div className="table-responsive" >
                 <div style={{ height: '300px', overflowY: 'auto' }}>
                   <Table hover >
@@ -628,7 +628,7 @@ const BanHang = () => {
                           <td style={{ fontWeight: 'bold' }}>{item.productDetail.product.productName} - {item.productDetail.color.colorName} - {item.productDetail.size.sizeName}</td>
 
 
-                          <td style={{ whiteSpace: 'nowrap', width: '1%', fontWeight: 'bold' }}>{item.price.toLocaleString()} </td>
+                          <td style={{ whiteSpace: 'nowrap', width: '1%', fontWeight: 'bold' }}>{item.productDetail.price.toLocaleString()} </td>
                           <td style={{ whiteSpace: 'nowrap', width: '1%' }}>
                             <div style={{ display: 'flex', alignItems: 'center' }}>
                               <button type="button" className="btn btn-dark btn-sm btn-rounded btn-icon"
@@ -657,7 +657,7 @@ const BanHang = () => {
                               </button>
                             </div>
                           </td>
-                          <td style={{ whiteSpace: 'nowrap', width: '1%', fontWeight: 'bold' }}>{item.totalPrice.toLocaleString()} </td>
+                          <td style={{ whiteSpace: 'nowrap', width: '1%', fontWeight: 'bold' }}>{(item.productDetail.price*item.quantity).toLocaleString()} </td>
                           <td style={{ whiteSpace: 'nowrap', width: '1%' }}>
                             <i
                               className="mdi mdi-cart-off"
@@ -933,7 +933,7 @@ const BanHang = () => {
               customer={customer} setCustomer={setCustomer}
               customerInfo={customerInfo} setCustomerInfo={setCustomerInfo}
               qrImageUrl={qrImageUrl} setQrImageUrl={setQrImageUrl} qrIntervalRef={qrIntervalRef}
-change={change} setChange={setChange}
+              change={change} setChange={setChange}
             />
             <ToastContainer />
           </div>
@@ -944,15 +944,58 @@ change={change} setChange={setChange}
 };
 
 const Pagination = ({ itemsPerPage, totalItems, paginate, currentPage }) => {
-  const pageNumbers = [];
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const maxVisiblePages = 5; // Số trang tối đa hiển thị
+  let startPage, endPage;
 
-  for (let i = 1; i <= Math.ceil(totalItems / itemsPerPage); i++) {
+  if (totalPages <= maxVisiblePages) {
+    // Hiển thị tất cả các trang nếu tổng số trang ít hơn hoặc bằng maxVisiblePages
+    startPage = 1;
+    endPage = totalPages;
+  } else {
+    // Tính toán trang bắt đầu và kết thúc để hiển thị
+    const half = Math.floor(maxVisiblePages / 2);
+    if (currentPage <= half + 1) {
+      startPage = 1;
+      endPage = maxVisiblePages;
+    } else if (currentPage >= totalPages - half) {
+      startPage = totalPages - maxVisiblePages + 1;
+      endPage = totalPages;
+    } else {
+      startPage = currentPage - half;
+      endPage = currentPage + half;
+    }
+  }
+
+  const pageNumbers = [];
+  for (let i = startPage; i <= endPage; i++) {
     pageNumbers.push(i);
   }
 
   return (
-    <nav >
+    <nav>
       <ul className="pagination">
+        <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+          <button
+            onClick={() => paginate(currentPage - 1)}
+            className="page-link"
+            disabled={currentPage === 1}
+          >
+            &laquo;
+          </button>
+        </li>
+
+        {startPage > 1 && (
+          <>
+            <li className="page-item">
+              <button onClick={() => paginate(1)} className="page-link">
+                1
+              </button>
+            </li>
+            {startPage > 2 && <li className="page-item disabled"><span className="page-link">...</span></li>}
+          </>
+        )}
+
         {pageNumbers.map(number => (
           <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
             <button onClick={() => paginate(number)} className="page-link">
@@ -960,6 +1003,27 @@ const Pagination = ({ itemsPerPage, totalItems, paginate, currentPage }) => {
             </button>
           </li>
         ))}
+
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <li className="page-item disabled"><span className="page-link">...</span></li>}
+            <li className="page-item">
+              <button onClick={() => paginate(totalPages)} className="page-link">
+                {totalPages}
+              </button>
+            </li>
+          </>
+        )}
+
+        <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+          <button
+            onClick={() => paginate(currentPage + 1)}
+            className="page-link"
+            disabled={currentPage === totalPages}
+          >
+            &raquo;
+          </button>
+        </li>
       </ul>
     </nav>
   );
