@@ -568,7 +568,7 @@ const PaymentInfo = ({ idOrder, orderDetail, totalAmount, delivery, phoneNumber,
                       toast.warn("Vui lòng chọn phương thức thanh toán Tiền mặt trước ", toastOptions);
                       return;
                     }
-                    setCashPaid(finalAmount);
+                    setCashPaid(finalAmount+shippingFee);
                     setChange(0);
                   }}
                 ></i>
