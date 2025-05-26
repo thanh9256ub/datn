@@ -50,6 +50,7 @@ const ShopAllProduct = (props) => {
     const applyFilters = useCallback(() => {
         let result = [...products];
 
+        // Lọc theo tên sản phẩm (luôn áp dụng)
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             result = result.filter(item =>
@@ -57,30 +58,33 @@ const ShopAllProduct = (props) => {
             );
         }
 
-        if (selectedBrand) {
-            result = result.filter(item => item.brand?.brandName === selectedBrand);
-        }
+        // Lọc theo các thuộc tính khác (kết hợp AND giữa các nhóm, OR trong từng nhóm)
+        result = result.filter(item => {
+            // Kiểm tra brand (nếu có chọn)
+            const brandMatch = !selectedBrand || item.brand?.brandName === selectedBrand;
 
-        if (selectedMaterials.length > 0) {
-            result = result.filter(item =>
-                selectedMaterials.includes(item.material)
-            );
-        }
+            // Kiểm tra material (OR trong nhóm)
+            const materialMatch = selectedMaterials.length === 0 ||
+                selectedMaterials.includes(item.material);
 
-        if (selectedColors.length > 0) {
-            result = result.filter(item =>
-                selectedColors.includes(item.color)
-            );
-        }
+            // Kiểm tra color (OR trong nhóm)
+            const colorMatch = selectedColors.length === 0 ||
+                selectedColors.some(color => item.colors?.includes(color));
 
-        if (selectedSizes.length > 0) {
-            result = result.filter(item =>
-                selectedSizes.includes(item.size)
-            );
-        }
+            // Kiểm tra size (đặc biệt - kiểm tra trong details)
+            const sizeMatch = selectedSizes.length === 0 ||
+                (item.details && item.details.some(detail =>
+                    selectedSizes.includes(detail.size?.sizeName || detail.size)
+                ));
 
-        result = result.filter(item => item.price >= priceRange[0] && item.price <= priceRange[1]);
+            // Kiểm tra giá
+            const priceMatch = item.price >= priceRange[0] && item.price <= priceRange[1];
 
+            // Tất cả điều kiện phải thỏa mãn (AND giữa các nhóm)
+            return brandMatch && materialMatch && colorMatch && sizeMatch && priceMatch;
+        });
+
+        // Sắp xếp
         switch (sortOption) {
             case 'price-asc':
                 result.sort((a, b) => a.price - b.price);
@@ -128,25 +132,50 @@ const ShopAllProduct = (props) => {
                 const productsData = Array.isArray(productsResponse.data) ? productsResponse.data : [];
                 const detailsData = Array.isArray(productDetailsResponse.data) ? productDetailsResponse.data : [];
 
-                const mergedProducts = productsData.map((product) => {
-                    const detail = detailsData.find((d) => d.product.id === product.id);
+                // Tạo map để lưu tất cả các biến thể của sản phẩm
+                const variantsMap = detailsData.reduce((acc, detail) => {
+                    if (!acc[detail.product.id]) {
+                        acc[detail.product.id] = {
+                            product: detail.product,
+                            details: [],
+                            colors: new Set(),
+                            sizes: new Set(),
+                            materials: new Set()
+                        };
+                    }
+                    acc[detail.product.id].details.push(detail);
+
+                    // Thêm các thuộc tính vào Set để lấy unique values
+                    if (detail.color?.colorName || detail.color) {
+                        acc[detail.product.id].colors.add(detail.color?.colorName || detail.color);
+                    }
+                    if (detail.size?.sizeName || detail.size) {
+                        acc[detail.product.id].sizes.add(detail.size?.sizeName || detail.size);
+                    }
+                    if (detail.product.material?.materialName || detail.product.material) {
+                        acc[detail.product.id].materials.add(detail.product.material?.materialName || detail.product.material);
+                    }
+
+                    return acc;
+                }, {});
+
+                // Chuẩn bị dữ liệu sản phẩm để hiển thị
+                const mergedProducts = Object.values(variantsMap).map(variant => {
+                    // Lấy giá nhỏ nhất trong các biến thể
+                    const minPrice = Math.min(...variant.details.map(d => d.price));
+
                     return {
-                        ...product,
-                        price: detail ? detail.price : 0,
+                        ...variant.product,
+                        price: minPrice,
                         isBestSeller: Math.random() > 0.7,
-                        material: product.material?.materialName || product.material || 'Không xác định',
-                        color: detail?.color?.colorName || detail?.color || 'Không xác định',
-                        size: detail?.size?.sizeName || detail?.size || 'Không xác định'
+                        colors: Array.from(variant.colors),
+                        sizes: Array.from(variant.sizes),
+                        material: Array.from(variant.materials)[0] || 'Không xác định',
+                        details: variant.details
                     };
                 });
 
-                const productIds = detailsData.map(item => item.product.id);
-
-                if (productIds.length > 0) {
-                    const colorsResponse = await fetchProductColorsByProductList(productIds, { signal: abortController.signal });
-                    setProductColors(colorsResponse.data || {});
-                }
-
+                // Lấy danh sách unique cho các bộ lọc
                 const uniqueBrands = [...new Set(
                     mergedProducts
                         .map(item => item.brand?.brandName)
@@ -154,21 +183,19 @@ const ShopAllProduct = (props) => {
                 )];
 
                 const uniqueMaterials = [...new Set(
-                    mergedProducts
-                        .map(item => item.material)
-                        .filter(material => material)
+                    mergedProducts.flatMap(item =>
+                        item.details.map(d =>
+                            d.product.material?.materialName || d.product.material
+                        ).filter(Boolean)
+                    )
                 )];
 
                 const uniqueColors = [...new Set(
-                    mergedProducts
-                        .map(item => item.color)
-                        .filter(color => color)
+                    mergedProducts.flatMap(item => item.colors)
                 )];
 
                 const uniqueSizes = [...new Set(
-                    mergedProducts
-                        .map(item => item.size)
-                        .filter(size => size)
+                    mergedProducts.flatMap(item => item.sizes)
                 )];
 
                 const maxPrice = mergedProducts.reduce((max, item) => Math.max(max, item.price), 5000000);
@@ -361,28 +388,30 @@ const ShopAllProduct = (props) => {
                                     </Select>
                                 </div>
                                 <div style={{ marginBottom: 16 }}>
-                                    <Text strong>Chất liệu</Text>
-                                    <div style={{
-                                        marginTop: 8,
-                                        maxHeight: '200px',
-                                        overflowY: 'auto',
-                                        paddingRight: '8px'
-                                    }}>
-                                        <Checkbox.Group
-                                            style={{ width: '100%' }}
-                                            onChange={handleMaterialChange}
-                                            value={selectedMaterials}
-                                        >
+                                    <Text strong>Chất liệu ({materials.length})</Text>
+                                    <div style={{ marginTop: 8, maxHeight: '200px', overflowY: 'auto', paddingRight: '8px' }}>
+                                        <Checkbox.Group style={{ width: '100%' }} onChange={handleMaterialChange} value={selectedMaterials}>
                                             <Space direction="vertical" style={{ width: '100%' }}>
-                                                {materials.map((material, index) => (
-                                                    <Checkbox
-                                                        key={material + index}
-                                                        value={material}
-                                                        style={{ marginLeft: 0 }}
-                                                    >
-                                                        {material}
-                                                    </Checkbox>
-                                                ))}
+                                                {materials.map((material, index) => {
+                                                    const count = products.filter(p =>
+                                                        p.material === material &&
+                                                        (!selectedBrand || p.brand?.brandName === selectedBrand) &&
+                                                        (selectedColors.length === 0 || selectedColors.some(c => p.colors?.includes(c))) &&
+                                                        (selectedSizes.length === 0 || selectedSizes.some(s => p.sizes?.includes(s))) &&
+                                                        p.price >= priceRange[0] && p.price <= priceRange[1]
+                                                    ).length;
+
+                                                    return (
+                                                        <Checkbox
+                                                            key={material + index}
+                                                            value={material}
+                                                            style={{ marginLeft: 0 }}
+                                                            disabled={count === 0 && !selectedMaterials.includes(material)}
+                                                        >
+                                                            {material} ({count})
+                                                        </Checkbox>
+                                                    );
+                                                })}
                                             </Space>
                                         </Checkbox.Group>
                                     </div>
@@ -662,6 +691,40 @@ const ShopAllProduct = (props) => {
                                                         >
                                                         </Tag>
                                                     ))}
+                                                </div>
+                                            )}
+                                            {product.colors && product.colors.length > 0 && (
+                                                <div style={{ marginTop: 8 }}>
+                                                    <Text type="secondary" style={{ fontSize: 12 }}>Màu sắc có sẵn:</Text>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                                                        {product.colors.map((color, i) => (
+                                                            <Tag
+                                                                key={i}
+                                                                style={{
+                                                                    backgroundColor: getColorCode(color),
+                                                                    color: '#fff',
+                                                                    borderRadius: '50%',
+                                                                    width: 20,
+                                                                    height: 20,
+                                                                    textAlign: 'center',
+                                                                    lineHeight: '20px'
+                                                                }}
+                                                            >
+                                                            </Tag>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Hiển thị các size có sẵn */}
+                                            {product.sizes && product.sizes.length > 0 && (
+                                                <div style={{ marginTop: 8 }}>
+                                                    <Text type="secondary" style={{ fontSize: 12 }}>Size có sẵn:</Text>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                                                        {product.sizes.map((size, i) => (
+                                                            <Tag key={i}>{size}</Tag>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             )}
                                         </Card>
