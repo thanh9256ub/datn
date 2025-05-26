@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
     Row, Col, Typography, Button, Card, Space, Divider,
     Badge, Rate, Tag, Image, Select, Slider, InputNumber, Checkbox,
-    Pagination
+    Pagination, Input
 } from 'antd';
-import { FilterOutlined } from '@ant-design/icons';
+import { FilterOutlined, SearchOutlined } from '@ant-design/icons';
 import { fetchProducts, fetchProductDetail, fetchProductColorsByProduct } from '../Service/productService';
 import { useHistory } from 'react-router-dom';
 import { fetchProductColorsByProductList } from '../../admin/products/service/ProductService';
@@ -30,6 +30,8 @@ const ShopAllProduct = (props) => {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(12);
+    const [searchTerm, setSearchTerm] = useState('');
+
 
     const [productColors, setProductColors] = useState({});
     const { messages, isConnected } = useWebSocket("/topic/product-updates");
@@ -47,6 +49,13 @@ const ShopAllProduct = (props) => {
 
     const applyFilters = useCallback(() => {
         let result = [...products];
+
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            result = result.filter(item =>
+                item.productName?.toLowerCase().includes(term)
+            );
+        }
 
         if (selectedBrand) {
             result = result.filter(item => item.brand?.brandName === selectedBrand);
@@ -99,7 +108,7 @@ const ShopAllProduct = (props) => {
 
         setFilteredProducts(result);
         setCurrentPage(1);
-    }, [products, selectedBrand, selectedMaterials, selectedColors, selectedSizes, priceRange, sortOption]);
+    }, [products, searchTerm, selectedBrand, selectedMaterials, selectedColors, selectedSizes, priceRange, sortOption]);
 
     useEffect(() => {
         let isMounted = true;
@@ -328,6 +337,16 @@ const ShopAllProduct = (props) => {
                         >
                             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                                 <div style={{ marginBottom: 16 }}>
+                                    <Text strong>Tìm kiếm sản phẩm</Text>
+                                    <Input
+                                        placeholder="Nhập tên sản phẩm"
+                                        prefix={<SearchOutlined />}
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        style={{ marginTop: 8 }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: 16 }}>
                                     <Text strong>Thương hiệu</Text>
                                     <Select
                                         style={{ width: '100%', marginTop: '8px' }}
@@ -343,13 +362,18 @@ const ShopAllProduct = (props) => {
                                 </div>
                                 <div style={{ marginBottom: 16 }}>
                                     <Text strong>Chất liệu</Text>
-                                    <div style={{ marginTop: 8 }}>
+                                    <div style={{
+                                        marginTop: 8,
+                                        maxHeight: '200px',
+                                        overflowY: 'auto',
+                                        paddingRight: '8px'
+                                    }}>
                                         <Checkbox.Group
                                             style={{ width: '100%' }}
                                             onChange={handleMaterialChange}
                                             value={selectedMaterials}
                                         >
-                                            <Space direction="vertical">
+                                            <Space direction="vertical" style={{ width: '100%' }}>
                                                 {materials.map((material, index) => (
                                                     <Checkbox
                                                         key={material + index}
@@ -365,7 +389,12 @@ const ShopAllProduct = (props) => {
                                 </div>
                                 <div>
                                     <Text strong>Màu sắc</Text>
-                                    <div style={{ marginTop: 8 }}>
+                                    <div style={{
+                                        marginTop: 8,
+                                        maxHeight: '200px',
+                                        overflowY: 'auto',
+                                        paddingRight: '8px'
+                                    }}>
                                         <Checkbox.Group
                                             style={{ width: '100%' }}
                                             onChange={(checkedValues) => setSelectedColors(checkedValues)}
