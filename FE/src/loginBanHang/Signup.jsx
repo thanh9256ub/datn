@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import { registerCustomer } from './service/Loginservice';
+import { existsPhone, registerCustomer } from './service/Loginservice';
 import { Typography, Input, Button, Select, Spin, Space, DatePicker, notification, Modal } from 'antd';
 import logo from '../assets/images/logo_h2tl.png'
+import { existsEmail } from './service/Loginservice'; // Import the email existence check function
 
 
 const { Title, Text } = Typography;
@@ -80,7 +81,7 @@ const Signup = () => {
     };
 
 
-    const validateForm = () => {
+    const validateForm = async () => {
         let isValid = true;
         const newErrors = { ...errors };
 
@@ -91,12 +92,12 @@ const Signup = () => {
         else if (fullName.length < 5) {
             newErrors.fullName = 'Họ và tên phải có ít nhất 5 ký tự';
             isValid = false;
-        
+
         } else if (fullName.length > 50) {
             newErrors.fullName = 'Họ và tên không được quá 50 ký tự';
             isValid = false;
         }
-        
+
         // họ và tên viết được cả dấu
         else if (!/^[\p{L}\s]+$/u.test(fullName)) {
             newErrors.fullName = 'Họ và tên không hợp lệ ';
@@ -115,11 +116,16 @@ const Signup = () => {
             newErrors.email = 'Email không hợp lệ';
             isValid = false;
         }
-
         else {
-            newErrors.email = '';
-
+            const emailExists = await existsEmail(email);
+            if (emailExists) {
+                newErrors.email = 'Email đã tồn tại.';
+                isValid = false;
+            } else {
+                newErrors.email = '';
+            }
         }
+
 
         if (!phone.trim()) {
             newErrors.phone = 'Số điện thoại không được để trống';
@@ -141,7 +147,14 @@ const Signup = () => {
         }
 
         else {
-            newErrors.phone = '';
+            const phoneExists = await existsPhone(phone);
+            if (phoneExists) {
+                newErrors.phone = 'Số điện thoại đã tồn tại.';
+                isValid = false;
+            } else {
+
+                newErrors.phone = '';
+            }
         }
 
         if (gender === null) {
@@ -154,7 +167,7 @@ const Signup = () => {
         if (!birthDate) {
             newErrors.birthDate = 'Vui lòng chọn ngày sinh';
             isValid = false;
-        } 
+        }
         // phai lớn hơn 18 tuổi
         else if (new Date(birthDate) > new Date(new Date().setFullYear(new Date().getFullYear() - 15))) {
             newErrors.birthDate = 'Đủ 15 tuổi trở lên';
@@ -172,8 +185,8 @@ const Signup = () => {
         setErrors(newErrors);
         return isValid;
     };
-    const showConfirm = () => {
-        const isValid = validateForm();
+    const showConfirm = async () => {
+        const isValid = await validateForm();
 
         if (isValid) {
             confirm({

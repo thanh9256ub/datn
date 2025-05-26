@@ -122,6 +122,7 @@ public class CounterController {
 
     @PostMapping("/comfirm/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> confirm(@PathVariable Integer id, @RequestBody OrderRequest orderRequest) {
+        orderDetailService.updatePrice(id);
         OrderResponse orderResponse = orderService.update(id, orderRequest);
         productDetailService.updateProductDetaiStatus0();
         ApiResponse<OrderResponse> apiResponse = new ApiResponse<>(
