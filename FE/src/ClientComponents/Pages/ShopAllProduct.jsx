@@ -695,7 +695,7 @@ const ShopAllProduct = (props) => {
                                             )}
                                             {product.colors && product.colors.length > 0 && (
                                                 <div style={{ marginTop: 8 }}>
-                                                    <Text type="secondary" style={{ fontSize: 12 }}>Màu sắc có sẵn:</Text>
+                                                    <Text type="secondary" style={{ fontSize: 12 }}> Các màu sắc:</Text>
                                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                                                         {product.colors.map((color, i) => (
                                                             <Tag
@@ -719,7 +719,7 @@ const ShopAllProduct = (props) => {
                                             {/* Hiển thị các size có sẵn */}
                                             {product.sizes && product.sizes.length > 0 && (
                                                 <div style={{ marginTop: 8 }}>
-                                                    <Text type="secondary" style={{ fontSize: 12 }}>Size có sẵn:</Text>
+                                                    <Text type="secondary" style={{ fontSize: 12 }}>Các size:</Text>
                                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                                                         {product.sizes.map((size, i) => (
                                                             <Tag key={i}>{size}</Tag>
