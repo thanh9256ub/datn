@@ -1,7 +1,8 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import {
     Button, Card, Col, Divider, Form, Input, List, Row, Select,
-    Space, Typography, Spin, Empty, Image, Radio, Modal, Alert, Badge, InputNumber, Checkbox, message
+    Space, Typography, Spin, Empty, Image, Radio, Modal, Alert, Badge, InputNumber, Checkbox, message,
+    Tag
 } from 'antd';
 import {
     DeleteOutlined, ShoppingCartOutlined, EnvironmentOutlined, PhoneOutlined,
@@ -830,27 +831,34 @@ const CartItems = () => {
                             <List
                                 itemLayout="horizontal"
                                 dataSource={cartItems}
-                                renderItem={item => {
+                                renderItem={(item) => {
                                     const itemId = item.id || item.productDetailId || item.productDetail?.id;
-                                    const availableStock = item.productDetail?.quantity || 0;
+                                    const availableStock = item.productDetail?.quantity || 0; // Số lượng tồn kho
+                                    const isOutOfStock = availableStock === 0; // Kiểm tra hết hàng
                                     const maxQuantity = Math.min(10, availableStock);
 
                                     return (
                                         <List.Item
                                             key={itemId}
-                                            style={{ padding: '16px 24px' }}
+                                            style={{
+                                                padding: '16px 24px',
+                                                opacity: isOutOfStock ? 0.6 : 1, // Làm mờ nếu hết hàng
+                                                backgroundColor: isOutOfStock ? '#f5E7EB' : 'transparent', // Nền xám nhẹ nếu hết hàng
+                                                transition: 'opacity 0.3s',
+                                            }}
                                             actions={[
                                                 <Button
                                                     icon={<DeleteOutlined />}
                                                     danger
                                                     onClick={() => removeFromCart(itemId)}
-                                                />
+                                                />,
                                             ]}
                                         >
                                             <Checkbox
                                                 checked={selectedItems.includes(itemId)}
                                                 onChange={() => toggleItemSelection(itemId)}
                                                 style={{ marginRight: 16 }}
+                                                disabled={isOutOfStock} // Vô hiệu hóa checkbox nếu hết hàng
                                             />
                                             <List.Item.Meta
                                                 avatar={
@@ -858,11 +866,19 @@ const CartItems = () => {
                                                         src={item.productDetail?.product?.mainImage || 'https://via.placeholder.com/80'}
                                                         width={80}
                                                         height={80}
-                                                        style={{ objectFit: 'cover' }}
-                                                        preview={false}
+                                                        style={{ objectFit: 'cover', filter: isOutOfStock ? 'grayscale(100%)' : 'none' }} // Làm mờ ảnh nếu hết hàng
                                                     />
                                                 }
-                                                title={<Text strong>{item.productDetail?.product?.productName || 'Sản phẩm'}</Text>}
+                                                title={
+                                                    <Space>
+                                                        <Text strong>{item.productDetail?.product?.productName || 'Sản phẩm'}</Text>
+                                                        {isOutOfStock && (
+                                                            <Tag color="red" style={{ fontWeight: 'bold' }}>
+                                                                Đã hết hàng
+                                                            </Tag>
+                                                        )}
+                                                    </Space>
+                                                }
                                                 description={
                                                     <Space size="middle" style={{ marginTop: 8 }}>
                                                         <Text>Giá: {(item.price || 0).toLocaleString('vi-VN')}₫</Text>
@@ -873,6 +889,10 @@ const CartItems = () => {
                                                                 max={maxQuantity}
                                                                 value={item.quantity}
                                                                 onChange={(value) => {
+                                                                    if (isOutOfStock) {
+                                                                        message.error('Sản phẩm đã hết hàng, không thể thay đổi số lượng.');
+                                                                        return;
+                                                                    }
                                                                     if (value > availableStock) {
                                                                         message.error(`Số lượng tối đa cho sản phẩm này là ${availableStock}.`);
                                                                         return;
@@ -884,7 +904,13 @@ const CartItems = () => {
                                                                     updateQuantity(itemId, value);
                                                                 }}
                                                                 style={{ width: 60 }}
+                                                                disabled={isOutOfStock} // Vô hiệu hóa InputNumber nếu hết hàng
                                                             />
+                                                            {isOutOfStock && (
+                                                                <Text style={{ color: 'red', fontWeight: 'bold' }}>
+                                                                    (Hết hàng)
+                                                                </Text>
+                                                            )}
                                                         </Space>
                                                         <Text>Màu sắc: {item.productDetail?.color?.colorName || 'Không có'}</Text>
                                                         <Text>Kích cỡ: {item.productDetail?.size?.sizeName || 'Không có'}</Text>
