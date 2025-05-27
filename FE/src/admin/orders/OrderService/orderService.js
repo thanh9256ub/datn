@@ -53,14 +53,54 @@ export const filterOrders = async ({ search, minPrice, maxPrice, startDate, endD
 // Hàm cập nhật trạng thái đơn hàng
 export const updateOrderStatus = async (id, newStatus) => {
     try {
+        // Nếu chuyển sang trạng thái "Đã xác nhận" (status = 2), kiểm tra tồn kho
+        if (newStatus === 2) {
+            // Lấy chi tiết đơn hàng để biết danh sách sản phẩm
+            const orderDetails = await fetchOrderDetailsByOrderId(id);
+            const productDetailIds = orderDetails.map((item) => item.productDetail.id);
+
+            // Gọi API để lấy số lượng tồn kho mới nhất
+            const response = await api.get("/product-detail", {
+                params: { ids: productDetailIds.join(",") },
+            });
+            const availableProducts = response.data.data || [];
+
+            // Kiểm tra tồn kho
+            for (const item of orderDetails) {
+                const product = availableProducts.find((p) => p.id === item.productDetail.id);
+                if (!product) {
+                    throw new Error(
+                        `Sản phẩm ${item.productDetail.product.productName} không tồn tại trong kho!`
+                    );
+                }
+                if (product.quantity < item.quantity) {
+                    throw new Error(
+                        `Số lượng tồn kho không đủ cho sản phẩm: ${item.productDetail.product.productName}. Yêu cầu: ${item.quantity}, Còn lại: ${product.quantity}`
+                    );
+                }
+            }
+        }
+
+        // Cập nhật trạng thái đơn hàng
         const response = await api.put(`/order/${id}/status`, null, {
-            params: { newStatus } // Gửi newStatus qua query params
+            params: { newStatus },
         });
-        console.log('Update Order Status Response:', response.data);
+        console.log("Update Order Status Response:", response.data);
         return response.data;
     } catch (error) {
-        console.error('Error updating order status:', error.response?.data || error.message);
-        throw error;
+        console.error("Error updating order status:", {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data,
+            message: error.message,
+        });
+        // Ưu tiên lỗi từ server (data hoặc message), nếu không thì lấy error.message
+        const errorMessage =
+            error.response?.data?.data ||
+            error.response?.data?.message ||
+            error.message ||
+            "Đã xảy ra lỗi không xác định";
+        throw new Error(errorMessage);
     }
 };
 // Hàm lấy danh sách OrderDetail theo orderID

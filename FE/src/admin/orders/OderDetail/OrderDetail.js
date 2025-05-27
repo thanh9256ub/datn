@@ -21,6 +21,9 @@ import CustomerInfo from './CustomerInfo';
 import axios from 'axios';
 import { useAuth } from '../../../context/AuthContext';
 import vietnamAddress from '../vietnamAddress.json';
+import logo from '../../../assets/images/logo_h2tl.png';
+
+
 const OrderDetail = ({ customer, onUpdate }) => {
     const location = useLocation();
     const { orderId } = useParams();
@@ -777,106 +780,189 @@ const OrderDetail = ({ customer, onUpdate }) => {
         const shippingFee = order.shippingFee || 0;
 
         const invoiceContent = `
-            <html>
-            <head>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        font-size: 14px;
-                        margin: 20px;
-                    }
-                    .invoice-header {
-                        text-align: center;
-                        margin-bottom: 20px;
-                    }
-                    .invoice-header h2 {
-                        font-size: 18px;
-                        margin: 5px 0;
-                    }
-                    .invoice-details {
-                        margin-bottom: 20px;
-                    }
-                    .invoice-table {
-                        width: 100%;
-                        border-collapse: collapse;
-                    }
-                    .invoice-table th, .invoice-table td {
-                        border: 1px solid #ddd;
-                        padding: 8px;
-                        text-align: left;
-                    }
-                    .invoice-table th {
-                        background-color: #f2f2f2;
-                    }
-                    .invoice-footer {
-                        margin-top: 20px;
-                        text-align: right;
-                    }
-                    .thank-you {
-                        text-align: center;
-                        margin-top: 20px;
-                        font-weight: bold;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="invoice-header">
-                    <h2>HÓA ĐƠN BÁN HÀNG</h2>
-                    <p>Mã hóa đơn: ${order.orderCode || 'N/A'}</p>
-                    <p>Ngày tạo: ${order.createdAt
-                ? new Date(order.createdAt).toLocaleString('vi-VN')
-                : 'N/A'}</p>
-                    <p>Địa chỉ: 13 P. Trịnh Văn Bô, Xuân Phương, Nam Từ Liêm, Hà Nội | Điện thoại: 0917294134</p>
-                </div>
-                <div class="invoice-details">
-                    <p><strong>Tên khách hàng:</strong> ${order.customerName || 'Khách lẻ'}</p>
-                    <p><strong>Số điện thoại:</strong> ${order.phone || 'N/A'}</p>
-                    <p><strong>Tên nhân viên:</strong> Hoàng Văn Tuấn</p>
-                </div>
-                <table class="invoice-table">
-                    <thead>
-                        <tr>
-                            <th>Sản phẩm</th>
-                            <th>Số lượng</th>
-                            <th>Đơn giá</th>
-                            <th>Thành tiền</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${selectedOrderDetail.length > 0
+    <html>
+    <head>
+      <style>
+        body {
+          font-family: 'Arial', sans-serif;
+          margin: 20px;
+          color: #333;
+          font-size: 14px;
+        }
+        .invoice-container {
+          max-width: 800px;
+          margin: 0 auto;
+          border: 1px solid #e0e0e0;
+          padding: 20px;
+          border-radius: 8px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .invoice-header {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+        .invoice-header img {
+          max-width: 150px;
+          height: auto;
+          margin-bottom: 10px;
+        }
+        .invoice-header h2 {
+          font-size: 24px;
+          color: #007bff;
+          margin: 0;
+          font-weight: bold;
+        }
+        .invoice-header p {
+          margin: 5px 0;
+          font-size: 14px;
+          color: #555;
+        }
+        .invoice-info {
+          margin-bottom: 20px;
+          display: flex;
+          justify-content: space-between;
+        }
+        .invoice-info div {
+          flex: 1;
+        }
+        .invoice-info p {
+          margin: 5px 0;
+          font-size: 14px;
+        }
+        .invoice-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 20px;
+        }
+        .invoice-table th, .invoice-table td {
+          border: 1px solid #ddd;
+          padding: 10px;
+          text-align: left;
+          font-size: 14px;
+        }
+        .invoice-table th {
+          background-color: #f8f9fa;
+          font-weight: bold;
+          color: #333;
+        }
+        .invoice-table td {
+          vertical-align: middle;
+        }
+        .invoice-footer {
+          margin-top: 20px;
+          text-align: right;
+        }
+        .invoice-footer p {
+          margin: 5px 0;
+          font-size: 14px;
+        }
+        .invoice-footer .total {
+          font-size: 16px;
+          font-weight: bold;
+          color: #dc3545;
+        }
+        .thank-you {
+          text-align: center;
+          margin-top: 30px;
+          font-size: 16px;
+          font-weight: bold;
+          color: #007bff;
+        }
+        .divider {
+          border-top: 1px dashed #ccc;
+          margin: 15px 0;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="invoice-container">
+        <div class="invoice-header">
+          <img src="${logo}" alt="H2TL Logo" />
+          <p>Địa chỉ: 13 P. Trịnh Văn Bô, Xuân Phương, Nam Từ Liêm, Hà Nội</p>
+          <p>Điện thoại: 0917294134</p>
+          <h3>HÓA ĐƠN BÁN HÀNG</h3>
+        </div>
+        <div class="divider"></div>
+        <div class="invoice-info">
+          <div>
+            <p><strong>Mã hóa đơn:</strong> ${order.orderCode || 'N/A'}</p>
+            <p><strong>Ngày tạo:</strong> ${order.createdAt
+                ? new Date(order.createdAt).toLocaleString('vi-VN', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                })
+                : 'N/A'
+            }</p>
+          </div>
+          <div>
+            <p><strong>Tên khách hàng:</strong> ${order.customerName || 'Khách lẻ'}</p>
+            <p><strong>Số điện thoại:</strong> ${order.phone || 'N/A'}</p>
+            <p><strong>Nhân viên:</strong> ${order.employee?.fullName || 'Hoàng Văn Tuấn'}</p>
+          </div>
+        </div>
+        <table class="invoice-table">
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Sản phẩm</th>
+              <th>Số lượng</th>
+              <th>Đơn giá</th>
+              <th>Thành tiền</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${selectedOrderDetail.length > 0
                 ? selectedOrderDetail
-                    .filter(item => item.quantity > 0)
-                    .map(item => `
-                                    <tr>
-                                        <td>${item.productDetail?.product?.productName || 'N/A'} - 
-                                            ${item.productDetail?.color?.colorName || ''} - 
-                                            ${item.productDetail?.size?.sizeName || ''}</td>
-                                        <td>${item.quantity || 0}</td>
-                                        <td>${(item.price || 0).toLocaleString()} VNĐ</td>
-                                        <td>${((item.quantity || 0) * (item.price || 0)).toLocaleString()} VNĐ</td>
-                                    </tr>
-                                `).join('')
-                : '<tr><td colspan="4" style="text-align: center;">Không có sản phẩm</td></tr>'
+                    .filter((item) => item.quantity > 0)
+                    .map(
+                        (item, index) => `
+                      <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.productDetail?.product?.productName || 'N/A'} - 
+                            ${item.productDetail?.color?.colorName || ''} - 
+                            ${item.productDetail?.size?.sizeName || ''}</td>
+                        <td>${item.quantity || 0}</td>
+                        <td>${(item.price || 0).toLocaleString('vi-VN')} VNĐ</td>
+                        <td>${((item.quantity || 0) * (item.price || 0)).toLocaleString('vi-VN')} VNĐ</td>
+                      </tr>
+                    `
+                    )
+                    .join('')
+                : '<tr><td colspan="5" style="text-align: center;">Không có sản phẩm</td></tr>'
             }
-                    </tbody>
-                </table>
-                <div class="invoice-footer">
-                    <p>Tổng tiền hàng: ${totalAmount.toLocaleString()} VNĐ</p>
-                    <p>Giảm giá: ${(order.discountValue || 0).toLocaleString()} VNĐ</p>
-                    <p>Phí vận chuyển: ${shippingFee.toLocaleString()} VNĐ</p>
-                    <p><strong>Tổng thanh toán: ${(finalAmount + shippingFee).toLocaleString()} VNĐ</strong></p>
-                </div>
-                <div class="thank-you">
-                    Cảm ơn Quý Khách, hẹn gặp lại!
-                </div>
-            </body>
-            </html>
-        `;
+          </tbody>
+        </table>
+        <div class="divider"></div>
+        <div class="invoice-footer">
+          <p><strong>Tổng tiền hàng:</strong> ${totalAmount.toLocaleString('vi-VN')} VNĐ</p>
+          <p><strong>Giảm giá:</strong> ${(order.discountValue || 0).toLocaleString('vi-VN')} VNĐ</p>
+          <p><strong>Phí vận chuyển:</strong> ${shippingFee.toLocaleString('vi-VN')} VNĐ</p>
+          <p class="total"><strong>Tổng thanh toán:</strong> ${(finalAmount + shippingFee).toLocaleString('vi-VN')} VNĐ</p>
+        </div>
+        <div class="thank-you">
+          Cảm ơn Quý Khách, hẹn gặp lại!
+        </div>
+      </div>
+      <script>
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+            setTimeout(function() {
+              window.close();
+            }, 1000);
+          }, 500);
+        };
+      </script>
+    </body>
+    </html>
+  `;
 
         const printWindow = window.open('', '_blank');
         printWindow.document.write(invoiceContent);
         printWindow.document.close();
-        printWindow.print();
     };
 
     const StatusTimeline = ({ status }) => {
