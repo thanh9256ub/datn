@@ -427,17 +427,43 @@ const CartItems = () => {
     }, [selectedDistrict, form]);
 
 
+    useEffect(() => {
+        if (selectedItems.length > 0 && selectedProvince && selectedDistrict) {
+            calculateShippingFee();
+        } else {
+            setShippingFee(0);
+        }
+    }, [selectedItems, selectedProvince, selectedDistrict, cartItems]);
+
     const calculateTotalWeight = () => {
-        return cartItems.reduce((total, item) => total + (item.weight || 600) * item.quantity, 0) || 1000;
+        const selectedProducts = cartItems.filter(item =>
+            selectedItems.includes(item.id || item.productDetailId || item.productDetail?.id)
+        );
+
+        const totalWeight = selectedProducts.reduce(
+            (total, item) => total + (item.weight || 600) * item.quantity,
+            0
+        ) || 1000;
+
+        console.log('Selected products:', selectedProducts); // Debug log
+        console.log('Total weight calculated:', totalWeight); // Debug log
+
+        return totalWeight;
     };
 
     const calculateShippingFee = async () => {
-        if (!selectedProvince || !selectedDistrict) return;
+        if (!selectedProvince || !selectedDistrict || selectedItems.length === 0) {
+            setShippingFee(0);
+            return;
+        }
 
         setShippingLoading(true);
         try {
+            const currentWeight = calculateTotalWeight();
+            console.log('Calculating shipping fee for weight:', currentWeight);
+
             const response = await fetchShippingFee({
-                PRODUCT_WEIGHT: calculateTotalWeight(),
+                PRODUCT_WEIGHT: currentWeight,
                 ORDER_SERVICE: selectedProvince == 1 ? "PHS" : "LCOD",
                 SENDER_PROVINCE: 1,
                 SENDER_DISTRICT: 28,
@@ -447,12 +473,16 @@ const CartItems = () => {
 
             const fee = response.data?.data?.MONEY_TOTAL;
             if (fee !== undefined) {
+                console.log('New shipping fee calculated:', fee);
                 setShippingFee(fee);
             } else {
                 message.warning('Không thể tính phí vận chuyển.');
+                setShippingFee(0);
             }
         } catch (error) {
+            console.error('Error calculating shipping:', error);
             message.error('Lỗi khi tính phí vận chuyển.');
+            setShippingFee(0);
         } finally {
             setShippingLoading(false);
         }
@@ -1235,7 +1265,11 @@ const CartItems = () => {
                                 <Spin spinning={shippingLoading}>
                                     <Row justify="space-between">
                                         <Text>Phí vận chuyển:</Text>
-                                        <Text strong>{shippingFee.toLocaleString('vi-VN')}₫</Text>
+                                        <Text strong>
+                                            {selectedItems.length > 0 && selectedProvince && selectedDistrict
+                                                ? shippingFee.toLocaleString('vi-VN') + '₫'
+                                                : '-'}
+                                        </Text>
                                     </Row>
                                 </Spin>
                                 {voucherDiscount > 0 && (
