@@ -58,7 +58,7 @@ const CartItems = () => {
     const [voucherLoading, setVoucherLoading] = useState(false);
     const [isLoadingDefaultAddress, setIsLoadingDefaultAddress] = useState(false);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
-
+    const [isVNPayProcessing, setIsVNPayProcessing] = useState(false); // Thêm state mới
 
     // Initialize cart
     useEffect(() => {
@@ -219,7 +219,7 @@ const CartItems = () => {
     }, [isGuest, token, customerId, form, provinces]);
 
     useEffect(() => {
-        if (cartId && !isGuest) {
+        if (cartId && !isGuest && !isVNPayProcessing) { // Chỉ đồng bộ khi không xử lý VNPay
             const intervalId = setInterval(async () => {
                 try {
                     await loadCartItems(cartId);
@@ -228,10 +228,10 @@ const CartItems = () => {
                     message.error('Không thể làm mới giỏ hàng. Vui lòng thử lại.');
                 }
             }, 3000);
-
+    
             return () => clearInterval(intervalId);
         }
-    }, [isGuest, cartId, loadCartItems]);
+    }, [isGuest, cartId, loadCartItems, isVNPayProcessing]);
 
     useEffect(() => {
         if (selectedItems.length === 0 && (voucherCode || voucherDiscount > 0)) {
@@ -242,84 +242,79 @@ const CartItems = () => {
         }
     }, [selectedItems, voucherCode, voucherDiscount]);
 
-    // Generate VNPay payment URL and open new window
+    useEffect(() => {
+        const pendingOrder = localStorage.getItem('pendingVNPayOrder');
+        if (pendingOrder) {
+            const { orderId, transactionId, timestamp } = JSON.parse(pendingOrder);
+            
+            const now = new Date().getTime();
+            if (now - timestamp > 30 * 60 * 1000) {
+                localStorage.removeItem('pendingVNPayOrder');
+                return;
+            }
+            
+            pollPaymentStatus(transactionId, orderId);
+        }
+    }, []);
+
     const generateVNPayPaymentHandler = async (orderId, totalAmount) => {
         try {
+            setIsVNPayProcessing(true);
             const response = await generateVNPayPayment(orderId, totalAmount);
             setVnpayPaymentUrl(response.paymentUrl);
             console.log("Generated payment URL:", response.paymentUrl);
             setVnpayTransactionId(response.transactionId);
-
+    
+            localStorage.setItem('pendingVNPayOrder', JSON.stringify({
+                orderId,
+                transactionId: response.transactionId,
+                timestamp: new Date().getTime()
+            }));
+    
             vnpayWindowRef.current = window.open(response.paymentUrl, '_blank', 'width=600,height=800');
             if (!vnpayWindowRef.current) {
                 message.error('Vui lòng cho phép popup để thanh toán qua VNPay!');
+                setIsVNPayProcessing(false);
                 return;
             }
-
+    
             pollPaymentStatus(response.transactionId, orderId);
         } catch (error) {
             console.error('Lỗi khi tạo URL VNPAY:', error);
             message.error('Không thể tạo mã thanh toán VNPAY.');
+            setIsVNPayProcessing(false);
         }
     };
 
     const pollPaymentStatus = async (transactionId, orderCode) => {
         setCheckingPayment(true);
-        const maxAttempts = 450;
+        const maxAttempts = 450; // 15 phút (2000ms * 450)
         let attempts = 0;
-
+    
         const interval = setInterval(async () => {
             attempts++;
             try {
                 const statusResponse = await checkVNPayPaymentStatus(transactionId);
                 console.log('Payment status response:', statusResponse);
-
+    
                 if (statusResponse.status === 'SUCCESS') {
                     clearInterval(interval);
                     setThankYouModalVisible(true);
                     message.success('Thanh toán thành công!');
-
-                    const formValues = form.getFieldsValue();
-                    await sendOrderConfirmationEmail(
-                        formValues.email,
-                        orderCode,
-                        formValues.name,
-                        getTotalCartAmount() + shippingFee - voucherDiscount,
-                        'VNPAY'
-                    );
-
-                    const validSelectedItems = selectedItems.filter(id =>
-                        cartItems.some(item => (item.id === id || item.productDetailId === id || item.productDetail?.id === id))
-                    );
-                    setCartItems(prev => prev.filter(item =>
-                        !validSelectedItems.includes(item.id || item.productDetailId || item.productDetail?.id)
-                    ));
-                    if (!isGuest) await clearCartOnServer(cartId);
-                    else localStorage.setItem('cartItems', JSON.stringify(
-                        cartItems.filter(item => !validSelectedItems.includes(item.productDetailId || item.productDetail?.id))
-                    ));
-                    setVoucherCode('');
-                    setVoucherDiscount(0);
-                    setVoucherError('');
-
+    
+                    // Xử lý sau khi thanh toán thành công
+                    await handleSuccessfulPayment(orderCode, transactionId);
+    
+                    // Xóa thông tin đơn hàng tạm thời
+                    localStorage.removeItem('pendingVNPayOrder');
+    
+                    // Đóng cửa sổ VNPay nếu còn mở
                     if (vnpayWindowRef.current && !vnpayWindowRef.current.closed) {
                         vnpayWindowRef.current.close();
-                        if (!vnpayWindowRef.current.closed) {
-                            vnpayWindowRef.current.location.href = 'about:blank';
-                            setTimeout(() => {
-                                if (vnpayWindowRef.current && !vnpayWindowRef.current.closed) {
-                                    vnpayWindowRef.current.close();
-                                }
-                            }, 100);
-                        }
                     }
-
-                    form.resetFields();
-                    setSelectedProvince('');
-                    setSelectedDistrict('');
-                    setSelectedWard('');
-                    setShippingFee(0);
+    
                     setCheckingPayment(false);
+                    setIsVNPayProcessing(false); // Tắt trạng thái
                 } else if (statusResponse.status === 'FAILED') {
                     clearInterval(interval);
                     message.error('Thanh toán thất bại!');
@@ -327,6 +322,7 @@ const CartItems = () => {
                         vnpayWindowRef.current.close();
                     }
                     setCheckingPayment(false);
+                    setIsVNPayProcessing(false); // Tắt trạng thái
                 } else if (attempts >= maxAttempts) {
                     clearInterval(interval);
                     message.error('Hết thời gian chờ thanh toán VNPAY!');
@@ -334,6 +330,7 @@ const CartItems = () => {
                         vnpayWindowRef.current.close();
                     }
                     setCheckingPayment(false);
+                    setIsVNPayProcessing(false); // Tắt trạng thái
                 }
             } catch (error) {
                 console.error('Error in pollPaymentStatus:', error);
@@ -343,10 +340,63 @@ const CartItems = () => {
                     vnpayWindowRef.current.close();
                 }
                 setCheckingPayment(false);
+                setIsVNPayProcessing(false); // Tắt trạng thái
             }
         }, 2000);
     };
 
+    const handleSuccessfulPayment = async (orderCode, transactionId) => {
+        try {
+            const formValues = form.getFieldsValue();
+            
+            // Gửi email xác nhận
+            await sendOrderConfirmationEmail(
+                formValues.email,
+                orderCode,
+                formValues.name,
+                getTotalCartAmount() + shippingFee - voucherDiscount,
+                'VNPAY'
+            );
+    
+            // Xóa sản phẩm đã thanh toán khỏi giỏ hàng
+            const validSelectedItems = selectedItems.filter(id =>
+                cartItems.some(item => (item.id === id || item.productDetailId === id || item.productDetail?.id === id))
+            );
+            
+            setCartItems(prev => prev.filter(item =>
+                !validSelectedItems.includes(item.id || item.productDetailId || item.productDetail?.id)
+            ));
+            
+            if (!isGuest) {
+                await clearCartOnServer(cartId);
+            } else {
+                localStorage.setItem('cartItems', JSON.stringify(
+                    cartItems.filter(item => 
+                        !validSelectedItems.includes(item.productDetailId || item.productDetail?.id)
+                    )
+                ));
+            }
+            
+            // Reset các trường
+            setVoucherCode('');
+            setVoucherDiscount(0);
+            setVoucherError('');
+            form.resetFields();
+            setSelectedProvince('');
+            setSelectedDistrict('');
+            setSelectedWard('');
+            setShippingFee(0);
+            
+            // Tải lại giỏ hàng để đảm bảo đồng bộ
+            if (!isGuest) {
+                await loadCartItems(cartId);
+            }
+            
+        } catch (error) {
+            console.error('Error in handleSuccessfulPayment:', error);
+            message.error('Có lỗi xảy ra khi xử lý đơn hàng sau thanh toán');
+        }
+    };
     const handleCheckoutConfirm = () => {
         setIsConfirmModalVisible(true);
     };
@@ -585,7 +635,7 @@ const CartItems = () => {
         console.log('Các mục đã chọn:', selectedItems);
         try {
             await form.validateFields();
-
+    
             if (selectedItems.length === 0) {
                 message.warning('Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
                 return;
@@ -593,24 +643,24 @@ const CartItems = () => {
             const pricesValid = await verifyPricesBeforeCheckout();
             if (!pricesValid) return;
             setLoading(true);
-
+    
             const formValues = form.getFieldsValue();
             const address = `${formValues.address}, ${wards.find(w => w.WARDS_ID === selectedWard)?.WARDS_NAME || ''}, 
                 ${districts.find(d => d.DISTRICT_ID === selectedDistrict)?.DISTRICT_NAME || ''}, 
                 ${provinces.find(p => p.PROVINCE_ID === selectedProvince)?.PROVINCE_NAME || ''}`;
-
+    
             const validSelectedItems = selectedItems.filter(id =>
                 cartItems.some(item =>
                     (item.id === id || item.productDetailId === id || item.productDetail?.id === id)
                 )
             );
-
+    
             if (validSelectedItems.length === 0) {
                 message.error('Không có sản phẩm hợp lệ được chọn để thanh toán.');
                 setLoading(false);
                 return;
             }
-
+    
             const selectedCartItems = cartItems
                 .filter(item => {
                     const itemId = item.id || item.productDetailId || item.productDetail?.id;
@@ -622,15 +672,15 @@ const CartItems = () => {
                     price: item.price,
                     totalPrice: item.total_price || item.price * item.quantity
                 }));
-
+    
             console.log('Selected cart items before stock check:', selectedCartItems);
-
+    
             if (selectedCartItems.length === 0) {
                 message.error('Không có sản phẩm nào để kiểm tra tồn kho.');
                 setLoading(false);
                 return;
             }
-
+    
             const insufficientItems = await checkStockAvailabilityFrontend(selectedCartItems);
             if (insufficientItems === null) {
                 setLoading(false);
@@ -644,7 +694,7 @@ const CartItems = () => {
                 setLoading(false);
                 return;
             }
-
+    
             const totalAmount = getTotalCartAmount() + shippingFee - voucherDiscount;
             const orderData = {
                 customerName: formValues.name,
@@ -665,7 +715,7 @@ const CartItems = () => {
                 cartItems: selectedCartItems,
                 customerId: isGuest ? null : customerId
             };
-
+    
             console.log('Order data sent:', JSON.stringify(orderData, null, 2));
             let response;
             let voucherData = null;
@@ -699,7 +749,7 @@ const CartItems = () => {
                     }
                 }
             }
-
+    
             if (isGuest) {
                 response = await createGuestOrder(orderData);
             } else {
@@ -719,12 +769,12 @@ const CartItems = () => {
                 }
                 response = await createOrder(cartId, orderData);
             }
-
+    
             if (response.status === 201) {
                 const orderCode = response.data?.orderCode || response.data?.data?.orderCode;
                 console.log("===Order Code===" + orderCode);
                 setOrderCode(orderCode);
-
+    
                 if (voucherData) {
                     const orderVoucherData = {
                         orderId: response.data?.id || response.data?.data?.id,
@@ -739,10 +789,12 @@ const CartItems = () => {
                         return;
                     }
                 }
-
+    
                 if (paymentMethod === 2) {
+                    // For VNPay, only initiate payment, do not clear cart here
                     await generateVNPayPaymentHandler(orderCode, totalAmount);
                 } else {
+                    // For COD, clear cart and show success
                     setThankYouModalVisible(true);
                     message.success('Đặt hàng thành công!');
                     await sendOrderConfirmationEmail(
@@ -752,13 +804,17 @@ const CartItems = () => {
                         totalAmount,
                         'COD'
                     );
+                    // Clear cart for COD orders
                     setCartItems(prev => prev.filter(item =>
                         !validSelectedItems.includes(item.id || item.productDetail?.id)
                     ));
-                    if (!isGuest) await clearCartOnServer(cartId);
-                    else localStorage.setItem('cartItems', JSON.stringify(
-                        cartItems.filter(item => !validSelectedItems.includes(item.productDetailId || item.productDetail?.id))
-                    ));
+                    if (!isGuest) {
+                        await clearCartOnServer(cartId);
+                    } else {
+                        localStorage.setItem('cartItems', JSON.stringify(
+                            cartItems.filter(item => !validSelectedItems.includes(item.productDetailId || item.productDetail?.id))
+                        ));
+                    }
                     setVoucherCode('');
                     setVoucherDiscount(0);
                     setVoucherError('');
