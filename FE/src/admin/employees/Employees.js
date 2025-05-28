@@ -392,7 +392,7 @@ const Employees = () => {
                                         <i className='mdi mdi-arrow-right-bold'></i>
                                     </Button>
                                 </div> */}
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: "50px" }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: "160px" }}>
                                     <button className="pagination-button" onClick={() => handleTruoc()}>
                                         <i className='mdi mdi-arrow-left-bold'></i>
                                     </button>

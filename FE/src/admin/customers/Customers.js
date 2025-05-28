@@ -311,7 +311,7 @@ const Customers = () => {
                                                     <th>Giới tính</th>
                                                     <th>Số điện thoại</th>
                                                     <th>Địa chỉ</th>
-                                                    <th>Trạng thái</th>
+                                                    {/* <th>Trạng thái</th> */}
                                                     <th >Hành động</th>
                                                 </tr>
                                             </thead>
@@ -326,7 +326,7 @@ const Customers = () => {
                                                                 <td>{customer.gender ? "Nam" : "Nữ"}</td>
                                                                 <td>{customer.phone}</td>
                                                                 <td>{customer.address}</td>
-                                                                <td>{customer.status ? "Đang hoạt động" : "Không hoạt động"}</td>
+                                                                {/* <td>{customer.status ? "Đang hoạt động" : "Không hoạt động"}</td> */}
                                                                 {/* <td>
                                                             <Button variant="link" onClick={() => handleShow(customer)}>
                                                                 Chi tiết
@@ -334,9 +334,9 @@ const Customers = () => {
                                                         </td> */}
                                                                 <td>
                                                                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                                                        <Button variant="link" onClick={() => handleRemoveStatus(customer.id)} style={{ padding: '0px', marginRight: "20px" }}>
+                                                                        {/* <Button variant="link" onClick={() => handleRemoveStatus(customer.id)} style={{ padding: '0px', marginRight: "20px" }}>
                                                                             <i className='mdi mdi-delete-forever'></i>
-                                                                        </Button>
+                                                                        </Button> */}
                                                                         <Button variant="link" onClick={() => handleUpdateCustomer(customer.id)} style={{ padding: '0px' }}>
                                                                             <i className='mdi mdi-border-color'></i>
                                                                         </Button>
