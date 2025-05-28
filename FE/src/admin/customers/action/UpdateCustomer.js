@@ -360,14 +360,14 @@ const UpdateCustomer = () => {
                                                 </div>
                                             </div>
                                         </Form.Group>
-                                        <Form.Group>
+                                        {/* <Form.Group>
                                             <label className="form-label">Trạng thái</label>
                                             <Select
                                                 options={[{ value: 1, label: "Đang hoạt động" }, { value: 0, label: "Không hoạt động" }]}
                                                 value={{ value: update.status, label: update.status === 1 ? "Đang hoạt động" : "Không hoạt động" }}
                                                 onChange={(selected) => setUpdate({ ...update, status: selected.value })}
                                             />
-                                        </Form.Group>
+                                        </Form.Group> */}
                                     </div>
                                     <div className="col-md-6 col-12">
                                         <Form.Group className="mb-3">

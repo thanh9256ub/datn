@@ -40,6 +40,10 @@ const CreateEmployee = () => {
 
     const [roleIdError, setRoleIdError] = useState('');
 
+    const [genderError, setGenderError] = useState('');
+
+
+
     useEffect(async () => {
         // getAllROle()
         let req = await listRole();
@@ -88,6 +92,8 @@ const CreateEmployee = () => {
         setUsernameError('');
 
         setEmailError('');
+
+        setGenderError('')
 
         setPhoneError('');
 
@@ -184,7 +190,7 @@ const CreateEmployee = () => {
             }
         }
 
-
+    
 
         if (!newEmployee.phone) {
             setPhoneError('Vui lòng nhập số điện thoại.');
@@ -381,6 +387,7 @@ const CreateEmployee = () => {
                                                         id="genderNam"
                                                         custom
                                                     />
+                                                   
                                                 </div>
 
                                                 {/* Nữ */}
@@ -394,8 +401,10 @@ const CreateEmployee = () => {
                                                         onChange={(e) => setNewEmployee({ ...newEmployee, gender: e.target.value ? 0 : 1 })}
                                                         id="genderNu"
                                                         custom
+
                                                     />
                                                 </div>
+                                               
                                             </div>
                                         </Form.Group>
 

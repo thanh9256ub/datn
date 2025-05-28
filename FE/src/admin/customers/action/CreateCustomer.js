@@ -131,6 +131,17 @@ const CreateCustomer = () => {
         if (!customer.birthDate) {
             setBirthDateError('Vui lòng chọn ngày sinh.');
             isValid = false;
+        }else {
+            const selectedDate = new Date(customer.birthDate);
+            const currentYear = new Date().getFullYear(); // Sử dụng năm hiện tại
+            const minBirthYear = currentYear - 15;
+
+            const selectedYear = selectedDate.getFullYear();
+
+            if (selectedYear > minBirthYear) {
+                setBirthDateError("Tuổi phải từ 15 trở lên.");
+                isValid = false;
+            }
         }
 
         // Validate province and detailed address for each address
@@ -377,8 +388,22 @@ const CreateCustomer = () => {
                                             <Form.Control type="date" id="birthDateInput"
                                                 value={customer.birthDate}
                                                 onChange={(e) => {
-                                                    setCustomer({ ...customer, birthDate: e.target.value });
-                                                    setBirthDateError(''); // Reset lỗi khi người dùng nhập lại
+                                                    // setCustomer({ ...customer, birthDate: e.target.value });
+                                                    // setBirthDateError('');
+                                                     const selectedDate = new Date(e.target.value);
+                                                    const currentYear = 2025;
+                                                    const minBirthYear = currentYear - 15;
+
+                                                    const selectedYear = selectedDate.getFullYear();
+
+                                                    if (selectedYear <= minBirthYear) {
+                                                        setCustomer({ ...customer, birthDate: e.target.value });
+                                                        setBirthDateError(""); // Xóa thông báo lỗi nếu hợp lệ
+                                                    } else {
+                                                        setBirthDateError("Tuổi phải từ 15 trở lên."); // Hiển thị thông báo lỗi
+                                                        setCustomer({ ...customer, birthDate: "" });
+                                                        
+                                                    }
                                                 }} />
 
                                             {birthDateError && (

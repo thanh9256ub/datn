@@ -13,8 +13,8 @@ import {
   addToCart,
   updateCartQuantity,
   updateOrderStatus,
-} from './api'; // Import API functions
-import { toastOptions } from './constants'; // Import constants
+} from './api'; 
+import { toastOptions } from './constants'; 
 import useWebSocket from "../../hook/useWebSocket";
 
 const BanHang = () => {
