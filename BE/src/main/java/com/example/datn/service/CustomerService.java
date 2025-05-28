@@ -188,7 +188,7 @@ public class CustomerService {
         customer.setFullName(customerRequest.getFullName());
         customer.setPhone(customerRequest.getPhone());
         customer.setUpdatedAt(LocalDateTime.now());
-        customer.setStatus(customerRequest.getStatus());
+        customer.setStatus(customerRequest.getStatus() == null ? customer.getStatus() : customerRequest.getStatus());
 
         if(customer.getStatus() == 0){
             webSocketController.sendUpdateStatusCustomer(customer.getCustomerCode());

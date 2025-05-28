@@ -153,10 +153,12 @@ const Navbar = () => {
                   </div>
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="navbar-dropdown">
-                  <Dropdown.Item onClick={handleShowProfileCustomer}>
-                    <i className="mdi mdi-account mr-2 text-success"></i>
-                    <Trans>Thông tin</Trans>
-                  </Dropdown.Item>
+                  {isCustomer && (
+                    <Dropdown.Item onClick={handleShowProfileCustomer}>
+                      <i className="mdi mdi-account mr-2 text-success"></i>
+                      <Trans>Thông tin</Trans>
+                    </Dropdown.Item>
+                  )}
                   {!isCustomer && (
                     <Dropdown.Item onClick={handleChangePassword}>
                       <i className="mdi mdi-cached mr-2 text-success"></i>
