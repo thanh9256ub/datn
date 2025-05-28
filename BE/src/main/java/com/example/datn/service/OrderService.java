@@ -483,4 +483,34 @@ public class OrderService {
 
         return repository.getTotalNetPriceOfTodayOrdersWithStatus5();
     }
+
+    @Transactional
+    public OrderResponse updateShippingAndTotal(Integer orderId, UpdateShippingAndTotalRequest request) {
+
+        Order order = repository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+
+        if (order.getStatus() > 3) {
+            throw new IllegalStateException("Cannot update shipping fee or total price for order in status: " + order.getStatus());
+        }
+
+        // Cập nhật shippingFee, totalPrice và totalPayment
+        order.setShippingFee(request.getShippingFee());
+        order.setTotalPrice(request.getTotalPrice());
+        order.setTotalPayment(request.getTotalPayment());
+        order.setUpdatedAt(LocalDateTime.now().withNano(0));
+
+        // Lưu đơn hàng
+        Order updatedOrder = repository.save(order);
+
+        // Gửi thông báo qua WebSocket (nếu cần)
+        webSocketController.sendUpdateStatusOrder(order.getOrderCode(), order.getStatus());
+
+        // Chuyển đổi sang OrderResponse
+        return mapper.toOrderResponse(updatedOrder);
+    }
+    public List<OrderResponse> getOrderByCustomerId(Integer customerId){
+        return mapper.toListOrders(repository.findByCustomerIdOrderByCreatedAtDesc(customerId));
+    }
 }

@@ -7,6 +7,7 @@ import { addCustomer, existsEmail, existsPhone } from '../service/CustomersServi
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import { Spinner } from 'react-bootstrap';
 import "./ActionCustomer.css";
+import Swal from 'sweetalert2';
 
 
 const CreateCustomer = () => {
@@ -48,7 +49,19 @@ const CreateCustomer = () => {
     const [provinceErrors, setProvinceErrors] = useState([]);
 
     const handleSaveCustomer = async () => {
-        if (!window.confirm('Bạn có chắc chắn muốn thêm khách hàng?')) return;
+
+        const result = await Swal.fire({
+            title: "Xác nhận",
+            text: "Bạn có chắc chắn muốn thêm khách hàng không?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Đồng ý",
+            cancelButtonText: "Hủy",
+        });
+
+        if (!result.isConfirmed) return;
 
         setFullNameError('');
         setEmailError('');

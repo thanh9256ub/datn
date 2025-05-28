@@ -1,7 +1,9 @@
 package com.example.datn.service;
 
 import com.example.datn.controller.WebSocketController;
+import com.example.datn.dto.request.PriceCheckRequest;
 import com.example.datn.dto.request.ProductDetailRequest;
+import com.example.datn.dto.response.PriceDiscrepancyResponse;
 import com.example.datn.dto.response.ProductDetailResponse;
 import com.example.datn.dto.response.ProductResponse;
 import com.example.datn.entity.Color;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -76,7 +79,7 @@ public class ProductDetailService {
                     () -> new ResourceNotFoundException("Color not found with ID: "));
 
             Size size = sizeRepository.findById(request.getSizeId()).orElseThrow(
-                    () -> new ResourceNotFoundException("Size not found with ID: "));
+                    () -> new ResourceNotFoundException("Size not found wicccth ID: "));
 
             ProductDetail productDetail = mapper.toProductDetail(request);
 
@@ -113,6 +116,36 @@ public class ProductDetailService {
                         ProductDetail::getQuantity,
                         (existing, replacement) -> existing
                 ));
+    }
+
+
+    public List<ProductDetailResponse> getProductDetailsByIds(List<Integer> productDetailIds) {
+        // Truy vấn danh sách ProductDetail theo danh sách ID
+        List<ProductDetail> productDetails = repository.findByIdIn(productDetailIds);
+
+        // Chuyển đổi danh sách ProductDetail thành ProductDetailResponse
+        return productDetails.stream()
+                .map(this::mapToProductDetailResponse)
+                .collect(Collectors.toList());
+    }
+
+    // Phương thức hỗ trợ chuyển đổi ProductDetail sang ProductDetailResponse
+    private ProductDetailResponse mapToProductDetailResponse(ProductDetail productDetail) {
+        ProductDetailResponse response = new ProductDetailResponse();
+        response.setId(productDetail.getId());
+        response.setPrice(productDetail.getPrice());
+        response.setQuantity(productDetail.getQuantity());
+        response.setStatus(productDetail.getStatus());
+        response.setQr(productDetail.getQr()); // Ánh xạ qrCode sang qr
+        response.setCreatedAt(productDetail.getCreatedAt());
+        response.setUpdatedAt(productDetail.getUpdatedAt());
+
+        // Gán trực tiếp các thực thể
+        response.setProduct(productDetail.getProduct());
+        response.setColor(productDetail.getColor());
+        response.setSize(productDetail.getSize());
+
+        return response;
     }
 
     @Transactional
@@ -181,6 +214,8 @@ public class ProductDetailService {
         ProductDetail productDetail = repository.findById(pdId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + pdId));
 
+        Double oldPrice = productDetail.getPrice();
+
         if (request.getQuantity() != null && request.getQuantity() >= 0) {
             productDetail.setQuantity(request.getQuantity());
         }
@@ -207,7 +242,16 @@ public class ProductDetailService {
         }
 
         repository.save(productDetail);
-
+        if (request.getPrice() != null && !request.getPrice().equals(oldPrice)) {
+            webSocketController.sendProductPriceUpdate(
+                    productDetail.getProduct().getId(),
+                    productDetail.getProduct().getProductCode(),
+                    productDetail.getColor().getId(),
+                    productDetail.getSize().getId(),
+                    productDetail.getPrice(),
+                    productDetail.getId() // Thêm productDetailId
+            );
+        }
         updateTotalQuantity(productDetail.getProduct().getId());
 
         return mapper.toProductDetailResponse(productDetail);
@@ -221,11 +265,20 @@ public class ProductDetailService {
         List<ProductDetail> updatedDetails = requests.stream().map(request -> {
             ProductDetail productDetail = repository.findById(request.getId()).orElseThrow(
                     () -> new ResourceNotFoundException("Product Detail not found with ID: " + request.getId()));
-
+            Double oldPrice = productDetail.getPrice();
             productDetail.setQuantity(request.getQuantity());
             productDetail.setPrice(request.getPrice());
             productDetail.setStatus(request.getStatus());
-
+            if (request.getPrice() != null && !request.getPrice().equals(oldPrice)) {
+                webSocketController.sendProductPriceUpdate(
+                        product.getId(),
+                        product.getProductCode(),
+                        productDetail.getColor().getId(),
+                        productDetail.getSize().getId(),
+                        request.getPrice(),
+                        productDetail.getId() // Thêm productDetailId
+                );
+            }
             return productDetail;
         }).toList();
 
@@ -356,5 +409,65 @@ public class ProductDetailService {
         );
 
         return mapper.toListProductDetail(repository.findAll(spec));
+    }
+
+    public Map<Integer, Double> checkCurrentPrices(List<Integer> productDetailIds) {
+        // Lấy danh sách product details từ database
+        List<ProductDetail> productDetails = repository.findByIdIn(productDetailIds);
+
+        // Tạo map chứa giá hiện tại
+        return productDetails.stream()
+                .collect(Collectors.toMap(
+                        ProductDetail::getId,
+                        ProductDetail::getPrice,
+                        (existing, replacement) -> existing
+                ));
+    }
+
+    public Map<Integer, ProductDetail> getProductDetailsMap(List<Integer> productDetailIds) {
+        List<ProductDetail> details = repository.findByIdIn(productDetailIds);
+        return details.stream()
+                .collect(Collectors.toMap(
+                        ProductDetail::getId,
+                        Function.identity()
+                ));
+    }
+
+    public List<PriceDiscrepancyResponse> checkPriceDiscrepancies(List<PriceCheckRequest> requests) {
+        List<Integer> productDetailIds = requests.stream()
+                .map(PriceCheckRequest::getProductDetailId)
+                .collect(Collectors.toList());
+        Map<Integer, ProductDetail> productDetailsMap = getProductDetailsMap(productDetailIds);
+        return requests.stream()
+                .map(request -> {
+                    ProductDetail productDetail = productDetailsMap.get(request.getProductDetailId());
+                    Double currentPrice = request.getCurrentPrice() != null ? request.getCurrentPrice() : 0.0;
+                    Double newPrice = productDetail != null ? productDetail.getPrice() : 0.0;
+                    // Sử dụng dung sai để so sánh giá
+                    boolean hasDiscrepancy = productDetail != null &&
+                            Math.abs(newPrice - currentPrice) > 0.01;
+                    String productName = productDetail != null && productDetail.getProduct() != null
+                            ? productDetail.getProduct().getProductName()
+                            : "Unknown Product";
+                    String colorName = productDetail != null && productDetail.getColor() != null
+                            ? productDetail.getColor().getColorName()
+                            : "Unknown Color";
+                    String sizeName = productDetail != null && productDetail.getSize() != null
+                            ? productDetail.getSize().getSizeName()
+                            : "Unknown Size";
+                    log.info("Checking price for productDetailId: {}, productName: {}, color: {}, size: {}, currentPrice: {}, newPrice: {}, hasDiscrepancy: {}",
+                            request.getProductDetailId(), productName, colorName, sizeName, currentPrice, newPrice, hasDiscrepancy);
+                    return new PriceDiscrepancyResponse(
+                            request.getProductDetailId(),
+                            hasDiscrepancy,
+                            currentPrice,
+                            newPrice,
+                            productName,
+                            colorName,
+                            sizeName
+                    );
+                })
+                .filter(response -> response.isHasDiscrepancy())
+                .collect(Collectors.toList());
     }
 }

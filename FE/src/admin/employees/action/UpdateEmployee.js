@@ -6,6 +6,7 @@ import { useParams, useHistory } from 'react-router-dom/cjs/react-router-dom.min
 import Select from 'react-select';
 import { Spinner } from 'react-bootstrap';
 import "./CreateEmployee.css";
+import Swal from 'sweetalert2';
 
 
 const UpdateEmployee = () => {
@@ -64,7 +65,23 @@ const UpdateEmployee = () => {
 
 
     const handleUpdate = async (id, employee) => {
-        if (window.confirm('Bạn có chắc chắn muốn cập nhật thông tin nhân viên này?')) {
+
+        const result = await Swal.fire({
+            title: "Xác nhận",
+            text: "Bạn có chắc chắn muốn cập nhật nhân viên ?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Đồng ý",
+            cancelButtonText: "Hủy",
+        });  
+
+        // if (!result.isConfirmed) return; 
+
+
+
+        if (result.isConfirmed) {
 
             setFullNameError('');
 

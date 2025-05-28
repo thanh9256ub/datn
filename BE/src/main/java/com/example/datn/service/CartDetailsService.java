@@ -3,6 +3,7 @@ package com.example.datn.service;
 import com.example.datn.dto.request.AddToCartRequest;
 import com.example.datn.dto.request.CartDetailsRequest;
 import com.example.datn.dto.request.CartRequest;
+import com.example.datn.dto.request.UpdateCartDetailsRequest;
 import com.example.datn.dto.response.CartDetailsResponse;
 import com.example.datn.dto.response.CartResponse;
 import com.example.datn.entity.Cart;
@@ -23,6 +24,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class CartDetailsService {
@@ -149,4 +152,59 @@ public class CartDetailsService {
         return mapper.toCartDetailsResponse(updatedCartDetails);
     }
 
+    @Transactional
+    public List<CartDetailsResponse> updateCartDetails(Integer cartId, List<UpdateCartDetailsRequest> requests) {
+        // 1. Kiểm tra giỏ hàng tồn tại
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with id: " + cartId));
+
+        // 2. Lấy danh sách CartDetails hiện tại
+        List<CartDetails> existingDetails = repository.findByCartId(cartId);
+
+        // 3. Tạo danh sách productDetailId từ request
+        Set<Integer> requestProductDetailIds = requests.stream()
+                .map(UpdateCartDetailsRequest::getProductDetailId)
+                .collect(Collectors.toSet());
+
+        // 4. Xóa các CartDetails không còn trong request
+        existingDetails.stream()
+                .filter(detail -> !requestProductDetailIds.contains(detail.getProductDetail().getId()))
+                .forEach(detail -> repository.delete(detail));
+
+        // 5. Cập nhật hoặc tạo mới CartDetails
+        List<CartDetails> updatedDetails = requests.stream().map(request -> {
+            // Kiểm tra ProductDetail tồn tại
+            ProductDetail productDetail = productDetailRepository.findById(request.getProductDetailId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Product detail not found with id: " + request.getProductDetailId()));
+
+            // Tìm CartDetails hiện có
+            Optional<CartDetails> existingDetail = existingDetails.stream()
+                    .filter(detail -> detail.getProductDetail().getId().equals(request.getProductDetailId()))
+                    .findFirst();
+
+            CartDetails cartDetails;
+            if (existingDetail.isPresent()) {
+                // Cập nhật CartDetails hiện có
+                cartDetails = existingDetail.get();
+                cartDetails.setQuantity(request.getQuantity());
+                cartDetails.setPrice(request.getPrice());
+                cartDetails.setTotal_price(request.getPrice() * request.getQuantity());
+            } else {
+                // Tạo mới CartDetails
+                cartDetails = new CartDetails();
+                cartDetails.setCart(cart);
+                cartDetails.setProductDetail(productDetail);
+                cartDetails.setQuantity(request.getQuantity());
+                cartDetails.setPrice(request.getPrice());
+                cartDetails.setTotal_price(request.getPrice() * request.getQuantity());
+                cartDetails.setCreated_at(LocalDateTime.now());
+            }
+
+            return repository.save(cartDetails);
+        }).collect(Collectors.toList());
+
+        // 6. Trả về response
+        return mapper.toListResponse(updatedDetails);
+    }
 }

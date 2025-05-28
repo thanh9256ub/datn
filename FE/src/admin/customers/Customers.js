@@ -5,6 +5,7 @@ import './Customer.css';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min.js';
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import Swal from 'sweetalert2';
 
 
 const Customers = () => {
@@ -208,8 +209,20 @@ const Customers = () => {
         history.push(`/admin/customers/update/${id}`)
     }
 
-    const handleRemoveStatus = (id) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa trạng thái khách hàng này?')) {
+    const handleRemoveStatus = async (id) => {
+        
+        const result = await Swal.fire({
+            title: "Xác nhận",
+            text: "Bạn có chắc chắn muốn xóa trạng thái khách hàng ?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Đồng ý",
+            cancelButtonText: "Hủy",
+        });
+
+        if (result.isConfirmed) {
             updateCustomerStatus(id).then(data => {
                 getAllCusomers()
             });

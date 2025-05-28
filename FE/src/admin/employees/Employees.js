@@ -5,6 +5,7 @@ import './Employee.css';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import Swal from 'sweetalert2';
 
 const Employees = () => {
 
@@ -104,8 +105,20 @@ const Employees = () => {
         })
     }
 
-    const handleRemove = (id) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa trạng thái nhân viên này?')) {
+    const handleRemove = async (id) => {
+
+        const result = await Swal.fire({
+            title: "Xác nhận",
+            text: "Bạn có chắc chắn muốn xóa trạng thái nhân viên ?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Đồng ý",
+            cancelButtonText: "Hủy",
+        });
+
+        if (result.isConfirmed) {
             updateEmployeeStatus(id).then(data => {
                 getAllEmployee()
             });
@@ -379,8 +392,7 @@ const Employees = () => {
                                         <i className='mdi mdi-arrow-right-bold'></i>
                                     </Button>
                                 </div> */}
-
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: "10px" }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: "50px" }}>
                                     <button className="pagination-button" onClick={() => handleTruoc()}>
                                         <i className='mdi mdi-arrow-left-bold'></i>
                                     </button>

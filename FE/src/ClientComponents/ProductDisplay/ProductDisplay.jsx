@@ -15,7 +15,7 @@ import useWebSocket from '../../hook/useWebSocket';
 const { Text, Title } = Typography;
 
 const ProductDisplay = ({ product, productColors }) => {
-    const { addToCart } = useContext(ShopContext);
+    const { addToCart, getTotalCartItems } = useContext(ShopContext);
     const [selectedColorId, setSelectedColorId] = useState(null);
     const [selectedProductColorId, setSelectedProductColorId] = useState(null);
     const [images, setImages] = useState([]);
@@ -67,9 +67,18 @@ const ProductDisplay = ({ product, productColors }) => {
 
     useEffect(() => {
         if (messages.length > 0) {
-            handleColorOrSizeChange()
+            const latestMessage = messages[messages.length - 1]; // Lấy thông điệp mới nhất
+            try {
+                const messageData = JSON.parse(latestMessage); // Giả sử thông điệp là JSON
+                // Kiểm tra nếu thông điệp liên quan đến sản phẩm hiện tại
+                if (messageData.productId === product.id) {
+                    handleColorOrSizeChange(); // Gọi lại để cập nhật giá và chi tiết
+                }
+            } catch (error) {
+                console.error('Error parsing WebSocket message:', error);
+            }
         }
-    }, [messages]);
+    }, [messages, product.id]);
 
     useEffect(() => {
         handleColorOrSizeChange();
@@ -85,6 +94,10 @@ const ProductDisplay = ({ product, productColors }) => {
     }, [productColors]);
 
     const handleAddToCart = () => {
+        if (getTotalCartItems() >= 10) {
+            message.error('Giỏ hàng đã đạt tối đa 10 sản phẩm.');
+            return;
+        }
         if (!selectedSize) {
             message.warning('Vui lòng chọn size trước khi thêm vào giỏ');
             return;
@@ -110,7 +123,7 @@ const ProductDisplay = ({ product, productColors }) => {
             productImage: mainImage,
             color: selectedColor.color,
             size: selectedSizeObj,
-            price: product.price,
+            price: currentDetail.price,
             productColorId: selectedProductColorId,
             sizeId: selectedSize
         });
@@ -164,6 +177,12 @@ const ProductDisplay = ({ product, productColors }) => {
 
     const handleConfirmAddToCart = async () => {
         try {
+            if (getTotalCartItems() >= 10) {
+                message.error('Giỏ hàng đã đạt tối đa 10 sản phẩm.');
+                setConfirmModalVisible(false);
+                return;
+            }
+
             if (!selectedColorId || !selectedSize || !product?.id) {
                 message.warning('Vui lòng chọn đầy đủ thông tin sản phẩm');
                 return;
@@ -372,7 +391,8 @@ const ProductDisplay = ({ product, productColors }) => {
                                         color: primaryColor,
                                         fontWeight: 700
                                     }}>
-                                        {product.price?.toLocaleString() || 0} ₫
+                                        {/* Sử dụng currentDetail.price nếu có, nếu không thì dùng product.price */}
+                                        {(currentDetail?.price || product.price)?.toLocaleString() || 0} ₫
                                     </Text>
                                 </div>
                                 {currentDetail ? (

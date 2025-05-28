@@ -1,11 +1,17 @@
 package com.example.datn.controller;
 
+import com.example.datn.dto.request.PriceCheckRequest;
+import com.example.datn.dto.request.ProductDetailIdsRequest;
 import com.example.datn.dto.request.ProductDetailRequest;
 import com.example.datn.dto.response.ApiResponse;
+import com.example.datn.dto.response.PriceDiscrepancyResponse;
 import com.example.datn.dto.response.ProductDetailResponse;
 import com.example.datn.dto.response.ProductResponse;
+import com.example.datn.entity.ProductDetail;
 import com.example.datn.entity.Size;
 import com.example.datn.service.ProductDetailService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
@@ -14,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -22,6 +29,8 @@ public class ProductDetailController {
 
         @Autowired
         ProductDetailService service;
+
+        private static final Logger logger = LoggerFactory.getLogger(ProductDetailController.class); // Thêm logger
 
         @PostMapping("/add-multiple/{productId}")
         public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> addProductDetail(
@@ -250,5 +259,76 @@ public class ProductDetailController {
                         "Products retrieved successfully",
                         results
                 ));
+        }
+        @PostMapping("/by-ids")
+        public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getProductDetailsByIds(
+                @RequestBody ProductDetailIdsRequest request) {
+                logger.info("Nhận yêu cầu lấy chi tiết sản phẩm cho các ID: {}", request.getProductDetailIds());
+
+                if (request == null || request.getProductDetailIds() == null || request.getProductDetailIds().isEmpty()) {
+                        logger.warn("Yêu cầu không hợp lệ: productDetailIds là null hoặc rỗng");
+                        throw new IllegalArgumentException("Danh sách ID không được rỗng");
+                }
+
+                List<ProductDetailResponse> productDetails = service.getProductDetailsByIds(request.getProductDetailIds());
+
+                logger.info("Lấy thành công {} chi tiết sản phẩm", productDetails.size());
+
+                ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Lấy chi tiết sản phẩm thành công",
+                        productDetails);
+
+                return ResponseEntity.ok(response);
+        }
+        @PostMapping("/batch")
+        public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getProductDetailsByIdsBatch(
+                @RequestBody Map<String, List<Integer>> request) {
+                List<Integer> productDetailIds = request.get("productDetailIds");
+                if (productDetailIds == null || productDetailIds.isEmpty()) {
+                        throw new IllegalArgumentException("Danh sách ID không được rỗng");
+                }
+                List<ProductDetailResponse> productDetails = service.getProductDetailsByIds(productDetailIds);
+                ApiResponse<List<ProductDetailResponse>> response = new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Retrieved product details successfully",
+                        productDetails);
+                return ResponseEntity.ok(response);
+        }
+        @PostMapping("/check-prices")
+        public ResponseEntity<ApiResponse<List<PriceDiscrepancyResponse>>> checkPriceDiscrepancies(
+                @RequestBody List<PriceCheckRequest> requests) {
+
+                if (requests == null || requests.isEmpty()) {
+                        throw new IllegalArgumentException("Danh sách kiểm tra giá không được trống");
+                }
+
+                // Kiểm tra và bổ sung thông tin sản phẩm
+                List<PriceDiscrepancyResponse> responses = service.checkPriceDiscrepancies(requests);
+
+                // Lấy thông tin chi tiết sản phẩm
+                List<Integer> productDetailIds = responses.stream()
+                        .map(PriceDiscrepancyResponse::getProductDetailId)
+                        .collect(Collectors.toList());
+
+                Map<Integer, ProductDetail> productDetails = service.getProductDetailsMap(productDetailIds);
+
+                // Cập nhật thông tin sản phẩm vào response
+                responses.forEach(response -> {
+                        ProductDetail detail = productDetails.get(response.getProductDetailId());
+                        if (detail != null) {
+                                response.setProductName(detail.getProduct().getProductName());
+                                response.setColor(detail.getColor().getColorName());
+                                response.setSize(detail.getSize().getSizeName());
+                        }
+                });
+
+                ApiResponse<List<PriceDiscrepancyResponse>> response = new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Price discrepancies checked successfully",
+                        responses
+                );
+
+                return ResponseEntity.ok(response);
         }
 }

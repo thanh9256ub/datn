@@ -14,6 +14,8 @@ import ChatBot from './chatbot/ChatBot.jsx';
 import CustomerProfile from './CustomerProfile/CustomerProfile.jsx';
 import Policy from './Pages/Policy.jsx';
 import Description from './Pages/Description.jsx';
+import MyOrders from './Pages/MyOrders.jsx';
+import MyOrderDetail from './Pages/MyOrderDetail.jsx';
 
 const Client = () => {
 
@@ -30,6 +32,8 @@ const Client = () => {
                 <Route path="/policy" component={Policy} />
                 <Route path="/description" component={Description} />
                 <Route path="/profile" component={CustomerProfile} />
+                <Route exact path="/my-orders" component={MyOrders} />
+                <Route exact path="/my-orders/:id" component={MyOrderDetail} />
             </Switch>
             <ChatBot />
             <Footer />

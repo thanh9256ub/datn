@@ -32,6 +32,7 @@ const Navbar = () => {
     else if (path === '/policy') setActiveMenu('policy');
     else if (path === '/description') setActiveMenu('description');
     else if (path === '/lookup') setActiveMenu('lookup');
+    else if (path === '/my-orders') setActiveMenu('my-orders');
   }, [location]);
 
   const handleLogout = (e) => {
@@ -60,7 +61,9 @@ const Navbar = () => {
     { key: 'all', label: <Trans>Sản phẩm</Trans>, path: '/all-product' },
     { key: 'policy', label: <Trans>Chính sách</Trans>, path: '/policy' },
     { key: 'description', label: <Trans>Về chúng tôi</Trans>, path: '/description' },
-    { key: 'lookup', label: <Trans>Tra cứu</Trans>, path: '/lookup' },
+    isCustomer
+      ? { key: 'my-orders', label: <Trans>Đơn hàng của tôi</Trans>, path: '/my-orders' }
+      : { key: 'lookup', label: <Trans>Tra cứu</Trans>, path: '/lookup' },
   ];
 
   const renderUserRole = () => {

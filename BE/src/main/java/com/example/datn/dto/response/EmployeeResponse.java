@@ -15,7 +15,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
-public class EmployeeResponse {
+public class  EmployeeResponse {
 
     Integer id;
 

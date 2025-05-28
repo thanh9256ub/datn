@@ -62,4 +62,18 @@ public class WebSocketController {
         String massage = "Khách hàng đã bị khoá tài khoản: " + code;
         messagingTemplate.convertAndSend("/topic/customer-status", massage);
     }
+
+    public void sendProductPriceUpdate(Integer productId, String productCode, Integer colorId, Integer sizeId, Double newPrice, Integer productDetailId) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("productId", productId);
+        payload.put("productCode", productCode);
+        payload.put("colorId", colorId);
+        payload.put("sizeId", sizeId);
+        payload.put("newPrice", newPrice);
+        payload.put("productDetailId", productDetailId);
+        payload.put("type", "priceUpdate"); // Thêm trường type để phân biệt
+
+        log.info("🚀 Gửi realtime update giá sản phẩm {}: {}", productCode, newPrice);
+        messagingTemplate.convertAndSend("/topic/product-updates", payload);
+    }
 }

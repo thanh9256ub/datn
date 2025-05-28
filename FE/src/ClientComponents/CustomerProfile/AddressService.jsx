@@ -606,17 +606,39 @@ export const fetchCustomerOrders = async (customerId) => {
         throw error;
     }
 };
-export const fetchDefaultAddress = async (customerId) => {
+export const addAddress = async (addressData) => {
     try {
-        console.log(`Fetching addresses for customer ID: ${customerId}`);
-        const response = await api.get(`/address/list/${customerId}`);
-        console.log('Addresses response:', response.data);
-        // Lọc địa chỉ mặc định (status = 1)
-        const defaultAddress = response.data.data.find(address => address.status === 1);
-        return defaultAddress || null;
+        const response = await api.post('/address/add', addressData);
+        console.log('API res (add address):', response.data);
+        return response.data.data; // Return the AddressResponse from ApiResponse
     } catch (error) {
-        console.error('Error fetching default address:', {
-            url: `/address/list/${customerId}`,
+        console.error('Error adding address:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            errorData: error.response?.data,
+            requestData: error.config?.data,
+        });
+        throw new Error(error.response?.data?.message || 'Không thể thêm địa chỉ');
+    }
+};
+export const fetchAddresses = async (customerId) => {
+    try {
+        const response = await axios.get(`/address/list/${customerId}`);
+        return response.data.data;
+    } catch (error) {
+        console.error('Error fetching addresses:', error);
+        throw error;
+    }
+};
+export const setDefaultAddress = async (addressId) => {
+    try {
+        console.log(`Sending request to set default address with id: ${addressId}`);
+        const response = await api.post(`/address/set-default/${addressId}`);
+        console.log('Set default address response:', response.data);
+        return response.data.data; // Trả về AddressResponse từ ApiResponse
+    } catch (error) {
+        console.error('Error setting default address:', {
+            url: `/address/set-default/${addressId}`,
             status: error.response?.status,
             errorData: error.response?.data,
         });

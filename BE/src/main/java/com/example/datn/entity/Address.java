@@ -55,7 +55,11 @@ public class Address {
         this.customer = customer;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-        this.status = addressRequest.getDefaultAddress() ? 1 : 0;
+        if (addressRequest.getDefaultAddress() != null) {
+            this.status = addressRequest.getDefaultAddress() ? 1 : 0;
+        } else {
+            this.status = addressRequest.getStatus() != null ? addressRequest.getStatus() : 0;
+        }
     }
 }
 
