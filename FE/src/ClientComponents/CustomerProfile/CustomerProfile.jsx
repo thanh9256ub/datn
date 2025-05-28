@@ -40,6 +40,8 @@ const CustomerProfile = () => {
                 const customerResponse = await axios.get(`http://localhost:8080/customer/${customerId}`);
                 const customerData = customerResponse.data;
 
+                console.log("DAta: ", customerData)
+
                 if (customerData.birthDate) {
                     customerData.birthDate = dayjs(customerData.birthDate);
                 }
@@ -63,6 +65,7 @@ const CustomerProfile = () => {
     }, [customerId]);
 
     const onFinish = async (values) => {
+        console.log("DATA VALUES: ", values)
         try {
             setLoading(true);
             if (values.birthDate) {
@@ -71,6 +74,7 @@ const CustomerProfile = () => {
             const response = await updateCustomer(customerId, values);
             message.success('Cập nhật thông tin thành công');
             setCustomer(response.data);
+            localStorage.setItem("fullName", values.fullName)
             setEditing(false);
         } catch (error) {
             message.error(error.message || 'Không thể cập nhật thông tin');
